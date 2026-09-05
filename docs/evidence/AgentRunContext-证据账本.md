@@ -231,3 +231,82 @@ git log -1 --oneline
 
 这段记录证明提交质量问题经过了“现象—定位—修正—回归”，但不能作为新增功能或
 性能收益计算。
+
+## 记录 03：流式执行器注入接缝 RED → GREEN
+
+### 基本信息
+
+| 字段 | 记录值 |
+| --- | --- |
+| 验证日期 | 2026-09-05 |
+| 起点提交 | `d815263 fix(agent): bind cancellable stream task handle` |
+| 被验证代码 | 本记录所在的阶段 10A 提交；提交前尚无哈希 |
+| 工作区状态 | 全局非干净，存在与本阶段无关的未跟踪用户文件；Agent 目标范围只有本阶段修改 |
+| 测试环境 | 单 JVM、Java 21、Maven Surefire、内存测试 Agent |
+| 生产执行策略 | 无参构造器仍委托 `ForkJoinPool.commonPool()`；专用有界执行器尚未实施 |
+
+### RED → GREEN 结果
+
+| 阶段 | 测试数量 | 成功 | 失败 | 错误 | 跳过 | 超时 | 退出码 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 修改前阶段基线 | 12 | 12 | 0 | 0 | 0 | 0 | 0 |
+| 构造接缝回归 | 12 | 12 | 0 | 0 | 0 | 0 | 0 |
+| 执行器选择 RED | 1 | 0 | 1 | 0 | 0 | 0 | 1 |
+| 执行器选择 GREEN | 1 | 1 | 0 | 0 | 0 | 0 | 0 |
+| 最终阶段回归 | 13 | 13 | 0 | 0 | 0 | 0 | 0 |
+
+RED 运行于 2026-09-05 18:16，核心失败是注入执行器的任务数期望为 1、实际为 0；
+同一份日志同时显示任务运行在 `ForkJoinPool.commonPool-worker-1`。这证明失败来自
+`runStream()` 绕过注入入口，而不是编译错误、等待超时或环境冷启动。
+
+GREEN 只把提交语句替换为 `streamExecutor.execute(streamTask)`，没有修改
+`AgentRunTask` 的提交前绑定，也没有修改异常收尾和 cleanup/termination 顺序。
+最终阶段回归于 2026-09-05 18:22 完成，Maven 汇总和 6 份 Surefire XML 报告均为
+13 项测试、0 失败、0 错误、0 跳过。
+
+重新查看真实 diff 时还发现：起点提交 `d815263` 的 `BaseAgent.java` 末尾仍缺少
+换行，`git show --check` 不会把这一点报告为空白错误。本阶段通过正常文件编辑补上了
+末尾换行。因此记录 02 中“格式修正”的结论只能覆盖已验证的行尾空格和最小差异，
+不能继续推断该提交已经修复文件末尾换行。
+
+### 本阶段新增的可证明结论
+
+1. `BaseAgent.runStream()` 的任务提交由构造器注入的 `Executor` 控制；
+2. 测试无需 sleep、网络、模型和工具即可确定性控制任务开始时点；
+3. 注入执行器推进真实 `FutureTask` 后，运行进入 `SUCCEEDED`，cleanup 执行一次，
+   termination 完成；
+4. 替换提交入口后，既有状态隔离、异常、取消和终止相关回归未退化；
+5. 本阶段 6 个测试类共 13 项相关单元测试通过。
+
+### 尚未测量或不能得出的结论
+
+1. 生产环境仍使用公共池兼容入口，尚未形成专用资源隔离；
+2. 尚未验证线程数、队列容量和拒绝策略；
+3. 本阶段没有并发压力测试，测试数量不能当作并发任务数量；
+4. 没有记录重复测试轮次，不能声称长期运行成功率；
+5. 没有吞吐量、响应时间、CPU、内存或终止延迟数据；
+6. 尚未解决 `YuManus @Component` 与控制器每请求手动创建的所有权冲突。
+
+### 原始输出
+
+本地保存、不进入 Git：
+
+```text
+target/evidence/agent-run-context/2026-09-05-d815263/step10a-baseline.log
+target/evidence/agent-run-context/2026-09-05-d815263/step10a-constructor-seam-green.log
+target/evidence/agent-run-context/2026-09-05-d815263/step10a-executor-selection-red.log
+target/evidence/agent-run-context/2026-09-05-d815263/step10a-executor-selection-green.log
+target/evidence/agent-run-context/2026-09-05-d815263/step10a-phase-regression.log
+target/surefire-reports/
+```
+
+### 简历表述边界
+
+本阶段完成提交后，可以保守描述为：
+
+> 为 Agent 流式任务建立可注入执行器接缝，通过确定性 RED → GREEN 测试复现并
+> 消除硬编码公共池提交行为，结合 13 项单元测试验证既有运行隔离、取消和终止契约
+> 未发生回归。
+
+不得描述为“使用专用有界线程池”“支持高并发”“提高吞吐量”或“消除线程泄漏”；
+这些结论需要阶段 10B/10C 的拒绝、重复运行、终止延迟和资源残留证据。

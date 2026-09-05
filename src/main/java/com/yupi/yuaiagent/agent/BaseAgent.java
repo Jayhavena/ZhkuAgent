@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
@@ -43,6 +44,33 @@ public abstract class BaseAgent {
 
     /** 大模型客户端，属于可复用依赖。 */
     private ChatClient chatClient;
+
+    /**
+     * 执行流式 Agent 任务的资源入口。
+     *
+     * <p>字段属于 Agent 配置，不保存任何一次运行的状态。本阶段先建立注入
+     * 接缝；下一阶段再由 Spring 专用有界执行器接管其生命周期。</p>
+     */
+    private final Executor streamExecutor;
+
+    /**
+     * 兼容现有 Agent 构造链的临时入口。
+     *
+     * <p>它保持当前公共池行为，避免本阶段提前改变 YuManus 的 Spring 装配。
+     * 阶段 10B 贯通显式构造器后必须删除，不能长期隐藏执行器所有权。</p>
+     */
+    protected BaseAgent() {
+        this(ForkJoinPool.commonPool());
+    }
+
+    /**
+     * 使用调用方明确提供的执行器创建 Agent 定义。
+     *
+     * @param streamExecutor 执行流式任务的执行器
+     */
+    protected BaseAgent(Executor streamExecutor) {
+        this.streamExecutor = streamExecutor;
+    }
 
     /**
      * 同步运行 Agent。
@@ -130,8 +158,8 @@ public abstract class BaseAgent {
         });
 
         try {
-            // 当前仍使用公共池作为过渡；后续再替换为专用有界执行器。
-            ForkJoinPool.commonPool().execute(streamTask);
+            // 任务句柄已经绑定，具体线程和容量策略由注入执行器决定。
+            streamExecutor.execute(streamTask);
         } catch (RuntimeException exception) {
             // 如果任务提交失败，工作线程不会启动，因此由提交线程完成失败收尾。
             streamTask.cancel(false);
