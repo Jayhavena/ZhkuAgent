@@ -6,6 +6,7 @@ import com.yupi.yuaiagent.agent.runtime.AgentStopReason;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -96,6 +97,7 @@ class BaseAgentStreamCancellationTest {
                 new AtomicInteger();
 
         private InterruptibleStreamAgent() {
+            super(ForkJoinPool.commonPool());
             // 一个步骤足以观察任务取消与最终清理。
             setMaxSteps(1);
         }

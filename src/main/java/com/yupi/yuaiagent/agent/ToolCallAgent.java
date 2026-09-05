@@ -19,6 +19,7 @@ import org.springframework.ai.model.tool.ToolExecutionResult;
 import org.springframework.ai.tool.ToolCallback;
 
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
@@ -39,7 +40,11 @@ public class ToolCallAgent extends ReActAgent<ToolCallDecision> {
     /** 禁用框架内部自动工具执行后的可复用选项。 */
     private final ChatOptions chatOptions;
 
-    public ToolCallAgent(ToolCallback[] availableTools) {
+    public ToolCallAgent(
+            ToolCallback[] availableTools,
+            Executor streamExecutor
+    ) {
+        super(streamExecutor);
         this.availableTools = availableTools;
         this.toolCallingManager = ToolCallingManager.builder().build();
         this.chatOptions = DashScopeChatOptions.builder()

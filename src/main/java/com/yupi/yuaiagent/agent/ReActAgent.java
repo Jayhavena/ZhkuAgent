@@ -3,6 +3,8 @@ package com.yupi.yuaiagent.agent;
 import com.yupi.yuaiagent.agent.model.AgentStepDecision;
 import com.yupi.yuaiagent.agent.runtime.AgentRunContext;
 
+import java.util.concurrent.Executor;
+
 /**
  * ReAct（Reasoning and Acting）模式的 Agent 抽象类。
  *
@@ -10,6 +12,13 @@ import com.yupi.yuaiagent.agent.runtime.AgentRunContext;
  */
 public abstract class ReActAgent<D extends AgentStepDecision>
         extends BaseAgent {
+
+    /**
+     * 创建使用指定流式任务执行器的 ReAct Agent。
+     */
+    protected ReActAgent(Executor streamExecutor) {
+        super(streamExecutor);
+    }
 
     /**
      * 根据当前运行上下文完成思考并返回本步骤决策。

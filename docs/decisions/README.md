@@ -36,7 +36,7 @@
 
 | 日期 | 决策 | 状态 | 关联证据 |
 | --- | --- | --- | --- |
-| 2026-09-05 | [Agent 与执行器生命周期归属](./2026-09-05-agent-executor-lifecycle.md) | 实施中（10A 已验证） | `docs/evidence/AgentRunContext-证据账本.md` |
+| 2026-09-05 | [Agent 与执行器生命周期归属](./2026-09-05-agent-executor-lifecycle.md) | 已验证（10A—10E，待提交） | `docs/evidence/AgentRunContext-证据账本.md` |
 
 ## 完整记录模板
 

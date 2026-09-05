@@ -114,6 +114,7 @@ class BaseAgentFailureLifecycleTest {
         private boolean cleanupReturned;
 
         private FailureRecordingAgent(FailurePoint failurePoint) {
+            super(Runnable::run);
             this.failurePoint = failurePoint;
 
             // 每次运行只需要一个步骤就能触发目标失败。

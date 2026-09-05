@@ -5,7 +5,6 @@ import com.yupi.yuaiagent.agent.runtime.AgentRunContext;
 import com.yupi.yuaiagent.agent.runtime.AgentRunState;
 import com.yupi.yuaiagent.agent.runtime.AgentRunTask;
 import com.yupi.yuaiagent.agent.runtime.AgentStopReason;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -15,7 +14,6 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
 
@@ -26,7 +24,6 @@ import java.util.function.Consumer;
  * 独立的 AgentRunContext，由 context 保存状态、步骤、消息、停止原因和终止
  * 信号，避免多次运行共享可变数据。</p>
  */
-@Data
 @Slf4j
 public abstract class BaseAgent {
 
@@ -54,22 +51,53 @@ public abstract class BaseAgent {
     private final Executor streamExecutor;
 
     /**
-     * 兼容现有 Agent 构造链的临时入口。
-     *
-     * <p>它保持当前公共池行为，避免本阶段提前改变 YuManus 的 Spring 装配。
-     * 阶段 10B 贯通显式构造器后必须删除，不能长期隐藏执行器所有权。</p>
-     */
-    protected BaseAgent() {
-        this(ForkJoinPool.commonPool());
-    }
-
-    /**
      * 使用调用方明确提供的执行器创建 Agent 定义。
      *
      * @param streamExecutor 执行流式任务的执行器
      */
     protected BaseAgent(Executor streamExecutor) {
         this.streamExecutor = streamExecutor;
+    }
+
+    /** 以下配置访问器只向子类开放，外部调用方不能在运行中改写 Agent 定义。 */
+    protected final String getName() {
+        return name;
+    }
+
+    protected final void setName(String name) {
+        this.name = name;
+    }
+
+    protected final String getSystemPrompt() {
+        return systemPrompt;
+    }
+
+    protected final void setSystemPrompt(String systemPrompt) {
+        this.systemPrompt = systemPrompt;
+    }
+
+    protected final String getNextStepPrompt() {
+        return nextStepPrompt;
+    }
+
+    protected final void setNextStepPrompt(String nextStepPrompt) {
+        this.nextStepPrompt = nextStepPrompt;
+    }
+
+    protected final int getMaxSteps() {
+        return maxSteps;
+    }
+
+    protected final void setMaxSteps(int maxSteps) {
+        this.maxSteps = maxSteps;
+    }
+
+    protected final ChatClient getChatClient() {
+        return chatClient;
+    }
+
+    protected final void setChatClient(ChatClient chatClient) {
+        this.chatClient = chatClient;
     }
 
     /**
@@ -116,7 +144,7 @@ public abstract class BaseAgent {
         validateUserPrompt(userPrompt);
 
         AgentRunContext context = createRunningContext(userPrompt);
-        SseEmitter emitter = new SseEmitter(300000L);
+        SseEmitter emitter = createStreamEmitter();
 
         // 回调必须在提交后台任务前注册，减少任务快速结束造成的注册时序窗口。
         registerEmitterCallbacks(context, emitter);
@@ -173,6 +201,17 @@ public abstract class BaseAgent {
     }
 
     /**
+     * 为一次流式请求创建独立的 SSE emitter。
+     *
+     * <p>把创建动作与运行逻辑分离，既允许子类按部署环境调整 emitter，也允许
+     * 测试通过可控 emitter 触发真实生命周期回调。每次调用必须返回新对象，不能
+     * 在不同请求之间共享连接状态。</p>
+     */
+    protected SseEmitter createStreamEmitter() {
+        return new SseEmitter(300000L);
+    }
+
+    /**
      * 执行当前 context 的步骤循环。
      *
      * @param context        本次运行上下文
@@ -216,7 +255,14 @@ public abstract class BaseAgent {
             Consumer<String> resultConsumer
     ) {
         if (context.isStopRequested()) {
-            context.finish(AgentRunState.CANCELLED);
+            // timeout、断连和用户停止属于取消；SSE error/send 失败属于故障。
+            // 不能把所有停止请求都压成 CANCELLED，否则监控和调用方无法区分
+            // “用户不再需要结果”和“传输链路执行失败”。
+            AgentRunState finalState =
+                    context.stopReason() == AgentStopReason.SEND_FAILURE
+                            ? AgentRunState.FAILED
+                            : AgentRunState.CANCELLED;
+            context.finish(finalState);
             return;
         }
 

@@ -310,3 +310,147 @@ target/surefire-reports/
 
 不得描述为“使用专用有界线程池”“支持高并发”“提高吞吐量”或“消除线程泄漏”；
 这些结论需要阶段 10B/10C 的拒绝、重复运行、终止延迟和资源残留证据。
+
+## 记录 04：专用执行器与 Agent 所有权（阶段 10B）
+
+### 基本信息与测试结果
+
+| 字段 | 记录值 |
+| --- | --- |
+| 验证日期 | 2026-09-05 |
+| 起点提交 | `74b7fd9 refactor(agent): inject stream task executor` |
+| 被验证代码 | 当前工作区，尚未提交 |
+| 运行环境 | Windows 11 amd64、Zulu JDK 21.0.11、Maven 3.9.9、单 JVM |
+| 阶段回归 | 9 个测试类、17 项测试，17 成功、0 失败、0 错误、0 跳过 |
+
+RED/GREEN 证据：
+
+| 场景 | RED | GREEN | 能证明 |
+| --- | --- | --- | --- |
+| 执行器配置 | 1 项失败：容器中不存在 `agentRunExecutor` | 1/1 通过 | 专用 Bean 的容量、线程名和拒绝策略符合配置 |
+| Agent 所有权 | 1 项失败：容器持有 `yuManus` 单例 | 2/2 通过（最终回归） | 容器不再持有 YuManus；工厂连续创建不同实例 |
+| 饱和拒绝 | 正确实现首次 1/1 通过，不伪造 RED | mutation 后 1 项失败，恢复后 1/1 通过 | core=1、queue=1 下第 3 个任务拒绝，并遵守 FAILED→cleanup→termination |
+
+拒绝用例含 3 个任务：1 个运行、1 个排队、1 个拒绝；这是一次确定性饱和故障
+验证，不是 3 个任务的吞吐量测试，也不能证明高并发能力。mutation 只临时把
+termination 移到 cleanup 前，`AgentRunContext` 立即拒绝非法时序；错误代码已恢复。
+
+调试记录：所有权 GREEN 首次命令观察窗口先返回“仍在运行”，继续读取同一 Maven
+进程后得到 1 项通过和 BUILD SUCCESS。根因是 Maven 冷编译超过工具的 30 秒观察
+窗口，不是测试超时；因此没有延长断言等待或修改生产代码。
+
+原始输出：
+
+```text
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10b-executor-config-red.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10b-executor-config-green.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10b-agent-ownership-red.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10b-agent-ownership-green.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10b-rejection-order-mutation-red.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10b-executor-rejection-green-after-mutation.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10b-phase-regression.log
+```
+
+## 记录 05：协作式终止延迟与残留（阶段 10C）
+
+### 指标口径与结果
+
+| 指标 | 实测值 |
+| --- | ---: |
+| JUnit 测试数量 | 2（重复取消 1、优雅关闭 1） |
+| 顺序取消样本 | 20 |
+| 同时并发任务数 | 1 |
+| 成功完成生命周期断言 | 20/20 |
+| p95 停止请求→termination | 0.213 ms |
+| 最大停止请求→termination | 6.098 ms |
+| 最终活动任务 | 0 |
+| 最终排队任务 | 0 |
+
+优雅关闭用例还在关闭开始前确定性构造 1 个运行中任务和 1 个排队任务，确认 shutdown
+不会提前返回，两个已接受任务依次完成 cleanup 和 termination 后，线程池才终止。
+
+每个样本验证工作线程观察中断、step 先退出、cleanup 恰好一次、cleanup 期间
+termination 未完成，以及 termination 后线程池恢复空闲。所有样本结束后执行器
+成功关闭。原始输出：
+
+```text
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10c-termination-characterization.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10c-graceful-shutdown-green.log
+```
+
+该结果属于可响应中断的内存测试基线，不能推导真实模型/工具终止延迟，不能表示
+接口响应时间或性能提升。`awaitTerminationSeconds` 也只是关闭等待上限，不会强制
+停止忽略中断的外部调用。
+
+## 记录 06：SSE 失败语义 RED → GREEN（阶段 10D）
+
+### 结果
+
+| 阶段 | 测试数量 | 成功 | 失败 | 错误 | 跳过 | 超时 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| emitter 接缝行为保持 | 2 | 2 | 0 | 0 | 0 | 0 |
+| SSE 生命周期 RED | 5 | 4 | 1 | 0 | 0 | 0 |
+| SSE 生命周期 GREEN | 5 | 5 | 0 | 0 | 0 | 0 |
+
+RED 的唯一失败为 emitter error：期望 `FAILED`，实际 `CANCELLED`。按照
+“现象—假设—验证—根因—修正—回归”定位到 `finishAfterLoop()` 无差别地把所有
+停止原因映射为取消；修正为 `SEND_FAILURE → FAILED` 后 5 项通过，没有放宽断言、
+延长等待或吞掉异常。
+
+可证明 timeout 和 completion/断连进入 `CANCELLED`，error 和 send failure 进入
+`FAILED`，重复回调保留首个停止原因；5 条路径均执行一次 cleanup，termination
+晚于 step 退出和 cleanup。不能证明真实 Servlet 容器、代理或浏览器的网络回调顺序。
+
+原始输出：
+
+```text
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10d-emitter-seam-regression.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10d-sse-lifecycle-red.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10d-sse-lifecycle-green.log
+```
+
+## 记录 07：封装、总回归与稳定性核验（阶段 10E）
+
+### RED → GREEN 与总回归
+
+| 阶段 | 测试数量 | 成功 | 失败 | 错误 | 跳过 | 超时 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 公共 setter RED | 1 | 0 | 1 | 0 | 0 | 0 |
+| 公共 setter GREEN | 1 | 1 | 0 | 0 | 0 | 0 |
+| 最终阶段回归 | 25 | 25 | 0 | 0 | 0 | 0 |
+
+RED 通过真实公共 API 反射观察到 `setChatClient`、`setMaxSteps`、`setName`、
+`setNextStepPrompt` 和 `setSystemPrompt` 共 5 个公共 setter。移除 Lombok `@Data`
+并仅向子类保留 protected 配置访问后，公共 setter 数量降为 0。
+
+### 稳定性核验
+
+- 关键子集：拒绝 1 项 + 终止/关闭 2 项 + SSE 5 项 = 每轮 8 项测试；
+- Maven 重复轮次：5；成功轮次：5/5；测试执行数：40/40；
+- 每轮终止测试包含 20 个顺序取消样本，5 轮合计 100 个样本；
+- 同时并发任务数仍为 1，不能把 100 个样本称为 100 并发；
+- 五轮 p95：0.198、0.255、0.210、0.283、0.199 ms；
+- 五轮各自 active=0、queue=0，所有 Maven 轮次 BUILD SUCCESS。
+
+原始输出：
+
+```text
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10e-encapsulation-red.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10e-encapsulation-green.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10e-final-phase-regression.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10e-final-stability-round-[1-5].log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/step10e-final-stability-summary.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/environment-and-revision.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/final-audit.log
+target/evidence/agent-run-context/2026-09-05-74b7fd9/untracked-whitespace-check.log
+```
+
+### 当前可用于简历的保守表述
+
+> 将流式 Agent 后台任务迁移到 Spring 管理的专用有界执行器，统一每请求 Agent
+> 工厂所有权；通过 25 项单元测试和 5 轮关键生命周期回归验证任务拒绝、SSE
+> 失败分类、幂等 cleanup 及“工作线程退出和清理完成后才 termination”的时序。
+
+禁止写“支持高并发”“吞吐量提升”“响应时间降低”“彻底消除资源泄漏”或“降低
+线上故障率”。这些说法分别需要压力测试、同环境前后基准、真实外部调用残留验证
+和生产数据，当前均尚未测量。

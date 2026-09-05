@@ -1,10 +1,8 @@
 package com.yupi.yuaiagent.controller;
 
-import com.yupi.yuaiagent.agent.YuManus;
+import com.yupi.yuaiagent.agent.YuManusFactory;
 import com.yupi.yuaiagent.app.LoveApp;
 import jakarta.annotation.Resource;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.tool.ToolCallback;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,10 +21,7 @@ public class AiController {
     private LoveApp loveApp;
 
     @Resource
-    private ToolCallback[] allTools;
-
-    @Resource
-    private ChatModel dashscopeChatModel;
+    private YuManusFactory yuManusFactory;
 
     /**
      * 同步调用 AI 恋爱大师应用
@@ -99,7 +94,6 @@ public class AiController {
      */
     @GetMapping("/manus/chat")
     public SseEmitter doChatWithManus(String message) {
-        YuManus yuManus = new YuManus(allTools, dashscopeChatModel);
-        return yuManus.runStream(message);
+        return yuManusFactory.create().runStream(message);
     }
 }

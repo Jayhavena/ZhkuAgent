@@ -116,6 +116,7 @@ class ReActAgentDecisionIsolationTest {
                 new ConcurrentLinkedQueue<>();
 
         private DecisionPairingAgent() {
+            super(Runnable::run);
             // 每次运行只执行一步，测试只关注一次 think-act 配对。
             setMaxSteps(1);
         }

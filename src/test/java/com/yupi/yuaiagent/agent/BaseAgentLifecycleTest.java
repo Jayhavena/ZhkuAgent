@@ -139,6 +139,7 @@ class BaseAgentLifecycleTest {
         private final List<Integer> stepSnapshots = new ArrayList<>();
 
         private RecordingAgent() {
+            super(Runnable::run);
             setMaxSteps(1);
         }
 
@@ -180,6 +181,7 @@ class BaseAgentLifecycleTest {
                 new ConcurrentLinkedQueue<>();
 
         private ConcurrentRecordingAgent() {
+            super(Runnable::run);
             setMaxSteps(1);
         }
 
