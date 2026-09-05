@@ -3,6 +3,7 @@ package com.yupi.yuaiagent.agent;
 import cn.hutool.core.util.StrUtil;
 import com.yupi.yuaiagent.agent.runtime.AgentRunContext;
 import com.yupi.yuaiagent.agent.runtime.AgentRunState;
+import com.yupi.yuaiagent.agent.runtime.AgentRunTask;
 import com.yupi.yuaiagent.agent.runtime.AgentStopReason;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
 
 /**
@@ -76,8 +78,8 @@ public abstract class BaseAgent {
     /**
      * 流式运行 Agent。
      *
-     * <p>本阶段只把运行状态迁移到 context，并让回调只请求停止。
-     * 专用有界线程池、提交前绑定 FutureTask 和完整 SSE 通道将在下一阶段实现。</p>
+     * <p>本阶段为每次流式运行建立可取消的 FutureTask，并在提交前绑定到
+     * AgentRunContext。专用有界线程池和完整 SSE 通道将在后续阶段实现。</p>
      *
      * @param userPrompt 本次运行的用户提示词
      * @return 当前请求专属的 SSE emitter
@@ -91,8 +93,9 @@ public abstract class BaseAgent {
         // 回调必须在提交后台任务前注册，减少任务快速结束造成的注册时序窗口。
         registerEmitterCallbacks(context, emitter);
 
-        // 仍然使用公共异步池只是本阶段的编译过渡，后续会替换为专用执行器。
-        CompletableFuture.runAsync(() -> {
+        // 先创建并绑定任务句柄，再提交给执行器。
+        // 这样停止请求始终能够找到当前运行对应的 FutureTask。
+        FutureTask<Void> streamTask = AgentRunTask.create(context, () -> {
             try {
                 executeSteps(
                         context,
@@ -125,6 +128,18 @@ public abstract class BaseAgent {
                 finalizeRun(context);
             }
         });
+
+        try {
+            // 当前仍使用公共池作为过渡；后续再替换为专用有界执行器。
+            ForkJoinPool.commonPool().execute(streamTask);
+        } catch (RuntimeException exception) {
+            // 如果任务提交失败，工作线程不会启动，因此由提交线程完成失败收尾。
+            streamTask.cancel(false);
+            finishAsFailure(context);
+            finalizeRun(context);
+            emitter.completeWithError(exception);
+            throw exception;
+        }
 
         return emitter;
     }
