@@ -8,6 +8,7 @@ import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.retrieval.search.DocumentRetriever;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,6 +16,11 @@ import org.springframework.context.annotation.Configuration;
  * 自定义基于阿里云知识库服务的 RAG 增强顾问
  */
 @Configuration
+@ConditionalOnProperty(
+        prefix = "features.legacy-love",
+        name = "enabled",
+        havingValue = "true"
+)
 @Slf4j
 public class LoveAppRagCloudAdvisorConfig {
 

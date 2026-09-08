@@ -7,16 +7,7 @@ const routes = [
     component: () => import('../views/Home.vue'),
     meta: {
       title: '首页 - 鱼皮AI超级智能体应用平台',
-      description: '鱼皮AI超级智能体应用平台提供AI恋爱大师和AI超级智能体服务，满足您的各种AI对话需求'
-    }
-  },
-  {
-    path: '/love-master',
-    name: 'LoveMaster',
-    component: () => import('../views/LoveMaster.vue'),
-    meta: {
-      title: 'AI恋爱大师 - 鱼皮AI超级智能体应用平台',
-      description: 'AI恋爱大师是鱼皮AI超级智能体应用平台的专业情感顾问，帮你解答各种恋爱问题，提供情感建议'
+      description: '鱼皮AI超级智能体应用平台提供自主规划智能体服务，帮助用户完成多步骤任务。'
     }
   },
   {
@@ -44,4 +35,4 @@ router.beforeEach((to, from, next) => {
   next()
 })
 
-export default router 
+export default router

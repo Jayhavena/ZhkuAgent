@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.UUID;
 
-@SpringBootTest
+@SpringBootTest(properties = "features.legacy-love.enabled=true")
 class LoveAppTest {
 
     @Resource

@@ -44,17 +44,11 @@ export const connectSSE = (url, params, onMessage, onError) => {
   return eventSource
 }
 
-// AI恋爱大师聊天
-export const chatWithLoveApp = (message, chatId) => {
-  return connectSSE('/ai/love_app/chat/sse', { message, chatId })
-}
-
 // AI超级智能体聊天
 export const chatWithManus = (message) => {
   return connectSSE('/ai/manus/chat', { message })
 }
 
 export default {
-  chatWithLoveApp,
   chatWithManus
-} 
+}

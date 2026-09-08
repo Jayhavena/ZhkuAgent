@@ -9,19 +9,6 @@
     </div>
     
     <div class="apps-container">
-      <div class="app-card" @click="navigateTo('/love-master')">
-        <div class="card-glow"></div>
-        <div class="app-icon love-icon">❤️</div>
-        <div class="app-info">
-          <div class="app-title">AI恋爱大师</div>
-          <div class="app-desc">智能情感顾问，帮你解答恋爱烦恼</div>
-        </div>
-        <div class="app-button">
-          <span class="btn-text">立即体验</span>
-          <span class="btn-icon">→</span>
-        </div>
-      </div>
-      
       <div class="app-card" @click="navigateTo('/super-agent')">
         <div class="card-glow"></div>
         <div class="app-icon robot-icon">🤖</div>
@@ -57,11 +44,11 @@ useHead({
   meta: [
     {
       name: 'description',
-      content: '鱼皮AI超级智能体应用平台提供AI恋爱大师和AI超级智能体服务，满足您的各种AI对话需求'
+      content: '鱼皮AI超级智能体应用平台提供自主规划智能体服务，帮助用户完成多步骤任务。'
     },
     {
       name: 'keywords',
-      content: 'AI智能体,AI应用,AI恋爱大师,AI助手,智能对话,鱼皮,AI超级智能体,首页'
+      content: 'AI智能体,AI应用,AI助手,智能对话,鱼皮,AI超级智能体,首页'
     }
   ]
 })
@@ -260,11 +247,6 @@ const navigateTo = (path) => {
   border-radius: 50%;
   position: relative;
   z-index: 1;
-}
-
-.love-icon {
-  background: linear-gradient(135deg, #ff007a, #ff5722);
-  box-shadow: 0 0 20px rgba(255, 0, 122, 0.5);
 }
 
 .robot-icon {
@@ -521,4 +503,4 @@ const navigateTo = (path) => {
     opacity: 0.1;
   }
 }
-</style> 
+</style>

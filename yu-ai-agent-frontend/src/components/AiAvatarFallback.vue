@@ -1,18 +1,8 @@
 <template>
-  <div class="ai-avatar-fallback" :class="type">
-    <span v-if="type === 'love'">❤️</span>
-    <span v-else>🤖</span>
+  <div class="ai-avatar-fallback">
+    <span>🤖</span>
   </div>
 </template>
-
-<script setup>
-defineProps({
-  type: {
-    type: String,
-    default: 'default'
-  }
-})
-</script>
 
 <style scoped>
 .ai-avatar-fallback {
@@ -25,11 +15,7 @@ defineProps({
   border-radius: 50%;
 }
 
-.love {
-  background: linear-gradient(45deg, #ff6b8b, #ff8e8e);
-}
-
-.default, .super {
+.ai-avatar-fallback {
   background: linear-gradient(45deg, #3f51b5, #5677fc);
 }
-</style> 
+</style>

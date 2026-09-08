@@ -8,7 +8,7 @@
              class="message ai-message" 
              :class="[msg.type]">
           <div class="avatar ai-avatar">
-            <AiAvatarFallback :type="aiType" />
+            <AiAvatarFallback />
           </div>
           <div class="message-bubble">
             <div class="message-content">
@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, nextTick, watch, computed } from 'vue'
+import { ref, reactive, onMounted, nextTick, watch } from 'vue'
 import AiAvatarFallback from './AiAvatarFallback.vue'
 
 const props = defineProps({
@@ -64,10 +64,6 @@ const props = defineProps({
   connectionStatus: {
     type: String,
     default: 'disconnected'
-  },
-  aiType: {
-    type: String,
-    default: 'default'  // 'love' 或 'super'
   }
 })
 
@@ -75,13 +71,6 @@ const emit = defineEmits(['send-message'])
 
 const inputMessage = ref('')
 const messagesContainer = ref(null)
-
-// 根据AI类型选择不同头像
-const aiAvatar = computed(() => {
-  return props.aiType === 'love' 
-    ? '/ai-love-avatar.png'  // 恋爱大师头像
-    : '/ai-super-avatar.png' // 超级智能体头像
-})
 
 // 发送消息
 const sendMessage = () => {
@@ -389,4 +378,4 @@ onMounted(() => {
 .ai-message + .ai-message .message-bubble {
   border-top-left-radius: 10px;
 }
-</style> 
+</style>

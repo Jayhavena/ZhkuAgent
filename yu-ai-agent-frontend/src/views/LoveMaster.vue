@@ -29,7 +29,7 @@ import { useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import ChatRoom from '../components/ChatRoom.vue'
 import AppFooter from '../components/AppFooter.vue'
-import { chatWithLoveApp } from '../api'
+import { chatWithLoveApp } from '../legacy/love/api'
 
 // 设置页面标题和元数据
 useHead({
@@ -241,4 +241,4 @@ onBeforeUnmount(() => {
     margin-bottom: 8px;
   }
 }
-</style> 
+</style>

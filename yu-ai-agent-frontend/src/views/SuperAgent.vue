@@ -11,7 +11,6 @@
         <ChatRoom 
           :messages="messages" 
           :connection-status="connectionStatus"
-          ai-type="super"
           @send-message="sendMessage"
         />
       </div>
@@ -283,4 +282,4 @@ onBeforeUnmount(() => {
     margin-bottom: 8px;
   }
 }
-</style> 
+</style>

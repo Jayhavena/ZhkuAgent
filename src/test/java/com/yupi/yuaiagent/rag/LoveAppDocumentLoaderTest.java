@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(properties = "features.legacy-love.enabled=true")
 class LoveAppDocumentLoaderTest {
 
     @Resource
