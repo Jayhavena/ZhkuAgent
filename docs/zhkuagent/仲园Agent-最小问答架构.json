@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "仲园 Agent：校园知识问答最小闭环",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "knowledge-governance",
+        "label": "资料治理与入库",
+        "focus": ["handbook", "curation", "publisher", "database"],
+        "note": "只有审核通过的候选资料才能进入已发布知识库。"
+      },
+      {
+        "id": "answer-path",
+        "label": "有出处问答",
+        "focus": ["developer", "answer-cli", "answer-service", "publisher", "database"],
+        "note": "当前由受控路由与已发布资料共同决定是否回答。"
+      },
+      {
+        "id": "refusal-boundary",
+        "label": "拒答边界",
+        "focus": ["answer-service", "database", "answer-cli"],
+        "note": "资料范围外或未命中证据的问题返回资料不足，不生成结论。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "handbook",
+      "type": "external",
+      "label": "学生手册 PDF",
+      "sublabel": "本地验证资料，2025 版",
+      "tag": "原始来源",
+      "pos": [40, 100],
+      "size": [180, 72]
+    },
+    {
+      "id": "curation",
+      "type": "backend",
+      "label": "候选片段与人工审核",
+      "sublabel": "JSON：范围、页码、状态、测试题",
+      "tag": "审核门",
+      "pos": [290, 100],
+      "size": [190, 72]
+    },
+    {
+      "id": "publisher",
+      "type": "backend",
+      "label": "资料发布器",
+      "sublabel": "只写入审核通过的片段",
+      "tag": "命令行",
+      "pos": [550, 100],
+      "size": [180, 72]
+    },
+    {
+      "id": "database",
+      "type": "database",
+      "label": "PostgreSQL + pgvector",
+      "sublabel": "资料来源、知识片段、发布状态",
+      "tag": "本机 Docker",
+      "pos": [810, 230],
+      "size": [190, 72]
+    },
+    {
+      "id": "developer",
+      "type": "external",
+      "label": "开发者",
+      "sublabel": "本地终端输入问题",
+      "pos": [40, 370],
+      "size": [180, 72]
+    },
+    {
+      "id": "answer-cli",
+      "type": "backend",
+      "label": "本地问答入口",
+      "sublabel": "GroundedAnswerCli",
+      "pos": [290, 370],
+      "size": [190, 72]
+    },
+    {
+      "id": "answer-service",
+      "type": "backend",
+      "label": "有依据问答服务",
+      "sublabel": "受控路由、检索、引用或拒答",
+      "tag": "不调用模型",
+      "pos": [550, 370],
+      "size": [180, 72]
+    }
+  ],
+  "connections": [
+    {
+      "id": "extract-and-curate",
+      "from": "handbook",
+      "to": "curation",
+      "label": "提取候选规则并人工审核",
+      "variant": "emphasis",
+      "labelAt": [255, 186]
+    },
+    {
+      "id": "approved-publication",
+      "from": "curation",
+      "to": "publisher",
+      "label": "仅审核通过"
+    },
+    {
+      "id": "publish-chunks",
+      "from": "publisher",
+      "to": "database",
+      "label": "写入来源与知识片段"
+    },
+    {
+      "id": "ask-question",
+      "from": "developer",
+      "to": "answer-cli",
+      "label": "输入校园问题",
+      "variant": "emphasis"
+    },
+    {
+      "id": "delegate-answer",
+      "from": "answer-cli",
+      "to": "answer-service",
+      "label": "调用问答服务"
+    },
+    {
+      "id": "published-search",
+      "from": "answer-service",
+      "to": "database",
+      "label": "仅检索已发布资料"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "已实现的可信边界",
+      "items": [
+        "未审核资料不能发布", "回答附原始资料定位", "资料不足时拒答"]
+    },
+    {
+      "dot": "amber",
+      "title": "当前刻意未做",
+      "items": [
+        "网页接口与学生端", "语义向量检索", "大模型生成", "校园敏感数据接入"]
+    }
+  ]
+}
