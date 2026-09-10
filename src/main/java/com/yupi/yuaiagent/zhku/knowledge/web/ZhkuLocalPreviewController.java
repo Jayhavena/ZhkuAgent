@@ -6,6 +6,7 @@ import com.yupi.yuaiagent.zhku.knowledge.answer.GroundedCitation;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 仅供开发者本机验证的校园问答接口。
@@ -32,6 +34,12 @@ public class ZhkuLocalPreviewController {
     private static final String LOCAL_PREVIEW_NOTICE =
             "仅供本机开发验证，不构成面向学生的正式校务依据。";
 
+    // Windows PowerShell 会在响应未声明字符集时误解码中文，因此预览接口统一显式返回 UTF-8 JSON。
+    private static final MediaType JSON_UTF8 = new MediaType(
+            MediaType.APPLICATION_JSON,
+            StandardCharsets.UTF_8
+    );
+
     private final GroundedAnswerService groundedAnswerService;
 
     public ZhkuLocalPreviewController(GroundedAnswerService groundedAnswerService) {
@@ -48,12 +56,15 @@ public class ZhkuLocalPreviewController {
 
         try {
             GroundedAnswer answer = groundedAnswerService.answer(request.question());
-            return ResponseEntity.ok(LocalPreviewAnswerResponse.from(answer));
+            return ResponseEntity.ok()
+                    .contentType(JSON_UTF8)
+                    .body(LocalPreviewAnswerResponse.from(answer));
         } catch (IllegalArgumentException exception) {
             return badRequest(exception.getMessage());
         } catch (IllegalStateException exception) {
             // 数据库连接细节不能出现在 HTTP 响应中，以免泄露本机部署信息。
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .contentType(JSON_UTF8)
                     .body(new LocalPreviewErrorResponse(
                             "KNOWLEDGE_SERVICE_UNAVAILABLE",
                             "本机知识库暂时不可用，请检查本地服务后重试。"
@@ -64,9 +75,9 @@ public class ZhkuLocalPreviewController {
     private static ResponseEntity<LocalPreviewErrorResponse> badRequest(
             String message
     ) {
-        return ResponseEntity.badRequest().body(
-                new LocalPreviewErrorResponse("INVALID_QUESTION", message)
-        );
+        return ResponseEntity.badRequest()
+                .contentType(JSON_UTF8)
+                .body(new LocalPreviewErrorResponse("INVALID_QUESTION", message));
     }
 
     public record LocalPreviewQuestionRequest(String question) {

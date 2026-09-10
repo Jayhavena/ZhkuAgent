@@ -3,6 +3,7 @@ package com.yupi.yuaiagent.zhku.knowledge.web;
 import com.yupi.yuaiagent.zhku.knowledge.answer.GroundedAnswerService;
 import com.yupi.yuaiagent.zhku.knowledge.publication.PublishedKnowledgeChunk;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -31,6 +33,10 @@ class ZhkuLocalPreviewControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"question\":\"一学期最多能选多少公共选修课学分？\"}"))
                 .andExpect(status().isOk())
+                .andExpect(header().string(
+                        HttpHeaders.CONTENT_TYPE,
+                        "application/json;charset=UTF-8"
+                ))
                 .andExpect(jsonPath("$.mode").value("GROUNDED"))
                 .andExpect(jsonPath("$.answer").value("每学期公共选修课最高不得超过 4 学分。"))
                 .andExpect(jsonPath("$.citations[0].sourceTitle")
