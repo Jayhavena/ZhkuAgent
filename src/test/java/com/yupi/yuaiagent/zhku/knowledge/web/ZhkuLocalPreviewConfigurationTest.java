@@ -24,4 +24,12 @@ class ZhkuLocalPreviewConfigurationTest {
                 .run(context -> assertThat(context)
                         .doesNotHaveBean(ZhkuLocalPreviewController.class));
     }
+
+    @Test
+    void shouldNotRegisterPreviewPageControllerOutsideLocalPreviewProfile() {
+        new ApplicationContextRunner()
+                .withUserConfiguration(ZhkuLocalPreviewPageController.class)
+                .run(context -> assertThat(context)
+                        .doesNotHaveBean(ZhkuLocalPreviewPageController.class));
+    }
 }
