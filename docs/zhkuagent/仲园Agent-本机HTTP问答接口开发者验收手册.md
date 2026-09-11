@@ -125,15 +125,58 @@ curl.exe -i -X POST 'http://127.0.0.1:8123/api/zhku/local-preview/answers' -H 'C
 {"code":"INVALID_QUESTION","message":"问题不能为空"}
 ```
 
-## 六、自动化验证
+## 六、浏览器页面验收
+
+预览服务启动后，在浏览器打开：
+
+```text
+http://127.0.0.1:8123/api/zhku/local-preview
+```
+
+页面顶部应显示“仲园 Agent”“校园资料问答”和“本机验证”。它只调用本机问答接口，不代表资料已经面向学生发布。
+
+### 6.1 有出处回答
+
+1. 在“校园问题”输入框填写：`公共选修课每学期最多修多少学分？`；
+2. 点击“查询资料”，或按回车；
+3. 确认页面显示“已找到资料依据”；
+4. 确认回答下方紧贴显示《本科生学生手册（2025版）》、`PDF 第 76—77 页，第 8、10 条` 与页码；
+5. 确认页面显示本机验证提示，且中文没有乱码。
+
+### 6.2 资料不足
+
+1. 输入：`奖学金申请截止日期是什么时候？`；
+2. 点击“查询资料”；
+3. 确认页面显示“当前资料未覆盖该问题”；
+4. 确认页面不显示“资料依据”卡片。
+
+这不是故障：首批资料只有公共选修课程规则，页面必须优先说明资料不足，不能猜测奖学金事务规则。
+
+### 6.3 输入与服务异常
+
+| 操作 | 预期结果 |
+| --- | --- |
+| 清空输入框后点击“查询资料” | 显示“请输入 1 至 500 个字符的问题”，不发起请求，原输入不被异常清除。 |
+| 页面已打开后停止数据库容器，再提交已覆盖问题 | 显示“本机知识服务暂不可用”，不显示密码、连接串或堆栈。 |
+| 页面已打开后停止预览服务，再提交问题 | 显示相同的服务不可用提示；重新启动服务后可继续验证。 |
+
+若页面无法打开，按以下顺序检查：
+
+1. 启动窗口是否已显示 `Tomcat started on port 8123`；
+2. 访问地址是否为页面路由 `/api/zhku/local-preview`，而不是问答接口 `/answers`；
+3. Docker PostgreSQL 容器是否运行。
+
+不要将服务地址改成 `0.0.0.0` 来排查页面问题；本机监听边界是本次验收条件。
+
+## 七、自动化验证
 
 关闭服务前或后，均可执行本次功能的自动化测试：
 
 ```powershell
-.\mvnw.cmd '-Dtest=ZhkuLocalPreviewControllerTest,ZhkuLocalPreviewConfigurationTest,ZhkuLocalPreviewApplicationTest' test
+.\mvnw.cmd '-Dtest=ZhkuLocalPreviewPageControllerTest,ZhkuLocalPreviewPageResourceTest,ZhkuLocalPreviewControllerTest,ZhkuLocalPreviewConfigurationTest,ZhkuLocalPreviewApplicationTest' test
 ```
 
-预期结果：`Tests run: 8, Failures: 0, Errors: 0`。
+预期结果：`Tests run: 11, Failures: 0, Errors: 0`。
 
 如果还要验证真实数据库发布器，可临时以 Java 系统属性传入密码：
 
@@ -144,7 +187,7 @@ $zhkuDbPassword = ((Get-Content -LiteralPath 'infra/.env' | Where-Object { $_ -m
 
 当前不把整个仓库的 `.\mvnw.cmd test` 作为本机问答接口的验收门槛：仓库中仍有通用 Agent 的应用上下文测试，需要单独的模型和其他外部环境配置。这些问题不应通过给仲园 Agent 预览接口添加模型依赖来掩盖。
 
-## 七、停止服务
+## 八、停止服务
 
 回到运行服务的 PowerShell，按：
 
@@ -160,7 +203,7 @@ Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 8123 -State Listen -Erro
 
 没有输出即表示服务已停止。
 
-## 八、常见故障排查
+## 九、常见故障排查
 
 | 现象 | 原因 | 处理方式 |
 | --- | --- | --- |
@@ -168,10 +211,11 @@ Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 8123 -State Listen -Erro
 | 启动时报 DashScope 密钥缺失 | 启动了普通主应用，而不是专用入口 | 确认命令含 `ZhkuLocalPreviewApplication`。本机预览不需要模型密钥。 |
 | 请求返回 503 | 数据库容器停止、密码变更，或数据库暂时不可用 | 检查 Docker Desktop、容器状态和 `infra\.env` 中的当前密码。 |
 | 请求返回 404 | 服务未启动，或启动的不是专用入口 | 检查启动日志中的应用名称应为 `ZhkuLocalPreviewApplication`。 |
+| 浏览器页面无法打开 | 访问了 `/answers`、服务未启动或端口不可用 | 使用 `/api/zhku/local-preview`，并按第六节的检查顺序排查。 |
 | 请求返回 `INSUFFICIENT_EVIDENCE` | 问题不属于当前公共选修课程资料范围 | 换用已覆盖问题，或走“资料审核—发布”流程扩充知识库。 |
 | 8123 端口已占用 | 旧服务未停止或其他程序占用 | 先检查监听进程，确认后停止该进程，再重新启动。 |
 
-## 九、验收记录模板
+## 十、验收记录模板
 
 每次手工验收可记录：
 
@@ -183,6 +227,9 @@ Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 8123 -State Listen -Erro
 有出处回答：通过 / 不通过
 范围外拒答：通过 / 不通过
 非法输入校验：通过 / 不通过
+浏览器有出处回答：通过 / 不通过
+浏览器资料不足提示：通过 / 不通过
+浏览器服务不可用提示：通过 / 不通过
 自动化测试：通过 / 不通过
 发现的问题：
 ```
