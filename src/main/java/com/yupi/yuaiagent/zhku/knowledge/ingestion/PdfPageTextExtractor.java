@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.stream.IntStream;
 import java.util.List;
 import java.util.Objects;
 
@@ -60,6 +61,22 @@ public final class PdfPageTextExtractor {
                             pageNumber
                     ))
                     .toList();
+        }
+    }
+
+    /**
+     * 提取 PDF 的全部物理页，空页也保留在结果中交由人工审核。
+     */
+    public List<ExtractedPdfPage> extractAll(Path pdf) throws IOException {
+        Objects.requireNonNull(pdf, "PDF 文件路径不能为空");
+        if (!Files.isRegularFile(pdf)) {
+            throw new IllegalArgumentException("PDF 文件不存在或不是普通文件");
+        }
+        try (PDDocument document = PDDocument.load(pdf.toFile())) {
+            return extract(pdf, IntStream.rangeClosed(
+                    1,
+                    document.getNumberOfPages()
+            ).boxed().toList());
         }
     }
 

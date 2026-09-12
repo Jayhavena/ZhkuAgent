@@ -32,9 +32,8 @@ class KnowledgeSchemaTest {
             "zhkuagent"
     );
 
-    private static final String DATABASE_PASSWORD = System.getProperty(
-            "zhku.db.password"
-    );
+    private static final String DATABASE_PASSWORD =
+            ZhkuDatabaseTestConfig.databasePassword();
 
     @Test
     void shouldProvideTraceableKnowledgeSourceAndChunkSchema()

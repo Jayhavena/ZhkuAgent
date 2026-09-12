@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class KnowledgeGovernanceModelTest {
@@ -61,6 +62,29 @@ class KnowledgeGovernanceModelTest {
                 Instant.parse("2026-09-12T00:00:00Z")
         )).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("片段标题");
+    }
+
+    @Test
+    void shouldKeepBlankPdfPageAsPendingCandidateForManualDiscard() {
+        KnowledgeCandidate candidate = new KnowledgeCandidate(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                12,
+                12,
+                "",
+                null,
+                null,
+                null,
+                CandidateReviewStatus.PENDING_REVIEW,
+                null,
+                null,
+                Instant.parse("2026-09-12T00:00:00Z"),
+                Instant.parse("2026-09-12T00:00:00Z")
+        );
+
+        assertThat(candidate.rawText()).isEmpty();
+        assertThat(candidate.reviewStatus())
+                .isEqualTo(CandidateReviewStatus.PENDING_REVIEW);
     }
 
     private static KnowledgeSubmission submission(String documentFamily) {

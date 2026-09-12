@@ -1,5 +1,6 @@
 package com.yupi.yuaiagent.zhku.knowledge.publication;
 
+import com.yupi.yuaiagent.zhku.ZhkuDatabaseTestConfig;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,9 +35,8 @@ class ReviewedKnowledgePublisherTest {
             "zhku.db.user",
             "zhkuagent"
     );
-    private static final String DATABASE_PASSWORD = System.getProperty(
-            "zhku.db.password"
-    );
+    private static final String DATABASE_PASSWORD =
+            ZhkuDatabaseTestConfig.databasePassword();
     private static final UUID TEST_SOURCE_ID = UUID.fromString(
             "a252f017-2de6-4d70-92e8-f4f775bdd532"
     );

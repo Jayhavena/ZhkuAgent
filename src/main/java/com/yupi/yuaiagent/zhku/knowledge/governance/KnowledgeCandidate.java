@@ -29,7 +29,8 @@ public record KnowledgeCandidate(
         if (startPageNumber < 1 || endPageNumber < startPageNumber) {
             throw new IllegalArgumentException("候选片段页码范围无效");
         }
-        rawText = requireText(rawText, "原始文本不能为空");
+        // PDF 的空白物理页也要进入审核队列，不能在提取阶段被静默丢弃。
+        rawText = Objects.requireNonNull(rawText, "原始文本不能为空");
         editedText = normalizeOptionalText(editedText);
         sectionTitle = normalizeOptionalText(sectionTitle);
         sourceLocator = normalizeOptionalText(sourceLocator);

@@ -1,5 +1,6 @@
 package com.yupi.yuaiagent.zhku.knowledge.governance;
 
+import com.yupi.yuaiagent.zhku.ZhkuDatabaseTestConfig;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,9 +30,8 @@ class JdbcKnowledgeGovernanceRepositoryTest {
             "zhku.db.user",
             "zhkuagent"
     );
-    private static final String DATABASE_PASSWORD = System.getProperty(
-            "zhku.db.password"
-    );
+    private static final String DATABASE_PASSWORD =
+            ZhkuDatabaseTestConfig.databasePassword();
     private static final UUID TEST_SUBMISSION_ID = UUID.fromString(
             "b476fd94-69f8-4554-8917-1859e16b5398"
     );
@@ -83,6 +83,29 @@ class JdbcKnowledgeGovernanceRepositoryTest {
                 .containsExactly(candidate);
         assertThat(repository.findCandidate(candidate.id()))
                 .contains(candidate);
+    }
+
+    @Test
+    void shouldAtomicallyCompleteExtractionWithCandidatesAndEvent() {
+        KnowledgeSubmission submission = submission();
+        KnowledgeCandidate candidate = candidate();
+
+        repository.createSubmissionWithEvent(
+                submission,
+                event(submission.id(), null, "CREATE_SUBMISSION")
+        );
+        repository.completeExtraction(
+                submission.id(),
+                List.of(candidate),
+                event(submission.id(), null, "EXTRACT_CANDIDATES")
+        );
+
+        assertThat(repository.findSubmission(submission.id()))
+                .get()
+                .extracting(KnowledgeSubmission::status)
+                .isEqualTo(KnowledgeSubmissionStatus.EXTRACTED);
+        assertThat(repository.listCandidates(submission.id()))
+                .containsExactly(candidate);
     }
 
     @Test
@@ -148,6 +171,22 @@ class JdbcKnowledgeGovernanceRepositoryTest {
                 null,
                 null,
                 Instant.parse("2026-09-12T00:00:00Z"),
+                Instant.parse("2026-09-12T00:00:00Z")
+        );
+    }
+
+    private static KnowledgeReviewEvent event(
+            UUID submissionId,
+            UUID candidateId,
+            String actionType
+    ) {
+        return new KnowledgeReviewEvent(
+                UUID.randomUUID(),
+                submissionId,
+                candidateId,
+                actionType,
+                "本机资料治理测试操作。",
+                "本机管理员",
                 Instant.parse("2026-09-12T00:00:00Z")
         );
     }

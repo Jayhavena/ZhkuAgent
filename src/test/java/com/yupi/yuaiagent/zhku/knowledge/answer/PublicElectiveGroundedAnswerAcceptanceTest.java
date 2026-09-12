@@ -1,5 +1,6 @@
 package com.yupi.yuaiagent.zhku.knowledge.answer;
 
+import com.yupi.yuaiagent.zhku.ZhkuDatabaseTestConfig;
 import com.yupi.yuaiagent.zhku.knowledge.publication.ReviewedKnowledgePublisher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,9 +23,8 @@ class PublicElectiveGroundedAnswerAcceptanceTest {
             "zhku.db.user",
             "zhkuagent"
     );
-    private static final String DATABASE_PASSWORD = System.getProperty(
-            "zhku.db.password"
-    );
+    private static final String DATABASE_PASSWORD =
+            ZhkuDatabaseTestConfig.databasePassword();
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("publicElectiveQuestions")

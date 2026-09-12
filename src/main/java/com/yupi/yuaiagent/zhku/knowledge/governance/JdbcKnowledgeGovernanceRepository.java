@@ -31,21 +31,43 @@ public final class JdbcKnowledgeGovernanceRepository
     @Override
     public void createSubmission(KnowledgeSubmission submission) {
         Objects.requireNonNull(submission, "投稿不能为空");
-        String sql = """
-                INSERT INTO knowledge_submission (
-                    id, document_family, knowledge_scope, title,
-                    source_version, source_description, source_url,
-                    applicable_scope, publication_date,
-                    publication_date_confirmed, effective_date,
-                    effective_date_confirmed, storage_key,
-                    original_file_name, content_checksum,
-                    submission_status, review_notice, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """;
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement = connection.prepareStatement(
+                     submissionInsertSql()
+             )) {
             bindSubmission(statement, submission);
             statement.executeUpdate();
+        } catch (SQLException exception) {
+            throw new IllegalStateException("无法创建资料投稿", exception);
+        }
+    }
+
+    @Override
+    public void createSubmissionWithEvent(
+            KnowledgeSubmission submission,
+            KnowledgeReviewEvent event
+    ) {
+        Objects.requireNonNull(submission, "投稿不能为空");
+        Objects.requireNonNull(event, "操作记录不能为空");
+        if (!submission.id().equals(event.submissionId())) {
+            throw new IllegalArgumentException("创建记录必须属于当前投稿");
+        }
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement submissionStatement =
+                         connection.prepareStatement(submissionInsertSql());
+                 PreparedStatement eventStatement = connection.prepareStatement(
+                         eventInsertSql()
+                 )) {
+                bindSubmission(submissionStatement, submission);
+                submissionStatement.executeUpdate();
+                bindEvent(eventStatement, event);
+                eventStatement.executeUpdate();
+                connection.commit();
+            } catch (SQLException | RuntimeException exception) {
+                rollbackQuietly(connection);
+                throw exception;
+            }
         } catch (SQLException exception) {
             throw new IllegalStateException("无法创建资料投稿", exception);
         }
@@ -145,6 +167,53 @@ public final class JdbcKnowledgeGovernanceRepository
                 statement.addBatch();
             }
             statement.executeBatch();
+        } catch (SQLException exception) {
+            throw new IllegalStateException("无法保存候选片段", exception);
+        }
+    }
+
+    @Override
+    public void completeExtraction(
+            UUID submissionId,
+            List<KnowledgeCandidate> candidates,
+            KnowledgeReviewEvent event
+    ) {
+        Objects.requireNonNull(submissionId, "投稿编号不能为空");
+        List<KnowledgeCandidate> copiedCandidates = validateCandidates(
+                submissionId,
+                candidates
+        );
+        Objects.requireNonNull(event, "操作记录不能为空");
+        if (!submissionId.equals(event.submissionId())) {
+            throw new IllegalArgumentException("提取记录必须属于当前投稿");
+        }
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement candidateStatement = connection.prepareStatement(
+                    candidateInsertSql()
+            ); PreparedStatement submissionStatement = connection.prepareStatement("""
+                    UPDATE knowledge_submission
+                    SET submission_status = 'EXTRACTED', updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ? AND submission_status = 'DRAFT'
+                    """); PreparedStatement eventStatement = connection.prepareStatement(
+                    eventInsertSql()
+            )) {
+                for (KnowledgeCandidate candidate : copiedCandidates) {
+                    bindCandidate(candidateStatement, candidate);
+                    candidateStatement.addBatch();
+                }
+                candidateStatement.executeBatch();
+                submissionStatement.setObject(1, submissionId);
+                if (submissionStatement.executeUpdate() != 1) {
+                    throw new IllegalStateException("只有草稿投稿可以提取候选片段");
+                }
+                bindEvent(eventStatement, event);
+                eventStatement.executeUpdate();
+                connection.commit();
+            } catch (SQLException | RuntimeException exception) {
+                rollbackQuietly(connection);
+                throw exception;
+            }
         } catch (SQLException exception) {
             throw new IllegalStateException("无法保存候选片段", exception);
         }
@@ -290,6 +359,19 @@ public final class JdbcKnowledgeGovernanceRepository
         statement.setTimestamp(19, Timestamp.from(submission.updatedAt()));
     }
 
+    private static void bindEvent(
+            PreparedStatement statement,
+            KnowledgeReviewEvent event
+    ) throws SQLException {
+        statement.setObject(1, event.id());
+        statement.setObject(2, event.submissionId());
+        statement.setObject(3, event.candidateId());
+        statement.setString(4, event.actionType());
+        statement.setString(5, event.actionNote());
+        statement.setString(6, event.actorLabel());
+        statement.setTimestamp(7, Timestamp.from(event.occurredAt()));
+    }
+
     private static void bindCandidate(
             PreparedStatement statement,
             KnowledgeCandidate candidate
@@ -368,5 +450,61 @@ public final class JdbcKnowledgeGovernanceRepository
                        created_at, updated_at
                 FROM knowledge_candidate
                 """;
+    }
+
+    private static List<KnowledgeCandidate> validateCandidates(
+            UUID submissionId,
+            List<KnowledgeCandidate> candidates
+    ) {
+        List<KnowledgeCandidate> copiedCandidates = List.copyOf(
+                Objects.requireNonNull(candidates, "候选片段不能为空")
+        );
+        if (copiedCandidates.stream().anyMatch(candidate ->
+                !submissionId.equals(candidate.submissionId()))) {
+            throw new IllegalArgumentException("候选片段必须属于同一投稿");
+        }
+        return copiedCandidates;
+    }
+
+    private static String submissionInsertSql() {
+        return """
+                INSERT INTO knowledge_submission (
+                    id, document_family, knowledge_scope, title,
+                    source_version, source_description, source_url,
+                    applicable_scope, publication_date,
+                    publication_date_confirmed, effective_date,
+                    effective_date_confirmed, storage_key,
+                    original_file_name, content_checksum,
+                    submission_status, review_notice, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """;
+    }
+
+    private static String candidateInsertSql() {
+        return """
+                INSERT INTO knowledge_candidate (
+                    id, submission_id, start_page_number, end_page_number,
+                    raw_text, edited_text, section_title, source_locator,
+                    review_status, review_note, discard_reason,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """;
+    }
+
+    private static String eventInsertSql() {
+        return """
+                INSERT INTO knowledge_review_event (
+                    id, submission_id, candidate_id, action_type,
+                    action_note, actor_label, occurred_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """;
+    }
+
+    private static void rollbackQuietly(Connection connection) {
+        try {
+            connection.rollback();
+        } catch (SQLException ignored) {
+            // 原始数据库异常才是调用方需要处理的失败原因。
+        }
     }
 }

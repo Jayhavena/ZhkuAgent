@@ -2,6 +2,7 @@ package com.yupi.yuaiagent.zhku.knowledge.publication;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yupi.yuaiagent.zhku.ZhkuDatabaseTestConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -30,9 +31,8 @@ class PublicElectiveKeywordSearchAcceptanceTest {
             "zhku.db.user",
             "zhkuagent"
     );
-    private static final String DATABASE_PASSWORD = System.getProperty(
-            "zhku.db.password"
-    );
+    private static final String DATABASE_PASSWORD =
+            ZhkuDatabaseTestConfig.databasePassword();
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("keywordProbes")

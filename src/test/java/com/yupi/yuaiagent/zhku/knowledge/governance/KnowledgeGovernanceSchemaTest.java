@@ -1,5 +1,6 @@
 package com.yupi.yuaiagent.zhku.knowledge.governance;
 
+import com.yupi.yuaiagent.zhku.ZhkuDatabaseTestConfig;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 
@@ -24,9 +25,8 @@ class KnowledgeGovernanceSchemaTest {
             "zhku.db.user",
             "zhkuagent"
     );
-    private static final String DATABASE_PASSWORD = System.getProperty(
-            "zhku.db.password"
-    );
+    private static final String DATABASE_PASSWORD =
+            ZhkuDatabaseTestConfig.databasePassword();
     private static final UUID PUBLIC_ELECTIVE_SOURCE_ID = UUID.fromString(
             "2a04fd61-529e-4e6b-8ad6-9666f21a5037"
     );

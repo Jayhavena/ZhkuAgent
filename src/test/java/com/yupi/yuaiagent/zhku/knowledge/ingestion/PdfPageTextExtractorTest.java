@@ -37,6 +37,28 @@ class PdfPageTextExtractorTest {
     }
 
     @Test
+    void shouldExtractAllPhysicalPagesInAscendingOrder() throws IOException {
+        Path pdf = createTwoPagePdf();
+
+        try {
+            List<ExtractedPdfPage> pages = new PdfPageTextExtractor()
+                    .extractAll(pdf);
+
+            assertThat(pages).hasSize(2);
+            assertThat(pages.get(0)).satisfies(page -> {
+                assertThat(page.pdfPageNumber()).isEqualTo(1);
+                assertThat(page.text()).contains("first policy page");
+            });
+            assertThat(pages.get(1)).satisfies(page -> {
+                assertThat(page.pdfPageNumber()).isEqualTo(2);
+                assertThat(page.text()).contains("second policy page");
+            });
+        } finally {
+            Files.deleteIfExists(pdf);
+        }
+    }
+
+    @Test
     void shouldRejectPageOutsidePdfRange() throws IOException {
         Path pdf = createTwoPagePdf();
 
