@@ -27,6 +27,9 @@ import static org.assertj.core.groups.Tuple.tuple;
  */
 class ReviewedKnowledgePublisherTest {
 
+    private static final String REPLACEMENT_TEST_SCOPE =
+            "TASK3_REPLACEMENT_TEST";
+
     private static final String DATABASE_URL = System.getProperty(
             "zhku.db.url",
             "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
@@ -39,6 +42,9 @@ class ReviewedKnowledgePublisherTest {
             ZhkuDatabaseTestConfig.databasePassword();
     private static final UUID TEST_SOURCE_ID = UUID.fromString(
             "a252f017-2de6-4d70-92e8-f4f775bdd532"
+    );
+    private static final UUID REPLACEMENT_SOURCE_ID = UUID.fromString(
+            "f9744fd7-b8c2-4915-93e5-244d6c513b3c"
     );
 
     private ReviewedKnowledgePublisher publisher;
@@ -123,6 +129,25 @@ class ReviewedKnowledgePublisherTest {
     }
 
     @Test
+    void shouldArchiveSameScopeWhenPublishingReplacement() {
+        publisher.publishReplacingScope(
+                publication(TEST_SOURCE_ID, "旧版规则", "旧版替换验证内容"),
+                "STUDENT_HANDBOOK",
+                REPLACEMENT_TEST_SCOPE
+        );
+        publisher.publishReplacingScope(
+                publication(REPLACEMENT_SOURCE_ID, "新版规则", "新版替换验证内容"),
+                "STUDENT_HANDBOOK",
+                REPLACEMENT_TEST_SCOPE
+        );
+
+        assertThat(publisher.searchPublished("旧版替换验证内容")).isEmpty();
+        assertThat(publisher.searchPublished("新版替换验证内容"))
+                .extracting(PublishedKnowledgeChunk::sourceId)
+                .containsExactly(REPLACEMENT_SOURCE_ID);
+    }
+
+    @Test
     void shouldReturnReviewedUserUploadAfterSharingRightsConfirmed() {
         publisher.publish(new ReviewedKnowledgePublication(
                 TEST_SOURCE_ID,
@@ -161,6 +186,21 @@ class ReviewedKnowledgePublisherTest {
                 reviewStatus,
                 Instant.parse("2026-09-10T00:00:00Z"),
                 chunks
+        );
+    }
+
+    private ReviewedKnowledgePublication publication(
+            UUID sourceId,
+            String title,
+            String content
+    ) {
+        return new ReviewedKnowledgePublication(
+                sourceId, title, "学生手册", "测试版", null, "本地验证",
+                "仅供测试发布链路。", false, false, "审核通过",
+                Instant.parse("2026-09-12T00:00:00Z"),
+                List.of(new ReviewedKnowledgeChunk(
+                        0, "范围替换", "PDF 第 1 页", 1, content
+                ))
         );
     }
 
@@ -219,13 +259,15 @@ class ReviewedKnowledgePublisherTest {
                 DATABASE_USER,
                 DATABASE_PASSWORD
         ); PreparedStatement deleteChunks = connection.prepareStatement("""
-                DELETE FROM knowledge_chunk WHERE source_id = ?
+                DELETE FROM knowledge_chunk WHERE source_id IN (?, ?)
                 """ ); PreparedStatement deleteSource = connection.prepareStatement("""
-                DELETE FROM knowledge_source WHERE id = ?
+                DELETE FROM knowledge_source WHERE id IN (?, ?)
                 """)) {
             deleteChunks.setObject(1, TEST_SOURCE_ID);
+            deleteChunks.setObject(2, REPLACEMENT_SOURCE_ID);
             deleteChunks.executeUpdate();
             deleteSource.setObject(1, TEST_SOURCE_ID);
+            deleteSource.setObject(2, REPLACEMENT_SOURCE_ID);
             deleteSource.executeUpdate();
         }
     }

@@ -276,6 +276,26 @@ public final class JdbcKnowledgeGovernanceRepository
     }
 
     @Override
+    public void markSubmissionInReview(UUID submissionId) {
+        Objects.requireNonNull(submissionId, "投稿编号不能为空");
+        String sql = """
+                UPDATE knowledge_submission
+                SET submission_status = 'IN_REVIEW', updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                  AND submission_status IN ('EXTRACTED', 'IN_REVIEW')
+                """;
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setObject(1, submissionId);
+            if (statement.executeUpdate() != 1) {
+                throw new IllegalStateException("只有已提取或审核中的投稿可以进入审核");
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("无法更新资料投稿状态", exception);
+        }
+    }
+
+    @Override
     public Optional<UUID> findPublishedSourceId(
             String documentFamily,
             String knowledgeScope
@@ -311,6 +331,48 @@ public final class JdbcKnowledgeGovernanceRepository
     @Override
     public void markSubmissionArchived(UUID submissionId) {
         updateSubmissionStatus(submissionId, KnowledgeSubmissionStatus.ARCHIVED);
+    }
+
+    @Override
+    public void completePublicationInTransaction(
+            Connection connection,
+            UUID submissionId,
+            KnowledgeReviewEvent event
+    ) throws SQLException {
+        Objects.requireNonNull(connection, "数据库连接不能为空");
+        Objects.requireNonNull(submissionId, "投稿编号不能为空");
+        Objects.requireNonNull(event, "操作记录不能为空");
+        if (!submissionId.equals(event.submissionId())) {
+            throw new IllegalArgumentException("发布记录必须属于当前投稿");
+        }
+        try (PreparedStatement archive = connection.prepareStatement("""
+                UPDATE knowledge_submission old_submission
+                SET submission_status = 'ARCHIVED', updated_at = CURRENT_TIMESTAMP
+                WHERE old_submission.submission_status = 'PUBLISHED'
+                  AND old_submission.id <> ?
+                  AND EXISTS (
+                      SELECT 1 FROM knowledge_submission current_submission
+                      WHERE current_submission.id = ?
+                        AND current_submission.document_family = old_submission.document_family
+                        AND current_submission.knowledge_scope = old_submission.knowledge_scope
+                  )
+                """); PreparedStatement publish = connection.prepareStatement("""
+                UPDATE knowledge_submission
+                SET submission_status = 'PUBLISHED', updated_at = CURRENT_TIMESTAMP
+                WHERE id = ? AND submission_status = 'IN_REVIEW'
+                """); PreparedStatement eventStatement = connection.prepareStatement(
+                eventInsertSql()
+        )) {
+            archive.setObject(1, submissionId);
+            archive.setObject(2, submissionId);
+            archive.executeUpdate();
+            publish.setObject(1, submissionId);
+            if (publish.executeUpdate() != 1) {
+                throw new IllegalStateException("只有审核中的投稿可以发布");
+            }
+            bindEvent(eventStatement, event);
+            eventStatement.executeUpdate();
+        }
     }
 
     private void updateSubmissionStatus(

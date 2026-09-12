@@ -10,6 +10,8 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
@@ -193,6 +195,11 @@ class KnowledgeSubmissionServiceTest {
         }
 
         @Override
+        public void markSubmissionInReview(UUID submissionId) {
+            throw new UnsupportedOperationException("本测试不需要审核资料");
+        }
+
+        @Override
         public Optional<UUID> findPublishedSourceId(
                 String documentFamily,
                 String knowledgeScope
@@ -208,6 +215,15 @@ class KnowledgeSubmissionServiceTest {
         @Override
         public void markSubmissionArchived(UUID submissionId) {
             throw new UnsupportedOperationException("本测试不需要归档资料");
+        }
+
+        @Override
+        public void completePublicationInTransaction(
+                Connection connection,
+                UUID submissionId,
+                KnowledgeReviewEvent event
+        ) throws SQLException {
+            throw new UnsupportedOperationException("本测试不需要发布资料");
         }
 
         void markSubmissionExtracted(UUID submissionId) {

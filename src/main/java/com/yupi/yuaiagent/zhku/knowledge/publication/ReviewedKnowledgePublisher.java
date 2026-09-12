@@ -35,6 +35,53 @@ public final class ReviewedKnowledgePublisher {
      * <p>若任一片段写入失败，整个事务回滚，避免来源显示为已发布却没有完整引用片段。</p>
      */
     public void publish(ReviewedKnowledgePublication publication) {
+        publishInScope(publication, "LEGACY", "LEGACY", false, ignored -> null);
+    }
+
+    /**
+     * 用同一资料族、知识范围内的新版本替换旧版本。
+     *
+     * <p>归档旧来源和写入新版共用一个事务，发布失败时旧知识仍保持可检索。</p>
+     */
+    public void publishReplacingScope(
+            ReviewedKnowledgePublication publication,
+            String documentFamily,
+            String knowledgeScope
+    ) {
+        publishInScope(
+                publication,
+                requireScopeText(documentFamily, "资料族不能为空"),
+                requireScopeText(knowledgeScope, "知识范围不能为空"),
+                true,
+                ignored -> null
+        );
+    }
+
+    /**
+     * 在范围替换事务内追加暂存区状态变更，避免发布器与治理仓储各自提交。
+     */
+    public <T> T publishReplacingScope(
+            ReviewedKnowledgePublication publication,
+            String documentFamily,
+            String knowledgeScope,
+            PublicationTransactionWork<T> afterPublication
+    ) {
+        return publishInScope(
+                publication,
+                requireScopeText(documentFamily, "资料族不能为空"),
+                requireScopeText(knowledgeScope, "知识范围不能为空"),
+                true,
+                Objects.requireNonNull(afterPublication, "事务回调不能为空")
+        );
+    }
+
+    private <T> T publishInScope(
+            ReviewedKnowledgePublication publication,
+            String documentFamily,
+            String knowledgeScope,
+            boolean archiveCurrentScope,
+            PublicationTransactionWork<T> afterPublication
+    ) {
         Objects.requireNonNull(publication, "发布资料不能为空");
         publication.requireApproved();
 
@@ -42,7 +89,20 @@ public final class ReviewedKnowledgePublisher {
             boolean originalAutoCommit = connection.getAutoCommit();
             connection.setAutoCommit(false);
             try {
-                upsertSource(connection, publication);
+                if (archiveCurrentScope) {
+                    archivePublishedScope(
+                            connection,
+                            publication.sourceId(),
+                            documentFamily,
+                            knowledgeScope
+                    );
+                }
+                upsertSource(
+                        connection,
+                        publication,
+                        documentFamily,
+                        knowledgeScope
+                );
                 for (ReviewedKnowledgeChunk chunk : publication.chunks().stream()
                         .sorted(Comparator.comparingInt(
                                 ReviewedKnowledgeChunk::chunkIndex
@@ -50,7 +110,9 @@ public final class ReviewedKnowledgePublisher {
                         .toList()) {
                     upsertChunk(connection, publication.sourceId(), chunk);
                 }
+                T result = afterPublication.execute(connection);
                 connection.commit();
+                return result;
             } catch (SQLException | RuntimeException exception) {
                 connection.rollback();
                 throw exception;
@@ -60,6 +122,11 @@ public final class ReviewedKnowledgePublisher {
         } catch (SQLException exception) {
             throw new IllegalStateException("无法发布已审核知识资料", exception);
         }
+    }
+
+    @FunctionalInterface
+    public interface PublicationTransactionWork<T> {
+        T execute(Connection connection) throws SQLException;
     }
 
     /**
@@ -130,15 +197,17 @@ public final class ReviewedKnowledgePublisher {
 
     private void upsertSource(
             Connection connection,
-            ReviewedKnowledgePublication publication
+            ReviewedKnowledgePublication publication,
+            String documentFamily,
+            String knowledgeScope
     ) throws SQLException {
         String sql = """
                 INSERT INTO knowledge_source (
                     id, title, source_type, source_url, source_version,
                     publication_status, published_at, content_checksum,
                     visibility_scope, publication_scope, review_notice,
-                    sharing_rights_confirmed
-                ) VALUES (?, ?, ?, ?, ?, 'PUBLISHED', ?, ?, ?, ?, ?, ?)
+                    sharing_rights_confirmed, document_family, knowledge_scope
+                ) VALUES (?, ?, ?, ?, ?, 'PUBLISHED', ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT (id) DO UPDATE SET
                     title = EXCLUDED.title,
                     source_type = EXCLUDED.source_type,
@@ -151,6 +220,8 @@ public final class ReviewedKnowledgePublisher {
                     publication_scope = EXCLUDED.publication_scope,
                     review_notice = EXCLUDED.review_notice,
                     sharing_rights_confirmed = EXCLUDED.sharing_rights_confirmed,
+                    document_family = EXCLUDED.document_family,
+                    knowledge_scope = EXCLUDED.knowledge_scope,
                     updated_at = CURRENT_TIMESTAMP
                 """;
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -171,6 +242,29 @@ public final class ReviewedKnowledgePublisher {
             statement.setString(9, publication.publicationScope());
             statement.setString(10, publication.reviewNotice());
             statement.setBoolean(11, publication.sharingRightsConfirmed());
+            statement.setString(12, documentFamily);
+            statement.setString(13, knowledgeScope);
+            statement.executeUpdate();
+        }
+    }
+
+    private static void archivePublishedScope(
+            Connection connection,
+            UUID replacementSourceId,
+            String documentFamily,
+            String knowledgeScope
+    ) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                UPDATE knowledge_source
+                SET publication_status = 'ARCHIVED', updated_at = CURRENT_TIMESTAMP
+                WHERE document_family = ?
+                  AND knowledge_scope = ?
+                  AND publication_status = 'PUBLISHED'
+                  AND id <> ?
+                """)) {
+            statement.setString(1, documentFamily);
+            statement.setString(2, knowledgeScope);
+            statement.setObject(3, replacementSourceId);
             statement.executeUpdate();
         }
     }
@@ -210,6 +304,15 @@ public final class ReviewedKnowledgePublisher {
         String normalized = keyword.strip();
         if (normalized.isEmpty()) {
             throw new IllegalArgumentException("检索关键词不能为空");
+        }
+        return normalized;
+    }
+
+    private static String requireScopeText(String value, String message) {
+        Objects.requireNonNull(value, message);
+        String normalized = value.strip();
+        if (normalized.isEmpty()) {
+            throw new IllegalArgumentException(message);
         }
         return normalized;
     }

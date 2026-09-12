@@ -3,6 +3,8 @@ package com.yupi.yuaiagent.zhku.knowledge.governance;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * 资料治理暂存区的数据访问边界。
@@ -36,6 +38,9 @@ public interface KnowledgeGovernanceRepository {
 
     void appendEvent(KnowledgeReviewEvent event);
 
+    /** 首次候选操作后，投稿进入人工审核阶段。 */
+    void markSubmissionInReview(UUID submissionId);
+
     Optional<UUID> findPublishedSourceId(
             String documentFamily,
             String knowledgeScope
@@ -44,4 +49,11 @@ public interface KnowledgeGovernanceRepository {
     void markSubmissionPublished(UUID submissionId);
 
     void markSubmissionArchived(UUID submissionId);
+
+    /** 发布器持有事务时，同连接归档旧投稿、发布当前投稿并记录操作。 */
+    void completePublicationInTransaction(
+            Connection connection,
+            UUID submissionId,
+            KnowledgeReviewEvent event
+    ) throws SQLException;
 }
