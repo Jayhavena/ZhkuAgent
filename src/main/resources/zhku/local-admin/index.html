@@ -5,46 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>仲园 Agent｜本机资料治理</title>
     <style>
-        :root { color: #17382d; background: #f7f5ed; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+        :root { color: #193a30; background: #f5f3eb; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
         * { box-sizing: border-box; }
         body { margin: 0; }
-        .shell { width: min(1100px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 60px; }
-        .hero, .card { border: 1px solid #d2dccd; border-radius: 16px; background: #fffef9; box-shadow: 0 10px 30px rgba(23, 56, 45, .06); }
-        .hero { padding: 25px 28px; }
-        .brand-row, .section-heading, .submission-row, .candidate-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .brand { margin: 0; font-size: 20px; font-weight: 700; }
-        .badge { margin: 0; padding: 5px 10px; border-radius: 999px; color: #317047; background: #e9f1e8; font-size: 13px; font-weight: 700; }
-        h1 { margin: 20px 0 8px; font-size: clamp(28px, 5vw, 40px); }
+        .shell { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 64px; }
+        .hero, .card, .flow { border: 1px solid #d7dfd2; border-radius: 18px; background: #fffef9; box-shadow: 0 12px 34px rgba(25, 58, 48, .07); }
+        .hero { padding: 28px 30px; border-top: 4px solid #2d6a4f; }
+        .brand-row, .section-heading, .submission-row, .flow-copy { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .brand { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: .02em; }
+        .badge, .stage-badge, .status-badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 10px; color: #286044; background: #e8f1e8; font-size: 13px; font-weight: 700; }
+        h1 { margin: 22px 0 8px; font-size: clamp(30px, 5vw, 44px); letter-spacing: -.03em; }
         h2 { margin: 0; font-size: 20px; }
-        .notice, .hint, .status, .candidate-meta { color: #5b675e; line-height: 1.7; }
-        .notice { margin: 0; }
-        .card { margin-top: 20px; padding: 22px 24px; }
+        h3 { margin: 0; font-size: 16px; }
+        .notice, .hint, .status, .candidate-meta, .stage-note { color: #5b675e; line-height: 1.7; }
+        .notice { max-width: 720px; margin: 0; }
+        .flow { margin-top: 20px; padding: 18px 20px; }
+        .flow-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 0; padding: 0; list-style: none; }
+        .flow-step { min-height: 68px; padding: 10px; border-radius: 12px; color: #6b746c; background: #f2f3ef; }
+        .flow-step[data-state="current"] { color: #193a30; background: #e8f1e8; box-shadow: inset 0 0 0 1px #9fc1a5; }
+        .flow-step[data-state="complete"] { color: #286044; background: #f0f6ef; }
+        .step-number { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 800; }
+        .step-name { font-size: 14px; font-weight: 700; }
+        .flow-copy { margin-top: 16px; padding-top: 14px; border-top: 1px solid #e2e8de; }
+        .flow-copy p { margin: 0; }
+        .card { margin-top: 20px; padding: 24px; }
+        .card[data-locked="true"] { opacity: .68; }
         .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
         .wide { grid-column: 1 / -1; }
         label { display: grid; gap: 7px; font-weight: 700; }
-        input, textarea { width: 100%; padding: 10px 11px; border: 1px solid #b8c8b7; border-radius: 9px; color: #17382d; background: #fffef9; font: inherit; }
+        input, textarea { width: 100%; padding: 10px 11px; border: 1px solid #b8c8b7; border-radius: 10px; color: #193a30; background: #fffef9; font: inherit; }
         textarea { min-height: 92px; resize: vertical; line-height: 1.6; }
-        input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 3px solid #b9d4bd; outline-offset: 2px; }
+        input:focus-visible, textarea:focus-visible, button:focus-visible, .link-button:focus-visible { outline: 3px solid #b9d4bd; outline-offset: 2px; }
         .checkbox { display: flex; align-items: center; gap: 8px; font-weight: 400; }
         .checkbox input { width: auto; }
         .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-        button { border: 0; border-radius: 9px; padding: 10px 14px; color: #fff; background: #17382d; font: inherit; font-weight: 700; cursor: pointer; }
-        button:hover:not(:disabled) { background: #317047; }
-        button.secondary { color: #17382d; background: #e9f1e8; }
+        button, .link-button { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 10px; padding: 10px 14px; color: #fff; background: #1f5941; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+        button:hover:not(:disabled), .link-button:hover { background: #2d7655; }
+        button.secondary { color: #193a30; background: #e8f1e8; }
         button.danger { background: #8b2f2f; }
-        button:disabled { cursor: wait; opacity: .65; }
-        .message { margin: 16px 0 0; padding: 11px 13px; border-radius: 9px; line-height: 1.6; }
+        button:disabled { cursor: not-allowed; opacity: .58; }
+        .message { margin: 16px 0 0; padding: 12px 14px; border-radius: 11px; line-height: 1.6; }
         .error { color: #8b2f2f; background: #fbedeb; }
-        .success { color: #317047; background: #e9f1e8; }
+        .success { color: #286044; background: #e8f1e8; }
         .list, .candidate-list { display: grid; gap: 12px; margin-top: 16px; }
-        .submission, .candidate { border: 1px solid #dce4d8; border-radius: 11px; padding: 14px; background: #fff; }
-        .submission p, .candidate p { margin: 5px 0 0; }
-        .candidate h3 { margin: 0; font-size: 16px; }
-        .candidate form { display: grid; gap: 12px; margin-top: 13px; }
+        .submission, .candidate { border: 1px solid #dce4d8; border-radius: 12px; padding: 16px; background: #fff; }
+        .submission p, .candidate p { margin: 6px 0 0; }
+        .submission-row { align-items: flex-start; }
+        .candidate form { display: grid; gap: 12px; margin-top: 14px; }
         .candidate-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .candidate-actions { display: flex; flex-wrap: wrap; gap: 8px; }
         .empty { margin: 14px 0 0; color: #5b675e; }
+        dialog { width: min(460px, calc(100% - 32px)); border: 1px solid #d7dfd2; border-radius: 16px; padding: 0; color: #193a30; background: #fffef9; box-shadow: 0 20px 60px rgba(25, 58, 48, .2); }
+        dialog::backdrop { background: rgba(25, 58, 48, .32); }
+        .dialog-body { padding: 24px; }
+        .dialog-body p { color: #5b675e; line-height: 1.7; }
         [hidden] { display: none !important; }
-        @media (max-width: 680px) { .shell { width: min(100% - 24px, 1100px); padding-top: 16px; } .hero, .card { padding: 20px; } .grid, .candidate-grid { grid-template-columns: 1fr; } .brand-row, .section-heading, .submission-row { align-items: flex-start; flex-direction: column; } }
+        @media (max-width: 760px) { .shell { width: min(100% - 24px, 1120px); padding-top: 16px; } .hero, .card { padding: 20px; } .flow-list { grid-template-columns: 1fr; } .grid, .candidate-grid { grid-template-columns: 1fr; } .brand-row, .section-heading, .submission-row, .flow-copy { align-items: flex-start; flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -52,10 +68,22 @@
     <header class="hero">
         <div class="brand-row"><p class="brand">仲园 Agent</p><p class="badge">仅本机管理员可操作</p></div>
         <h1 id="page-title">本机资料治理</h1>
-        <p class="notice">未审核资料不会进入问答。此页面用于开发验证，不代表学生端或正式校务系统。</p>
+        <p class="notice">公开资料只有经过提取、审核和发布，才会进入校园资料问答。此页面用于本机开发验证，不代表学生端或正式校务系统。</p>
     </header>
 
-    <section class="card" aria-labelledby="upload-title">
+    <section class="flow" aria-labelledby="flow-title">
+        <h2 id="flow-title">资料发布流程</h2>
+        <ol class="flow-list">
+            <li class="flow-step" data-step="SUBMIT" data-state="current"><span class="step-number">步骤 1</span><span class="step-name">提交资料</span></li>
+            <li class="flow-step" data-step="EXTRACT"><span class="step-number">步骤 2</span><span class="step-name">提取片段</span></li>
+            <li class="flow-step" data-step="REVIEW"><span class="step-number">步骤 3</span><span class="step-name">审核内容</span></li>
+            <li class="flow-step" data-step="PUBLISH"><span class="step-number">步骤 4</span><span class="step-name">发布版本</span></li>
+            <li class="flow-step" data-step="VERIFY"><span class="step-number">步骤 5</span><span class="step-name">验证问答</span></li>
+        </ol>
+        <div class="flow-copy"><span id="current-stage" class="stage-badge">当前：提交资料</span><p id="stage-note" class="stage-note">下一步：提交一份可读取的公开 PDF，保存为审核草稿。</p></div>
+    </section>
+
+    <section class="card" id="submit-stage" aria-labelledby="upload-title">
         <div class="section-heading"><h2 id="upload-title">1. 提交资料</h2><span class="status">仅支持可读取的 PDF</span></div>
         <form id="upload-form">
             <div class="grid">
@@ -76,190 +104,62 @@
         </form>
     </section>
 
-    <section class="card" aria-labelledby="submission-title">
-        <div class="section-heading"><h2 id="submission-title">2. 投稿与候选片段</h2><button id="refresh-submissions" class="secondary" type="button">刷新列表</button></div>
-        <p class="hint">选择一份投稿后，先提取候选片段，再逐条编辑、通过或丢弃。</p>
+    <section class="card" id="extract-stage" aria-labelledby="submission-title">
+        <div class="section-heading"><h2 id="submission-title">2. 选择资料并提取片段</h2><button id="refresh-submissions" class="secondary" type="button">刷新资料列表</button></div>
+        <p class="hint">选择一份审核草稿后，系统会提取候选知识片段；未审核资料不会进入问答。</p>
         <div id="submission-list" class="list"></div>
-        <p id="submission-empty" class="empty">尚未加载投稿。</p>
-        <div id="candidate-area" hidden>
-            <h2 id="candidate-title" style="margin-top:24px">候选片段审核</h2>
-            <p id="candidate-summary" class="hint"></p>
-            <div id="candidate-list" class="candidate-list"></div>
-        </div>
+        <p id="submission-empty" class="empty">尚未加载资料。</p>
     </section>
 
-    <section class="card" aria-labelledby="publish-title">
-        <div class="section-heading"><h2 id="publish-title">3. 发布前检查</h2><span id="publish-status" class="status">请先选择投稿</span></div>
-        <p class="hint">发布只会替换相同“资料族 + 知识范围”的旧版；若事务失败，旧版会保留可用。</p>
+    <section class="card" id="review-stage" aria-labelledby="review-title" hidden>
+        <div class="section-heading"><h2 id="review-title">3. 审核候选片段</h2><span id="review-stage-status" class="status">请逐条给出处理结论</span></div>
+        <p id="candidate-summary" class="hint"></p>
+        <div id="candidate-list" class="candidate-list"></div>
+    </section>
+
+    <section class="card" id="publish-stage" aria-labelledby="publish-title" data-locked="true">
+        <div class="section-heading"><h2 id="publish-title">4. 发布版本</h2><span id="publish-status" class="status">请先选择资料</span></div>
+        <p class="hint">同一“资料族 + 知识范围”的旧版本会被归档；若事务失败，旧版本仍保持可用。</p>
         <div class="actions"><button id="publish-button" type="button" disabled>发布已审核资料</button></div>
     </section>
 
-    <section class="card" aria-labelledby="verify-title">
-        <h2 id="verify-title">4. 问答验证</h2>
-        <p class="hint">发布成功后，打开本机校园资料问答页面，确认回答显示资料标题、页码和适用提示。</p>
-        <div class="actions"><a href="/api/zhku/local-preview" target="_blank" rel="noopener"><button type="button">打开问答验证页</button></a></div>
+    <section class="card" id="verify-stage" aria-labelledby="verify-title" data-locked="true">
+        <div class="section-heading"><h2 id="verify-title">5. 验证问答</h2><span class="status">发布后可验证</span></div>
+        <p class="hint">发布成功后，打开问答页并确认回答展示资料标题、页码和适用范围。问答页运行在独立的本机端口。</p>
+        <div class="actions"><a class="link-button" href="http://127.0.0.1:8123/api/zhku/local-preview" target="_blank" rel="noopener">打开问答验证页</a></div>
     </section>
-
-    <p id="page-error" class="message error" role="alert" hidden></p>
-    <p id="page-success" class="message success" role="status" hidden></p>
+    <p id="page-error" class="message error" role="alert" hidden></p><p id="page-success" class="message success" role="status" hidden></p>
 </main>
+
+<dialog id="confirmation-dialog" aria-labelledby="confirmation-title">
+    <div class="dialog-body"><h2 id="confirmation-title">发布前请确认</h2><p id="confirmation-message"></p><div class="actions"><button id="confirmation-cancel" class="secondary" type="button">返回检查</button><button id="confirmation-accept" type="button">确认继续</button></div></div>
+</dialog>
 
 <script>
     const apiBase = "/api/zhku/local-admin";
-    // 完整列出最核心的投稿入口，方便审查页面只会访问本机资料治理接口。
     const submissionsEndpoint = "/api/zhku/local-admin/submissions";
-    const uploadForm = document.querySelector("#upload-form");
-    const refreshButton = document.querySelector("#refresh-submissions");
-    const submissionList = document.querySelector("#submission-list");
-    const submissionEmpty = document.querySelector("#submission-empty");
-    const candidateArea = document.querySelector("#candidate-area");
-    const candidateTitle = document.querySelector("#candidate-title");
-    const candidateSummary = document.querySelector("#candidate-summary");
-    const candidateList = document.querySelector("#candidate-list");
-    const publishButton = document.querySelector("#publish-button");
-    const publishStatus = document.querySelector("#publish-status");
-    const pageError = document.querySelector("#page-error");
-    const pageSuccess = document.querySelector("#page-success");
-    let selectedSubmission = null;
-
-    uploadForm.addEventListener("submit", async event => {
-        event.preventDefault();
-        clearMessage();
-        const formData = new FormData(uploadForm);
-        setBusy(uploadForm, true);
-        try {
-            const response = await fetch(submissionsEndpoint, { method: "POST", body: formData });
-            const payload = await readJson(response);
-            if (!response.ok) { showError(payload.message || "资料投稿失败，请检查表单和 PDF。"); return; }
-            showSuccess("资料已保存为审核草稿。请提取候选片段并完成审核。");
-            uploadForm.reset();
-            await loadSubmissions(payload.id);
-        } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); }
-        finally { setBusy(uploadForm, false); }
-    });
-
-    refreshButton.addEventListener("click", () => loadSubmissions(selectedSubmission?.id));
-    publishButton.addEventListener("click", publishSelectedSubmission);
-
-    async function loadSubmissions(selectId) {
-        clearMessage();
-        try {
-            const response = await fetch(submissionsEndpoint);
-            const submissions = await readJson(response);
-            if (!response.ok) { showError(submissions.message || "无法读取投稿列表。"); return; }
-            renderSubmissions(submissions);
-            const targetId = selectId || selectedSubmission?.id;
-            if (targetId) { await loadSubmission(targetId); }
-        } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); }
-    }
-
-    function renderSubmissions(submissions) {
-        submissionList.replaceChildren();
-        submissionEmpty.hidden = submissions.length > 0;
-        submissions.forEach(submission => {
-            const item = document.createElement("article");
-            item.className = "submission";
-            const heading = document.createElement("strong");
-            heading.textContent = `${submission.title}｜${submission.sourceVersion}`;
-            const meta = document.createElement("p");
-            meta.className = "candidate-meta";
-            meta.textContent = `范围：${submission.knowledgeScope}｜状态：${submission.status}`;
-            const select = actionButton("查看并审核", "secondary", () => loadSubmission(submission.id));
-            item.append(heading, meta, select);
-            submissionList.append(item);
-        });
-    }
-
-    async function loadSubmission(submissionId) {
-        clearMessage();
-        try {
-            const response = await fetch(`${submissionsEndpoint}/${submissionId}`);
-            const submission = await readJson(response);
-            if (!response.ok) { showError(submission.message || "无法读取投稿详情。"); return; }
-            selectedSubmission = submission;
-            candidateArea.hidden = false;
-            candidateTitle.textContent = `候选片段审核｜${submission.title}`;
-            renderCandidates(submission);
-            refreshPublishCheck();
-        } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); }
-    }
-
-    function renderCandidates(submission) {
-        candidateList.replaceChildren();
-        const pendingCount = submission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length;
-        candidateSummary.textContent = `共 ${submission.candidates.length} 条；待处理 ${pendingCount} 条。所有候选片段必须通过或丢弃后才能发布。`;
-        if (submission.candidates.length === 0) {
-            candidateList.append(actionButton("提取候选片段", "", extractCandidates));
-            return;
-        }
-        submission.candidates.forEach(candidate => candidateList.append(createCandidateCard(candidate)));
-    }
-
-    function createCandidateCard(candidate) {
-        const card = document.createElement("article");
-        card.className = "candidate";
-        const heading = document.createElement("h3");
-        heading.textContent = `第 ${candidate.startPageNumber}—${candidate.endPageNumber} 页｜${candidate.reviewStatus}`;
-        const meta = document.createElement("p");
-        meta.className = "candidate-meta";
-        meta.textContent = candidate.reviewNote || candidate.discardReason || "请填写审核说明后作出结论。";
-        const form = document.createElement("form");
-        const title = createInput("片段标题", candidate.sectionTitle || "");
-        const locator = createInput("资料定位", candidate.sourceLocator || `PDF 第 ${candidate.startPageNumber} 页`);
-        const text = createTextarea("编辑后正文", candidate.editedText || "");
-        const note = createTextarea("审核说明或丢弃原因", candidate.reviewNote || candidate.discardReason || "");
-        const pageRange = document.createElement("div");
-        pageRange.className = "candidate-grid";
-        const startPage = createNumberInput("起始页", candidate.startPageNumber);
-        const endPage = createNumberInput("结束页", candidate.endPageNumber);
-        pageRange.append(startPage.label, endPage.label);
-        const actions = document.createElement("div");
-        actions.className = "candidate-actions";
-        actions.append(
-            actionButton("保存编辑", "secondary", () => updateCandidate(candidate.id, { startPageNumber: Number(startPage.input.value), endPageNumber: Number(endPage.input.value), editedText: text.input.value, sectionTitle: title.input.value, sourceLocator: locator.input.value })),
-            actionButton("通过", "", () => reviewCandidate(candidate.id, "APPROVE", note.input.value)),
-            actionButton("丢弃", "danger", () => reviewCandidate(candidate.id, "DISCARD", note.input.value)),
-            actionButton("按正文两段拆分", "secondary", () => splitCandidate(candidate.id, text.input.value))
-        );
-        form.append(title.label, locator.label, text.label, note.label, pageRange, actions);
-        card.append(heading, meta, form);
-        return card;
-    }
-
-    function createInput(labelText, value) { const label = document.createElement("label"); label.textContent = labelText; const input = document.createElement("input"); input.value = value; label.append(input); return { label, input }; }
-    function createNumberInput(labelText, value) { const field = createInput(labelText, value); field.input.type = "number"; field.input.min = "1"; return field; }
-    function createTextarea(labelText, value) { const label = document.createElement("label"); label.textContent = labelText; const textarea = document.createElement("textarea"); textarea.value = value; label.append(textarea); return { label, input: textarea }; }
-    function actionButton(label, className, handler) { const button = document.createElement("button"); button.type = "button"; button.textContent = label; if (className) { button.className = className; } button.addEventListener("click", handler); return button; }
-
-    async function extractCandidates() { await requestAndReload(`${submissionsEndpoint}/${selectedSubmission.id}/extract`, { method: "POST" }, "候选片段已提取，请逐条审核。"); }
-    async function updateCandidate(candidateId, body) { await requestAndReload(`${apiBase}/candidates/${candidateId}`, { method: "PATCH", headers: jsonHeaders(), body: JSON.stringify(body) }, "候选片段已更新。"); }
-    async function reviewCandidate(candidateId, decision, note) { await requestAndReload(`${apiBase}/candidates/${candidateId}/review`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ decision, note }) }, decision === "APPROVE" ? "候选片段已通过。" : "候选片段已丢弃。"); }
-    async function splitCandidate(candidateId, editedText) {
-        const separator = "\n---\n";
-        if (!editedText.includes(separator)) { showError("请在“编辑后正文”中用单独一行 --- 分隔两段，再执行拆分。"); return; }
-        const [firstEditedText, secondEditedText] = editedText.split(separator, 2);
-        await requestAndReload(`${apiBase}/candidates/${candidateId}/split`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ firstEditedText, secondEditedText }) }, "候选片段已拆分，请分别审核两段内容。");
-    }
-    async function requestAndReload(url, options, successMessage) {
-        clearMessage();
-        try { const response = await fetch(url, options); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "操作未完成，请检查当前投稿状态。"); return; } showSuccess(successMessage); await loadSubmissions(selectedSubmission.id); }
-        catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); }
-    }
-    function refreshPublishCheck() {
-        if (!selectedSubmission) { publishButton.disabled = true; return; }
-        const pending = selectedSubmission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length;
-        const approved = selectedSubmission.candidates.filter(candidate => candidate.reviewStatus === "APPROVED").length;
-        publishButton.disabled = selectedSubmission.status !== "IN_REVIEW" || pending > 0 || approved === 0;
-        publishStatus.textContent = pending > 0 ? `还有 ${pending} 条候选片段待处理` : (approved === 0 ? "至少需要一条通过片段" : "已满足页面层发布条件");
-    }
-    async function publishSelectedSubmission() { if (selectedSubmission) { await requestAndReload(`${submissionsEndpoint}/${selectedSubmission.id}/publish`, { method: "POST" }, "资料已事务发布。请打开问答验证页确认引用与页码。"); } }
-    function jsonHeaders() { return { "Content-Type": "application/json; charset=UTF-8" }; }
-    async function readJson(response) { try { return await response.json(); } catch (error) { return {}; } }
-    function clearMessage() { pageError.hidden = true; pageSuccess.hidden = true; pageError.textContent = ""; pageSuccess.textContent = ""; }
-    function showError(message) { pageError.textContent = message; pageError.hidden = false; }
-    function showSuccess(message) { pageSuccess.textContent = message; pageSuccess.hidden = false; }
-    function setBusy(form, busy) { form.querySelectorAll("button, input, textarea").forEach(control => { control.disabled = busy; }); }
-
+    const uploadForm = document.querySelector("#upload-form"); const refreshButton = document.querySelector("#refresh-submissions"); const submissionList = document.querySelector("#submission-list"); const submissionEmpty = document.querySelector("#submission-empty"); const reviewStage = document.querySelector("#review-stage"); const candidateSummary = document.querySelector("#candidate-summary"); const candidateList = document.querySelector("#candidate-list"); const publishStage = document.querySelector("#publish-stage"); const publishButton = document.querySelector("#publish-button"); const publishStatus = document.querySelector("#publish-status"); const verifyStage = document.querySelector("#verify-stage"); const pageError = document.querySelector("#page-error"); const pageSuccess = document.querySelector("#page-success"); const currentStage = document.querySelector("#current-stage"); const stageNote = document.querySelector("#stage-note"); const confirmationDialog = document.querySelector("#confirmation-dialog"); const confirmationTitle = document.querySelector("#confirmation-title"); const confirmationMessage = document.querySelector("#confirmation-message"); const confirmationAccept = document.querySelector("#confirmation-accept");
+    let selectedSubmission = null; let pendingConfirmation = null;
+    // 用统一阶段描述同步步骤条与“下一步”提示，避免页面状态分散维护。
+    const stageDescriptions = { SUBMIT: ["提交资料", "下一步：提交一份可读取的公开 PDF，保存为审核草稿。"], EXTRACT: ["提取片段", "下一步：选择资料并提取候选知识片段。"], REVIEW: ["审核内容", "下一步：逐条通过或丢弃候选片段，并记录审核说明。"], PUBLISH: ["发布版本", "下一步：确认所有候选片段均已处理后发布资料。"], VERIFY: ["验证问答", "下一步：在问答页确认回答带有资料依据与页码。"] };
+    uploadForm.addEventListener("submit", async event => { event.preventDefault(); clearMessage(); const formData = new FormData(uploadForm); setBusy(uploadForm, true); try { const response = await fetch(submissionsEndpoint, { method: "POST", body: formData }); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "资料提交失败，请检查表单和 PDF。"); return; } showSuccess("资料已保存为审核草稿。请选择该资料并提取候选片段。"); uploadForm.reset(); activateStage("EXTRACT"); await loadSubmissions(payload.id); } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } finally { setBusy(uploadForm, false); } });
+    refreshButton.addEventListener("click", () => loadSubmissions(selectedSubmission?.id)); publishButton.addEventListener("click", () => requestConfirmation("发布前请确认", "发布会归档同一资料族和知识范围的旧版本。确认已完成审核并继续发布吗？", "确认发布", publishSelectedSubmission)); document.querySelector("#confirmation-cancel").addEventListener("click", () => confirmationDialog.close()); confirmationAccept.addEventListener("click", () => { const action = pendingConfirmation; pendingConfirmation = null; confirmationDialog.close(); action?.(); });
+    function activateStage(stage) { const currentIndex = ["SUBMIT", "EXTRACT", "REVIEW", "PUBLISH", "VERIFY"].indexOf(stage); document.querySelectorAll(".flow-step").forEach((item, index) => { item.dataset.state = index < currentIndex ? "complete" : index === currentIndex ? "current" : "waiting"; }); const [name, note] = stageDescriptions[stage]; currentStage.textContent = `当前：${name}`; stageNote.textContent = note; }
+    // 丢弃与发布共用确认入口，避免高影响操作在一次点击后直接请求接口。
+    function requestConfirmation(title, message, label, action) { confirmationTitle.textContent = title; confirmationMessage.textContent = message; confirmationAccept.textContent = label; pendingConfirmation = action; if (typeof confirmationDialog.showModal === "function") { confirmationDialog.showModal(); } else if (window.confirm(message)) { const accepted = pendingConfirmation; pendingConfirmation = null; accepted(); } }
+    async function loadSubmissions(selectId) { clearMessage(); try { const response = await fetch(submissionsEndpoint); const submissions = await readJson(response); if (!response.ok) { showError(submissions.message || "无法读取资料列表。"); return; } renderSubmissions(submissions); const targetId = selectId || selectedSubmission?.id; if (targetId) { await loadSubmission(targetId); } } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
+    function renderSubmissions(submissions) { submissionList.replaceChildren(); submissionEmpty.hidden = submissions.length > 0; submissions.forEach(submission => { const item = document.createElement("article"); item.className = "submission"; const row = document.createElement("div"); row.className = "submission-row"; const detail = document.createElement("div"); const heading = document.createElement("h3"); const meta = document.createElement("p"); const badge = document.createElement("span"); badge.className = "status-badge"; heading.textContent = `${submission.title}｜${submission.sourceVersion}`; meta.className = "candidate-meta"; meta.textContent = `知识范围：${submission.knowledgeScope}｜当前状态：${submissionStatusLabel(submission.status)}`; badge.textContent = submissionStatusLabel(submission.status); detail.append(heading, meta); row.append(detail, badge); item.append(row, actionButton("查看并继续", "secondary", () => loadSubmission(submission.id))); submissionList.append(item); }); }
+    async function loadSubmission(submissionId) { clearMessage(); try { const response = await fetch(`${submissionsEndpoint}/${submissionId}`); const submission = await readJson(response); if (!response.ok) { showError(submission.message || "无法读取资料详情。"); return; } selectedSubmission = submission; reviewStage.hidden = false; renderCandidates(submission); refreshPublishCheck(); if (submission.candidates.length === 0) { activateStage("EXTRACT"); } else if (submission.candidates.some(candidate => candidate.reviewStatus === "PENDING_REVIEW")) { activateStage("REVIEW"); } else { activateStage("PUBLISH"); } } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
+    function renderCandidates(submission) { candidateList.replaceChildren(); const pendingCount = submission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length; candidateSummary.textContent = `共 ${submission.candidates.length} 条候选片段；待处理 ${pendingCount} 条。所有候选片段必须通过或丢弃后才能发布。`; if (submission.candidates.length === 0) { candidateList.append(actionButton("提取候选片段", "", extractCandidates)); return; } submission.candidates.forEach(candidate => candidateList.append(createCandidateCard(candidate))); }
+    function createCandidateCard(candidate) { const card = document.createElement("article"); card.className = "candidate"; const heading = document.createElement("h3"); const meta = document.createElement("p"); heading.textContent = `PDF 第 ${candidate.startPageNumber}—${candidate.endPageNumber} 页｜${candidateStatusLabel(candidate.reviewStatus)}`; meta.className = "candidate-meta"; meta.textContent = candidate.reviewNote || candidate.discardReason || "请填写审核说明后作出结论。"; const form = document.createElement("form"); const title = createInput("片段标题", candidate.sectionTitle || ""); const locator = createInput("资料定位", candidate.sourceLocator || `PDF 第 ${candidate.startPageNumber} 页`); const text = createTextarea("编辑后正文", candidate.editedText || ""); const note = createTextarea("审核说明或丢弃原因", candidate.reviewNote || candidate.discardReason || ""); const pageRange = document.createElement("div"); pageRange.className = "candidate-grid"; const startPage = createNumberInput("起始页", candidate.startPageNumber); const endPage = createNumberInput("结束页", candidate.endPageNumber); pageRange.append(startPage.label, endPage.label); const actions = document.createElement("div"); actions.className = "candidate-actions"; actions.append(actionButton("保存编辑", "secondary", () => updateCandidate(candidate.id, { startPageNumber: Number(startPage.input.value), endPageNumber: Number(endPage.input.value), editedText: text.input.value, sectionTitle: title.input.value, sourceLocator: locator.input.value }))); if (candidate.reviewStatus === "PENDING_REVIEW") { actions.append(actionButton("通过", "", () => reviewCandidate(candidate.id, "APPROVE", note.input.value)), actionButton("丢弃", "danger", () => requestConfirmation("丢弃前请确认", "丢弃后该候选片段不会进入发布版本。确认丢弃吗？", "确认丢弃", () => reviewCandidate(candidate.id, "DISCARD", note.input.value))), actionButton("按正文两段拆分", "secondary", () => splitCandidate(candidate.id, text.input.value))); } form.append(title.label, locator.label, text.label, note.label, pageRange, actions); card.append(heading, meta, form); return card; }
+    function createInput(labelText, value) { const label = document.createElement("label"); label.textContent = labelText; const input = document.createElement("input"); input.value = value; label.append(input); return { label, input }; } function createNumberInput(labelText, value) { const field = createInput(labelText, value); field.input.type = "number"; field.input.min = "1"; return field; } function createTextarea(labelText, value) { const label = document.createElement("label"); label.textContent = labelText; const textarea = document.createElement("textarea"); textarea.value = value; label.append(textarea); return { label, input: textarea }; } function actionButton(label, className, handler) { const button = document.createElement("button"); button.type = "button"; button.textContent = label; if (className) { button.className = className; } button.addEventListener("click", handler); return button; }
+    async function extractCandidates() { await requestAndReload(`${submissionsEndpoint}/${selectedSubmission.id}/extract`, { method: "POST" }, "候选片段已提取，请逐条审核。", "REVIEW"); } async function updateCandidate(candidateId, body) { await requestAndReload(`${apiBase}/candidates/${candidateId}`, { method: "PATCH", headers: jsonHeaders(), body: JSON.stringify(body) }, "候选片段已更新。", "REVIEW"); } async function reviewCandidate(candidateId, decision, note) { await requestAndReload(`${apiBase}/candidates/${candidateId}/review`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ decision, note }) }, decision === "APPROVE" ? "候选片段已通过。" : "候选片段已丢弃。", "REVIEW"); }
+    async function splitCandidate(candidateId, editedText) { const separator = "\n---\n"; if (!editedText.includes(separator)) { showError("请在“编辑后正文”中用单独一行 --- 分隔两段，再执行拆分。"); return; } const [firstEditedText, secondEditedText] = editedText.split(separator, 2); await requestAndReload(`${apiBase}/candidates/${candidateId}/split`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ firstEditedText, secondEditedText }) }, "候选片段已拆分，请分别审核两段内容。", "REVIEW"); }
+    async function requestAndReload(url, options, successMessage, nextStage) { clearMessage(); try { const response = await fetch(url, options); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "操作未完成，请检查当前资料状态。"); return false; } showSuccess(successMessage); activateStage(nextStage); await loadSubmissions(selectedSubmission.id); return true; } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); return false; } }
+    function refreshPublishCheck() { if (!selectedSubmission) { publishButton.disabled = true; return; } const pending = selectedSubmission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length; const approved = selectedSubmission.candidates.filter(candidate => candidate.reviewStatus === "APPROVED").length; const canPublish = selectedSubmission.status === "IN_REVIEW" && pending === 0 && approved > 0; publishButton.disabled = !canPublish; publishStage.dataset.locked = String(!canPublish); publishStatus.textContent = pending > 0 ? `还有 ${pending} 条候选片段待处理` : (approved === 0 ? "至少需要一条通过片段" : "已满足发布条件，请确认后发布"); }
+    async function publishSelectedSubmission() { const published = await requestAndReload(`${submissionsEndpoint}/${selectedSubmission.id}/publish`, { method: "POST" }, "资料已事务发布。现在可以打开问答验证页确认引用与页码。", "VERIFY"); if (published) { verifyStage.dataset.locked = "false"; } }
+    function submissionStatusLabel(status) { return ({ DRAFT: "审核草稿", IN_REVIEW: "审核中", PUBLISHED: "已发布", ARCHIVED: "已归档" })[status] || "状态待确认"; } function candidateStatusLabel(status) { return ({ PENDING_REVIEW: "待审核", APPROVED: "已通过", DISCARDED: "已丢弃" })[status] || "状态待确认"; }
+    function jsonHeaders() { return { "Content-Type": "application/json; charset=UTF-8" }; } async function readJson(response) { try { return await response.json(); } catch (error) { return {}; } } function clearMessage() { pageError.hidden = true; pageSuccess.hidden = true; pageError.textContent = ""; pageSuccess.textContent = ""; } function showError(message) { pageError.textContent = message; pageError.hidden = false; } function showSuccess(message) { pageSuccess.textContent = message; pageSuccess.hidden = false; } function setBusy(form, busy) { form.querySelectorAll("button, input, textarea").forEach(control => { control.disabled = busy; }); }
     loadSubmissions();
 </script>
 </body>

@@ -21,6 +21,8 @@ class ZhkuLocalPreviewPageResourceTest {
         assertThat(page).contains("/api/zhku/local-preview/answers");
         assertThat(page).contains("id=\"question-input\"");
         assertThat(page).contains("id=\"citation-panel\"");
+        assertThat(page).contains("试试这样问");
+        assertThat(page).contains("当前资料未覆盖");
         assertThat(page).contains("GROUNDED");
         assertThat(page).contains("INSUFFICIENT_EVIDENCE");
         assertThat(page).contains("textContent");

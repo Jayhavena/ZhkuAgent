@@ -5,316 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>仲园 Agent｜校园资料问答</title>
     <style>
-        :root {
-            color: #17382d;
-            background: #f7f5ed;
-            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
-        }
-
+        :root { color: #193a30; background: #f5f3eb; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
         * { box-sizing: border-box; }
         body { margin: 0; }
-
-        .page-shell {
-            width: min(760px, calc(100% - 32px));
-            margin: 0 auto;
-            padding: 40px 0 56px;
-        }
-
-        .masthead,
-        .question-card,
-        .answer-panel {
-            border: 1px solid #d2dccd;
-            border-radius: 16px;
-            background: #fffef9;
-            box-shadow: 0 10px 30px rgba(23, 56, 45, 0.06);
-        }
-
-        .masthead { padding: 26px 28px; }
-
-        .brand-row,
-        .question-actions,
-        .answer-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-        }
-
-        .brand { margin: 0; font-size: 20px; font-weight: 700; }
-
-        .local-badge {
-            margin: 0;
-            padding: 5px 10px;
-            border-radius: 999px;
-            color: #317047;
-            background: #e9f1e8;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        h1 { margin: 24px 0 8px; font-size: clamp(30px, 6vw, 42px); }
-
-        .introduction,
-        .field-hint,
-        .preview-notice,
-        .citation-locator {
-            color: #5b675e;
-            line-height: 1.75;
-        }
-
-        .introduction { margin: 0; }
-        .question-card { margin-top: 20px; padding: 22px 24px; }
+        .page-shell { width: min(900px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 64px; }
+        .hero, .card, .answer-panel { border: 1px solid #d7dfd2; border-radius: 18px; background: #fffef9; box-shadow: 0 12px 34px rgba(25, 58, 48, .07); }
+        .hero { padding: 28px 30px; border-top: 4px solid #2d6a4f; }
+        .brand-row, .question-actions, .answer-heading, .source-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .brand { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: .02em; }
+        .local-badge, .coverage-tag, .answer-status { margin: 0; padding: 5px 10px; border-radius: 999px; color: #286044; background: #e8f1e8; font-size: 13px; font-weight: 700; }
+        h1 { margin: 22px 0 8px; font-size: clamp(30px, 5vw, 46px); letter-spacing: -.03em; }
+        h2 { margin: 0; font-size: 20px; }
+        .introduction, .field-hint, .preview-notice, .citation-locator, .coverage-copy { color: #5b675e; line-height: 1.75; }
+        .introduction { max-width: 640px; margin: 0; }
+        .coverage { display: flex; align-items: flex-start; gap: 12px; margin-top: 22px; padding: 14px 16px; border-radius: 12px; background: #f1f5ee; }
+        .coverage-copy { margin: 0; font-size: 14px; }
+        .question-card { margin-top: 20px; padding: 24px; }
         label { display: block; margin-bottom: 10px; font-weight: 700; }
-
-        textarea {
-            width: 100%;
-            min-height: 120px;
-            resize: vertical;
-            padding: 14px;
-            border: 1px solid #b8c8b7;
-            border-radius: 10px;
-            color: #17382d;
-            background: #fffef9;
-            font: inherit;
-            line-height: 1.6;
-        }
-
-        textarea:focus-visible,
-        button:focus-visible {
-            outline: 3px solid #b9d4bd;
-            outline-offset: 2px;
-        }
-
+        textarea { width: 100%; min-height: 116px; resize: vertical; padding: 14px; border: 1px solid #b8c8b7; border-radius: 11px; color: #193a30; background: #fffef9; font: inherit; line-height: 1.65; }
+        textarea:focus-visible, button:focus-visible { outline: 3px solid #b9d4bd; outline-offset: 2px; }
         .field-hint { margin: 10px 0 0; font-size: 14px; }
-        .question-actions { margin-top: 16px; }
-
-        button {
-            border: 0;
-            border-radius: 10px;
-            padding: 11px 18px;
-            color: #ffffff;
-            background: #17382d;
-            font: inherit;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        button:hover:not(:disabled) { background: #317047; }
-        button:disabled { cursor: wait; opacity: 0.7; }
-
-        .message {
-            margin: 14px 0 0;
-            padding: 11px 13px;
-            border-radius: 10px;
-            line-height: 1.6;
-        }
-
-        .question-error,
-        .service-error { color: #8b2f2f; background: #fbedeb; }
-
+        .example-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+        .example-question { border: 1px solid #cbdac9; border-radius: 999px; padding: 7px 11px; color: #286044; background: #fffef9; font: inherit; font-size: 14px; cursor: pointer; }
+        .example-question:hover { background: #edf5eb; }
+        .question-actions { margin-top: 18px; color: #5b675e; font-size: 14px; }
+        button { border: 0; border-radius: 10px; padding: 11px 18px; color: #ffffff; background: #1f5941; font: inherit; font-weight: 700; cursor: pointer; }
+        button:hover:not(:disabled) { background: #2d7655; }
+        button:disabled { cursor: wait; opacity: .72; }
+        .message { margin: 16px 0 0; padding: 12px 14px; border-radius: 11px; line-height: 1.6; }
+        .question-error, .service-error { color: #8b2f2f; background: #fbedeb; }
         .answer-panel { margin-top: 20px; padding: 24px; }
-        .answer-status { margin: 0; color: #317047; font-weight: 700; }
-        .answer-content { margin: 16px 0 0; line-height: 1.85; white-space: pre-wrap; }
-
-        .citation-panel {
-            margin-top: 20px;
-            padding: 16px;
-            border-left: 4px solid #ad6a35;
-            border-radius: 0 10px 10px 0;
-            background: #fcf7f0;
-        }
-
-        .citation-heading { margin: 0 0 10px; color: #7f4c24; font-size: 15px; }
-        .citation-item + .citation-item { margin-top: 12px; }
-        .citation-title { margin: 0; color: #17382d; font-weight: 700; }
+        .answer-panel[data-mode="INSUFFICIENT_EVIDENCE"] { border-color: #e2d4b9; }
+        .answer-panel[data-mode="INSUFFICIENT_EVIDENCE"] .answer-status { color: #7f5524; background: #fbf3e6; }
+        .answer-content { margin: 16px 0 0; line-height: 1.9; white-space: pre-wrap; }
+        .citation-panel { margin-top: 20px; padding: 16px; border-left: 4px solid #ad6a35; border-radius: 0 11px 11px 0; background: #fcf7f0; }
+        .citation-heading { margin: 0; color: #7f4c24; font-size: 15px; }
+        .citation-item + .citation-item { margin-top: 13px; }
+        .citation-title { margin: 0; color: #193a30; font-weight: 700; }
         .citation-locator { margin: 5px 0 0; font-size: 14px; }
         .preview-notice { margin: 20px 0 0; font-size: 14px; }
         [hidden] { display: none !important; }
-
-        @media (max-width: 560px) {
-            .page-shell { width: min(100% - 24px, 760px); padding-top: 16px; }
-            .masthead,
-            .question-card,
-            .answer-panel { padding: 20px; }
-            .question-actions { align-items: stretch; flex-direction: column; }
-            button { width: 100%; }
-        }
+        @media (max-width: 560px) { .page-shell { width: min(100% - 24px, 900px); padding-top: 16px; } .hero, .question-card, .answer-panel { padding: 20px; } .brand-row, .question-actions { align-items: flex-start; flex-direction: column; } button[type="submit"] { width: 100%; } }
     </style>
 </head>
 <body>
 <main class="page-shell" aria-labelledby="page-title">
-    <header class="masthead">
-        <div class="brand-row">
-            <p class="brand">仲园 Agent</p>
-            <p class="local-badge">本机验证</p>
-        </div>
+    <header class="hero">
+        <div class="brand-row"><p class="brand">仲园 Agent</p><p class="local-badge">本机演示</p></div>
         <h1 id="page-title">校园资料问答</h1>
-        <p class="introduction">仅基于已审核资料回答；资料不足会明确说明。请以学校正式通知为准。</p>
+        <p class="introduction">基于已审核资料回答校园问题。回答会给出资料依据；资料不足时会明确说明，而不会补充猜测性结论。</p>
+        <div class="coverage"><span class="coverage-tag">当前资料范围</span><p class="coverage-copy">已审核的公共选修课程规则。其他校园问题如未被资料覆盖，会返回“当前资料未覆盖”。</p></div>
     </header>
-
-    <section class="question-card" aria-labelledby="question-title">
+    <section class="card question-card" aria-labelledby="question-title">
         <h2 id="question-title">提出你的问题</h2>
         <form id="question-form">
             <label for="question-input">校园问题</label>
             <textarea id="question-input" maxlength="500" placeholder="例如：公共选修课每学期最多修多少学分？"></textarea>
             <p class="field-hint">输入 1 至 500 个字符。按回车可查询，按 Shift + 回车可换行。</p>
-            <div class="question-actions">
-                <span>当前资料仅覆盖已审核的公共选修课程规则。</span>
-                <button id="submit-question" type="submit">查询资料</button>
-            </div>
+            <div class="example-list" aria-label="示例问题"><span class="field-hint" style="width:100%;margin:0">试试这样问</span><button class="example-question" type="button" data-question="公共选修课每学期最多修多少学分？">公共选修课最多修多少学分？</button><button class="example-question" type="button" data-question="网络公共选修课可以修多少学分？">网络公共选修课可以修多少学分？</button></div>
+            <div class="question-actions"><span>仅依据已发布资料回答；请以学校正式通知为准。</span><button id="submit-question" type="submit">查询资料</button></div>
             <p id="question-error" class="message question-error" role="alert" hidden></p>
         </form>
     </section>
-
     <p id="service-error" class="message service-error" role="alert" hidden></p>
-
     <section id="answer-panel" class="answer-panel" aria-live="polite" hidden>
-        <div class="answer-heading">
-            <p id="answer-status" class="answer-status"></p>
-        </div>
+        <div class="answer-heading"><p id="answer-status" class="answer-status"></p></div>
         <p id="answer-content" class="answer-content"></p>
-        <section id="citation-panel" class="citation-panel" aria-labelledby="citation-title" hidden>
-            <h2 id="citation-title" class="citation-heading">资料依据</h2>
-            <div id="citation-list"></div>
-        </section>
+        <section id="citation-panel" class="citation-panel" aria-labelledby="citation-title" hidden><div class="source-heading"><h2 id="citation-title" class="citation-heading">资料依据</h2><span class="coverage-tag">可追溯</span></div><div id="citation-list"></div></section>
         <p id="preview-notice" class="preview-notice"></p>
     </section>
 </main>
-
 <script>
-    const questionForm = document.querySelector("#question-form");
-    const questionInput = document.querySelector("#question-input");
-    const submitButton = document.querySelector("#submit-question");
-    const questionError = document.querySelector("#question-error");
-    const serviceError = document.querySelector("#service-error");
-    const answerPanel = document.querySelector("#answer-panel");
-    const answerStatus = document.querySelector("#answer-status");
-    const answerContent = document.querySelector("#answer-content");
-    const citationPanel = document.querySelector("#citation-panel");
-    const citationList = document.querySelector("#citation-list");
-    const previewNotice = document.querySelector("#preview-notice");
-
-    questionInput.addEventListener("keydown", event => {
-        if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            questionForm.requestSubmit();
-        }
-    });
-
-    questionForm.addEventListener("submit", async event => {
-        event.preventDefault();
-        const question = questionInput.value.trim();
-        resetMessages();
-
-        if (question.length < 1 || question.length > 500) {
-            showQuestionError("请输入 1 至 500 个字符的问题。");
-            return;
-        }
-
-        setLoading(true);
-        try {
-            // 保留 /api 前缀，确保页面通过应用对外暴露的既有问答接口请求资料。
-            const response = await fetch("/api/zhku/local-preview/answers", {
-                method: "POST",
-                headers: { "Content-Type": "application/json; charset=UTF-8" },
-                body: JSON.stringify({ question })
-            });
-            const payload = await response.json();
-
-            if (!response.ok) {
-                if (response.status === 400) {
-                    showQuestionError(payload.message || "问题格式不正确，请检查后重试。");
-                } else {
-                    showServiceError();
-                }
-                return;
-            }
-
-            if (isGroundedAnswer(payload)) {
-                renderGroundedAnswer(payload);
-                return;
-            }
-            if (payload.mode === "INSUFFICIENT_EVIDENCE") {
-                renderInsufficientEvidence(payload);
-                return;
-            }
-            showServiceError();
-        } catch (error) {
-            showServiceError();
-        } finally {
-            setLoading(false);
-        }
-    });
-
-    function isGroundedAnswer(payload) {
-        return payload.mode === "GROUNDED"
-            && typeof payload.answer === "string"
-            && Array.isArray(payload.citations)
-            && payload.citations.length > 0
-            && payload.citations.every(citation => (
-                typeof citation.sourceTitle === "string"
-                && typeof citation.sourceLocator === "string"
-                && Number.isInteger(citation.pageNumber)
-            ));
-    }
-
-    function renderGroundedAnswer(payload) {
-        answerStatus.textContent = "已找到资料依据";
-        answerContent.textContent = payload.answer;
-        citationList.replaceChildren();
-
-        payload.citations.forEach(citation => {
-            const item = document.createElement("article");
-            item.className = "citation-item";
-            const title = document.createElement("p");
-            const locator = document.createElement("p");
-
-            title.className = "citation-title";
-            title.textContent = citation.sourceTitle;
-            locator.className = "citation-locator";
-            locator.textContent = `${citation.sourceLocator}｜PDF 第 ${citation.pageNumber} 页`;
-
-            item.append(title, locator);
-            citationList.append(item);
-        });
-
-        citationPanel.hidden = false;
-        previewNotice.textContent = payload.notice || "仅供本机开发验证，请以学校正式通知为准。";
-        answerPanel.hidden = false;
-    }
-
-    function renderInsufficientEvidence(payload) {
-        answerStatus.textContent = "当前资料未覆盖该问题";
-        answerContent.textContent = "现有已审核资料不能确认该问题，因此不提供未经资料支持的答案。";
-        citationList.replaceChildren();
-        citationPanel.hidden = true;
-        previewNotice.textContent = payload.notice || "仅供本机开发验证，请以学校正式通知为准。";
-        answerPanel.hidden = false;
-    }
-
-    function resetMessages() {
-        questionError.hidden = true;
-        questionError.textContent = "";
-        serviceError.hidden = true;
-        serviceError.textContent = "";
-        answerPanel.hidden = true;
-        citationList.replaceChildren();
-    }
-
-    function showQuestionError(message) {
-        questionError.textContent = message;
-        questionError.hidden = false;
-    }
-
-    function showServiceError() {
-        serviceError.textContent = "本机知识服务暂不可用，请确认预览服务和数据库均已启动。";
-        serviceError.hidden = false;
-    }
-
-    function setLoading(isLoading) {
-        submitButton.disabled = isLoading;
-        submitButton.textContent = isLoading ? "正在查询资料…" : "查询资料";
-    }
+    const questionForm = document.querySelector("#question-form"); const questionInput = document.querySelector("#question-input"); const submitButton = document.querySelector("#submit-question"); const questionError = document.querySelector("#question-error"); const serviceError = document.querySelector("#service-error"); const answerPanel = document.querySelector("#answer-panel"); const answerStatus = document.querySelector("#answer-status"); const answerContent = document.querySelector("#answer-content"); const citationPanel = document.querySelector("#citation-panel"); const citationList = document.querySelector("#citation-list"); const previewNotice = document.querySelector("#preview-notice");
+    document.querySelectorAll(".example-question").forEach(button => button.addEventListener("click", () => { questionInput.value = button.dataset.question; questionForm.requestSubmit(); }));
+    questionInput.addEventListener("keydown", event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); questionForm.requestSubmit(); } });
+    questionForm.addEventListener("submit", async event => { event.preventDefault(); const question = questionInput.value.trim(); resetMessages(); if (question.length < 1 || question.length > 500) { showQuestionError("请输入 1 至 500 个字符的问题。"); return; } setLoading(true); try { const response = await fetch("/api/zhku/local-preview/answers", { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8" }, body: JSON.stringify({ question }) }); const payload = await response.json(); if (!response.ok) { response.status === 400 ? showQuestionError(payload.message || "问题格式不正确，请检查后重试。") : showServiceError(); return; } if (isGroundedAnswer(payload)) { renderGroundedAnswer(payload); return; } if (payload.mode === "INSUFFICIENT_EVIDENCE") { renderInsufficientEvidence(payload); return; } showServiceError(); } catch (error) { showServiceError(); } finally { setLoading(false); } });
+    function isGroundedAnswer(payload) { return payload.mode === "GROUNDED" && typeof payload.answer === "string" && Array.isArray(payload.citations) && payload.citations.length > 0 && payload.citations.every(citation => typeof citation.sourceTitle === "string" && typeof citation.sourceLocator === "string" && Number.isInteger(citation.pageNumber)); }
+    // 复用既有接口，页面只负责清楚呈现有依据或证据不足的结果。
+    function renderGroundedAnswer(payload) { answerPanel.dataset.mode = "GROUNDED"; answerStatus.textContent = "已找到资料依据"; answerContent.textContent = payload.answer; citationList.replaceChildren(); payload.citations.forEach(citation => { const item = document.createElement("article"); item.className = "citation-item"; const title = document.createElement("p"); const locator = document.createElement("p"); title.className = "citation-title"; locator.className = "citation-locator"; title.textContent = citation.sourceTitle; locator.textContent = `${citation.sourceLocator}｜PDF 第 ${citation.pageNumber} 页`; item.append(title, locator); citationList.append(item); }); citationPanel.hidden = false; previewNotice.textContent = payload.notice || "仅供本机开发验证，请以学校正式通知为准。"; answerPanel.hidden = false; }
+    function renderInsufficientEvidence(payload) { answerPanel.dataset.mode = "INSUFFICIENT_EVIDENCE"; answerStatus.textContent = "当前资料未覆盖该问题"; answerContent.textContent = "现有已审核资料不能确认该问题，因此不提供未经资料支持的答案。你可以补充资料后重新验证，或查阅学校正式通知。"; citationList.replaceChildren(); citationPanel.hidden = true; previewNotice.textContent = payload.notice || "仅供本机开发验证，请以学校正式通知为准。"; answerPanel.hidden = false; }
+    function resetMessages() { questionError.hidden = true; questionError.textContent = ""; serviceError.hidden = true; serviceError.textContent = ""; answerPanel.hidden = true; answerPanel.dataset.mode = ""; citationList.replaceChildren(); }
+    function showQuestionError(message) { questionError.textContent = message; questionError.hidden = false; } function showServiceError() { serviceError.textContent = "本机知识服务暂不可用，请确认预览服务和数据库均已启动。"; serviceError.hidden = false; } function setLoading(isLoading) { submitButton.disabled = isLoading; submitButton.textContent = isLoading ? "正在查询资料…" : "查询资料"; }
 </script>
 </body>
 </html>
