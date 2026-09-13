@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>仲园 Agent｜本机资料治理</title>
+    <style>
+        :root { color: #17382d; background: #f7f5ed; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+        * { box-sizing: border-box; }
+        body { margin: 0; }
+        .shell { width: min(1100px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 60px; }
+        .hero, .card { border: 1px solid #d2dccd; border-radius: 16px; background: #fffef9; box-shadow: 0 10px 30px rgba(23, 56, 45, .06); }
+        .hero { padding: 25px 28px; }
+        .brand-row, .section-heading, .submission-row, .candidate-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .brand { margin: 0; font-size: 20px; font-weight: 700; }
+        .badge { margin: 0; padding: 5px 10px; border-radius: 999px; color: #317047; background: #e9f1e8; font-size: 13px; font-weight: 700; }
+        h1 { margin: 20px 0 8px; font-size: clamp(28px, 5vw, 40px); }
+        h2 { margin: 0; font-size: 20px; }
+        .notice, .hint, .status, .candidate-meta { color: #5b675e; line-height: 1.7; }
+        .notice { margin: 0; }
+        .card { margin-top: 20px; padding: 22px 24px; }
+        .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+        .wide { grid-column: 1 / -1; }
+        label { display: grid; gap: 7px; font-weight: 700; }
+        input, textarea { width: 100%; padding: 10px 11px; border: 1px solid #b8c8b7; border-radius: 9px; color: #17382d; background: #fffef9; font: inherit; }
+        textarea { min-height: 92px; resize: vertical; line-height: 1.6; }
+        input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 3px solid #b9d4bd; outline-offset: 2px; }
+        .checkbox { display: flex; align-items: center; gap: 8px; font-weight: 400; }
+        .checkbox input { width: auto; }
+        .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+        button { border: 0; border-radius: 9px; padding: 10px 14px; color: #fff; background: #17382d; font: inherit; font-weight: 700; cursor: pointer; }
+        button:hover:not(:disabled) { background: #317047; }
+        button.secondary { color: #17382d; background: #e9f1e8; }
+        button.danger { background: #8b2f2f; }
+        button:disabled { cursor: wait; opacity: .65; }
+        .message { margin: 16px 0 0; padding: 11px 13px; border-radius: 9px; line-height: 1.6; }
+        .error { color: #8b2f2f; background: #fbedeb; }
+        .success { color: #317047; background: #e9f1e8; }
+        .list, .candidate-list { display: grid; gap: 12px; margin-top: 16px; }
+        .submission, .candidate { border: 1px solid #dce4d8; border-radius: 11px; padding: 14px; background: #fff; }
+        .submission p, .candidate p { margin: 5px 0 0; }
+        .candidate h3 { margin: 0; font-size: 16px; }
+        .candidate form { display: grid; gap: 12px; margin-top: 13px; }
+        .candidate-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .empty { margin: 14px 0 0; color: #5b675e; }
+        [hidden] { display: none !important; }
+        @media (max-width: 680px) { .shell { width: min(100% - 24px, 1100px); padding-top: 16px; } .hero, .card { padding: 20px; } .grid, .candidate-grid { grid-template-columns: 1fr; } .brand-row, .section-heading, .submission-row { align-items: flex-start; flex-direction: column; } }
+    </style>
+</head>
+<body>
+<main class="shell" aria-labelledby="page-title">
+    <header class="hero">
+        <div class="brand-row"><p class="brand">仲园 Agent</p><p class="badge">仅本机管理员可操作</p></div>
+        <h1 id="page-title">本机资料治理</h1>
+        <p class="notice">未审核资料不会进入问答。此页面用于开发验证，不代表学生端或正式校务系统。</p>
+    </header>
+
+    <section class="card" aria-labelledby="upload-title">
+        <div class="section-heading"><h2 id="upload-title">1. 提交资料</h2><span class="status">仅支持可读取的 PDF</span></div>
+        <form id="upload-form">
+            <div class="grid">
+                <label class="wide">PDF 文件<input name="file" type="file" accept="application/pdf,.pdf" required></label>
+                <label>资料标题<input name="title" value="本科生学生手册（2025版）" required></label>
+                <label>资料版本<input name="sourceVersion" value="2025版" required></label>
+                <label>来源说明<input name="sourceDescription" value="仲恺农业工程学院公开学生手册" required></label>
+                <label>来源链接（可选）<input name="sourceUrl" type="url" placeholder="https://..."></label>
+                <label>适用范围<input name="applicableScope" value="本科生；具体以学校正式通知为准" required></label>
+                <label>知识范围<input name="knowledgeScope" value="PUBLIC_ELECTIVE" pattern="[A-Z0-9_]+" required></label>
+                <label>发布日期（可选）<input name="publicationDate" type="date"></label>
+                <label class="checkbox"><input name="publicationDateConfirmed" type="checkbox">发布日期已由官方确认</label>
+                <label>生效日期（可选）<input name="effectiveDate" type="date"></label>
+                <label class="checkbox"><input name="effectiveDateConfirmed" type="checkbox">生效日期已由官方确认</label>
+                <label class="wide">审核提示<textarea name="reviewNotice" required>仅使用已核对的公开资料；答复必须保留来源与适用范围。</textarea></label>
+            </div>
+            <div class="actions"><button type="submit">保存为审核草稿</button></div>
+        </form>
+    </section>
+
+    <section class="card" aria-labelledby="submission-title">
+        <div class="section-heading"><h2 id="submission-title">2. 投稿与候选片段</h2><button id="refresh-submissions" class="secondary" type="button">刷新列表</button></div>
+        <p class="hint">选择一份投稿后，先提取候选片段，再逐条编辑、通过或丢弃。</p>
+        <div id="submission-list" class="list"></div>
+        <p id="submission-empty" class="empty">尚未加载投稿。</p>
+        <div id="candidate-area" hidden>
+            <h2 id="candidate-title" style="margin-top:24px">候选片段审核</h2>
+            <p id="candidate-summary" class="hint"></p>
+            <div id="candidate-list" class="candidate-list"></div>
+        </div>
+    </section>
+
+    <section class="card" aria-labelledby="publish-title">
+        <div class="section-heading"><h2 id="publish-title">3. 发布前检查</h2><span id="publish-status" class="status">请先选择投稿</span></div>
+        <p class="hint">发布只会替换相同“资料族 + 知识范围”的旧版；若事务失败，旧版会保留可用。</p>
+        <div class="actions"><button id="publish-button" type="button" disabled>发布已审核资料</button></div>
+    </section>
+
+    <section class="card" aria-labelledby="verify-title">
+        <h2 id="verify-title">4. 问答验证</h2>
+        <p class="hint">发布成功后，打开本机校园资料问答页面，确认回答显示资料标题、页码和适用提示。</p>
+        <div class="actions"><a href="/api/zhku/local-preview" target="_blank" rel="noopener"><button type="button">打开问答验证页</button></a></div>
+    </section>
+
+    <p id="page-error" class="message error" role="alert" hidden></p>
+    <p id="page-success" class="message success" role="status" hidden></p>
+</main>
+
+<script>
+    const apiBase = "/api/zhku/local-admin";
+    // 完整列出最核心的投稿入口，方便审查页面只会访问本机资料治理接口。
+    const submissionsEndpoint = "/api/zhku/local-admin/submissions";
+    const uploadForm = document.querySelector("#upload-form");
+    const refreshButton = document.querySelector("#refresh-submissions");
+    const submissionList = document.querySelector("#submission-list");
+    const submissionEmpty = document.querySelector("#submission-empty");
+    const candidateArea = document.querySelector("#candidate-area");
+    const candidateTitle = document.querySelector("#candidate-title");
+    const candidateSummary = document.querySelector("#candidate-summary");
+    const candidateList = document.querySelector("#candidate-list");
+    const publishButton = document.querySelector("#publish-button");
+    const publishStatus = document.querySelector("#publish-status");
+    const pageError = document.querySelector("#page-error");
+    const pageSuccess = document.querySelector("#page-success");
+    let selectedSubmission = null;
+
+    uploadForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        clearMessage();
+        const formData = new FormData(uploadForm);
+        setBusy(uploadForm, true);
+        try {
+            const response = await fetch(submissionsEndpoint, { method: "POST", body: formData });
+            const payload = await readJson(response);
+            if (!response.ok) { showError(payload.message || "资料投稿失败，请检查表单和 PDF。"); return; }
+            showSuccess("资料已保存为审核草稿。请提取候选片段并完成审核。");
+            uploadForm.reset();
+            await loadSubmissions(payload.id);
+        } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); }
+        finally { setBusy(uploadForm, false); }
+    });
+
+    refreshButton.addEventListener("click", () => loadSubmissions(selectedSubmission?.id));
+    publishButton.addEventListener("click", publishSelectedSubmission);
+
+    async function loadSubmissions(selectId) {
+        clearMessage();
+        try {
+            const response = await fetch(submissionsEndpoint);
+            const submissions = await readJson(response);
+            if (!response.ok) { showError(submissions.message || "无法读取投稿列表。"); return; }
+            renderSubmissions(submissions);
+            const targetId = selectId || selectedSubmission?.id;
+            if (targetId) { await loadSubmission(targetId); }
+        } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); }
+    }
+
+    function renderSubmissions(submissions) {
+        submissionList.replaceChildren();
+        submissionEmpty.hidden = submissions.length > 0;
+        submissions.forEach(submission => {
+            const item = document.createElement("article");
+            item.className = "submission";
+            const heading = document.createElement("strong");
+            heading.textContent = `${submission.title}｜${submission.sourceVersion}`;
+            const meta = document.createElement("p");
+            meta.className = "candidate-meta";
+            meta.textContent = `范围：${submission.knowledgeScope}｜状态：${submission.status}`;
+            const select = actionButton("查看并审核", "secondary", () => loadSubmission(submission.id));
+            item.append(heading, meta, select);
+            submissionList.append(item);
+        });
+    }
+
+    async function loadSubmission(submissionId) {
+        clearMessage();
+        try {
+            const response = await fetch(`${submissionsEndpoint}/${submissionId}`);
+            const submission = await readJson(response);
+            if (!response.ok) { showError(submission.message || "无法读取投稿详情。"); return; }
+            selectedSubmission = submission;
+            candidateArea.hidden = false;
+            candidateTitle.textContent = `候选片段审核｜${submission.title}`;
+            renderCandidates(submission);
+            refreshPublishCheck();
+        } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); }
+    }
+
+    function renderCandidates(submission) {
+        candidateList.replaceChildren();
+        const pendingCount = submission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length;
+        candidateSummary.textContent = `共 ${submission.candidates.length} 条；待处理 ${pendingCount} 条。所有候选片段必须通过或丢弃后才能发布。`;
+        if (submission.candidates.length === 0) {
+            candidateList.append(actionButton("提取候选片段", "", extractCandidates));
+            return;
+        }
+        submission.candidates.forEach(candidate => candidateList.append(createCandidateCard(candidate)));
+    }
+
+    function createCandidateCard(candidate) {
+        const card = document.createElement("article");
+        card.className = "candidate";
+        const heading = document.createElement("h3");
+        heading.textContent = `第 ${candidate.startPageNumber}—${candidate.endPageNumber} 页｜${candidate.reviewStatus}`;
+        const meta = document.createElement("p");
+        meta.className = "candidate-meta";
+        meta.textContent = candidate.reviewNote || candidate.discardReason || "请填写审核说明后作出结论。";
+        const form = document.createElement("form");
+        const title = createInput("片段标题", candidate.sectionTitle || "");
+        const locator = createInput("资料定位", candidate.sourceLocator || `PDF 第 ${candidate.startPageNumber} 页`);
+        const text = createTextarea("编辑后正文", candidate.editedText || "");
+        const note = createTextarea("审核说明或丢弃原因", candidate.reviewNote || candidate.discardReason || "");
+        const pageRange = document.createElement("div");
+        pageRange.className = "candidate-grid";
+        const startPage = createNumberInput("起始页", candidate.startPageNumber);
+        const endPage = createNumberInput("结束页", candidate.endPageNumber);
+        pageRange.append(startPage.label, endPage.label);
+        const actions = document.createElement("div");
+        actions.className = "candidate-actions";
+        actions.append(
+            actionButton("保存编辑", "secondary", () => updateCandidate(candidate.id, { startPageNumber: Number(startPage.input.value), endPageNumber: Number(endPage.input.value), editedText: text.input.value, sectionTitle: title.input.value, sourceLocator: locator.input.value })),
+            actionButton("通过", "", () => reviewCandidate(candidate.id, "APPROVE", note.input.value)),
+            actionButton("丢弃", "danger", () => reviewCandidate(candidate.id, "DISCARD", note.input.value)),
+            actionButton("按正文两段拆分", "secondary", () => splitCandidate(candidate.id, text.input.value))
+        );
+        form.append(title.label, locator.label, text.label, note.label, pageRange, actions);
+        card.append(heading, meta, form);
+        return card;
+    }
+
+    function createInput(labelText, value) { const label = document.createElement("label"); label.textContent = labelText; const input = document.createElement("input"); input.value = value; label.append(input); return { label, input }; }
+    function createNumberInput(labelText, value) { const field = createInput(labelText, value); field.input.type = "number"; field.input.min = "1"; return field; }
+    function createTextarea(labelText, value) { const label = document.createElement("label"); label.textContent = labelText; const textarea = document.createElement("textarea"); textarea.value = value; label.append(textarea); return { label, input: textarea }; }
+    function actionButton(label, className, handler) { const button = document.createElement("button"); button.type = "button"; button.textContent = label; if (className) { button.className = className; } button.addEventListener("click", handler); return button; }
+
+    async function extractCandidates() { await requestAndReload(`${submissionsEndpoint}/${selectedSubmission.id}/extract`, { method: "POST" }, "候选片段已提取，请逐条审核。"); }
+    async function updateCandidate(candidateId, body) { await requestAndReload(`${apiBase}/candidates/${candidateId}`, { method: "PATCH", headers: jsonHeaders(), body: JSON.stringify(body) }, "候选片段已更新。"); }
+    async function reviewCandidate(candidateId, decision, note) { await requestAndReload(`${apiBase}/candidates/${candidateId}/review`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ decision, note }) }, decision === "APPROVE" ? "候选片段已通过。" : "候选片段已丢弃。"); }
+    async function splitCandidate(candidateId, editedText) {
+        const separator = "\n---\n";
+        if (!editedText.includes(separator)) { showError("请在“编辑后正文”中用单独一行 --- 分隔两段，再执行拆分。"); return; }
+        const [firstEditedText, secondEditedText] = editedText.split(separator, 2);
+        await requestAndReload(`${apiBase}/candidates/${candidateId}/split`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ firstEditedText, secondEditedText }) }, "候选片段已拆分，请分别审核两段内容。");
+    }
+    async function requestAndReload(url, options, successMessage) {
+        clearMessage();
+        try { const response = await fetch(url, options); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "操作未完成，请检查当前投稿状态。"); return; } showSuccess(successMessage); await loadSubmissions(selectedSubmission.id); }
+        catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); }
+    }
+    function refreshPublishCheck() {
+        if (!selectedSubmission) { publishButton.disabled = true; return; }
+        const pending = selectedSubmission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length;
+        const approved = selectedSubmission.candidates.filter(candidate => candidate.reviewStatus === "APPROVED").length;
+        publishButton.disabled = selectedSubmission.status !== "IN_REVIEW" || pending > 0 || approved === 0;
+        publishStatus.textContent = pending > 0 ? `还有 ${pending} 条候选片段待处理` : (approved === 0 ? "至少需要一条通过片段" : "已满足页面层发布条件");
+    }
+    async function publishSelectedSubmission() { if (selectedSubmission) { await requestAndReload(`${submissionsEndpoint}/${selectedSubmission.id}/publish`, { method: "POST" }, "资料已事务发布。请打开问答验证页确认引用与页码。"); } }
+    function jsonHeaders() { return { "Content-Type": "application/json; charset=UTF-8" }; }
+    async function readJson(response) { try { return await response.json(); } catch (error) { return {}; } }
+    function clearMessage() { pageError.hidden = true; pageSuccess.hidden = true; pageError.textContent = ""; pageSuccess.textContent = ""; }
+    function showError(message) { pageError.textContent = message; pageError.hidden = false; }
+    function showSuccess(message) { pageSuccess.textContent = message; pageSuccess.hidden = false; }
+    function setBusy(form, busy) { form.querySelectorAll("button, input, textarea").forEach(control => { control.disabled = busy; }); }
+
+    loadSubmissions();
+</script>
+</body>
+</html>
