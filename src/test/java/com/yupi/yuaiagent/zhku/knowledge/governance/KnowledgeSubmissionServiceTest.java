@@ -153,6 +153,11 @@ class KnowledgeSubmissionServiceTest {
         }
 
         @Override
+        public List<KnowledgeSubmission> listSubmissions() {
+            return List.copyOf(submissions.values());
+        }
+
+        @Override
         public Optional<KnowledgeCandidate> findCandidate(UUID candidateId) {
             return candidates.values().stream()
                     .flatMap(List::stream)

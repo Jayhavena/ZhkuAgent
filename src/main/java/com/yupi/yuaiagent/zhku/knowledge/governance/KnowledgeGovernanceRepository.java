@@ -21,6 +21,8 @@ public interface KnowledgeGovernanceRepository {
 
     Optional<KnowledgeSubmission> findSubmission(UUID submissionId);
 
+    List<KnowledgeSubmission> listSubmissions();
+
     Optional<KnowledgeCandidate> findCandidate(UUID candidateId);
 
     List<KnowledgeCandidate> listCandidates(UUID submissionId);

@@ -13,7 +13,12 @@ public final class LocalKnowledgePublisherFactory {
     }
 
     public static ReviewedKnowledgePublisher create() {
-        return new ReviewedKnowledgePublisher(new DriverManagerDataSource(
+        return new ReviewedKnowledgePublisher(createDataSource());
+    }
+
+    /** 本机管理入口与问答预览必须复用同一套受控数据库连接配置。 */
+    public static DriverManagerDataSource createDataSource() {
+        return new DriverManagerDataSource(
                 databaseValue(
                         "zhku.db.url",
                         "ZHKU_DB_URL",
@@ -21,7 +26,7 @@ public final class LocalKnowledgePublisherFactory {
                 ),
                 databaseValue("zhku.db.user", "ZHKU_DB_USER", "zhkuagent"),
                 databaseValue("zhku.db.password", "ZHKU_DB_PASSWORD", null)
-        ));
+        );
     }
 
     private static String databaseValue(

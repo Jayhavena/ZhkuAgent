@@ -223,6 +223,11 @@ class CandidateReviewServiceTest {
         }
 
         @Override
+        public List<KnowledgeSubmission> listSubmissions() {
+            return List.copyOf(submissions.values());
+        }
+
+        @Override
         public Optional<KnowledgeCandidate> findCandidate(UUID candidateId) {
             return Optional.ofNullable(candidates.get(candidateId));
         }

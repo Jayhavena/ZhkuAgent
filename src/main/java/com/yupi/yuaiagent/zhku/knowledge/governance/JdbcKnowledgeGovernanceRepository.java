@@ -101,6 +101,32 @@ public final class JdbcKnowledgeGovernanceRepository
     }
 
     @Override
+    public List<KnowledgeSubmission> listSubmissions() {
+        String sql = """
+                SELECT id, document_family, knowledge_scope, title,
+                       source_version, source_description, source_url,
+                       applicable_scope, publication_date,
+                       publication_date_confirmed, effective_date,
+                       effective_date_confirmed, storage_key,
+                       original_file_name, content_checksum,
+                       submission_status, review_notice, created_at, updated_at
+                FROM knowledge_submission
+                ORDER BY updated_at DESC, id
+                """;
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet result = statement.executeQuery()) {
+            List<KnowledgeSubmission> submissions = new ArrayList<>();
+            while (result.next()) {
+                submissions.add(submissionFrom(result));
+            }
+            return List.copyOf(submissions);
+        } catch (SQLException exception) {
+            throw new IllegalStateException("无法读取资料投稿列表", exception);
+        }
+    }
+
+    @Override
     public Optional<KnowledgeCandidate> findCandidate(UUID candidateId) {
         Objects.requireNonNull(candidateId, "候选片段编号不能为空");
         String sql = candidateSelectSql() + " WHERE id = ?";
