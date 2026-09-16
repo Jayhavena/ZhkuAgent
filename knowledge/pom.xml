@@ -19,8 +19,8 @@
     <!-- 同一知识库保留两个独立入口，各自打包；普通 jar 供 CLI 使用。 -->
     <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId><executions>
       <execution><id>repackage</id><configuration><skip>true</skip></configuration></execution>
-      <execution><id>preview</id><goals><goal>repackage</goal></goals><configuration><classifier>preview</classifier><mainClass>com.yupi.yuaiagent.zhku.knowledge.web.ZhkuLocalPreviewApplication</mainClass></configuration></execution>
-      <execution><id>admin</id><goals><goal>repackage</goal></goals><configuration><classifier>admin</classifier><mainClass>com.yupi.yuaiagent.zhku.knowledge.governance.web.ZhkuLocalAdminApplication</mainClass></configuration></execution>
+      <execution><id>preview</id><goals><goal>repackage</goal></goals><configuration><classifier>preview</classifier><mainClass>com.zhku.knowledge.web.ZhkuLocalPreviewApplication</mainClass></configuration></execution>
+      <execution><id>admin</id><goals><goal>repackage</goal></goals><configuration><classifier>admin</classifier><mainClass>com.zhku.knowledge.governance.web.ZhkuLocalAdminApplication</mainClass></configuration></execution>
     </executions></plugin>
   </plugins></build>
 </project>

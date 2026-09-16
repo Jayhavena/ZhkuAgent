@@ -53,17 +53,17 @@
     <header class="hero">
         <div class="brand-row"><p class="brand">仲园 Agent</p><p class="local-badge">本机演示</p></div>
         <h1 id="page-title">校园资料问答</h1>
-        <p class="introduction">基于已审核资料回答校园问题。回答会给出资料依据；资料不足时会明确说明，而不会补充猜测性结论。</p>
-        <div class="coverage"><span class="coverage-tag">当前资料范围</span><p class="coverage-copy">已审核的公共选修课程规则。其他校园问题如未被资料覆盖，会返回“当前资料未覆盖”。</p></div>
+        <p class="introduction">当前演示“选修课不及格能否重修”与“公共选修课单学期学分上限”。结论只来自已发布且仍有效的资料，不替代学校审批或当期通知。</p>
+        <div class="coverage"><span class="coverage-tag">当前资料范围</span><p class="coverage-copy">重修问题未说明公共或专业选修课时，系统会先追问必要信息；学分上限仅说明规则，不判断个人是否还能选课。</p></div>
     </header>
     <section class="card question-card" aria-labelledby="question-title">
-        <h2 id="question-title">提出你的问题</h2>
+        <div class="brand-row"><h2 id="question-title">提出你的问题</h2><button id="new-conversation" type="button">开始新对话</button></div>
         <form id="question-form">
             <label for="question-input">校园问题</label>
-            <textarea id="question-input" maxlength="500" placeholder="例如：公共选修课每学期最多修多少学分？"></textarea>
-            <p class="field-hint">输入 1 至 500 个字符。按回车可查询，按 Shift + 回车可换行。</p>
-            <div class="example-list" aria-label="示例问题"><span class="field-hint" style="width:100%;margin:0">试试这样问</span><button class="example-question" type="button" data-question="公共选修课每学期最多修多少学分？">公共选修课最多修多少学分？</button><button class="example-question" type="button" data-question="网络公共选修课可以修多少学分？">网络公共选修课可以修多少学分？</button></div>
-            <div class="question-actions"><span>仅依据已发布资料回答；请以学校正式通知为准。</span><button id="submit-question" type="submit">查询资料</button></div>
+            <textarea id="question-input" maxlength="500" placeholder="例如：选修课没及格，还能重修吗？"></textarea>
+            <p class="field-hint">输入 1 至 500 个字符。按回车可发送，按 Shift + 回车可换行。</p>
+            <div class="example-list" aria-label="示例问题"><span class="field-hint" style="width:100%;margin:0">试试这样问</span><button class="example-question" type="button" data-question="选修课没及格，还能重修吗？">选修课没及格还能重修吗？</button><button class="example-question" type="button" data-question="公共选修课不及格能重修吗？">公共选修课不及格能重修吗？</button><button class="example-question" type="button" data-question="公共选修课每学期最多可以选多少学分？">公共选修课每学期最多可以选多少学分？</button></div>
+            <div class="question-actions"><span>会话超时或失效后，请开始新对话。</span><button id="submit-question" type="submit">发送问题</button></div>
             <p id="question-error" class="message question-error" role="alert" hidden></p>
         </form>
     </section>
@@ -72,20 +72,128 @@
         <div class="answer-heading"><p id="answer-status" class="answer-status"></p></div>
         <p id="answer-content" class="answer-content"></p>
         <section id="citation-panel" class="citation-panel" aria-labelledby="citation-title" hidden><div class="source-heading"><h2 id="citation-title" class="citation-heading">资料依据</h2><span class="coverage-tag">可追溯</span></div><div id="citation-list"></div></section>
-        <p id="preview-notice" class="preview-notice"></p>
+        <p id="preview-notice" class="preview-notice">仅供本机开发验证，请以学校正式通知为准。</p>
     </section>
 </main>
 <script>
-    const questionForm = document.querySelector("#question-form"); const questionInput = document.querySelector("#question-input"); const submitButton = document.querySelector("#submit-question"); const questionError = document.querySelector("#question-error"); const serviceError = document.querySelector("#service-error"); const answerPanel = document.querySelector("#answer-panel"); const answerStatus = document.querySelector("#answer-status"); const answerContent = document.querySelector("#answer-content"); const citationPanel = document.querySelector("#citation-panel"); const citationList = document.querySelector("#citation-list"); const previewNotice = document.querySelector("#preview-notice");
+    const conversationApi = "/api/zhku/local-preview/conversations";
+    const conversationStorageKey = "zhku.local-preview.conversation";
+    const questionForm = document.querySelector("#question-form");
+    const questionInput = document.querySelector("#question-input");
+    const submitButton = document.querySelector("#submit-question");
+    const newConversationButton = document.querySelector("#new-conversation");
+    const questionError = document.querySelector("#question-error");
+    const serviceError = document.querySelector("#service-error");
+    const answerPanel = document.querySelector("#answer-panel");
+    const answerStatus = document.querySelector("#answer-status");
+    const answerContent = document.querySelector("#answer-content");
+    const citationPanel = document.querySelector("#citation-panel");
+    const citationList = document.querySelector("#citation-list");
+    let sessionId = readStoredConversation().sessionId;
+    let requestEpoch = 0;
+
+    restorePendingClarification();
+    if (!sessionId) { void createConversationOnLoad(); }
     document.querySelectorAll(".example-question").forEach(button => button.addEventListener("click", () => { questionInput.value = button.dataset.question; questionForm.requestSubmit(); }));
     questionInput.addEventListener("keydown", event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); questionForm.requestSubmit(); } });
-    questionForm.addEventListener("submit", async event => { event.preventDefault(); const question = questionInput.value.trim(); resetMessages(); if (question.length < 1 || question.length > 500) { showQuestionError("请输入 1 至 500 个字符的问题。"); return; } setLoading(true); try { const response = await fetch("/api/zhku/local-preview/answers", { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8" }, body: JSON.stringify({ question }) }); const payload = await response.json(); if (!response.ok) { response.status === 400 ? showQuestionError(payload.message || "问题格式不正确，请检查后重试。") : showServiceError(); return; } if (isGroundedAnswer(payload)) { renderGroundedAnswer(payload); return; } if (payload.mode === "INSUFFICIENT_EVIDENCE") { renderInsufficientEvidence(payload); return; } showServiceError(); } catch (error) { showServiceError(); } finally { setLoading(false); } });
-    function isGroundedAnswer(payload) { return payload.mode === "GROUNDED" && typeof payload.answer === "string" && Array.isArray(payload.citations) && payload.citations.length > 0 && payload.citations.every(citation => typeof citation.sourceTitle === "string" && typeof citation.sourceLocator === "string" && Number.isInteger(citation.pageNumber)); }
-    // 复用既有接口，页面只负责清楚呈现有依据或证据不足的结果。
-    function renderGroundedAnswer(payload) { answerPanel.dataset.mode = "GROUNDED"; answerStatus.textContent = "已找到资料依据"; answerContent.textContent = payload.answer; citationList.replaceChildren(); payload.citations.forEach(citation => { const item = document.createElement("article"); item.className = "citation-item"; const title = document.createElement("p"); const locator = document.createElement("p"); title.className = "citation-title"; locator.className = "citation-locator"; title.textContent = citation.sourceTitle; locator.textContent = `${citation.sourceLocator}｜PDF 第 ${citation.pageNumber} 页`; item.append(title, locator); citationList.append(item); }); citationPanel.hidden = false; previewNotice.textContent = payload.notice || "仅供本机开发验证，请以学校正式通知为准。"; answerPanel.hidden = false; }
-    function renderInsufficientEvidence(payload) { answerPanel.dataset.mode = "INSUFFICIENT_EVIDENCE"; answerStatus.textContent = "当前资料未覆盖该问题"; answerContent.textContent = "现有已审核资料不能确认该问题，因此不提供未经资料支持的答案。你可以补充资料后重新验证，或查阅学校正式通知。"; citationList.replaceChildren(); citationPanel.hidden = true; previewNotice.textContent = payload.notice || "仅供本机开发验证，请以学校正式通知为准。"; answerPanel.hidden = false; }
+    newConversationButton.addEventListener("click", startNewConversation);
+    questionForm.addEventListener("submit", sendMessage);
+
+    async function createConversationOnLoad() {
+        const expectedEpoch = ++requestEpoch;
+        try {
+            await ensureConversation(expectedEpoch);
+        } catch (error) {
+            // 首屏建会话失败不阻塞输入；用户发送时会重试并获得明确的服务错误提示。
+            if (expectedEpoch === requestEpoch) { sessionId = null; }
+        }
+    }
+
+    async function sendMessage(event) {
+        event.preventDefault();
+        const message = questionInput.value.trim();
+        resetMessages();
+        if (message.length < 1 || message.length > 500) { showQuestionError("请输入 1 至 500 个字符的问题。"); return; }
+        const expectedEpoch = ++requestEpoch;
+        setLoading(true);
+        try {
+            await ensureConversation(expectedEpoch);
+            if (expectedEpoch !== requestEpoch) { return; }
+            const response = await fetch(`${conversationApi}/${sessionId}/messages`, requestOptions({ message }));
+            const payload = await readPayload(response);
+            if (expectedEpoch !== requestEpoch) { return; }
+            if (!response.ok) { response.status === 400 ? showQuestionError(payload.message || "问题格式不正确，请检查后重试。") : showServiceError(); return; }
+            renderReply(payload);
+            questionInput.value = "";
+        } catch (error) {
+            if (expectedEpoch === requestEpoch) { showServiceError(); }
+        } finally {
+            if (expectedEpoch === requestEpoch) { setLoading(false); }
+        }
+    }
+
+    async function startNewConversation() {
+        const expectedEpoch = ++requestEpoch;
+        setLoading(true);
+        try {
+            const previousSessionId = sessionId;
+            clearStoredConversation();
+            sessionId = null;
+            resetMessages();
+            // 新会话必须等待旧会话取消完成，版本令牌同时隔离旧请求的晚到响应。
+            if (previousSessionId) {
+                const cancellation = await fetch(`${conversationApi}/${previousSessionId}/cancel`, requestOptions());
+                if (!cancellation.ok) { throw new Error("conversation-cancel-failed"); }
+            }
+            if (expectedEpoch !== requestEpoch) { return; }
+            await ensureConversation(expectedEpoch);
+            if (expectedEpoch === requestEpoch) { renderClarification("已开始新对话。请描述你想确认的选修课重修问题。"); }
+        } catch (error) {
+            if (expectedEpoch === requestEpoch) { showServiceError(); }
+        } finally {
+            if (expectedEpoch === requestEpoch) { setLoading(false); }
+        }
+    }
+
+    async function ensureConversation(expectedEpoch) {
+        if (sessionId) { return; }
+        const response = await fetch(conversationApi, requestOptions());
+        const payload = await readPayload(response);
+        if (expectedEpoch !== requestEpoch) { return; }
+        if (!response.ok || typeof payload.sessionId !== "string") { throw new Error("conversation-create-failed"); }
+        sessionId = payload.sessionId;
+        storeConversation({ sessionId, pendingPrompt: null });
+    }
+
+    function renderReply(payload) {
+        if (payload.type === "NEED_CLARIFICATION") { renderClarification(payload.message); return; }
+        if (payload.type === "ANSWER" && isAnswer(payload.answer)) { renderAnswer(payload.answer); return; }
+        if (payload.type === "OUT_OF_SCOPE") { renderOutOfScope("网络公共选修课的具体限制暂未纳入本机演示范围，请以当期选课通知为准。"); return; }
+        if (payload.type === "EVIDENCE_UNAVAILABLE") { renderOutOfScope("当前没有可确认的有效依据，无法给出确定性结论。"); return; }
+        if (payload.type === "SESSION_INVALID" || payload.type === "SESSION_EXPIRED" || payload.type === "SESSION_CANCELLED") {
+            sessionId = null;
+            clearStoredConversation();
+            renderClarification("当前会话已失效，请点击“开始新对话”后重试。");
+            return;
+        }
+        showServiceError();
+    }
+
+    function isAnswer(answer) { return answer && typeof answer.conclusion === "string" && typeof answer.basis === "string" && typeof answer.sourceId === "string" && typeof answer.sourceTitle === "string" && typeof answer.sourceVersion === "string" && typeof answer.sourceLocator === "string" && typeof answer.applicableScope === "string"; }
+    function renderClarification(message) { answerPanel.dataset.mode = "NEED_CLARIFICATION"; answerStatus.textContent = "需要补充信息"; answerContent.textContent = message; citationList.replaceChildren(); citationPanel.hidden = true; answerPanel.hidden = false; storeConversation({ sessionId, pendingPrompt: message }); }
+    function renderOutOfScope(message) { answerPanel.dataset.mode = "OUT_OF_SCOPE"; answerStatus.textContent = "当前范围暂不支持"; answerContent.textContent = message; citationList.replaceChildren(); citationPanel.hidden = true; answerPanel.hidden = false; storeConversation({ sessionId, pendingPrompt: null }); }
+    function renderAnswer(answer) { answerPanel.dataset.mode = "ANSWER"; answerStatus.textContent = "结论与资料依据"; answerContent.textContent = `结论：${answer.conclusion}\n\n依据：${answer.basis}\n\n适用范围：${answer.applicableScope}`; citationList.replaceChildren(); appendSource("来源", `${answer.sourceTitle}（${answer.sourceVersion}）`); appendSource("定位", answer.sourceLocator); appendSource("来源编号", answer.sourceId); citationPanel.hidden = false; answerPanel.hidden = false; storeConversation({ sessionId, pendingPrompt: null }); }
+    function appendSource(label, value) { const item = document.createElement("article"); item.className = "citation-item"; const title = document.createElement("p"); const locator = document.createElement("p"); title.className = "citation-title"; locator.className = "citation-locator"; title.textContent = label; locator.textContent = value; item.append(title, locator); citationList.append(item); }
     function resetMessages() { questionError.hidden = true; questionError.textContent = ""; serviceError.hidden = true; serviceError.textContent = ""; answerPanel.hidden = true; answerPanel.dataset.mode = ""; citationList.replaceChildren(); }
-    function showQuestionError(message) { questionError.textContent = message; questionError.hidden = false; } function showServiceError() { serviceError.textContent = "本机知识服务暂不可用，请确认预览服务和数据库均已启动。"; serviceError.hidden = false; } function setLoading(isLoading) { submitButton.disabled = isLoading; submitButton.textContent = isLoading ? "正在查询资料…" : "查询资料"; }
+    function showQuestionError(message) { questionError.textContent = message; questionError.hidden = false; }
+    function showServiceError() { serviceError.textContent = "本机会话服务暂不可用，请确认预览服务和数据库均已启动。"; serviceError.hidden = false; }
+    function setLoading(isLoading) { submitButton.disabled = isLoading; newConversationButton.disabled = isLoading; submitButton.textContent = isLoading ? "正在发送…" : "发送问题"; }
+    function requestOptions(body) { return { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8" }, body: body ? JSON.stringify(body) : undefined }; }
+    async function readPayload(response) { try { return await response.json(); } catch (error) { return {}; } }
+    function readStoredConversation() { try { return JSON.parse(sessionStorage.getItem(conversationStorageKey)) || {}; } catch (error) { return {}; } }
+    function storeConversation(value) { if (value.sessionId) { sessionStorage.setItem(conversationStorageKey, JSON.stringify(value)); } }
+    function clearStoredConversation() { sessionStorage.removeItem(conversationStorageKey); }
+    function restorePendingClarification() { const stored = readStoredConversation(); if (stored.sessionId && typeof stored.pendingPrompt === "string" && stored.pendingPrompt) { renderClarification(stored.pendingPrompt); } }
 </script>
 </body>
 </html>

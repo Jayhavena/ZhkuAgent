@@ -2,9 +2,9 @@
   <div class="home-container">
     <div class="header">
       <div class="glitch-wrapper">
-        <h1 class="glitch-title">鱼皮AI超级智能体</h1>
+        <h1 class="glitch-title">仲园 Agent</h1>
       </div>
-      <p class="subtitle">/ 探索AI的无限可能 /</p>
+      <p class="subtitle">/ 本机演示 · 任务助手 /</p>
       <div class="cyber-line"></div>
     </div>
     
@@ -13,8 +13,8 @@
         <div class="card-glow"></div>
         <div class="app-icon robot-icon">🤖</div>
         <div class="app-info">
-          <div class="app-title">AI超级智能体</div>
-          <div class="app-desc">全能型AI助手，解决各类专业问题</div>
+          <div class="app-title">任务助手</div>
+          <div class="app-desc">提交任务，查看处理过程与结果</div>
         </div>
         <div class="app-button">
           <span class="btn-text">立即体验</span>
@@ -40,15 +40,15 @@ import AppFooter from '../components/AppFooter.vue'
 
 // 设置页面标题和元数据
 useHead({
-  title: '鱼皮AI超级智能体应用平台 - 首页',
+  title: '首页 - 仲园 Agent',
   meta: [
     {
       name: 'description',
-      content: '鱼皮AI超级智能体应用平台提供自主规划智能体服务，帮助用户完成多步骤任务。'
+      content: '仲园 Agent 本机演示，提供任务助手入口，展示任务处理过程与结果。'
     },
     {
       name: 'keywords',
-      content: 'AI智能体,AI应用,AI助手,智能对话,鱼皮,AI超级智能体,首页'
+      content: '仲园 Agent,ZhkuAgent,任务助手,本机演示,首页'
     }
   ]
 })
@@ -117,7 +117,7 @@ const navigateTo = (path) => {
 
 .glitch-title::before,
 .glitch-title::after {
-  content: '鱼皮AI超级智能体';
+  content: '仲园 Agent';
   position: absolute;
   top: 0;
   left: 0;

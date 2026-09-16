@@ -6,17 +6,17 @@ const routes = [
     name: 'Home',
     component: () => import('../views/Home.vue'),
     meta: {
-      title: '首页 - 鱼皮AI超级智能体应用平台',
-      description: '鱼皮AI超级智能体应用平台提供自主规划智能体服务，帮助用户完成多步骤任务。'
+      title: '首页 - 仲园 Agent',
+      description: '仲园 Agent 本机演示，提供任务助手入口，展示任务处理过程与结果。'
     }
   },
   {
     path: '/super-agent',
-    name: 'SuperAgent',
-    component: () => import('../views/SuperAgent.vue'),
+    name: 'Agent',
+    component: () => import('../views/Agent.vue'),
     meta: {
-      title: 'AI超级智能体 - 鱼皮AI超级智能体应用平台',
-      description: 'AI超级智能体是鱼皮AI超级智能体应用平台的全能助手，能解答各类专业问题，提供精准建议和解决方案'
+      title: '任务助手 - 仲园 Agent',
+      description: '仲园 Agent 的任务助手演示页面，可提交任务并查看处理过程与结果。'
     }
   }
 ]

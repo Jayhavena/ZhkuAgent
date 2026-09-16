@@ -1,6 +1,6 @@
 # Agent 模块（迁移第一步）
 
-本模块来自原 SuperAgent 工作区，已带入未提交的任务状态机、数据库迁移与测试，以及 pom.xml 的测试依赖改动。Java 包名和业务逻辑保持不变。
+本模块来自原 SuperAgent 工作区，已带入未提交的任务状态机、数据库迁移与测试，以及 pom.xml 的测试依赖改动。Java 包名已调整为 com.zhku.agent，业务逻辑保持不变。
 
 ## 独立构建
 
@@ -18,7 +18,7 @@
 
 ```powershell
 # 模型密钥从当前会话环境提供，不写入命令或仓库。
-java -jar D:/alldesk/Projects/ZhkuAgent/agent/target/yu-ai-agent-0.0.1-SNAPSHOT.jar --server.address=127.0.0.1 --server.port=18123
+java -jar D:/alldesk/Projects/ZhkuAgent/agent/target/agent-0.0.1-SNAPSHOT.jar --server.address=127.0.0.1 --server.port=18123
 ```
 
 默认 8123 与当前知识库问答端口相同，因此并行验收使用 18123。外置 application-local.yml 未复制进模块；需要原有本机配置时通过 spring.config.additional-location 显式指定原文件。启动成功不代表模型实际调用可用。

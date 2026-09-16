@@ -3,7 +3,7 @@
     <div class="footer-content">
       <div class="footer-section">
         <div class="footer-logo">
-          <h3>鱼皮AI超级智能体应用平台</h3>
+          <h3>仲园 Agent</h3>
         </div>
         <div class="footer-links">
           <a href="#">《用户协议》</a>
@@ -21,16 +21,17 @@
       </div>
       
       <div class="footer-section">
-        <h4>联系我们</h4>
+        <h4>项目来源</h4>
         <div class="footer-links">
-          <a href="#">商务合作</a>
-          <a href="#">站长：鱼皮</a>
+          <span>基于原项目学习与改造</span>
+          <span>原项目作者：鱼皮</span>
+          <span>原项目：鱼皮AI超级智能体应用平台</span>
         </div>
       </div>
     </div>
     
     <div class="footer-bottom">
-      <p>© {{ currentYear }} 鱼皮AI超级智能体应用平台 - 让AI为你服务</p>
+      <p>仲园 Agent · 本机演示 · {{ currentYear }}</p>
     </div>
   </footer>
 </template>

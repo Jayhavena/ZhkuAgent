@@ -7,18 +7,18 @@ $ErrorActionPreference = 'Stop'
 $moduleRoot = Split-Path $PSScriptRoot -Parent
 $runtimeRoot = (Resolve-Path -LiteralPath $DataRoot).Path
 $envFile = Join-Path $runtimeRoot 'infra/.env'
-# 仅从指定的原运行目录取配置，不复制密码、PDF 或数据卷。
-if (-not (Test-Path -LiteralPath $envFile)) { throw '指定运行目录缺少 infra/.env。' }
+# Read configuration only from the explicitly selected runtime directory.
+if (-not (Test-Path -LiteralPath $envFile)) { throw 'The selected runtime directory is missing infra/.env.' }
 $line = Get-Content -LiteralPath $envFile | Where-Object { $_ -match '^ZHKU_DB_PASSWORD=' }
-if (@($line).Count -ne 1) { throw '数据库密码配置必须存在且唯一。' }
+if (@($line).Count -ne 1) { throw 'ZHKU_DB_PASSWORD must be present exactly once in infra/.env.' }
 $previousPassword = $env:ZHKU_DB_PASSWORD
 try {
     $env:ZHKU_DB_PASSWORD = $line -replace '^ZHKU_DB_PASSWORD=', ''
     $jar = Join-Path $moduleRoot "target/knowledge-0.0.1-SNAPSHOT-$Mode.jar"
-    if (-not (Test-Path -LiteralPath $jar)) { throw '请先打包 knowledge 模块。' }
+    if (-not (Test-Path -LiteralPath $jar)) { throw 'Build the knowledge module before starting this service.' }
     $arguments = @('-jar', $jar, '--server.address=127.0.0.1', "--zhku.local-admin.storage-directory=$(Join-Path $runtimeRoot 'data/local-admin')")
     if ($Port -gt 0) { $arguments += "--server.port=$Port" }
     Push-Location -LiteralPath $runtimeRoot
-    try { & java @arguments; if ($LASTEXITCODE -ne 0) { throw '知识库进程异常退出。' } }
+    try { & java @arguments; if ($LASTEXITCODE -ne 0) { throw 'The knowledge service exited unexpectedly.' } }
     finally { Pop-Location }
 } finally { $env:ZHKU_DB_PASSWORD = $previousPassword }

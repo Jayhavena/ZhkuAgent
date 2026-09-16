@@ -1,0 +1,98 @@
+package com.zhku.knowledge.answer;
+
+import com.zhku.knowledge.ZhkuDatabaseTestConfig;
+import com.zhku.knowledge.publication.ReviewedKnowledgePublisher;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/** 公共选修课程真实问法的有依据问答验收。 */
+class PublicElectiveGroundedAnswerAcceptanceTest {
+
+    private static final String DATABASE_URL = System.getProperty(
+            "zhku.db.url",
+            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+    );
+    private static final String DATABASE_USER = System.getProperty(
+            "zhku.db.user",
+            "zhkuagent"
+    );
+    private static final String DATABASE_PASSWORD =
+            ZhkuDatabaseTestConfig.databasePassword();
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("publicElectiveQuestions")
+    void shouldReturnGroundedAnswerForApprovedPublicElectiveQuestion(
+            String question,
+            String expectedSourceLocator
+    ) {
+        GroundedAnswer answer = service().answer(question);
+
+        assertThat(answer.mode()).isEqualTo(AnswerMode.GROUNDED);
+        assertThat(answer.citations())
+                .extracting(GroundedCitation::sourceLocator)
+                .containsExactly(expectedSourceLocator);
+    }
+
+    @Test
+    void shouldRefuseScholarshipQuestionOutsideCurrentKnowledgeScope() {
+        GroundedAnswer answer = service().answer("奖学金申请截止日期是什么时候？");
+
+        assertThat(answer.mode()).isEqualTo(AnswerMode.INSUFFICIENT_EVIDENCE);
+        assertThat(answer.citations()).isEmpty();
+    }
+
+    private GroundedAnswerService service() {
+        ReviewedKnowledgePublisher publisher = new ReviewedKnowledgePublisher(
+                new DriverManagerDataSource(
+                        DATABASE_URL,
+                        DATABASE_USER,
+                        DATABASE_PASSWORD
+                )
+        );
+        return new GroundedAnswerService(publisher::searchPublished);
+    }
+
+    private static Stream<Arguments> publicElectiveQuestions() {
+        return Stream.of(
+                Arguments.of(
+                        "公共选修课和专业选修课有什么区别？",
+                        "PDF 第 76 页，第 2、4 条"
+                ),
+                Arguments.of(
+                        "一学期最多能选多少公共选修课学分？",
+                        "PDF 第 76—77 页，第 8、10 条"
+                ),
+                Arguments.of(
+                        "网络公共选修课可以把选修学分全部修完吗？",
+                        "PDF 第 76—77 页，第 8、10 条"
+                ),
+                Arguments.of(
+                        "公共选修课什么时候选、在哪里选？",
+                        "PDF 第 77 页，第 9、13 条"
+                ),
+                Arguments.of(
+                        "没有选课但去上课和考试，成绩有效吗？",
+                        "PDF 第 77 页，第 9、13 条"
+                ),
+                Arguments.of(
+                        "已经选了公共选修课但不去上课，会有什么后果？",
+                        "PDF 第 77 页，第 14—15、18 条"
+                ),
+                Arguments.of(
+                        "公共选修课不及格可以缓考或重修吗？",
+                        "PDF 第 77 页，第 18 条"
+                ),
+                Arguments.of(
+                        "我能不能选一门和自己专业课内容很像的公共选修课？",
+                        "PDF 第 77 页，第 11 条"
+                )
+        );
+    }
+}
