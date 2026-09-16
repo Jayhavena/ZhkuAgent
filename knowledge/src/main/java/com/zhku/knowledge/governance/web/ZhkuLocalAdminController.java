@@ -11,7 +11,16 @@ import com.zhku.knowledge.governance.KnowledgeSubmission;
 import com.zhku.knowledge.governance.KnowledgeSubmissionService;
 import com.zhku.knowledge.governance.PublishedSubmissionResult;
 import com.zhku.knowledge.governance.SubmissionCreateCommand;
+import com.zhku.knowledge.notice.AcademicTerm;
+import com.zhku.knowledge.notice.NoticeFact;
+import com.zhku.knowledge.notice.NoticeFactType;
+import com.zhku.knowledge.notice.NoticeEvidenceChannel;
+import com.zhku.knowledge.notice.NoticeEvidenceOrigin;
+import com.zhku.knowledge.notice.NoticeGovernancePublisher;
+import com.zhku.knowledge.notice.NoticePublicationCommand;
+import com.zhku.knowledge.notice.PublishedNoticeResult;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,6 +38,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -58,12 +68,24 @@ public class ZhkuLocalAdminController {
     private final CandidateReviewService reviewService;
     private final KnowledgeGovernancePublisher publisher;
     private final KnowledgeGovernanceRepository repository;
+    private final NoticeGovernancePublisher noticePublisher;
 
     public ZhkuLocalAdminController(
             KnowledgeSubmissionService submissionService,
             CandidateReviewService reviewService,
             KnowledgeGovernancePublisher publisher,
             KnowledgeGovernanceRepository repository
+    ) {
+        this(submissionService, reviewService, publisher, repository, null);
+    }
+
+    @Autowired
+    public ZhkuLocalAdminController(
+            KnowledgeSubmissionService submissionService,
+            CandidateReviewService reviewService,
+            KnowledgeGovernancePublisher publisher,
+            KnowledgeGovernanceRepository repository,
+            NoticeGovernancePublisher noticePublisher
     ) {
         this.submissionService = Objects.requireNonNull(
                 submissionService,
@@ -72,6 +94,7 @@ public class ZhkuLocalAdminController {
         this.reviewService = Objects.requireNonNull(reviewService, "审核服务不能为空");
         this.publisher = Objects.requireNonNull(publisher, "发布服务不能为空");
         this.repository = Objects.requireNonNull(repository, "资料治理仓储不能为空");
+        this.noticePublisher = noticePublisher;
     }
 
     @PostMapping(value = "/submissions", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -87,7 +110,8 @@ public class ZhkuLocalAdminController {
             @RequestParam(required = false) LocalDate effectiveDate,
             @RequestParam(defaultValue = "false") boolean effectiveDateConfirmed,
             @RequestParam String reviewNotice,
-            @RequestParam String knowledgeScope
+            @RequestParam String knowledgeScope,
+            @RequestParam(defaultValue = "STUDENT_HANDBOOK") String documentFamily
     ) throws IOException {
         if (!isPdf(file)) {
             return ResponseEntity.badRequest()
@@ -110,7 +134,8 @@ public class ZhkuLocalAdminController {
                         effectiveDateConfirmed,
                         reviewNotice,
                         knowledgeScope,
-                        file.getOriginalFilename()
+                        file.getOriginalFilename(),
+                        documentFamily
                 ),
                 file.getInputStream()
         );
@@ -214,15 +239,51 @@ public class ZhkuLocalAdminController {
 
     @PostMapping("/submissions/{submissionId}/publish")
     public ResponseEntity<PublishResponse> publish(
-            @PathVariable UUID submissionId
+            @PathVariable UUID submissionId,
+            @RequestParam(defaultValue = "false") boolean studentVisible,
+            @RequestParam(defaultValue = "false") boolean sharingRightsConfirmed
     ) {
-        PublishedSubmissionResult result = publisher.publish(submissionId);
+        PublishedSubmissionResult result = publisher.publish(
+                submissionId,
+                studentVisible,
+                sharingRightsConfirmed
+        );
         return ResponseEntity.ok()
                 .contentType(JSON_UTF8)
                 .body(new PublishResponse(
                         result.submissionId(),
                         result.sourceId(),
                         "PUBLISHED"
+                ));
+    }
+
+    /**
+     * 仅将已审核的官方 PDF 通知发布为当前选课事实。
+     *
+     * <p>本机管理员必须显式提供学期、有效期、官方链接和每项办理窗口；不能把
+     * 文档标题或模型推测当作动态日期事实。</p>
+     */
+    @PostMapping("/submissions/{submissionId}/publish-course-selection-notice")
+    public ResponseEntity<NoticePublishResponse> publishCourseSelectionNotice(
+            @PathVariable UUID submissionId,
+            @RequestBody CourseSelectionNoticePublishRequest request
+    ) {
+        if (noticePublisher == null) {
+            throw new IllegalStateException("本机通知发布服务尚未启用");
+        }
+        PublishedNoticeResult result = noticePublisher.publish(
+                submissionId,
+                request.toCommand()
+        );
+        return ResponseEntity.ok()
+                .contentType(JSON_UTF8)
+                .body(new NoticePublishResponse(
+                        result.submissionId(),
+                        result.sourceId(),
+                        result.notice().noticeId(),
+                        result.notice().academicTerm().value(),
+                        result.notice().type().name(),
+                        result.notice().status().name()
                 ));
     }
 
@@ -262,6 +323,7 @@ public class ZhkuLocalAdminController {
 
     public record SubmissionResponse(
             UUID id,
+            String documentFamily,
             String title,
             String sourceVersion,
             String knowledgeScope,
@@ -270,8 +332,9 @@ public class ZhkuLocalAdminController {
     ) {
         static SubmissionResponse from(KnowledgeSubmission submission) {
             return new SubmissionResponse(
-                    submission.id(),
-                    submission.title(),
+                submission.id(),
+                submission.documentFamily(),
+                submission.title(),
                     submission.sourceVersion(),
                     submission.knowledgeScope(),
                     submission.status().name(),
@@ -282,6 +345,7 @@ public class ZhkuLocalAdminController {
 
     public record SubmissionDetailResponse(
             UUID id,
+            String documentFamily,
             String title,
             String sourceVersion,
             String knowledgeScope,
@@ -294,8 +358,9 @@ public class ZhkuLocalAdminController {
                 List<CandidateResponse> candidates
         ) {
             return new SubmissionDetailResponse(
-                    submission.id(),
-                    submission.title(),
+                submission.id(),
+                submission.documentFamily(),
+                submission.title(),
                     submission.sourceVersion(),
                     submission.knowledgeScope(),
                     submission.status().name(),
@@ -338,6 +403,69 @@ public class ZhkuLocalAdminController {
     }
 
     public record PublishResponse(UUID submissionId, UUID sourceId, String status) {
+    }
+
+    public record CourseSelectionNoticePublishRequest(
+            String academicTerm,
+            Instant validFrom,
+            Instant validTo,
+            String officialUrl,
+            List<NoticeFactRequest> facts,
+            String evidenceChannel,
+            String issuingUnit,
+            String deliveryChannel,
+            String materialReference
+    ) {
+        NoticePublicationCommand toCommand() {
+            List<NoticeFact> noticeFacts = List.copyOf(
+                    Objects.requireNonNull(facts, "通知事实不能为空")
+            ).stream().map(NoticeFactRequest::toFact).toList();
+            return new NoticePublicationCommand(
+                    new AcademicTerm(academicTerm),
+                    validFrom,
+                    validTo,
+                    officialUrl,
+                    noticeFacts,
+                    evidenceOrigin()
+            );
+        }
+
+        private NoticeEvidenceOrigin evidenceOrigin() {
+            NoticeEvidenceChannel channel = evidenceChannel == null || evidenceChannel.isBlank()
+                    ? NoticeEvidenceChannel.PUBLIC_WEB
+                    : NoticeEvidenceChannel.valueOf(evidenceChannel);
+            return channel == NoticeEvidenceChannel.PUBLIC_WEB
+                    ? NoticeEvidenceOrigin.publicWeb(officialUrl)
+                    : NoticeEvidenceOrigin.internalOfficial(
+                            issuingUnit, deliveryChannel, materialReference
+                    );
+        }
+    }
+
+    public record NoticeFactRequest(
+            NoticeFactType type,
+            Instant startsAt,
+            Instant endsAt,
+            String officialEntryUrl,
+            boolean startsAtConfirmed,
+            boolean endsAtConfirmed
+    ) {
+        NoticeFact toFact() {
+            return new NoticeFact(
+                    type, startsAt, endsAt, officialEntryUrl,
+                    startsAtConfirmed, endsAtConfirmed
+            );
+        }
+    }
+
+    public record NoticePublishResponse(
+            UUID submissionId,
+            UUID sourceId,
+            UUID noticeId,
+            String academicTerm,
+            String noticeType,
+            String status
+    ) {
     }
 
     public record ErrorResponse(String code, String message) {

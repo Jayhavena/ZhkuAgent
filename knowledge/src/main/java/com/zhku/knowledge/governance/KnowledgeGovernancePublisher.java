@@ -6,6 +6,8 @@ import com.zhku.knowledge.publication.ReviewedKnowledgePublisher;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -37,7 +39,43 @@ public final class KnowledgeGovernancePublisher {
     }
 
     public PublishedSubmissionResult publish(UUID submissionId) {
+        return publish(submissionId, false, false);
+    }
+
+    /**
+     * 将完整审核后的投稿发布到当前知识范围。
+     *
+     * <p>学生公开与分享权确认必须在发布时成对明确传入；默认发布保持内部可见，
+     * 防止调用方遗漏确认时把审核资料意外暴露给学生。</p>
+     */
+    public PublishedSubmissionResult publish(
+            UUID submissionId,
+            boolean studentVisible,
+            boolean sharingRightsConfirmed
+    ) {
+        return publishWithPublicationTransaction(
+                submissionId,
+                studentVisible,
+                sharingRightsConfirmed,
+                (connection, submission, sourceId, publishedAt) ->
+                        new PublishedSubmissionResult(submission.id(), sourceId)
+        );
+    }
+
+    /**
+     * 在资料来源、审核状态和扩展治理记录同一事务内发布。
+     *
+     * <p>通知等动态资料必须在来源替代成功后才写入可见记录；若拆成两个事务，
+     * 会出现“新来源已发布但当前通知未切换”的错误窗口。</p>
+     */
+    public <T> T publishWithPublicationTransaction(
+            UUID submissionId,
+            boolean studentVisible,
+            boolean sharingRightsConfirmed,
+            PublicationTransactionWork<T> afterPublication
+    ) {
         Objects.requireNonNull(submissionId, "投稿编号不能为空");
+        Objects.requireNonNull(afterPublication, "发布事务回调不能为空");
         KnowledgeSubmission submission = repository.findSubmission(submissionId)
                 .orElseThrow(() -> new IllegalArgumentException("资料投稿不存在"));
         if (submission.status() != KnowledgeSubmissionStatus.IN_REVIEW) {
@@ -53,13 +91,13 @@ public final class KnowledgeGovernancePublisher {
         ReviewedKnowledgePublication publication = new ReviewedKnowledgePublication(
                 sourceId,
                 submission.title(),
-                "学生手册",
+                sourceTypeOf(submission.documentFamily()),
                 submission.sourceVersion(),
                 submission.sourceUrl(),
                 submission.applicableScope(),
                 submission.reviewNotice(),
-                false,
-                false,
+                studentVisible,
+                sharingRightsConfirmed,
                 "审核通过",
                 publishedAt,
                 reviewedChunks(approvedCandidates)
@@ -84,9 +122,29 @@ public final class KnowledgeGovernancePublisher {
                                     publishedAt
                             )
                     );
-                    return new PublishedSubmissionResult(submissionId, sourceId);
+                    return afterPublication.execute(
+                            connection, submission, sourceId, publishedAt
+                    );
                 }
         );
+    }
+
+    @FunctionalInterface
+    public interface PublicationTransactionWork<T> {
+        T execute(
+                Connection connection,
+                KnowledgeSubmission submission,
+                UUID sourceId,
+                Instant publishedAt
+        ) throws SQLException;
+    }
+
+    private static String sourceTypeOf(String documentFamily) {
+        return switch (documentFamily) {
+            case "STUDENT_HANDBOOK" -> "学生手册";
+            case "OFFICIAL_NOTICE" -> "官方通知";
+            default -> throw new IllegalArgumentException("不支持的资料族");
+        };
     }
 
     private static List<KnowledgeCandidate> approvedCandidates(

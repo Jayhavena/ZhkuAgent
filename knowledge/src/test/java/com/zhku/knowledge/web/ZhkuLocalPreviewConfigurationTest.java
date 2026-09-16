@@ -5,6 +5,8 @@ import com.zhku.knowledge.conversation.ConversationStore;
 import com.zhku.knowledge.conversation.publicelective.CreditLimitEvidenceFinder;
 import com.zhku.knowledge.conversation.publicelective.PublicElectiveConversationRouter;
 import com.zhku.knowledge.conversation.publicelective.PublicElectiveCreditLimitService;
+import com.zhku.knowledge.notice.CourseSelectionNoticeService;
+import com.zhku.knowledge.notice.NoticeRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.util.TestPropertyValues;
@@ -66,5 +68,21 @@ class ZhkuLocalPreviewConfigurationTest {
                                 .hasSingleBean(PublicElectiveConversationRouter.class)
                                 .hasSingleBean(LocalPreviewConversationFacade.class)
                                 .hasSingleBean(ZhkuLocalPreviewConversationController.class)));
+    }
+
+    @Test
+    void shouldEnableCurrentNoticeServiceOnlyWithExplicitTermAndOfficialChannel() {
+        TestPropertyValues.of("zhku.db.password=test-password")
+                .applyToSystemProperties(() -> new ApplicationContextRunner()
+                        .withPropertyValues(
+                                "spring.profiles.active=zhku-local-preview",
+                                "zhku.local-preview.enabled=true",
+                                "zhku.local-preview.current-academic-term=2026-2027-1",
+                                "zhku.local-preview.course-selection-official-query-url=https://jwc.zhku.edu.cn"
+                        )
+                        .withUserConfiguration(ZhkuLocalPreviewConfiguration.class)
+                        .run(context -> assertThat(context)
+                                .hasSingleBean(NoticeRepository.class)
+                                .hasSingleBean(CourseSelectionNoticeService.class)));
     }
 }

@@ -9,6 +9,8 @@ import com.zhku.knowledge.governance.LocalKnowledgeFileStore;
 import com.zhku.knowledge.ingestion.PdfPageTextExtractor;
 import com.zhku.knowledge.publication.LocalKnowledgePublisherFactory;
 import com.zhku.knowledge.publication.ReviewedKnowledgePublisher;
+import com.zhku.knowledge.notice.JdbcNoticeRepository;
+import com.zhku.knowledge.notice.NoticeGovernancePublisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -78,6 +80,24 @@ public class ZhkuLocalAdminConfiguration {
                 repository,
                 new ReviewedKnowledgePublisher(dataSource),
                 Clock.systemUTC()
+        );
+    }
+
+    @Bean
+    JdbcNoticeRepository zhkuLocalAdminNoticeRepository(
+            DriverManagerDataSource dataSource
+    ) {
+        return new JdbcNoticeRepository(dataSource);
+    }
+
+    @Bean
+    NoticeGovernancePublisher zhkuLocalAdminNoticePublisher(
+            KnowledgeGovernanceRepository repository,
+            KnowledgeGovernancePublisher publisher,
+            JdbcNoticeRepository noticeRepository
+    ) {
+        return new NoticeGovernancePublisher(
+                repository, publisher, noticeRepository
         );
     }
 

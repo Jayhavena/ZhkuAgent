@@ -3,6 +3,13 @@ server:
   port: 8124
   address: 127.0.0.1
 
+spring:
+  servlet:
+    multipart:
+      # 官方 PDF 常超过 Spring 默认 1MB；仅本机管理员 Profile 放宽到受控上限。
+      max-file-size: 50MB
+      max-request-size: 52MB
+
 zhku:
   local-admin:
     enabled: true

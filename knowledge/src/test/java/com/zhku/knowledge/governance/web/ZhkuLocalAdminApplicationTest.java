@@ -54,4 +54,17 @@ class ZhkuLocalAdminApplicationTest {
 
         assertThat(properties.get("server.port")).isEqualTo(8124);
     }
+
+    @Test
+    void shouldAllowOfficialPdfUploadsUpToFiftyMegabytesOnlyInAdminProfile() {
+        YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
+        yaml.setResources(new ClassPathResource("application-zhku-local-admin.yml"));
+
+        Properties properties = yaml.getObject();
+
+        assertThat(properties.get("spring.servlet.multipart.max-file-size"))
+                .isEqualTo("50MB");
+        assertThat(properties.get("spring.servlet.multipart.max-request-size"))
+                .isEqualTo("52MB");
+    }
 }

@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.io.IOException;
 
@@ -54,6 +55,18 @@ public class ZhkuLocalAdminExceptionHandler {
                 HttpStatus.UNPROCESSABLE_ENTITY,
                 "PDF_READ_FAILED",
                 "PDF 读取失败，请检查文件后重新上传或提取。"
+        );
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    ResponseEntity<ErrorResponse> uploadTooLarge(
+            MaxUploadSizeExceededException exception
+    ) {
+        // 不返回容器或临时目录细节；管理员只需知道受控上限和可操作的处理方式。
+        return response(
+                HttpStatus.PAYLOAD_TOO_LARGE,
+                "UPLOAD_TOO_LARGE",
+                "PDF 超过本机管理员允许的 50MB 上限，请压缩后重试。"
         );
     }
 

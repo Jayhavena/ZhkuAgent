@@ -19,11 +19,37 @@ public record SubmissionCreateCommand(
         boolean effectiveDateConfirmed,
         String reviewNotice,
         String knowledgeScope,
-        String originalFilename
+        String originalFilename,
+        String documentFamily
 ) {
 
     private static final Pattern KNOWLEDGE_SCOPE_PATTERN =
             Pattern.compile("^[A-Z0-9_]+$");
+    private static final Pattern DOCUMENT_FAMILY_PATTERN =
+            Pattern.compile("^(STUDENT_HANDBOOK|OFFICIAL_NOTICE)$");
+
+    /** 保持旧管理员调用兼容；通知投稿必须由入口显式声明资料族。 */
+    public SubmissionCreateCommand(
+            String title,
+            String sourceVersion,
+            String sourceDescription,
+            String sourceUrl,
+            String applicableScope,
+            LocalDate publicationDate,
+            boolean publicationDateConfirmed,
+            LocalDate effectiveDate,
+            boolean effectiveDateConfirmed,
+            String reviewNotice,
+            String knowledgeScope,
+            String originalFilename
+    ) {
+        this(
+                title, sourceVersion, sourceDescription, sourceUrl,
+                applicableScope, publicationDate, publicationDateConfirmed,
+                effectiveDate, effectiveDateConfirmed, reviewNotice,
+                knowledgeScope, originalFilename, "STUDENT_HANDBOOK"
+        );
+    }
 
     public SubmissionCreateCommand {
         title = requireText(title, "资料标题不能为空");
@@ -45,6 +71,10 @@ public record SubmissionCreateCommand(
             );
         }
         originalFilename = requireText(originalFilename, "原始文件名不能为空");
+        documentFamily = requireText(documentFamily, "资料族不能为空");
+        if (!DOCUMENT_FAMILY_PATTERN.matcher(documentFamily).matches()) {
+            throw new IllegalArgumentException("资料族只能是 STUDENT_HANDBOOK 或 OFFICIAL_NOTICE");
+        }
     }
 
     private static String requireText(String value, String message) {

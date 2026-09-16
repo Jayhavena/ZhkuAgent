@@ -7,6 +7,15 @@ import com.zhku.knowledge.conversation.elective.ElectiveRetakeConversationServic
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeEvidence;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeReply;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeReplyType;
+import com.zhku.knowledge.notice.AcademicTerm;
+import com.zhku.knowledge.notice.CourseSelectionNoticeService;
+import com.zhku.knowledge.notice.CurrentNoticeFinder;
+import com.zhku.knowledge.notice.NoticeFact;
+import com.zhku.knowledge.notice.NoticeFactType;
+import com.zhku.knowledge.notice.NoticeLifecycleStatus;
+import com.zhku.knowledge.notice.NoticeType;
+import com.zhku.knowledge.notice.OfficialWebSnapshot;
+import com.zhku.knowledge.notice.PublishedNotice;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -14,6 +23,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,6 +74,26 @@ class PublicElectiveConversationRouterTest {
         assertThat(reply.answer().conclusion()).isEqualTo("每学期公共选修课最高不得超过 4 学分。");
     }
 
+    @Test
+    void shouldPrioritizeCurrentCourseSelectionNoticeOverStaticRules() {
+        InMemoryConversationStore store = new InMemoryConversationStore();
+        UUID sessionId = UUID.randomUUID();
+        store.create(ConversationState.active(sessionId, CLOCK.instant().plus(Duration.ofMinutes(10))));
+        PublicElectiveConversationRouter router = new PublicElectiveConversationRouter(
+                store,
+                retakeService(store),
+                creditLimitService(),
+                currentCourseSelectionNoticeService(),
+                CLOCK
+        );
+
+        ElectiveRetakeReply reply = router.route(sessionId, "本学期什么时候选课？");
+
+        assertThat(reply.type()).isEqualTo(ElectiveRetakeReplyType.ANSWER);
+        assertThat(reply.answer().sourceTitle()).isEqualTo("当期本科生选课通知");
+        assertThat(reply.answer().conclusion()).contains("选课办理时间");
+    }
+
     private static ElectiveRetakeConversationService retakeService(InMemoryConversationStore store) {
         return new ElectiveRetakeConversationService(
                 store,
@@ -91,5 +121,43 @@ class PublicElectiveConversationRouterTest {
                 "办理公共选修课程选课的本科生",
                 "每学期公共选修课最高不得超过 4 学分。"
         )));
+    }
+
+    private static CourseSelectionNoticeService currentCourseSelectionNoticeService() {
+        AcademicTerm term = new AcademicTerm("2026-2027-1");
+        PublishedNotice notice = new PublishedNotice(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "当期本科生选课通知",
+                "2026 年第 1 号",
+                "2026-2027-1 学期本科生",
+                term,
+                NoticeType.COURSE_SELECTION,
+                NoticeLifecycleStatus.PUBLISHED,
+                Instant.parse("2026-09-01T00:00:00Z"),
+                Instant.parse("2026-09-20T00:00:00Z"),
+                new OfficialWebSnapshot(
+                        "https://jwc.zhku.edu.cn/notices/selection",
+                        "selection.html",
+                        "A".repeat(64),
+                        Instant.parse("2026-08-30T00:00:00Z"),
+                        "text/html"
+                ),
+                true,
+                true,
+                List.of(new NoticeFact(
+                        NoticeFactType.COURSE_SELECTION,
+                        Instant.parse("2026-09-16T00:00:00Z"),
+                        Instant.parse("2026-09-17T00:00:00Z"),
+                        "https://jwc.zhku.edu.cn/selection",
+                        true,
+                        true
+                ))
+        );
+        return new CourseSelectionNoticeService(
+                new CurrentNoticeFinder(() -> List.of(notice), CLOCK),
+                term,
+                "https://jwc.zhku.edu.cn"
+        );
     }
 }

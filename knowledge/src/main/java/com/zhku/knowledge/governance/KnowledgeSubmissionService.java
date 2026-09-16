@@ -16,7 +16,6 @@ import java.util.UUID;
  */
 public final class KnowledgeSubmissionService {
 
-    private static final String STUDENT_HANDBOOK = "STUDENT_HANDBOOK";
     private static final String LOCAL_ADMINISTRATOR = "本机管理员";
 
     private final KnowledgeGovernanceRepository repository;
@@ -51,7 +50,7 @@ public final class KnowledgeSubmissionService {
         Instant now = clock.instant();
         KnowledgeSubmission submission = new KnowledgeSubmission(
                 UUID.randomUUID(),
-                STUDENT_HANDBOOK,
+                command.documentFamily(),
                 command.knowledgeScope(),
                 command.title(),
                 command.sourceVersion(),

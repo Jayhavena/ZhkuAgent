@@ -117,7 +117,7 @@ class ReviewedKnowledgePublisherTest {
     }
 
     @Test
-    void shouldExcludeInternalOnlyPublicationFromStudentVisibleSearch() {
+    void shouldExcludePublishedPublicationWithoutStudentVisibilityAndSharingConfirmation() {
         publisher.publish(publication(
                 "审核通过",
                 List.of(chunk(7600, "每学期公共选修课最高不得超过 4 个学分。"))
@@ -125,6 +125,28 @@ class ReviewedKnowledgePublisherTest {
 
         assertThat(publisher.searchStudentVisiblePublished("4 个学分"))
                 .as("仅本地验证的资料不能被未来学生接口检索")
+                .isEmpty();
+    }
+
+    @Test
+    void shouldExcludeDraftSourceFromStudentVisibleSearch() throws SQLException {
+        publisher.publish(new ReviewedKnowledgePublication(
+                TEST_SOURCE_ID,
+                "待发布公开规则",
+                "学生手册",
+                "测试版",
+                null,
+                "全日制普通本科生",
+                "已审核且确认可向学生公开。",
+                true,
+                true,
+                "审核通过",
+                Instant.parse("2026-09-10T00:00:00Z"),
+                List.of(chunk(7600, "待发布公开规则内容"))
+        ));
+        markTestSourceAsDraft();
+
+        assertThat(publisher.searchStudentVisiblePublished("待发布公开规则内容"))
                 .isEmpty();
     }
 
@@ -143,6 +165,35 @@ class ReviewedKnowledgePublisherTest {
 
         assertThat(publisher.searchPublished("旧版替换验证内容")).isEmpty();
         assertThat(publisher.searchPublished("新版替换验证内容"))
+                .extracting(PublishedKnowledgeChunk::sourceId)
+                .containsExactly(REPLACEMENT_SOURCE_ID);
+    }
+
+    @Test
+    void shouldExposeOnlyNewStudentVisibleVersionAfterScopeReplacement() {
+        publisher.publishReplacingScope(
+                publicPublication(
+                        TEST_SOURCE_ID,
+                        "旧版公开重修规则",
+                        "旧版公开重修规则内容"
+                ),
+                "STUDENT_HANDBOOK",
+                REPLACEMENT_TEST_SCOPE
+        );
+
+        publisher.publishReplacingScope(
+                publicPublication(
+                        REPLACEMENT_SOURCE_ID,
+                        "新版公开重修规则",
+                        "新版公开重修规则内容"
+                ),
+                "STUDENT_HANDBOOK",
+                REPLACEMENT_TEST_SCOPE
+        );
+
+        assertThat(publisher.searchStudentVisiblePublished("旧版公开重修规则内容"))
+                .isEmpty();
+        assertThat(publisher.searchStudentVisiblePublished("新版公开重修规则内容"))
                 .extracting(PublishedKnowledgeChunk::sourceId)
                 .containsExactly(REPLACEMENT_SOURCE_ID);
     }
@@ -204,6 +255,21 @@ class ReviewedKnowledgePublisherTest {
         );
     }
 
+    private ReviewedKnowledgePublication publicPublication(
+            UUID sourceId,
+            String title,
+            String content
+    ) {
+        return new ReviewedKnowledgePublication(
+                sourceId, title, "学生手册", "测试版", null, "全日制普通本科生",
+                "已审核且确认可向学生公开。", true, true, "审核通过",
+                Instant.parse("2026-09-12T00:00:00Z"),
+                List.of(new ReviewedKnowledgeChunk(
+                        0, "范围替换", "PDF 第 77 页", 77, content
+                ))
+        );
+    }
+
     private ReviewedKnowledgeChunk chunk(int chunkIndex, String content) {
         return new ReviewedKnowledgeChunk(
                 chunkIndex,
@@ -246,6 +312,22 @@ class ReviewedKnowledgePublisherTest {
         ); PreparedStatement statement = connection.prepareStatement("""
                 UPDATE knowledge_source
                 SET publication_status = 'ARCHIVED'
+                WHERE id = ?
+                """)) {
+            statement.setObject(1, TEST_SOURCE_ID);
+            statement.executeUpdate();
+        }
+    }
+
+    private void markTestSourceAsDraft() throws SQLException {
+        try (Connection connection = DriverManager.getConnection(
+                DATABASE_URL,
+                DATABASE_USER,
+                DATABASE_PASSWORD
+        ); PreparedStatement statement = connection.prepareStatement("""
+                UPDATE knowledge_source
+                SET publication_status = 'DRAFT',
+                    visibility_scope = 'INTERNAL_ONLY'
                 WHERE id = ?
                 """)) {
             statement.setObject(1, TEST_SOURCE_ID);

@@ -119,6 +119,31 @@ class KnowledgeGovernancePublisherTest {
     }
 
     @Test
+    void shouldExposeApprovedSubmissionWhenAdministratorConfirmsPublication() {
+        KnowledgeSubmission submission = submission(
+                NEW_SUBMISSION_ID,
+                "公开的公共选修重修规则",
+                KnowledgeSubmissionStatus.IN_REVIEW,
+                "B"
+        );
+        repository.createSubmission(submission);
+        repository.saveCandidates(submission.id(), List.of(
+                approvedCandidate(submission.id(), 1, "公开的公共选修重修规则内容")
+        ));
+
+        PublishedSubmissionResult result = publisher.publish(
+                submission.id(),
+                true,
+                true
+        );
+
+        assertThat(reviewedPublisher.searchStudentVisiblePublished(
+                "公开的公共选修重修规则内容"
+        )).extracting(PublishedKnowledgeChunk::sourceId)
+                .containsExactly(result.sourceId());
+    }
+
+    @Test
     void shouldRollbackScopeArchiveWhenNewSourceCannotBeWritten() {
         createOldPublishedVersion();
         // 暂存区允许较长适用范围，而已发布表只允许 100 个字符；

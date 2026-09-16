@@ -24,6 +24,8 @@ class ZhkuLocalPreviewPageResourceTest {
         assertThat(page).contains("开始新对话");
         assertThat(page).contains("NEED_CLARIFICATION");
         assertThat(page).contains("OUT_OF_SCOPE");
+        assertThat(page).contains("payload.message || \"当前没有可确认的有效依据，无法给出确定性结论。\"");
+        assertThat(page).contains("\"当前暂无有效通知\"");
         assertThat(page).contains("SESSION_INVALID");
         assertThat(page).contains("公共选修课每学期最多可以选多少学分？");
         assertThat(page).contains("网络公共选修课的具体限制暂未纳入本机演示范围");

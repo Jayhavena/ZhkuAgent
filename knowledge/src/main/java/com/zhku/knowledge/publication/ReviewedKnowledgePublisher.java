@@ -256,7 +256,9 @@ public final class ReviewedKnowledgePublisher {
     ) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("""
                 UPDATE knowledge_source
-                SET publication_status = 'ARCHIVED', updated_at = CURRENT_TIMESTAMP
+                SET publication_status = 'ARCHIVED',
+                    visibility_scope = 'INTERNAL_ONLY',
+                    updated_at = CURRENT_TIMESTAMP
                 WHERE document_family = ?
                   AND knowledge_scope = ?
                   AND publication_status = 'PUBLISHED'

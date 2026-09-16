@@ -7,7 +7,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * 一份等待审核并发布的本机学生手册资料。
+ * 一份等待审核并发布的本机可信资料。
  *
  * <p>该对象属于暂存区，不能直接被学生问答检索。</p>
  */
@@ -39,9 +39,10 @@ public record KnowledgeSubmission(
     public KnowledgeSubmission {
         id = Objects.requireNonNull(id, "投稿编号不能为空");
         documentFamily = requireText(documentFamily, "资料族不能为空");
-        if (!"STUDENT_HANDBOOK".equals(documentFamily)) {
+        if (!"STUDENT_HANDBOOK".equals(documentFamily)
+                && !"OFFICIAL_NOTICE".equals(documentFamily)) {
             throw new IllegalArgumentException(
-                    "资料族只能是 STUDENT_HANDBOOK"
+                    "资料族只能是 STUDENT_HANDBOOK 或 OFFICIAL_NOTICE"
             );
         }
         knowledgeScope = requireText(knowledgeScope, "知识范围不能为空");

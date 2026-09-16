@@ -169,7 +169,9 @@
         if (payload.type === "NEED_CLARIFICATION") { renderClarification(payload.message); return; }
         if (payload.type === "ANSWER" && isAnswer(payload.answer)) { renderAnswer(payload.answer); return; }
         if (payload.type === "OUT_OF_SCOPE") { renderOutOfScope("网络公共选修课的具体限制暂未纳入本机演示范围，请以当期选课通知为准。"); return; }
-        if (payload.type === "EVIDENCE_UNAVAILABLE") { renderOutOfScope("当前没有可确认的有效依据，无法给出确定性结论。"); return; }
+        // 后端已区分“资料缺失”和“通知过期”等拒答原因；前端覆盖原文会掩盖治理状态，
+        // 使学生无法判断应等待新通知还是改走官方查询渠道。
+        if (payload.type === "EVIDENCE_UNAVAILABLE") { renderOutOfScope(payload.message || "当前没有可确认的有效依据，无法给出确定性结论。", "当前暂无有效通知"); return; }
         if (payload.type === "SESSION_INVALID" || payload.type === "SESSION_EXPIRED" || payload.type === "SESSION_CANCELLED") {
             sessionId = null;
             clearStoredConversation();
@@ -181,7 +183,7 @@
 
     function isAnswer(answer) { return answer && typeof answer.conclusion === "string" && typeof answer.basis === "string" && typeof answer.sourceId === "string" && typeof answer.sourceTitle === "string" && typeof answer.sourceVersion === "string" && typeof answer.sourceLocator === "string" && typeof answer.applicableScope === "string"; }
     function renderClarification(message) { answerPanel.dataset.mode = "NEED_CLARIFICATION"; answerStatus.textContent = "需要补充信息"; answerContent.textContent = message; citationList.replaceChildren(); citationPanel.hidden = true; answerPanel.hidden = false; storeConversation({ sessionId, pendingPrompt: message }); }
-    function renderOutOfScope(message) { answerPanel.dataset.mode = "OUT_OF_SCOPE"; answerStatus.textContent = "当前范围暂不支持"; answerContent.textContent = message; citationList.replaceChildren(); citationPanel.hidden = true; answerPanel.hidden = false; storeConversation({ sessionId, pendingPrompt: null }); }
+    function renderOutOfScope(message, status = "当前范围暂不支持") { answerPanel.dataset.mode = "OUT_OF_SCOPE"; answerStatus.textContent = status; answerContent.textContent = message; citationList.replaceChildren(); citationPanel.hidden = true; answerPanel.hidden = false; storeConversation({ sessionId, pendingPrompt: null }); }
     function renderAnswer(answer) { answerPanel.dataset.mode = "ANSWER"; answerStatus.textContent = "结论与资料依据"; answerContent.textContent = `结论：${answer.conclusion}\n\n依据：${answer.basis}\n\n适用范围：${answer.applicableScope}`; citationList.replaceChildren(); appendSource("来源", `${answer.sourceTitle}（${answer.sourceVersion}）`); appendSource("定位", answer.sourceLocator); appendSource("来源编号", answer.sourceId); citationPanel.hidden = false; answerPanel.hidden = false; storeConversation({ sessionId, pendingPrompt: null }); }
     function appendSource(label, value) { const item = document.createElement("article"); item.className = "citation-item"; const title = document.createElement("p"); const locator = document.createElement("p"); title.className = "citation-title"; locator.className = "citation-locator"; title.textContent = label; locator.textContent = value; item.append(title, locator); citationList.append(item); }
     function resetMessages() { questionError.hidden = true; questionError.textContent = ""; serviceError.hidden = true; serviceError.textContent = ""; answerPanel.hidden = true; answerPanel.dataset.mode = ""; citationList.replaceChildren(); }

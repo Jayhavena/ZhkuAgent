@@ -8,6 +8,17 @@ import com.zhku.knowledge.governance.KnowledgeGovernanceRepository;
 import com.zhku.knowledge.governance.KnowledgeSubmission;
 import com.zhku.knowledge.governance.KnowledgeSubmissionService;
 import com.zhku.knowledge.governance.KnowledgeSubmissionStatus;
+import com.zhku.knowledge.governance.PublishedSubmissionResult;
+import com.zhku.knowledge.notice.AcademicTerm;
+import com.zhku.knowledge.notice.NoticeFact;
+import com.zhku.knowledge.notice.NoticeFactType;
+import com.zhku.knowledge.notice.NoticeGovernancePublisher;
+import com.zhku.knowledge.notice.NoticeLifecycleStatus;
+import com.zhku.knowledge.notice.NoticePublicationCommand;
+import com.zhku.knowledge.notice.NoticeType;
+import com.zhku.knowledge.notice.OfficialWebSnapshot;
+import com.zhku.knowledge.notice.PublishedNotice;
+import com.zhku.knowledge.notice.PublishedNoticeResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +37,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -121,7 +133,7 @@ class ZhkuLocalAdminControllerTest {
 
     @Test
     void shouldReturnConflictWhenSubmissionIsNotReadyToPublish() throws Exception {
-        when(publisher.publish(SUBMISSION_ID)).thenThrow(
+        when(publisher.publish(SUBMISSION_ID, false, false)).thenThrow(
                 new IllegalStateException("候选片段尚未全部审核，不能发布")
         );
 
@@ -131,6 +143,77 @@ class ZhkuLocalAdminControllerTest {
                 .andExpect(jsonPath("$.message").value(
                         "投稿尚未满足发布条件，请完成全部候选片段审核。"
                 ));
+    }
+
+    @Test
+    void shouldForwardExplicitStudentPublicationConfirmations() throws Exception {
+        UUID sourceId = UUID.fromString("f12e3b20-0d7f-482f-82e0-b9b24e24e3c5");
+        when(publisher.publish(SUBMISSION_ID, true, true)).thenReturn(
+                new PublishedSubmissionResult(SUBMISSION_ID, sourceId)
+        );
+
+        mockMvc.perform(post("/zhku/local-admin/submissions/{id}/publish", SUBMISSION_ID)
+                        .param("studentVisible", "true")
+                        .param("sharingRightsConfirmed", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sourceId").value(sourceId.toString()))
+                .andExpect(jsonPath("$.status").value("PUBLISHED"));
+
+        verify(publisher).publish(SUBMISSION_ID, true, true);
+    }
+
+    @Test
+    void shouldPublishOfficialNoticeOnlyThroughDedicatedMetadataEndpoint()
+            throws Exception {
+        NoticeGovernancePublisher noticePublisher = mock(
+                NoticeGovernancePublisher.class
+        );
+        UUID sourceId = UUID.fromString("a7b01f46-9ad4-4d1e-a57a-25821e63c1db");
+        UUID noticeId = UUID.fromString("4218f70e-d5d1-4d1f-8bd0-7b1a67c3ffd9");
+        PublishedNotice notice = new PublishedNotice(
+                noticeId, sourceId, "选课通知", "2026-09-16", "本科生",
+                new AcademicTerm("2026-2027-1"), NoticeType.COURSE_SELECTION,
+                NoticeLifecycleStatus.PUBLISHED,
+                Instant.parse("2026-09-16T00:00:00Z"),
+                Instant.parse("2026-10-01T00:00:00Z"),
+                new OfficialWebSnapshot(
+                        "https://jw.zhku.edu.cn/notices/1", "safe.pdf",
+                        "C".repeat(64), Instant.parse("2026-09-16T00:00:00Z"),
+                        "application/pdf"
+                ),
+                true, true,
+                List.of(new NoticeFact(
+                        NoticeFactType.COURSE_SELECTION,
+                        Instant.parse("2026-09-17T01:00:00Z"),
+                        Instant.parse("2026-09-18T10:00:00Z"),
+                        "https://jw.zhku.edu.cn/select", true, true
+                ))
+        );
+        when(noticePublisher.publish(any(), any(NoticePublicationCommand.class)))
+                .thenReturn(new PublishedNoticeResult(SUBMISSION_ID, sourceId, notice));
+        mockMvc = MockMvcBuilders.standaloneSetup(new ZhkuLocalAdminController(
+                submissionService, reviewService, publisher, repository, noticePublisher
+        )).setControllerAdvice(new ZhkuLocalAdminExceptionHandler()).build();
+
+        mockMvc.perform(post("/zhku/local-admin/submissions/{id}/publish-course-selection-notice", SUBMISSION_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"academicTerm":"2026-2027-1",
+                                 "validFrom":"2026-09-16T00:00:00Z",
+                                 "validTo":"2026-10-01T00:00:00Z",
+                                 "officialUrl":"https://jw.zhku.edu.cn/notices/1",
+                                 "facts":[{"type":"COURSE_SELECTION",
+                                 "startsAt":"2026-09-17T01:00:00Z",
+                                 "endsAt":"2026-09-18T10:00:00Z",
+                                 "officialEntryUrl":"https://jw.zhku.edu.cn/select",
+                                 "startsAtConfirmed":true,"endsAtConfirmed":true}]}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sourceId").value(sourceId.toString()))
+                .andExpect(jsonPath("$.noticeId").value(noticeId.toString()))
+                .andExpect(jsonPath("$.status").value("PUBLISHED"));
+
+        verify(noticePublisher).publish(any(), any(NoticePublicationCommand.class));
     }
 
     @Test
