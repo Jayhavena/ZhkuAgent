@@ -10,11 +10,13 @@
 
 | 项 | 值 |
 | --- | --- |
-| 主线分支 | `codex/zhkuagent-modules`（只接收合并，不直接开发） |
-| 当前基线提交 | `695eb48`（2026-09-16 收口：阶段 5/6 提交 `4042392` + 阶段 7 提交 `695eb48`，测试由用户自跑全绿） |
+| 主线分支 | `zhkuagent-modules`（只接收合并，不直接开发） |
+| 当前基线提交 | `05420d1`（2026-09-16 收口：阶段 5/6 提交 `4042392` + 阶段 7 提交 `695eb48` + 协作文档 `05420d1`，测试由用户自跑全绿） |
 | 最近合并 | 无 |
 
-> ⚠️ 2026-09-16 事故记录：本机 git 环境对"带斜杠的引用"（如 `codex/xxx`）写入存在缺陷，且提交触发的自动 gc 曾两次清空 `refs/heads/codex/`。已从 reflog 手工恢复全部引用，并已设置 `gc.auto 0` 防复发。**每次提交后必须 `git for-each-ref refs/heads` 核对引用完好**，发现丢失立即按 reflog 恢复并通报双方。
+> ✅ 2026-09-16 事故已闭环：本机 git 环境对"带斜杠的引用"（如 `codex/xxx`）写入存在缺陷，commit 触发的自动 gc 曾清空 `refs/heads/codex/`。**全部 6 个分支已迁移为顶层无斜杠命名**（`zhkuagent-modules` / `campus-line-a` / `campus-line-b` / `agent-run-context` / `zhkuagent-mvp` / `backup-fc7d153-before-amend`），`codex/*` 引用已删除，`gc.auto 0` 已设，并新增 `scripts/safeguard-refs.ps1` + post-commit 钩子自动守护。
+>
+> **纪律两条**：① 今后建分支一律用**不含斜杠**的名字；② 每次 commit 后跑 `git for-each-ref refs/heads` 核对（钩子已自动跑，发现丢失会自动恢复）。
 
 ## 二、各线状态
 
@@ -22,12 +24,12 @@
 
 | 项 | 值 |
 | --- | --- |
-| 分支 | `codex/campus-line-a` |
+| 分支 | `campus-line-a` |
 | worktree | `D:\alldesk\Projects\ZhkuAgent` |
 | Flyway 号段 | `V9`–`V11` |
-| 当前任务 | 未开始（等基线收口） |
+| 当前任务 | 基线已收口；等对方同步后可启动 |
 | 状态 | ⬜ 待启动 |
-| 最新提交 | — |
+| 最新提交 | `05420d1`（与主线同点） |
 
 ### 线 B：工具 + 编排 + 体验（Agent：另一个 Agent）
 
@@ -64,7 +66,7 @@
 
 ## 六、下次合并点
 
-- 基线收口提交完成 → 创建 `codex/campus-line-a` / `codex/campus-line-b` → 冻结契约提交并合并回主线（第一次合并）。
+- 基线收口提交完成 → 已创建 `campus-line-a` / `campus-line-b`（顶层命名）→ 冻结契约提交并合并回主线（第一次合并）。
 
 ## 七、合并记录
 

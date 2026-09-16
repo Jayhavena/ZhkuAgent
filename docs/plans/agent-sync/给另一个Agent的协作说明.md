@@ -68,7 +68,16 @@ git worktree add -b codex/campus-line-b D:\alldesk\Projects\ZhkuAgent-lineB
 □ 证据账本已提交；SYNC-STATUS.md 已更新
 ```
 
-合并方式：在主工作区 `git switch codex/zhkuagent-modules && git merge codex/campus-line-b`，然后把结果写进 SYNC-STATUS「合并记录」。
+合并方式：在主工作区 `git switch zhkuagent-modules && git merge campus-line-b`，然后把结果写进 SYNC-STATUS「合并记录」。
+
+## 六之二、本机两条额外纪律（2026-09-16 新增）
+
+1. **分支名不带斜杠**：新建分支用 `xxx-yyy` 形式，不要用 `feature/xxx`。
+2. **提交后核对引用**：`git for-each-ref refs/heads`（仓库已装 post-commit 钩子自动守护，脚本 `scripts/safeguard-refs.ps1`）。发现分支不见了，先跑：
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File D:\alldesk\Projects\ZhkuAgent\scripts\safeguard-refs.ps1 -Fix
+   ```
+   仍不行再找我，不要自己 `git gc` 或重建分支。
 
 ## 七、你的第一步
 
