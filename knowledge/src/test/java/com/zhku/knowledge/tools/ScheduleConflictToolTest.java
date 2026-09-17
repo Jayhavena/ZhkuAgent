@@ -49,12 +49,33 @@ class ScheduleConflictToolTest {
     }
 
     @Test
-    void shouldRejectReversedPeriodsAndEmptyWeeks() {
+    void shouldIgnoreMeetingsOfSameCourseAndDifferentWeekdays() throws Exception {
+        CampusToolResult result = new ScheduleConflictTool().execute("""
+                {"courses":[
+                  {"courseId":"CS101","meetings":[
+                    {"weekday":"MONDAY","startPeriod":1,"endPeriod":2,"weeks":[1]},
+                    {"weekday":"MONDAY","startPeriod":2,"endPeriod":3,"weeks":[1]}]},
+                  {"courseId":"MA101","meetings":[
+                    {"weekday":"TUESDAY","startPeriod":1,"endPeriod":2,"weeks":[1]}]}]}
+                """);
+
+        assertThat(result.status()).isEqualTo(CampusToolStatus.SUCCESS);
+        assertThat(MAPPER.readTree(result.resultJson()).path("conflicts")).isEmpty();
+    }
+
+    @Test
+    void shouldRejectReversedPeriodsEmptyWeeksAndZeroWeek() {
         CampusToolResult result = new ScheduleConflictTool().execute("""
                 {"courses":[{"courseId":"CS101","meetings":[
                   {"weekday":"MONDAY","startPeriod":3,"endPeriod":2,"weeks":[]}]}]}
                 """);
 
+        CampusToolResult zeroWeek = new ScheduleConflictTool().execute("""
+                {"courses":[{"courseId":"CS101","meetings":[
+                  {"weekday":"MONDAY","startPeriod":1,"endPeriod":2,"weeks":[0]}]}]}
+                """);
+
         assertThat(result.status()).isEqualTo(CampusToolStatus.INVALID_ARGUMENT);
+        assertThat(zeroWeek.status()).isEqualTo(CampusToolStatus.INVALID_ARGUMENT);
     }
 }
