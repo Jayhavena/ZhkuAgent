@@ -142,6 +142,19 @@ class GroundedAnswerComposerTest {
     }
 
     @Test
+    void shouldDegradeWhenModelCallFails() {
+        GroundedAnswerComposer composer = new GroundedAnswerComposer(
+                request -> { throw new ModelCallFailedException("503"); },
+                new AnswerEvidenceGuard()
+        );
+
+        ComposedAnswer result = composer.compose("问题", List.of(E1));
+
+        assertThat(result.status()).isEqualTo(ComposedAnswerStatus.DECLINED);
+        assertThat(result.handoffRequired()).isTrue();
+    }
+
+    @Test
     void shouldDeclineImmediatelyWhenNoEvidenceApproved() {
         GroundedAnswerComposer composer = new GroundedAnswerComposer(
                 request -> { throw new AssertionError("无证据时不得调用模型"); },

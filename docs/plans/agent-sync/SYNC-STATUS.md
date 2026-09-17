@@ -47,9 +47,9 @@
 | 分支 | `campus-line-a`（2026-09-17 已快进至主线 `7c94e20`） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineA`（2026-09-17 已创建，专属本线） |
 | Flyway 号段 | `V9`–`V11` |
-| 当前任务 | 阶段 8 进行中（WB-3）：确定性内核两批已提交（五级路由编排器 + V9 元数据迁移 + 资格过滤/事实切分/profile 原子切换/RRF 融合/受控生成与证据守卫），39 个新测试全绿，全量回归 207 通过；证据账本 `docs/evidence/2026-09-17-阶段8-受控检索增强-证据账本.md`。下一步：JDBC 仓储与索引任务、词法/向量候选检索落地、provider 合同测试、评测黄金集 |
+| 当前任务 | 阶段 8 进行中（WB-3）：已完成 ①五级路由编排器 ②V9 元数据迁移 ③资格过滤/事实切分/profile 原子切换/RRF 融合 ④JDBC 索引任务 ⑤词法+向量候选检索与混合降级 ⑥检索增强作答编排（服务端引用分配+审计落库）⑦provider-neutral 配置与 OpenAI-compatible 合同测试；`zhku.rag.*` 已按只追加原则登记于第五节。全量回归 234 通过/0 失败。下一步：评测黄金集（Recall@K/MRR/引用准确率，当前记为"待评测"）、编排器三级处理器与 HTTP 门面接线；**待用户决策：是否仍按计划引入 Spring AI 依赖**（当前以自实现 OpenAI-compatible 客户端覆盖，账本已如实记录偏差） |
 | 状态 | 🟢 开工中（WB-3，2026-09-17） |
-| 最新提交 | `7d1fcc1`（阶段8二批：资格过滤+事实切分+profile切换+RRF融合+受控生成与证据守卫） |
+| 最新提交 | `472804e`（阶段8五批：检索增强作答编排+引用审计）；六批（配置/合同测试）随后提交 |
 
 ### 线 B：工具 + 编排（Agent：Codex 会话，见第零节 CX-1）
 
@@ -93,6 +93,7 @@
   （2026-09-17 用户确认按线 B 草案冻结：保留既有 `sessionId` 语义；新增 `revision`、`conversationStatus`、`route`、`handoffRequired`；流式事件沿用这些字段。线 A 后续如需追加字段，按"只追加"原则另行登记）
 - [x] 新配置键 / Profile 命名规范
   （2026-09-17 用户确认按线 B 草案冻结：线 B 侧使用 `zhku.conversation.*`（存储与 TTL）和 `zhku.streaming.*`（SSE）；Profile 沿用 `zhku-local-preview`，新增能力不创建泛化 `local` Profile；密钥继续仅从环境变量读取。线 A 启动后如需新增配置键，沿用 `zhku.` 前缀在此追加）
+  - 线 A 追加（2026-09-17，只追加不改上文）：受控检索增强配置键 `zhku.rag.enabled`、`zhku.rag.active-profile`，以及按 profile 分组的 `zhku.rag.profiles.<name>.base-url` / `.api-key-env-var` / `.chat-model` / `.embedding-model` / `.embedding-dimensions` / `.timeout-seconds` / `.index-profile`。**一次只允许一个激活 profile**（`active-profile` 单值）；密钥只写环境变量名、值不落配置，配置文件与日志均不得出现密钥值。实现：`RagProviderProfileResolver` / `RagProviderProfile` / `ApiKeyResolver`（`knowledge/.../rag/`）。
 - [x] Flyway 号段：线 A `V9`–`V11`、线 B `V12`–`V14`（2026-09-16 双方建线时已按此执行，无异议。
   2026-09-17 用户确认追加：阶段 8 用 `V9`；**阶段 9、10 号段待分配**，由线 A 在阶段 8 交付后追加登记（预期自 `V15`/`V16` 起），登记前不得创建迁移文件。既有 `V1`–`V8` 不可改写）
 

@@ -41,7 +41,9 @@ public final class GroundedAnswerComposer {
         ModelResponse response;
         try {
             response = chatClient.call(new ModelRequest(SYSTEM_CONSTRAINTS, question, approved));
-        } catch (ModelCallTimeoutException | ModelCallRateLimitException | ModelOutputFormatException e) {
+        } catch (ModelCallTimeoutException | ModelCallRateLimitException
+                 | ModelOutputFormatException | ModelCallFailedException e) {
+            // 四类调用异常对学生的后果相同：本轮不可作答，转人工渠道。
             return ComposedAnswer.declined(DECLINE_MESSAGE);
         }
 
