@@ -280,7 +280,7 @@ git commit -m "feat(zhku): 增加选课冲突检测工具"
 - Accepts `{"term":"SAMPLE-2026-1","date":"2026-03-02","courseKeyword":"演示"}` where date and course keyword are optional but term is required.
 - Returns `source: "SAMPLE_DATA"`, matched entries, and an explicit non-authoritative boundary message.
 
-- [ ] **Step 1: Write the failing sample-query tests**
+- [x] **Step 1: Write the failing sample-query tests**
 
 ```java
 @Test
@@ -307,13 +307,13 @@ void shouldRefuseToInventAnUnrepresentedSchedule() {
 
 Add tests for blank term, malformed date, keyword filtering, immutable resource records, and the guarantee that results contain no classroom/eligibility assertion outside the fixed sample entries.
 
-- [ ] **Step 2: Run the test to verify RED**
+- [x] **Step 2: Run the test to verify RED**
 
 Run: `./mvnw.cmd -f knowledge/pom.xml -Dtest=SampleAcademicScheduleToolTest test`
 
 Expected: compilation failure because the tool and classpath resource are missing.
 
-- [ ] **Step 3: Add fixed sample data and the query implementation**
+- [x] **Step 3: Add fixed sample data and the query implementation**
 
 Create a resource with an intentionally fictional `SAMPLE-2026-1` term and entries using `CALENDAR_EVENT` / `SCHEDULE_ENTRY`. Do not use a real school date, real room, real course opening, or wording that implies official status.
 
@@ -329,13 +329,13 @@ Create a resource with an intentionally fictional `SAMPLE-2026-1` term and entri
 
 Load the resource once through the class loader into an immutable list. Parse query date with `LocalDate`; filter term exactly, date exactly when supplied, and course keyword case-insensitively against `courseId` and title. Return `DATA_UNAVAILABLE` when no record matches, rather than treating an empty list as an official no-class conclusion.
 
-- [ ] **Step 4: Run the sample-query tests to verify GREEN**
+- [x] **Step 4: Run the sample-query tests to verify GREEN**
 
 Run: `./mvnw.cmd -f knowledge/pom.xml -Dtest=SampleAcademicScheduleToolTest test`
 
 Expected: all source-label, filtering, validation, and no-invention tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add -- knowledge/src/main/java/com/zhku/knowledge/tools/SampleAcademicScheduleTool.java knowledge/src/main/resources/zhku/tools/sample-academic-schedule.json knowledge/src/test/java/com/zhku/knowledge/tools/SampleAcademicScheduleToolTest.java
@@ -355,7 +355,7 @@ git commit -m "feat(zhku): 增加样例校历课表查询工具"
 - The final registry exposes exactly four stable descriptors: the three calculation tools use `PURE_CALCULATION`; only `query_sample_academic_schedule` uses `SAMPLE_DATA_READ_ONLY`.
 - The evidence documents TDD RED outputs, tool safety boundaries, test commands/results, and the fact that no Function Calling provider adapter or router integration is claimed.
 
-- [ ] **Step 1: Write the failing full-registry test**
+- [x] **Step 1: Write the failing full-registry test**
 
 ```java
 @Test
@@ -371,17 +371,17 @@ void shouldExposeExactlyTheFourApprovedCampusTools() {
 }
 ```
 
-- [ ] **Step 2: Run the integration test to verify RED**
+- [x] **Step 2: Run the integration test to verify RED**
 
 Run: `./mvnw.cmd -f knowledge/pom.xml -Dtest=CampusToolRegistryTest test`
 
 Expected: failure because `withDefaultCampusTools()` is not present or does not yet include all four tools.
 
-- [ ] **Step 3: Add the minimal default-registry factory and evidence**
+- [x] **Step 3: Add the minimal default-registry factory and evidence**
 
 Implement `CampusToolRegistry.withDefaultCampusTools()` using exactly the four approved tools, then document that the registry is an adapter-ready contract only. Do not introduce Spring AI, alter line-A routing, or claim a model executed any tool.
 
-- [ ] **Step 4: Run focused and full verification**
+- [x] **Step 4: Run focused and full verification**
 
 Run:
 
@@ -392,7 +392,7 @@ Run:
 
 Expected: focused tools tests pass. For the full suite, use only the previously approved isolated temporary PostgreSQL workflow (migrations plus reviewed test data); do not access port `54329` or the demonstration database.
 
-- [ ] **Step 5: Commit and update status**
+- [x] **Step 5: Commit and update status**
 
 ```powershell
 git add -- knowledge/src/main/java/com/zhku/knowledge/tools/ knowledge/src/test/java/com/zhku/knowledge/tools/ knowledge/src/main/resources/zhku/tools/sample-academic-schedule.json docs/evidence/2026-09-17-校园工具集与Function-Calling-证据账本.md docs/plans/agent-sync/SYNC-STATUS.md

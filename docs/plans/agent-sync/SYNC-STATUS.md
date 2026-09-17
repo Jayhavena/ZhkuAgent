@@ -59,15 +59,14 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14` |
-| 当前任务 | 校园工具集 + Function Calling：工具契约、学分与冲突检测已完成，样例校历课表查询 TDD 中 |
-| 状态 | 🟢 进行中 |
-| 最新提交 | `de1459f`（选课冲突检测及边界用例，聚焦回归 13 项通过） |
+| 当前任务 | 校园工具集 + Function Calling：已完成，待合并；工具注册接口供线 A 后续适配调用，不改路由器 |
+| 状态 | 🟡 待合并 |
+| 最新提交 | `e10ee5f`（四个默认校园工具注册，聚焦回归 19 项、模块全量 190 项通过） |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
 | 文件 / 目录 | 占用方 | 任务 | 声明时间 |
 | --- | --- | --- | --- |
-| `knowledge/src/main/java/com/zhku/knowledge/tools/`、对应 `src/test/.../tools/`、本任务设计/计划/证据账本 | CX-1 | 校园工具集与框架无关的 Function Calling 注册接口 | 2026-09-17 |
 
 ## 四、待协商事项
 
