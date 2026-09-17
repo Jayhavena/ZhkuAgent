@@ -9,7 +9,8 @@
 
 ## 任务清单
 
-1. [ ] 新增 `V7__add_retrieval_catalog_and_index_audit.sql`：创建规则目录、检索 chunk 版本映射、embedding profile、索引运行、索引条目与引用审计所需元数据。每条条目关联原 `knowledge_chunk`、来源版本、切分版本、内容哈希和 profile；不把模型输出当作原始知识。
+1. [ ] 新增 `V9__add_retrieval_catalog_and_index_audit.sql`：创建规则目录、检索 chunk 版本映射、embedding profile、索引运行、索引条目与引用审计所需元数据。每条条目关联原 `knowledge_chunk`、来源版本、切分版本、内容哈希和 profile；不把模型输出当作原始知识。
+   > 号段说明（2026-09-17 更正）：原写 `V7` 会与既有迁移冲突（`V1`–`V8` 已存在）。线 A 号段为 `V9`–`V11`，本阶段从 `V9` 起用。
 2. [ ] 在 `com.zhku.knowledge.routing` 定义 `RuleCatalogEntry` 与确定性 `AnswerRoute`，并实现顺序固定的 `KnowledgeAnswerOrchestrator`：待澄清 → 当前通知 → 高风险规则 → 检索增强 → 证据不足/人工渠道。目录项必须声明所需事实、证据范围、风险和转人工条件。
 3. [ ] 在 `knowledge/pom.xml` 引入版本锁定的 Spring AI Chat/Embedding/PGVector 依赖，并在 `com.zhku.knowledge.rag` 定义 provider-neutral 配置：`baseUrl`、API key 环境变量名、chat model、embedding model、维度、超时、index profile。一次只有一个启用 profile；密钥不得进入日志、异常或管理页面。
 4. [ ] 实现审核后异步/命令式索引任务：按标题/章节/条款/通知办理事实切分，写入含权限、范围、时态、版本的元数据。只有已发布、学生可见、分享权利确认、未替代且满足通知时态的资料可索引和召回。embedding 变更走“新 profile → 重建 → 评测 → 原子切换 → 保留旧索引回滚窗口”，禁止混用维度。

@@ -8,7 +8,8 @@
 
 ## 任务清单
 
-1. [ ] 新增 `V8__add_service_guides_and_anonymous_feedback.sql`：`service_guide`、步骤、材料、官方渠道、风险提示、关联规则/通知版本；反馈事件、匿名会话散列、枚举原因、创建/到期时间和去重键。所有字段使用白名单约束，禁止 `message`、`student_id`、`name`、`contact`、原问题或原回答列。
+1. [ ] 新增办事清单与反馈迁移：`service_guide`、步骤、材料、官方渠道、风险提示、关联规则/通知版本；反馈事件、匿名会话散列、枚举原因、创建/到期时间和去重键。所有字段使用白名单约束，禁止 `message`、`student_id`、`name`、`contact`、原问题或原回答列。
+   > 号段说明（2026-09-17 更正）：原写 `V8` 会与既有迁移冲突（`V1`–`V8` 已存在，`V9`–`V11`/`V12`–`V14` 已冻结给线 A/线 B）。**本阶段号段待分配**：需在阶段 8 交付后由线 A 在 `docs/plans/agent-sync/SYNC-STATUS.md` 第五节按"只追加"原则登记（预期自 `V15` 起），登记完成前不得创建迁移文件。
 2. [ ] 在 `com.zhku.knowledge.serviceguide` 定义不可变 `ServiceGuide`、`GuideStep`、`OfficialChannel`、`HumanHandoffReason`，并实现只返回有当前有效证据的清单解析器。渠道必须来自审核资料，不允许模型拼接电话、链接或地点。
 3. [ ] 扩展统一回答卡：结论后可附“下一步”“需确认事项”“官方人工渠道”；高风险/不足证据时只保留人工渠道和风险提示，不能伪装成可办结方案。
 4. [ ] 在 `com.zhku.knowledge.feedback` 实现匿名反馈接收、去重、90 天到期清理/聚合和管理员查看聚合。反馈转资料候选必须由管理员显式创建，永远不能自动发布规则、资料或索引。
