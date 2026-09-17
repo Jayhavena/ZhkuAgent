@@ -17,7 +17,7 @@
 | --- | --- | --- | --- | --- |
 | WB-1 | WorkBuddy 会话①（前端） | `agent/frontend/`、`docs/design-references/` | `campus-line-a` / 主 worktree | 🟢 活动中 |
 | WB-2 | WorkBuddy 会话②（其他内容） | 待该会话开工时自填 | 主 worktree（与 WB-1 共享工作区，禁止同时 commit） | ⬜ 待登记 |
-| CX-1 | Codex 会话（线 B） | 线 B：工具 + 编排（`agent/` 工具侧、`knowledge/`，**前端体验职责已移交 WB-1**） | `campus-line-b` / `ZhkuAgent-lineB` | ⏳ 待同步基线 |
+| CX-1 | Codex 会话（线 B） | 线 B：工具 + 编排（`agent/` 工具侧、`knowledge/`，**前端体验职责已移交 WB-1**） | `campus-line-b` / `ZhkuAgent-lineB` | 🟢 进行中 |
 
 > 同 worktree 多会话（WB-1 / WB-2）额外纪律：任一时刻只允许一个会话执行
 > `git commit`；commit 前必须 `git status --porcelain` 核对暂存区只有自己
@@ -57,21 +57,21 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14` |
-| 当前任务 | 基线快进已完成（`205205a` → `0c9e449`，无冲突，未推送）；**下一步：再次快进获取本次状态板/启动提示词提交，在第五节对四项草案完成线 B 侧确认，并在第零节完成 CX-1 登记** |
-| 状态 | ⏳ 待上岗登记 |
-| 最新提交 | `0c9e449`（与主线同点，快进无新提交） |
+| 当前任务 | 会话持久化：`JdbcConversationStore`（现状与契约核查、TDD 设计中） |
+| 状态 | 🟢 进行中 |
+| 最新提交 | `7c94e20`（与主线同点，快进无新提交） |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
 | 文件 / 目录 | 占用方 | 任务 | 声明时间 |
 | --- | --- | --- | --- |
-| （暂无） | | | |
+| `knowledge/.../conversation/`、`knowledge/.../db/migration/V12*`、对应测试与本任务证据账本 | CX-1 | `JdbcConversationStore` 会话持久化 | 2026-09-17 |
 
 ## 四、待协商事项
 
 | 事项 | 提出方 | 说明 | 状态 |
 | --- | --- | --- | --- |
-| 前端归属移交 | WB-1 | 用户指定前端（`agent/frontend/`）由 WB-1 负责；原线 B 分工中"体验"部分相应剥离，CX-1 不再改前端文件 | ⏳ 待 CX-1 确认 |
+| 前端归属移交 | WB-1 / CX-1 | 用户指定前端（`agent/frontend/`）由 WB-1 负责；原线 B 分工中"体验"部分相应剥离，CX-1 已确认不再改前端文件 | ✅ 已确认（2026-09-17） |
 | README 修正 | WorkBuddy | 根 README 与 knowledge README 仍写"未实现两轮追问"，与实际不符；待指派由谁修 | ⏳ 待指派 |
 | agent/ 模块只读约定 | WorkBuddy | 首轮双方将 agent/ 视为只读资产；如需修改 ToolCallAgent 复用，先在此登记 | ⏳ 待确认 |
 | 线 A / 线 B 归属 | WorkBuddy | 默认 WorkBuddy=线A、另一 Agent=线B；如互换，改本节与第二节两行即可 | ⏳ 待确认 |
