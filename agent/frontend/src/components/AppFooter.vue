@@ -44,11 +44,13 @@ const currentYear = computed(() => new Date().getFullYear())
 </script>
 
 <style scoped>
+/* 全部颜色改用设计令牌（style.css），跟随系统明暗自动翻转；
+   不写死色值，避免暗色主题下页脚与页面断裂 */
 .app-footer {
-  background-color: #fff;
+  background-color: var(--color-surface);
   padding: 40px 0 20px;
-  color: #666;
-  border-top: 1px solid #eee;
+  color: var(--color-text-secondary);
+  border-top: 1px solid var(--color-border-subtle);
   width: 100%;
   margin-top: auto;
   position: relative;
@@ -74,13 +76,13 @@ const currentYear = computed(() => new Date().getFullYear())
 .footer-logo h3 {
   font-size: 1.25rem;
   margin-bottom: 15px;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .footer-section h4 {
   font-size: 1rem;
   margin-bottom: 15px;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .footer-links {
@@ -90,13 +92,13 @@ const currentYear = computed(() => new Date().getFullYear())
 
 .footer-links a {
   margin-bottom: 10px;
-  color: #666;
+  color: var(--color-text-secondary);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color var(--duration-hover);
 }
 
 .footer-links a:hover {
-  color: #007bff;
+  color: var(--color-brand);
 }
 
 .qrcode {
@@ -111,7 +113,7 @@ const currentYear = computed(() => new Date().getFullYear())
 .qrcode-placeholder {
   width: 90px;
   height: 90px;
-  background-color: #f5f5f5;
+  background-color: var(--color-bubble-ai-bg);
   margin: 0 auto 10px;
   border-radius: 4px;
   display: flex;
@@ -128,8 +130,8 @@ const currentYear = computed(() => new Date().getFullYear())
   text-align: center;
   padding-top: 20px;
   margin-top: 20px;
-  border-top: 1px solid #eee;
-  color: #999;
+  border-top: 1px solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
 }
 
@@ -138,7 +140,7 @@ const currentYear = computed(() => new Date().getFullYear())
   .footer-content {
     flex-direction: column;
   }
-  
+
   .footer-section {
     width: 100%;
     margin-bottom: 20px;
@@ -150,15 +152,15 @@ const currentYear = computed(() => new Date().getFullYear())
   .app-footer {
     padding: 30px 0 15px;
   }
-  
+
   .footer-section h4 {
     font-size: 0.95rem;
   }
-  
+
   .footer-links a {
     font-size: 0.9rem;
   }
-  
+
   .qrcode-placeholder {
     width: 80px;
     height: 80px;
