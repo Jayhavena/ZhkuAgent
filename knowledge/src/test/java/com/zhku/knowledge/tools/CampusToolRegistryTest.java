@@ -79,6 +79,27 @@ class CampusToolRegistryTest {
                 .hasMessageContaining("工具参数不能为空");
     }
 
+    @Test
+    void shouldExposeExactlyTheFourApprovedCampusTools() {
+        CampusToolRegistry registry = CampusToolRegistry.withDefaultCampusTools();
+
+        assertThat(registry.descriptors())
+                .extracting(CampusToolDescriptor::name)
+                .containsExactly(
+                        "assess_graduation_credit_progress",
+                        "detect_schedule_conflicts",
+                        "query_sample_academic_schedule",
+                        "summarize_course_credits"
+                );
+        assertThat(registry.findDescriptor("query_sample_academic_schedule"))
+                .map(CampusToolDescriptor::accessMode)
+                .contains(CampusToolAccessMode.SAMPLE_DATA_READ_ONLY);
+        assertThat(registry.descriptors().stream()
+                .filter(descriptor -> !descriptor.name().equals("query_sample_academic_schedule"))
+                .map(CampusToolDescriptor::accessMode))
+                .containsOnly(CampusToolAccessMode.PURE_CALCULATION);
+    }
+
     private static final class StubTool implements CampusTool {
 
         private final CampusToolDescriptor descriptor;

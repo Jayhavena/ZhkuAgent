@@ -32,6 +32,19 @@ public final class CampusToolRegistry {
         this.toolsByName = Collections.unmodifiableMap(new TreeMap<>(registered));
     }
 
+    /**
+     * 返回当前获准暴露给调用适配层的全部低风险工具。
+     * 新工具必须显式加入此处，避免仅有实现却被模型侧悄然调用或遗漏审查。
+     */
+    public static CampusToolRegistry withDefaultCampusTools() {
+        return new CampusToolRegistry(List.of(
+                new GraduationCreditProgressTool(),
+                new ScheduleConflictTool(),
+                new SampleAcademicScheduleTool(),
+                new CourseCreditSummaryTool()
+        ));
+    }
+
     public List<CampusToolDescriptor> descriptors() {
         return toolsByName.values().stream()
                 .map(CampusTool::descriptor)
