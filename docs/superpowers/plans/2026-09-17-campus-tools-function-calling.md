@@ -213,7 +213,7 @@ git commit -m "feat(zhku): 增加学分计算校园工具"
 - Accepts `{"courses":[{"courseId":"CS101","meetings":[{"weekday":"MONDAY","startPeriod":1,"endPeriod":2,"weeks":[1,2]}]}]}`.
 - Returns `conflicts` whose entries contain the two course IDs, weekday, overlapping start/end periods, and sorted overlapping weeks.
 
-- [ ] **Step 1: Write the failing schedule tests**
+- [x] **Step 1: Write the failing schedule tests**
 
 ```java
 @Test
@@ -234,13 +234,13 @@ void shouldReportOnlySlotsWithDayPeriodAndWeekOverlap() throws Exception {
 
 Add tests that meetings belonging to the same course are ignored, endpoint-overlapping periods conflict because periods are inclusive, different weekdays do not conflict, empty/zero week lists fail, and `startPeriod > endPeriod` fails with `INVALID_ARGUMENT`.
 
-- [ ] **Step 2: Run the test to verify RED**
+- [x] **Step 2: Run the test to verify RED**
 
 Run: `./mvnw.cmd -f knowledge/pom.xml -Dtest=ScheduleConflictToolTest test`
 
 Expected: compilation failure because `ScheduleConflictTool` does not exist.
 
-- [ ] **Step 3: Implement the minimal detector**
+- [x] **Step 3: Implement the minimal detector**
 
 ```java
 private static boolean overlaps(Meeting left, Meeting right) {
@@ -253,13 +253,13 @@ private static boolean overlaps(Meeting left, Meeting right) {
 
 Flatten each course meeting into an immutable value with its course ID, compare only pairs whose course IDs differ, calculate inclusive period intersection and set intersection, then sort records by `firstCourseId`, `secondCourseId`, weekday, start period, end period, and week list. Return an empty conflict array as successful rather than treating it as data unavailable.
 
-- [ ] **Step 4: Run the schedule tests to verify GREEN**
+- [x] **Step 4: Run the schedule tests to verify GREEN**
 
 Run: `./mvnw.cmd -f knowledge/pom.xml -Dtest=ScheduleConflictToolTest test`
 
 Expected: all conflict, non-conflict, validation, and deterministic-sort tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add -- knowledge/src/main/java/com/zhku/knowledge/tools/ScheduleConflictTool.java knowledge/src/test/java/com/zhku/knowledge/tools/ScheduleConflictToolTest.java

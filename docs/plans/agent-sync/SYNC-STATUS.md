@@ -59,9 +59,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14` |
-| 当前任务 | 校园工具集 + Function Calling：工具契约与学分工具已完成，选课冲突检测 TDD 中 |
+| 当前任务 | 校园工具集 + Function Calling：工具契约、学分与冲突检测已完成，样例校历课表查询 TDD 中 |
 | 状态 | 🟢 进行中 |
-| 最新提交 | `e9dd57f`（学分汇总与毕业进度工具，聚焦回归 10 项通过） |
+| 最新提交 | `de1459f`（选课冲突检测及边界用例，聚焦回归 13 项通过） |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
