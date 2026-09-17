@@ -130,7 +130,7 @@ git commit -m "feat(zhku): 增加校园工具注册契约"
 - `GraduationCreditProgressTool` publishes descriptor name `assess_graduation_credit_progress` and accepts `{"requirements":[{"category":"GENERAL","requiredCredits":8.0}],"completedCreditsByCategory":{"GENERAL":6.0}}`.
 - Both return `CampusToolResult` with `PURE_CALCULATION` descriptors and a boundary message that declines eligibility/graduation confirmation.
 
-- [ ] **Step 1: Write the failing calculation tests**
+- [x] **Step 1: Write the failing calculation tests**
 
 ```java
 @Test
@@ -164,13 +164,13 @@ void shouldReportGraduationCreditGapWithoutClaimingGraduationEligibility() throw
 
 Add failing cases for negative credit, blank category/course ID, a missing `courses` array, duplicate categories in requirements, and a completed credit category not present in requirements. All must return `INVALID_ARGUMENT`, never a thrown parse exception.
 
-- [ ] **Step 2: Run the tests to verify RED**
+- [x] **Step 2: Run the tests to verify RED**
 
 Run: `./mvnw.cmd -f knowledge/pom.xml -Dtest=CourseCreditSummaryToolTest,GraduationCreditProgressToolTest test`
 
 Expected: compilation failure because both calculation tools and JSON support are absent.
 
-- [ ] **Step 3: Implement the minimal calculation tools**
+- [x] **Step 3: Implement the minimal calculation tools**
 
 ```java
 final class ToolJsonSupport {
@@ -187,13 +187,13 @@ final class ToolJsonSupport {
 
 Parse JSON into package-private records, validate before aggregation, and use `BigDecimal` rather than `double`. Sort category keys lexically before serializing results so model-facing output remains deterministic. `GraduationCreditProgressTool` must calculate each `remainingCredits` with `required.subtract(completed).max(BigDecimal.ZERO)` and must not infer missing categories as valid data.
 
-- [ ] **Step 4: Run the calculation tests to verify GREEN**
+- [x] **Step 4: Run the calculation tests to verify GREEN**
 
 Run: `./mvnw.cmd -f knowledge/pom.xml -Dtest=CourseCreditSummaryToolTest,GraduationCreditProgressToolTest test`
 
 Expected: all normal, validation, deterministic-output, and boundary-message tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add -- knowledge/src/main/java/com/zhku/knowledge/tools/ToolJsonSupport.java knowledge/src/main/java/com/zhku/knowledge/tools/CourseCreditSummaryTool.java knowledge/src/main/java/com/zhku/knowledge/tools/GraduationCreditProgressTool.java knowledge/src/test/java/com/zhku/knowledge/tools/CourseCreditSummaryToolTest.java knowledge/src/test/java/com/zhku/knowledge/tools/GraduationCreditProgressToolTest.java
