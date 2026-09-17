@@ -71,6 +71,7 @@
 | `knowledge/src/main/resources/db/migration/V9*` | WB-3（线 A） | 阶段 8 元数据迁移（线 A 号段 `V9`–`V11`，本次首用 `V9`） | 2026-09-17 16:41 |
 | `knowledge/src/main/java/com/zhku/knowledge/retrieval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索侧（资格过滤/切分/profile/索引/召回）；**该包名未列入持续开发指令的"只改你地盘"清单**（清单写的是 routing/rag/eval/answer），但因属"检索侧"且阶段 8 计划明确要求，按线 A 地盘处理并在此登记；已同步写入第四节待确认 | 2026-09-17 16:41 |
 | `docs/evidence/` | WB-3（线 A） | 阶段 8 证据账本（`2026-09-17-阶段8-受控检索增强-证据账本.md`） | 2026-09-17 16:41 |
+| `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java`、`LocalPreviewConversationFacade.java`、`ZhkuLocalPreviewConversationController.java` 及对应测试 | WB-3（线 A） | 阶段 8 装配：把五级编排器（澄清/通知/规则三级经语义适配）+ 检索增强作答接进本机预览回答链路；**只追加**已冻结字段（`route`/`handoffRequired`），不改旧字段语义；**声明时尚未改动**，下一轮动手前已在此登记（已核对线 B 当前占用为 `tools/`，无冲突） | 2026-09-17 17:24 |
 
 ## 四、待协商事项
 
