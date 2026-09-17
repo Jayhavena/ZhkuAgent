@@ -17,7 +17,8 @@
 | --- | --- | --- | --- | --- |
 | WB-1 | WorkBuddy 会话①（前端） | `agent/frontend/`、`docs/design-references/` | `campus-line-a` / 主 worktree | 🟢 活动中 |
 | WB-2 | WorkBuddy 会话②（其他内容） | 待该会话开工时自填 | 主 worktree（与 WB-1 共享工作区，禁止同时 commit） | ⬜ 待登记 |
-| CX-1 | Codex 会话（线 B） | 线 B：工具 + 编排（`agent/` 工具侧、`knowledge/`，**前端体验职责已移交 WB-1**） | `campus-line-b` / `ZhkuAgent-lineB` | ⏳ 待同步基线 |
+| WB-3 | WorkBuddy 会话③（线 A：检索+生成+评测） | 线 A：`knowledge/` 检索与生成侧、Flyway `V9`–`V11`、评测；与线 B 在 `knowledge/` 内的会话持久化路径以「文件占用声明」为准 | `campus-line-a` / `ZhkuAgent-lineA` | ⬜ 待登记 |
+| CX-1 | Codex 会话（线 B） | 线 B：工具 + 编排（`agent/` 工具侧、`knowledge/`，**前端体验职责已移交 WB-1**） | `campus-line-b` / `ZhkuAgent-lineB` | 🟢 活动中（已登记，占用会话持久化路径） |
 
 > 同 worktree 多会话（WB-1 / WB-2）额外纪律：任一时刻只允许一个会话执行
 > `git commit`；commit 前必须 `git status --porcelain` 核对暂存区只有自己
@@ -39,16 +40,16 @@
 
 ## 二、各线状态
 
-### 线 A：检索 + 生成 + 评测（Agent：WorkBuddy 会话，见第零节 WB-1）
+### 线 A：检索 + 生成 + 评测（Agent：WorkBuddy 会话，见第零节 WB-3）
 
 | 项 | 值 |
 | --- | --- |
-| 分支 | `campus-line-a`（当前指向 `05420d1`，未在任何 worktree checkout；启动前先 `git merge zhkuagent-modules` 快进到主线 `0c9e449`） |
-| worktree | `D:\alldesk\Projects\ZhkuAgent`（当前检出 `zhkuagent-modules`，与 WB-2 共享） |
+| 分支 | `campus-line-a`（2026-09-17 已快进至主线 `7c94e20`） |
+| worktree | `D:\alldesk\Projects\ZhkuAgent-lineA`（2026-09-17 已创建，专属本线） |
 | Flyway 号段 | `V9`–`V11` |
-| 当前任务 | 基线已收口；等冻结契约确认后可启动 |
-| 状态 | ⬜ 待启动 |
-| 最新提交 | `05420d1`（落后主线 1 个提交：`0c9e449` 安全整改） |
+| 当前任务 | **开工条件已备齐：独立 worktree + 分支快进 + 契约五项冻结。下一步：新会话按启动提示词上岗（第零节 WB-3 登记），首个动作 `git merge zhkuagent-modules` 快进到最新基线后读状态板，然后按阶段 8 计划启动** |
+| 状态 | ⬜ 待上岗登记 |
+| 最新提交 | `7c94e20`（与主线同点，快进无新提交） |
 
 ### 线 B：工具 + 编排（Agent：Codex 会话，见第零节 CX-1）
 
