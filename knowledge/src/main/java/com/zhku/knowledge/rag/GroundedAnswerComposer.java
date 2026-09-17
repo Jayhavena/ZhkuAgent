@@ -19,6 +19,22 @@ public final class GroundedAnswerComposer {
                     + "不得推断个人资格或办理结果；证据不足时如实说明并建议人工渠道；"
                     + "输出 JSON：answer、uncertainty、citationIds、handoffRequired。";
 
+    /**
+     * 系统约束（Prompt）的版本指纹：约束文本的任何改动都会改变它。
+     *
+     * <p>评测报告必须携带该指纹——否则"换了 Prompt 之后指标变化"无法归因，
+     * 历史基线也不再可比。</p>
+     */
+    public static String promptVersion() {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(SYSTEM_CONSTRAINTS.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return "sha256:" + java.util.HexFormat.of().formatHex(hash).substring(0, 12);
+        } catch (java.security.NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("运行环境缺少 SHA-256 实现", exception);
+        }
+    }
+
     private static final String DECLINE_MESSAGE =
             "当前没有可核验的已发布证据支持该问题的结论，请通过人工渠道咨询教务部门。";
 

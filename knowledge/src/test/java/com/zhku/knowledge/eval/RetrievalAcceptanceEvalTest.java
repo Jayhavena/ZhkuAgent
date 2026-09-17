@@ -1,6 +1,7 @@
 package com.zhku.knowledge.eval;
 
 import com.zhku.knowledge.ZhkuDatabaseTestConfig;
+import com.zhku.knowledge.rag.GroundedAnswerComposer;
 import com.zhku.knowledge.retrieval.EmbeddingClient;
 import com.zhku.knowledge.retrieval.HybridCandidateFuser;
 import com.zhku.knowledge.retrieval.HybridRetrievalService;
@@ -113,7 +114,11 @@ class RetrievalAcceptanceEvalTest {
         RetrievalEvalReport report = new RetrievalEvalReport(
                 RetrievalGoldenSet.VERSION, K, RetrievalGoldenSet.cases().size(),
                 mean(recalls), mean(rrs), mean(citationAccuracies),
-                lexicalAvailable, vectorAvailable);
+                lexicalAvailable, vectorAvailable,
+                // 生成侧本轮未参与（无真实模型 profile），如实标注而不是留空。
+                "未参与（无真实模型 profile，检索级走降级）",
+                GroundedAnswerComposer.promptVersion(),
+                CHUNKING_VERSION);
         System.out.println("[EVAL] " + report.render());
 
         // 基线断言：词法路应覆盖全部问题的相关条款，且相关条款排在第一（可作为回归护栏）。
