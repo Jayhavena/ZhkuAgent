@@ -32,8 +32,8 @@
 | 项 | 值 |
 | --- | --- |
 | 主线分支 | `zhkuagent-modules`（只接收合并，不直接开发） |
-| 当前基线提交 | `7414586`（2026-09-17 **第二次合并**：线 A 阶段 8 主体——五级路由 + 受控检索 + 生成守卫 + 评测 + HTTP 装配 + `V9`；首次合并为 `7dce9e5` 线 B 会话持久化与工具集） |
-| 最近合并 | `campus-line-a` → 主线（`7414586`，纯快进，86 文件 +6136，检查清单逐条核对通过） |
+| 当前基线提交 | `e9cdf84`（2026-09-17 **第三次合并**：线 A Spring AI 精确化断言 + 引用明细 `citations[]` + 版本指纹；此前的 `7414586` 为阶段 8 主体、`7dce9e5` 为线 B 会话持久化与工具集） |
+| 最近合并 | `campus-line-a` → 主线（`e9cdf84`，纯快进，21 文件 +936，检查清单逐条核对通过） |
 
 > ✅ 2026-09-16 事故已闭环：本机 git 环境对"带斜杠的引用"（如 `codex/xxx`）写入存在缺陷，commit 触发的自动 gc 曾清空 `refs/heads/codex/`。**全部 6 个分支已迁移为顶层无斜杠命名**（`zhkuagent-modules` / `campus-line-a` / `campus-line-b` / `agent-run-context` / `zhkuagent-mvp` / `backup-fc7d153-before-amend`），`codex/*` 引用已删除，`gc.auto 0` 已设，并新增 `scripts/safeguard-refs.ps1` + post-commit 钩子自动守护。
 >
@@ -90,7 +90,8 @@
 | 线 A 地盘清单与实际交付包不一致 | WB-3（线 A） | 持续开发指令第一节把线 A 地盘列为 `routing/`、`rag/`、`eval/`、`answer/`，但阶段 8 计划要求的检索侧实现落在 `com.zhku.knowledge.retrieval/`。**2026-09-17 用户经 WB-1 确认：同意把 `retrieval/`、`docs/evidence/` 补入线 A 地盘**（线 B 未占用）；持续开发指令已就地更新 | ✅ 已确认（2026-09-17） |
 | 「统一路由编排器」职责重叠 | WB-1 / CX-1 / 线 A | 分工表把"统一路由编排器"同时列在线 B 交付内容，而线 A 的拥有目录含 `knowledge/.../routing/`，阶段 8 计划也由 `KnowledgeAnswerOrchestrator` 承载五级路由测试。**确认边界**：路由判定规则与顺序（五级短路逻辑）归线 A 的 `routing/`；线 B 只提供工具与注册接口（`tools/`），由线 A 的编排器经接口调用，线 B 不改编排器文件；线 B 若需新增"工具分支"，先在状态板登记 | ✅ 双方已确认（CX-1 2026-09-17；线 A 2026-09-17 16:41） |
 | 阶段 8/9/10 迁移号段过期 | WB-1 | 三份计划原写 `V7`/`V8`/`V9`，与既有迁移及已冻结号段冲突。**2026-09-17 用户确认处置**：阶段 8 改用 `V9`；阶段 9/10 号段待分配，由线 A 在阶段 8 交付后按"只追加"原则登记（预期 `V15`/`V16` 起）；三份计划文件已就地更正并标注"登记完成前不得创建迁移文件" | ✅ 已处置（待阶段 8 交付后分配 9/10 号段） |
-| README 修正 | WorkBuddy | 根 README 与 knowledge README 仍写"未实现两轮追问"，与实际不符；待指派由谁修 | ⏳ 待指派 |
+| README 修正 | WorkBuddy | 文档落后于代码，待指派由谁修：① 根 README 与 knowledge README 仍写"未实现两轮追问"；② `docs/zhkuagent/仲园Agent-本机HTTP问答接口开发者验收手册.md` 第 45 行的启动主类仍是旧包名 `com.yupi.yuaiagent.zhku.knowledge.web.ZhkuLocalPreviewApplication`，实际为 `com.zhku.knowledge.web.ZhkuLocalPreviewApplication`（照抄会启动失败） | ⏳ 待指派 |
+| 真实 provider 打通与向量路（阶段 8 收尾） | 线 A 提问 / WB-1 核实 | 线 A 报告两项需外部资源：① 真实供应商 smoke test 需密钥 + 显式 opt-in；② 向量路需真实 embedding profile 才能真正打开（现为降级，首份基线已如实标注）。**WB-1 核实到的硬约束**：DeepSeek 官方 API 文档（api-docs.deepseek.com）现仅列 `deepseek-flash` / `deepseek-v4-pro` 两个 chat 模型，特性为 Json Output / Tool Calls / Responses API / Anthropic API / FIM / Vision，**不提供 embeddings 端点**——故 chat 与 embedding 无法由 DeepSeek 一家覆盖。三个可选方案：① 换用同时提供 chat + embedding 的一家（如支持 OpenAI 兼容的国内厂商）；② 本地 embedding（Ollama + bge-m3 类模型，零成本、数据不出本机）；③ **扩展配置为 chat/embedding 双 profile**（属"只追加"式契约变更，需先在第五节登记）——可保留 DeepSeek 做 chat 并另配 embedding 来源 | ⏳ 待用户决策 |
 | agent/ 模块只读约定 | WorkBuddy | 首轮双方将 agent/ 视为只读资产；如需修改 ToolCallAgent 复用，先在此登记 | ⏳ 待确认 |
 | 线 A / 线 B 归属 | WorkBuddy | 默认 WorkBuddy=线A、另一 Agent=线B；如互换，改本节与第二节两行即可 | ⏳ 待确认 |
 | Spring AI 依赖与 classpath 隔离断言 | 线 A 取证 / WB-1 决策 | **线 A 根因证据（可复核）**：依赖树 `knowledge → spring-ai-openai:1.0.9 → spring-ai-model:1.0.9`；`jar tf` 证实 `ChatModel`/`EmbeddingModel` 同在 `spring-ai-model`（排除该 artifact = 把要用的接口一起排除）；仅 surefire 层掩掉只影响测试 JVM、产物 classpath 仍带 `ChatModel` = 假绿（线 A 已拒绝采用）。失败断言实为 `ZhkuLocalPreviewApplicationTest:20` 的 **ChatModel classpath 存在性**那条，而非 agent 类那条。**2026-09-17 最终决策：不走 B（独立模块）**——路线图明确"阶段 8 可在 knowledge 模块引入版本锁定的 Spring AI 依赖"，已批准计划亦要求改 `knowledge/pom.xml`；建独立模块属计划外变更且会在阶段 8 中途引入跨模块接口改动。**改为精确化断言**（下述守卫变更即本行登记）：① 保留并**加强**安全断言——`com.zhku.agent.agent.DefaultAgentFactory` 及高权限工具包不可见；② 把"`ChatModel` 类不存在"换成**行为断言**——未配置 `zhku.rag.*` 时不创建模型相关 bean、不发生模型调用（从"类不存在"升级为"未配置不启用"）；③ 测试内注明改动理由（按 AGENTS.md 注释约定） | ✅ 已决策（守卫变更已透明登记） |
@@ -128,6 +129,7 @@
 | --- | --- | --- | --- | --- |
 | 2026-09-17 | 首次合并：会话持久化 JDBC（`V12`）+ 校园工具集 + Function Calling（33 文件 +3093） | `campus-line-b` | `7dce9e5` | ✅ 九项 |
 | 2026-09-17 | 第二次合并：阶段 8 主体（五级路由 + 受控检索 + 生成守卫 + 引用审计 + 评测基线 + HTTP 装配 + `V9`，86 文件 +6136） | `campus-line-a` | `7414586` | ✅ 逐条核对（纯快进、零冲突；分支工作区另有未提交的 Spring AI 段，不在本次范围） |
+| 2026-09-17 | 第三次合并：Spring AI 精确化断言（7 类 agent 类安全断言 + 行为断言）+ `citations[]` 引用明细 + 版本指纹（21 文件 +936） | `campus-line-a` | `e9cdf84` | ✅ 逐条核对（纯快进；`pom.xml` 为全仓唯一一次变更、无冲突面） |
 
 ## 八、引用载荷实际下发形态（WB-1 做前端引用卡 UI 的依据）
 
