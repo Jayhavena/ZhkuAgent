@@ -1,6 +1,7 @@
 package com.zhku.knowledge.tools;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,7 +28,8 @@ public final class CampusToolRegistry {
                 throw new IllegalArgumentException("重复注册校园工具：" + name);
             }
         }
-        this.toolsByName = Map.copyOf(registered);
+        // Map.copyOf 不承诺保留 TreeMap 的迭代顺序，会让模型工具清单在不同运行中漂移。
+        this.toolsByName = Collections.unmodifiableMap(new TreeMap<>(registered));
     }
 
     public List<CampusToolDescriptor> descriptors() {
