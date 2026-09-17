@@ -57,15 +57,15 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14` |
-| 当前任务 | 会话持久化：`JdbcConversationStore`（现状与契约核查、TDD 设计中） |
-| 状态 | 🟢 进行中 |
-| 最新提交 | `7c94e20`（与主线同点，快进无新提交） |
+| 当前任务 | 会话持久化：`JdbcConversationStore` + V12 + 契约测试 + PostgreSQL 预检脚本已完成，待合并 |
+| 状态 | 🟡 待合并 |
+| 最新提交 | `c595a81`（代码交付：预检脚本、V12、JDBC 实现与显式选择器；证据账本待本次提交） |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
 | 文件 / 目录 | 占用方 | 任务 | 声明时间 |
 | --- | --- | --- | --- |
-| `knowledge/.../conversation/`、`knowledge/.../db/migration/V12*`、对应测试与本任务证据账本 | CX-1 | `JdbcConversationStore` 会话持久化 | 2026-09-17 |
+| （暂无） | | | |
 
 ## 四、待协商事项
 
