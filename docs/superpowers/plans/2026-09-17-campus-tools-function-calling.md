@@ -40,7 +40,7 @@
 - Produces `CampusToolRegistry#descriptors(): List<CampusToolDescriptor>`, `findDescriptor(String): Optional<CampusToolDescriptor>`, and `execute(CampusToolCall): CampusToolResult` for the future line-A adapter.
 - `CampusToolResult` uses `SUCCESS`, `INVALID_ARGUMENT`, `DATA_UNAVAILABLE`, and `UNKNOWN_TOOL` only; it carries tool name, status, JSON result, and boundary message.
 
-- [ ] **Step 1: Write the failing registry tests**
+- [x] **Step 1: Write the failing registry tests**
 
 ```java
 @Test
@@ -66,13 +66,13 @@ void shouldReturnUnknownToolWithoutCallingAnyTool() {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify RED**
+- [x] **Step 2: Run the test to verify RED**
 
 Run: `./mvnw.cmd -f knowledge/pom.xml -Dtest=CampusToolRegistryTest test`
 
 Expected: compilation failure because `CampusTool`, `CampusToolRegistry`, and the result records do not yet exist.
 
-- [ ] **Step 3: Implement the minimal contract**
+- [x] **Step 3: Implement the minimal contract**
 
 ```java
 public interface CampusTool {
@@ -101,13 +101,13 @@ public final class CampusToolRegistry {
 
 Use validating record compact constructors: names and descriptions are trimmed nonblank; schema and argument JSON are nonblank; access mode/status are non-null. Return `List.copyOf(...)` from `descriptors()` in lexical name order.
 
-- [ ] **Step 4: Run the registry tests to verify GREEN**
+- [x] **Step 4: Run the registry tests to verify GREEN**
 
 Run: `./mvnw.cmd -f knowledge/pom.xml -Dtest=CampusToolRegistryTest test`
 
 Expected: all registry tests pass, including duplicate-name rejection and unknown-tool structured failure.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add -- knowledge/src/main/java/com/zhku/knowledge/tools/CampusToolAccessMode.java knowledge/src/main/java/com/zhku/knowledge/tools/CampusToolStatus.java knowledge/src/main/java/com/zhku/knowledge/tools/CampusToolDescriptor.java knowledge/src/main/java/com/zhku/knowledge/tools/CampusToolCall.java knowledge/src/main/java/com/zhku/knowledge/tools/CampusToolResult.java knowledge/src/main/java/com/zhku/knowledge/tools/CampusTool.java knowledge/src/main/java/com/zhku/knowledge/tools/CampusToolRegistry.java knowledge/src/test/java/com/zhku/knowledge/tools/CampusToolRegistryTest.java
