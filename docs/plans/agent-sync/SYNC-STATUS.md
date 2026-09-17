@@ -67,6 +67,10 @@
 
 | 文件 / 目录 | 占用方 | 任务 | 声明时间 |
 | --- | --- | --- | --- |
+| `ZhkuLocalPreviewConfiguration`、`LocalPreviewConversationFacade`、`...ConversationController`（含测试） | 线 A | HTTP 装配：把编排器 + 检索增强接进本机预览回答链路（只追加 `route`/`handoffRequired`）；已核对线 B 当前只占 `tools/`，无冲突。**由线 A 在其分支登记，合并回主线后同步至本表** | 2026-09-17 |
+
+> 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
+> 跨线判断冲突时，以双方分支上的最新登记为准。
 
 ## 四、待协商事项
 
@@ -78,6 +82,8 @@
 | README 修正 | WorkBuddy | 根 README 与 knowledge README 仍写"未实现两轮追问"，与实际不符；待指派由谁修 | ⏳ 待指派 |
 | agent/ 模块只读约定 | WorkBuddy | 首轮双方将 agent/ 视为只读资产；如需修改 ToolCallAgent 复用，先在此登记 | ⏳ 待确认 |
 | 线 A / 线 B 归属 | WorkBuddy | 默认 WorkBuddy=线A、另一 Agent=线B；如互换，改本节与第二节两行即可 | ⏳ 待确认 |
+| Spring AI 依赖与 classpath 隔离断言 | 线 A 提问 / WB-1 决策 | 线 A 提出 A（授权改隔离断言）/ B（独立模块）/ C（自实现客户端）三选一。**2026-09-17 用户经 WB-1 决策：不选 A**——该断言（`com.zhku.agent.agent.DefaultAgentFactory` 不可见于 knowledge 预览 classpath）是"不暴露 agent 高权限工具"的机械保障，属项目核心资产。执行顺序：先定位可见性来源，**优先用 `exclusion`/装配层隔离解决（不改断言、不加模块）**；若结构上绕不开，则建独立模块（B）；C 仅在 B 也不可行时考虑 | ✅ 已决策（待线 A 报告根因） |
+| HTTP 装配是否现在做 | 线 A 提问 / WB-1 决策 | **2026-09-17 用户经 WB-1 批准：现在做**——属阶段 8 退出条件（跑通"…→ 引用校验 → 回答卡"）；只追加已冻结字段 `route`/`handoffRequired`，不改旧字段语义；占用已登记。注意：`ZhkuLocalPreviewConfiguration` 后续线 B 的 JDBC 配置切换也要动，合并时以"先合并方先落"处理，冲突时在状态板登记 | ✅ 已批准 |
 
 ## 五、冻结契约（开分前由双方共同确认，确认后只追加）
 
