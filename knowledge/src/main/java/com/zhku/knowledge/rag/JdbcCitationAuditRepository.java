@@ -1,0 +1,70 @@
+package com.zhku.knowledge.rag;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * PostgreSQL 引用审计仓储。
+ *
+ * <p>审计记录按"片段 → 最新索引条目"解析 entry_id：V9 的 citation_audit 以
+ * 索引条目为外键，而生成层只持有片段标识，因此在写入时解析一次并固化下来，
+ * 保证审计行始终指向具体向量而不是随时间漂移的"当前条目"。</p>
+ *
+ * <p>session_id 目前留空：会话标识属于线 B 的会话持久化职责，等 HTTP 门面
+ * 接入时再绑定，避免跨线迁移顺序耦合。</p>
+ */
+public final class JdbcCitationAuditRepository implements CitationAuditRepository {
+
+    private final DataSource dataSource;
+
+    public JdbcCitationAuditRepository(DataSource dataSource) {
+        this.dataSource = Objects.requireNonNull(dataSource, "数据源不能为空");
+    }
+
+    @Override
+    public void record(CitationAuditRecord record) {
+        Objects.requireNonNull(record, "审计记录不能为空");
+        try (Connection connection = dataSource.getConnection()) {
+            UUID entryId = resolveLatestEntryId(connection, record.chunkId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "引用审计无法定位索引条目，片段未被索引：" + record.chunkId()));
+            try (PreparedStatement statement = connection.prepareStatement("""
+                    INSERT INTO citation_audit (
+                        id, citation_id, index_entry_id, route, session_id, created_at
+                    ) VALUES (?, ?, ?, ?, NULL, ?)
+                    """)) {
+                statement.setObject(1, UUID.randomUUID());
+                statement.setString(2, record.citationId());
+                statement.setObject(3, entryId);
+                statement.setString(4, record.route());
+                statement.setObject(5, java.sql.Timestamp.from(record.issuedAt()));
+                statement.executeUpdate();
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("无法写入引用审计", exception);
+        }
+    }
+
+    private static Optional<UUID> resolveLatestEntryId(Connection connection, UUID chunkId)
+            throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                SELECT id FROM retrieval_index_entry
+                WHERE chunk_id = ?
+                ORDER BY created_at DESC, id DESC
+                LIMIT 1
+                """)) {
+            statement.setObject(1, chunkId);
+            try (ResultSet result = statement.executeQuery()) {
+                return result.next()
+                        ? Optional.of(result.getObject(1, UUID.class))
+                        : Optional.empty();
+            }
+        }
+    }
+}

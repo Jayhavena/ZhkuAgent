@@ -27,4 +27,9 @@ public record ModelRequest(
     public List<String> evidenceTexts() {
         return evidence.stream().map(ApprovedEvidence::text).toList();
     }
+
+    /** 本轮白名单引用标识：模型只能用这些 ID 标注出处，不得自造。 */
+    public List<String> evidenceCitationIds() {
+        return evidence.stream().map(ApprovedEvidence::citationId).toList();
+    }
 }
