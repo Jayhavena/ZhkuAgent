@@ -103,12 +103,12 @@ public final class LocalPreviewConversationFacade {
     private static ConversationReply sessionInvalid() {
         return new ConversationReply(
                 ElectiveRetakeReplyType.SESSION_INVALID, "当前会话不存在，请新建对话。", null,
-                AnswerRoute.INSUFFICIENT_EVIDENCE, true, List.of());
+                AnswerRoute.INSUFFICIENT_EVIDENCE, true, List.of(), List.of());
     }
 
     private static ConversationReply reply(ElectiveRetakeReplyType type, String message) {
         return new ConversationReply(
-                type, message, null, AnswerRoute.INSUFFICIENT_EVIDENCE, true, List.of());
+                type, message, null, AnswerRoute.INSUFFICIENT_EVIDENCE, true, List.of(), List.of());
     }
 
     public record ConversationCreated(UUID sessionId, Instant expiresAt) {
@@ -124,8 +124,10 @@ public final class LocalPreviewConversationFacade {
      *
      * <p>字段语义：{@code type/message/answer} 沿用既有语义（只追加原则）；
      * {@code route} 为五级路由结论、{@code handoffRequired} 表示需转人工渠道、
-     * {@code citationIds} 为服务端为本轮获准证据分配的不透明引用标识——
-     * 后三者是本阶段新增的**只追加**字段，前端据此渲染引用卡。</p>
+     * {@code citationIds} 为服务端为本轮获准证据分配的不透明引用标识、
+     * {@code citations} 为同一批标识的来源明细（标题/定位/页码），供前端渲染引用卡。
+     * 后四者为本阶段新增的**只追加**字段；{@code citations} 与 {@code citationIds}
+     * 长度恒等且顺序一致。</p>
      */
     public record ConversationReply(
             ElectiveRetakeReplyType type,
@@ -133,11 +135,13 @@ public final class LocalPreviewConversationFacade {
             ConversationAnswer answer,
             AnswerRoute route,
             boolean handoffRequired,
-            List<String> citationIds
+            List<String> citationIds,
+            List<LocalPreviewAnswerChain.CitationView> citations
     ) {
 
         public ConversationReply {
             citationIds = List.copyOf(citationIds);
+            citations = List.copyOf(citations);
         }
 
         private static ConversationReply from(LocalPreviewAnswerChain.RoutedReply routed) {
@@ -149,7 +153,8 @@ public final class LocalPreviewConversationFacade {
                     answer,
                     routed.route(),
                     routed.handoffRequired(),
-                    routed.citationIds()
+                    routed.citationIds(),
+                    routed.citations()
             );
         }
     }

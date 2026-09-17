@@ -4,7 +4,22 @@
   <parent><groupId>com.yupi</groupId><artifactId>zhku-agent</artifactId><version>0.0.1-SNAPSHOT</version><relativePath>../pom.xml</relativePath></parent>
   <groupId>com.yupi</groupId><artifactId>knowledge</artifactId><version>0.0.1-SNAPSHOT</version>
   <name>ZhkuAgent Knowledge</name>
-  <properties><zhku.data-root>${project.basedir}</zhku.data-root></properties>
+  <properties>
+    <zhku.data-root>${project.basedir}</zhku.data-root>
+    <!-- Spring AI 版本锁定：1.0.x 对应 Spring Boot 3.4.x；升级需同步评估 Boot 版本与合同测试。 -->
+    <spring-ai.version>1.0.9</spring-ai.version>
+  </properties>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-bom</artifactId>
+        <version>${spring-ai.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <dependencies>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-jdbc</artifactId></dependency>
@@ -12,6 +27,13 @@
     <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-database-postgresql</artifactId></dependency>
     <dependency><groupId>org.postgresql</groupId><artifactId>postgresql</artifactId><scope>runtime</scope></dependency>
     <dependency><groupId>org.apache.pdfbox</groupId><artifactId>pdfbox</artifactId><version>2.0.35</version></dependency>
+    <!--
+      只引入 Spring AI 的库模块（而非 starter）：starter 会带来自动配置，
+      要求启动时即存在 api-key，会污染本机预览与治理台的启动条件。
+      依赖装配由 RagProviderConfiguration 显式完成，一次只启用一个 profile。
+    -->
+    <dependency><groupId>org.springframework.ai</groupId><artifactId>spring-ai-openai</artifactId></dependency>
+    <dependency><groupId>org.springframework.ai</groupId><artifactId>spring-ai-pgvector-store</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
   </dependencies>
   <build><plugins>

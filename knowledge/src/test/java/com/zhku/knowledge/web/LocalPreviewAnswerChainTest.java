@@ -103,6 +103,12 @@ class LocalPreviewAnswerChainTest {
         assertThat(reply.route()).isEqualTo(AnswerRoute.RETRIEVAL_AUGMENTED);
         assertThat(reply.type()).isEqualTo(ElectiveRetakeReplyType.ANSWER);
         assertThat(reply.citationIds()).isNotEmpty();
+        // 引用明细必须与标识一一对应（前端引用卡依赖标题/定位/页码）。
+        assertThat(reply.citations()).hasSameSizeAs(reply.citationIds());
+        assertThat(reply.citations().getFirst().citationId()).isEqualTo(reply.citationIds().getFirst());
+        assertThat(reply.citations().getFirst().sourceTitle()).isEqualTo("公共选修规则手册");
+        assertThat(reply.citations().getFirst().sourceLocator()).isEqualTo("第 1 页");
+        assertThat(reply.citations().getFirst().pageNumber()).isEqualTo(1);
         assertThat(audits).isNotEmpty();
         assertThat(reply.handoffRequired()).isFalse();
     }

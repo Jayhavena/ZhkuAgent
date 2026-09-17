@@ -59,6 +59,16 @@ public final class RetrievalAugmentedAnswerService {
      * @return 通过守卫的作答；无候选或降级时为空
      */
     public Optional<ComposedAnswer> answer(String question) {
+        return answerWithCitations(question).map(RetrievalAnswer::composed);
+    }
+
+    /**
+     * 尝试以检索增强路径作答，并返回引用明细（标识 + 来源标题/定位/页码）。
+     *
+     * <p>明细与白名单标识在同一次分配中配对产生：标识给模型、明细给服务端渲染引用卡，
+     * 明细不经过模型，模型无法影响它。</p>
+     */
+    public Optional<RetrievalAnswer> answerWithCitations(String question) {
         Objects.requireNonNull(question, "问题不能为空");
 
         RetrievalOutcome outcome = hybridRetrieval.retrieve(
@@ -70,6 +80,7 @@ public final class RetrievalAugmentedAnswerService {
         // 引用标识在把证据交给模型之前分配并留痕：这样"模型输出了审计中不存在的 ID"
         // 本身就是可判定的伪造，而不是靠比对文本猜测。
         List<ApprovedEvidence> approved = new ArrayList<>();
+        List<ComposedAnswerCitation> citations = new ArrayList<>();
         for (RetrievedChunk chunk : outcome.chunks()) {
             String citationId = citationIdFactory.next();
             approved.add(new ApprovedEvidence(
@@ -77,13 +88,20 @@ public final class RetrievalAugmentedAnswerService {
                     chunk.content(),
                     chunk.sourceTitle() + " · " + chunk.sourceLocator()
             ));
+            citations.add(new ComposedAnswerCitation(
+                    citationId,
+                    chunk.chunkId(),
+                    chunk.sourceTitle(),
+                    chunk.sourceLocator(),
+                    chunk.pageNumber()
+            ));
             auditRepository.record(new CitationAuditRecord(
                     citationId, chunk.chunkId(), "RETRIEVAL_AUGMENTED", clock.instant()));
         }
 
         ComposedAnswer composed = composer.compose(question, approved);
         return composed.status() == ComposedAnswerStatus.ANSWERED
-                ? Optional.of(composed)
+                ? Optional.of(new RetrievalAnswer(composed, citations))
                 : Optional.empty();
     }
 }

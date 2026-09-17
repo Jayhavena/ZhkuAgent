@@ -67,7 +67,7 @@
 
 | 文件 / 目录 | 占用方 | 任务 | 声明时间 |
 | --- | --- | --- | --- |
-| `knowledge/pom.xml` | WB-3（线 A） | 阶段 8 任务 3 拟引入 Spring AI 依赖；**因与既有 classpath 隔离测试互斥，已于 16:45 回退，未提交**（详见第四节 Spring AI 条）。占用登记保留至该项落地（当前决策：不走 A，下一步评估 B） | 2026-09-17 16:41（16:45 回退） |
+| `knowledge/pom.xml` | WB-3（线 A） | 阶段 8 任务 3：**引入 Spring AI（依用户 2026-09-17 决策，见第四节）**——`spring-ai-bom` 1.0.9 统一版本 + `spring-ai-openai` + `spring-ai-pgvector-store`（只引库模块不引 starter，避免启动期强制 api-key）；同步精确化两条隔离断言（安全断言加强 + `ChatModel` 类存在性改为"未配置 `zhku.rag.*` 不创建模型 bean"的行为断言）。pom 属高冲突文件，按"先合并方先落"处理 | 2026-09-17 16:41（17:55 依决策改为正式引入） |
 | `knowledge/src/main/resources/db/migration/V9*` | WB-3（线 A） | 阶段 8 元数据迁移（线 A 号段 `V9`–`V11`，本次首用 `V9`，已提交） | 2026-09-17 16:41 |
 | `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧（资格过滤/切分/profile/索引/召回/路由/生成守卫/评测）；`retrieval/` 与 `eval/` 未列入持续开发指令的"只改你地盘"清单，按"检索侧"处理并在此登记；线 B 未占用这些路径 | 2026-09-17 16:41 |
 | `docs/evidence/` | WB-3（线 A） | 阶段 8 证据账本（`2026-09-17-阶段8-受控检索增强-证据账本.md`） | 2026-09-17 16:41 |
@@ -107,6 +107,7 @@
 - [x] 新配置键 / Profile 命名规范
   （2026-09-17 用户确认按线 B 草案冻结：线 B 侧使用 `zhku.conversation.*`（存储与 TTL）和 `zhku.streaming.*`（SSE）；Profile 沿用 `zhku-local-preview`，新增能力不创建泛化 `local` Profile；密钥继续仅从环境变量读取。线 A 启动后如需新增配置键，沿用 `zhku.` 前缀在此追加）
   - 线 A 追加（2026-09-17，只追加不改上文）：受控检索增强配置键 `zhku.rag.enabled`、`zhku.rag.active-profile`，以及按 profile 分组的 `zhku.rag.profiles.<name>.base-url` / `.api-key-env-var` / `.chat-model` / `.embedding-model` / `.embedding-dimensions` / `.timeout-seconds` / `.index-profile`。**一次只允许一个激活 profile**（`active-profile` 单值）；密钥只写环境变量名、值不落配置，配置文件与日志均不得出现密钥值。实现：`RagProviderProfileResolver` / `RagProviderProfile` / `ApiKeyResolver`（`knowledge/.../rag/`）。
+  - 线 A 再追加（2026-09-17，装配用）：`zhku.rag.retrieval-scope`（知识范围过滤，如 `PUBLIC_ELECTIVE`；缺省=不限定）、`zhku.rag.top-k`（送模型的候选上限，缺省 5）。语义：`zhku.rag.enabled=true` 但缺 `active-profile` 或 profile 键不全 → **启动失败**（不静默降级）；`enabled` 未设置 → 装配整体不生效（无模型 bean、无检索增强服务）。实现：`RagProviderConfiguration`（`knowledge/.../rag/`）。
 - [x] Flyway 号段：线 A `V9`–`V11`、线 B `V12`–`V14`（2026-09-16 双方建线时已按此执行，无异议。
   2026-09-17 用户确认追加：阶段 8 用 `V9`；**阶段 9、10 号段待分配**，由线 A 在阶段 8 交付后追加登记（预期自 `V15`/`V16` 起），登记前不得创建迁移文件。既有 `V1`–`V8` 不可改写）
 
@@ -139,7 +140,10 @@
   "answer": null,
   "route": "RETRIEVAL_AUGMENTED",
   "handoffRequired": false,
-  "citationIds": ["cit-3f9a…"]
+  "citationIds": ["cit-3f9a…"],
+  "citations": [
+    {"citationId": "cit-3f9a…", "sourceTitle": "公共选修规则手册", "sourceLocator": "第 1 页", "pageNumber": 1}
+  ]
 }
 ```
 
@@ -150,17 +154,13 @@
 | `answer` | 对象或 null | 既有回答卡：`{conclusion, basis, sourceId, sourceTitle, sourceVersion, sourceLocator, applicableScope}`；**仅"当期通知/规则"级有卡**，检索增强级为 null | 旧（语义不变） |
 | `route` | 枚举字符串 | 五级路由结论：`AWAITING_CLARIFICATION` / `CURRENT_NOTICE` / `HIGH_RISK_RULE` / `RETRIEVAL_AUGMENTED` / `INSUFFICIENT_EVIDENCE` | **新（只追加）** |
 | `handoffRequired` | 布尔 | 是否需转人工渠道（拒答、会话异常、模型降级时为 true） | **新（只追加）** |
-| `citationIds` | 字符串数组 | 服务端为本轮获准证据分配的**不透明标识**；前端只作锚点/透传，**不得解析其含义**；可用它到后端核对来源 | **新（只追加）** |
+| `citationIds` | 字符串数组 | 服务端为本轮获准证据分配的**不透明标识**；前端只作锚点/透传，**不得解析其含义** | **新（只追加）** |
+| `citations` | 对象数组 | 引用明细（**已实现**）：`citationId` + `sourceTitle` + `sourceLocator` + `pageNumber`(可 null)；与 `citationIds` **长度恒等、顺序一致**；不含片段正文（避免把整段资料塞进响应） | **新（只追加）** |
 
 **关键约束（前端必须知道的）**：
-1. `citationIds` 只在 `route=RETRIEVAL_AUGMENTED` 时非空；其他级别为空数组。标识形如 `cit-<24 位十六进制>`（`RandomCitationIdFactory`），不可预测、同轮不重复。
+1. `citationIds` / `citations` 只在 `route=RETRIEVAL_AUGMENTED` 时非空；其他级别为空数组（`[]`）。标识形如 `cit-<24 位十六进制>`（`RandomCitationIdFactory`），不可预测、同轮不重复。
 2. 全不命中时：`type=OUT_OF_SCOPE`（**旧值不变**）+ `route=INSUFFICIENT_EVIDENCE` + `handoffRequired=true`——请以 `route`/`handoffRequired` 判断"该转人工"，不要用 `type` 判断。
-3. **当前缺口（下一轮补齐，字段名与结构预先登记，WB-1 可先按此预留 UI）**：本版响应只有不透明 `citationIds`，**不带每条引用的标题/定位/页码**。下一轮将追加 `citations` 明细数组（只追加，不影响旧字段）：
-   ```json
-   "citations": [
-     {"citationId": "cit-3f9a…", "sourceTitle": "公共选修规则手册", "sourceLocator": "第 1 页", "pageNumber": 1}
-   ]
-   ```
-   引用卡 UI 建议：先按 `citationIds.length` 渲染锚点，明细到位后填充标题/定位；两者长度恒等且顺序一致。
-4. **流式（SSE）尚无载荷可登记**：本机预览当前是同步响应；SSE 属线 B 的 `zhku.streaming.*`，其事件内嵌字段将沿用 `route`/`handoffRequired`/`citationIds`（冻结契约已约定），待线 B 交付后由该线登记事件形态。
+3. 引用卡 UI：直接按 `citations[]` 渲染（标题 + 定位 + 页码），`citationIds` 作锚点/透传即可；两者顺序一致，无需自行配对。明细由服务端在同一次分配中产生，**不经过模型**，模型无法影响它。
+4. **流式（SSE）尚无载荷可登记**：本机预览当前是同步响应；SSE 属线 B 的 `zhku.streaming.*`，其事件内嵌字段将沿用 `route`/`handoffRequired`/`citationIds`/`citations`（冻结契约已约定），待线 B 交付后由该线登记事件形态。
 5. 另有一个单轮问答接口 `POST /api/zhku/local-preview/answers`（`mode/answer/citations/notice`），属阶段 5 既有路径，**不在本次引用卡链路内**，未被改动。
+6. 检索增强级默认**关闭**（未配置 `zhku.rag.*` 时整级跳过）：未开启时不会出现 `route=RETRIEVAL_AUGMENTED`，前端引用卡按"无引用"分支即可。

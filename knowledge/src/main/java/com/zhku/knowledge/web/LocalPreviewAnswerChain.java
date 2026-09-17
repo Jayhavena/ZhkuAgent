@@ -8,7 +8,9 @@ import com.zhku.knowledge.conversation.elective.ElectiveRetakeReplyType;
 import com.zhku.knowledge.conversation.publicelective.PublicElectiveConversationRouter;
 import com.zhku.knowledge.notice.CourseSelectionNoticeService;
 import com.zhku.knowledge.rag.ComposedAnswer;
+import com.zhku.knowledge.rag.ComposedAnswerCitation;
 import com.zhku.knowledge.rag.ComposedAnswerStatus;
+import com.zhku.knowledge.rag.RetrievalAnswer;
 import com.zhku.knowledge.rag.RetrievalAugmentedAnswerService;
 import com.zhku.knowledge.routing.AnswerRoute;
 
@@ -83,16 +85,18 @@ public final class LocalPreviewAnswerChain {
 
         // 第四级：检索增强（受控检索 + 受控生成；未配置时整级跳过）。
         if (retrievalService != null) {
-            Optional<ComposedAnswer> composed = retrievalService.answer(message);
-            if (composed.isPresent() && composed.get().status() == ComposedAnswerStatus.ANSWERED) {
-                ComposedAnswer answer = composed.get();
+            Optional<RetrievalAnswer> retrieval = retrievalService.answerWithCitations(message);
+            if (retrieval.isPresent()
+                    && retrieval.get().composed().status() == ComposedAnswerStatus.ANSWERED) {
+                ComposedAnswer answer = retrieval.get().composed();
                 return new RoutedReply(
                         ElectiveRetakeReplyType.ANSWER,
                         answer.answer(),
                         null,
                         AnswerRoute.RETRIEVAL_AUGMENTED,
                         answer.handoffRequired(),
-                        answer.citationIds()
+                        answer.citationIds(),
+                        retrieval.get().citations().stream().map(CitationView::from).toList()
                 );
             }
         }
@@ -106,6 +110,7 @@ public final class LocalPreviewAnswerChain {
                 null,
                 AnswerRoute.INSUFFICIENT_EVIDENCE,
                 true,
+                List.of(),
                 List.of()
         );
     }
@@ -145,6 +150,7 @@ public final class LocalPreviewAnswerChain {
                 reply.answer(),
                 route,
                 isHandoff(route, reply.type()),
+                List.of(),
                 List.of()
         );
     }
@@ -165,13 +171,35 @@ public final class LocalPreviewAnswerChain {
             com.zhku.knowledge.conversation.elective.ElectiveRetakeAnswer answer,
             AnswerRoute route,
             boolean handoffRequired,
-            List<String> citationIds
+            List<String> citationIds,
+            List<CitationView> citations
     ) {
 
         public RoutedReply {
             Objects.requireNonNull(type, "回复类型不能为空");
             Objects.requireNonNull(route, "路由结论不能为空");
             citationIds = List.copyOf(citationIds);
+            citations = List.copyOf(citations);
+        }
+    }
+
+    /**
+     * 引用明细视图（HTTP 展示用；不含片段正文，避免把整段资料塞进响应）。
+     */
+    public record CitationView(
+            String citationId,
+            String sourceTitle,
+            String sourceLocator,
+            Integer pageNumber
+    ) {
+
+        static CitationView from(ComposedAnswerCitation citation) {
+            return new CitationView(
+                    citation.citationId(),
+                    citation.sourceTitle(),
+                    citation.sourceLocator(),
+                    citation.pageNumber()
+            );
         }
     }
 }
