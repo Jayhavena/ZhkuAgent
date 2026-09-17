@@ -71,6 +71,7 @@
 | `knowledge/src/main/resources/db/migration/V9*` | WB-3（线 A） | 阶段 8 元数据迁移（线 A 号段 `V9`–`V11`，本次首用 `V9`，已提交） | 2026-09-17 16:41 |
 | `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧（`retrieval/`、`eval/` 经用户确认补入线 A 地盘，见第四节）；线 B 未占用这些路径 | 2026-09-17 16:41 |
 | `docs/evidence/` | WB-3（线 A） | 阶段 8 证据账本（`2026-09-17-阶段8-受控检索增强-证据账本.md`） | 2026-09-17 16:41 |
+| `knowledge/src/main/resources/application-zhku-local-preview.yml` | WB-3（线 A） | 阶段 8 真实 provider 打通：写入 `zhku.rag.profiles.dashscope.*`（base-url / api-key-env-var / chat-model / embedding-model / embedding-dimensions / timeout / index-profile）与 `active-profile`、`retrieval-scope`、`top-k`；**刻意不写 `zhku.rag.enabled`**（默认关闭，链路由此不启用模型）；文件内只出现环境变量名，绝不含密钥值 | 2026-09-17 18:30 |
 | `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java`、`LocalPreviewConversationFacade.java`、`ZhkuLocalPreviewConversationController.java` 及对应测试 | WB-3（线 A） | 阶段 8 装配：五级链路接进本机预览回答链路；**只追加** `route`/`handoffRequired`/`citationIds`/`citations`，旧字段语义不变。**已提交 `625d795`（装配）与 `b3918f9`（引用明细）**；占用保留至合并回主线 | 2026-09-17 17:24（17:45 / 18:05 完成） |
 
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
@@ -95,6 +96,7 @@
 | agent/ 模块只读约定 | WorkBuddy | 首轮双方将 agent/ 视为只读资产；如需修改 ToolCallAgent 复用，先在此登记 | ⏳ 待确认 |
 | 线 A / 线 B 归属 | WorkBuddy | 默认 WorkBuddy=线A、另一 Agent=线B；如互换，改本节与第二节两行即可 | ⏳ 待确认 |
 | Spring AI 依赖与 classpath 隔离断言 | 线 A 取证 / WB-1 决策 | **线 A 根因证据（可复核）**：依赖树 `knowledge → spring-ai-openai:1.0.9 → spring-ai-model:1.0.9`；`jar tf` 证实 `ChatModel`/`EmbeddingModel` 同在 `spring-ai-model`（排除该 artifact = 把要用的接口一起排除）；仅 surefire 层掩掉只影响测试 JVM、产物 classpath 仍带 `ChatModel` = 假绿（线 A 已拒绝采用）。失败断言实为 `ZhkuLocalPreviewApplicationTest:20` 的 **ChatModel classpath 存在性**那条，而非 agent 类那条。**2026-09-17 最终决策：不走 B（独立模块）**——路线图明确"阶段 8 可在 knowledge 模块引入版本锁定的 Spring AI 依赖"，已批准计划亦要求改 `knowledge/pom.xml`；建独立模块属计划外变更且会在阶段 8 中途引入跨模块接口改动。**改为精确化断言**（下述守卫变更即本行登记）：① 保留并**加强**安全断言——`com.zhku.agent.agent.DefaultAgentFactory` 及高权限工具包不可见；② 把"`ChatModel` 类不存在"换成**行为断言**——未配置 `zhku.rag.*` 时不创建模型相关 bean、不发生模型调用（从"类不存在"升级为"未配置不启用"）；③ 测试内注明改动理由（按 AGENTS.md 注释约定） | ✅ 已决策（守卫变更已透明登记） |
+| 真实 provider 冒烟受阻：`DASHSCOPE_API_KEY` 被阿里云判为无效 | 线 A（WB-3） | 按决策已跑真实 smoke（显式 opt-in：环境变量存在 + `-Dzhku.rag.smoke=true`；端点国内站 `https://dashscope.aliyuncs.com/compatible-mode/v1`，chat `qwen-plus`、embedding `text-embedding-v4`/1024）。**网络与端点正常**（拿到阿里云 JSON 错误响应与 request_id），但鉴权失败：`401 invalid_api_key`。**密钥形态诊断（不打印值、不入库）**：长度 117、以 `sk-` 开头、无空白/引号/非 ASCII/花括号/逗号，但不符合百炼常见 `sk-`+32 形态。可能原因：① 用国际站 key 配了国内站端点（不可混用，请核对 key 来源站点）；② 该值不是百炼 API Key（长度/形态不符，可能贴错凭据或变量）；③ key 已失效/被删除。**需要你**：确认来源与形态后用 `setx DASHSCOPE_API_KEY "..."` 更新用户环境变量（或新会话临时 `$env:DASHSCOPE_API_KEY='...'` 注入，值不要发我），我再重跑 smoke。**在拿到有效 key 之前**：向量路无法打开（embedding 同样 401）、第二份基线只能记"待评测" | ⏳ 待用户提供有效密钥 |
 | HTTP 装配是否现在做 | 线 A 提问 / WB-1 决策 | **2026-09-17 用户经 WB-1 批准：现在做**——属阶段 8 退出条件（跑通"…→ 引用校验 → 回答卡"）；只追加已冻结字段 `route`/`handoffRequired`，不改旧字段语义；占用已登记。注意：`ZhkuLocalPreviewConfiguration` 后续线 B 的 JDBC 配置切换也要动，合并时以"先合并方先落"处理，冲突时在状态板登记 | ✅ 已批准 |
 
 ## 五、冻结契约（开分前由双方共同确认，确认后只追加）
