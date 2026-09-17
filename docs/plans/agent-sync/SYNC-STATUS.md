@@ -67,14 +67,19 @@
 
 | 文件 / 目录 | 占用方 | 任务 | 声明时间 |
 | --- | --- | --- | --- |
-| （暂无） | | | |
+| `knowledge/pom.xml` | WB-3（线 A） | 阶段 8 任务 3 拟引入 Spring AI 依赖；**因与既有 classpath 隔离测试互斥，已于 16:45 回退，未提交**（详见第四节阻塞条）。占用登记保留至该项决策落地 | 2026-09-17 16:41（16:45 回退） |
+| `knowledge/src/main/resources/db/migration/V9*` | WB-3（线 A） | 阶段 8 元数据迁移（线 A 号段 `V9`–`V11`，本次首用 `V9`） | 2026-09-17 16:41 |
+| `knowledge/src/main/java/com/zhku/knowledge/retrieval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索侧（资格过滤/切分/profile/索引/召回）；**该包名未列入持续开发指令的"只改你地盘"清单**（清单写的是 routing/rag/eval/answer），但因属"检索侧"且阶段 8 计划明确要求，按线 A 地盘处理并在此登记；已同步写入第四节待确认 | 2026-09-17 16:41 |
+| `docs/evidence/` | WB-3（线 A） | 阶段 8 证据账本（`2026-09-17-阶段8-受控检索增强-证据账本.md`） | 2026-09-17 16:41 |
 
 ## 四、待协商事项
 
 | 事项 | 提出方 | 说明 | 状态 |
 | --- | --- | --- | --- |
 | 前端归属移交 | WB-1 | 用户指定前端（`agent/frontend/`）由 WB-1 负责；原线 B 分工中"体验"部分相应剥离，CX-1 不再改前端文件 | ⏳ 待 CX-1 确认 |
-| 「统一路由编排器」职责重叠 | WB-1 | 分工表把"统一路由编排器"同时列在线 B 交付内容，而线 A 的拥有目录含 `knowledge/.../routing/`，阶段 8 计划也由 `KnowledgeAnswerOrchestrator` 承载五级路由测试。**建议边界**：路由判定规则与顺序（五级短路逻辑）归线 A 的 `routing/`；线 B 只提供工具与注册接口（`tools/`），由线 A 的编排器经接口调用，线 B 不改编排器文件；线 B 若需新增"工具分支"，先在状态板登记 | ⏳ 待 CX-1 / 线 A 确认 |
+| **Spring AI 依赖与既有隔离测试冲突（阻塞项，等用户决策）** | WB-3（线 A） | 阶段 8 计划任务 3 要求在 `knowledge/pom.xml` 引入版本锁定的 Spring AI（Chat/Embedding/PGVector）；但 `ZhkuLocalPreviewApplicationTest` / `ZhkuLocalAdminApplicationTest` 明确断言 `org.springframework.ai.chat.model.ChatModel` **不在 classpath**（既有安全隔离：本机预览/治理台不得夹带通用智能体或高权限模型）。二者互斥：引依赖则这两条隔离测试必红。**已完成并验证**：`spring-ai-bom` 1.0.9 解析通过，Chat/Embedding 适配器 + 本机桩合同测试 **4/4 通过**（协议实测可用）；为保持全绿，适配器/pom/合同测试已移出仓库暂存 `D:\alldesk\Projects\springai-wip\`（含 pom 补丁），未提交。**待决策**：A) 授权调整那两条隔离断言（改的是 `knowledge/src/test/.../web/` 他人地盘测试，且涉及既有安全口径）；B) 授权改为独立 Maven 模块承载 Spring AI（计划外结构改动）；C) 维持自实现 OpenAI-compatible 客户端（已过 8 例合同测试），Spring AI 顺延。按持续开发指令停止条件第 3 条（计划与代码现实矛盾）停下上报，未自行决断 | ⏳ 待用户决策 |
+| 线 A 地盘清单与实际交付包不一致 | WB-3（线 A） | 持续开发指令第一节把线 A 地盘列为 `routing/`、`rag/`、`eval/`、`answer/`，但阶段 8 计划要求的检索侧实现落在 `com.zhku.knowledge.retrieval/`（资格过滤、事实切分、profile、索引任务、词法/向量召回）。**建议**：把 `retrieval/` 与 `docs/evidence/` 补入线 A 地盘清单；线 B 未占用这两个路径。在用户确认前，线 A 按"检索侧属地盘"继续并已在第三节登记占用 | ⏳ 待用户确认 |
+| 「统一路由编排器」职责重叠 | WB-1 | 分工表把"统一路由编排器"同时列在线 B 交付内容，而线 A 的拥有目录含 `knowledge/.../routing/`，阶段 8 计划也由 `KnowledgeAnswerOrchestrator` 承载五级路由测试。**建议边界**：路由判定规则与顺序（五级短路逻辑）归线 A 的 `routing/`；线 B 只提供工具与注册接口（`tools/`），由线 A 的编排器经接口调用，线 B 不改编排器文件；线 B 若需新增"工具分支"，先在状态板登记。**线 A 表态（WB-3，2026-09-17 16:41）：同意该边界**——`routing/` 下五级顺序与严格短路已实现并测试固化，属线 A 地盘；线 B 的 `tools/` 与注册接口由线 A 编排器经接口调用，如需新增路由级别须先改冻结契约（第五节第 1 项）并重新冻结 | ⏳ 线 A 已确认，待 CX-1 确认 |
 | 阶段 8/9/10 迁移号段过期 | WB-1 | 三份计划原写 `V7`/`V8`/`V9`，与既有迁移及已冻结号段冲突。**2026-09-17 用户确认处置**：阶段 8 改用 `V9`；阶段 9/10 号段待分配，由线 A 在阶段 8 交付后按"只追加"原则登记（预期 `V15`/`V16` 起）；三份计划文件已就地更正并标注"登记完成前不得创建迁移文件" | ✅ 已处置（待阶段 8 交付后分配 9/10 号段） |
 | README 修正 | WorkBuddy | 根 README 与 knowledge README 仍写"未实现两轮追问"，与实际不符；待指派由谁修 | ⏳ 待指派 |
 | agent/ 模块只读约定 | WorkBuddy | 首轮双方将 agent/ 视为只读资产；如需修改 ToolCallAgent 复用，先在此登记 | ⏳ 待确认 |

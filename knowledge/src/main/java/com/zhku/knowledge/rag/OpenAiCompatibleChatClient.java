@@ -102,30 +102,6 @@ public final class OpenAiCompatibleChatClient implements ModelChatClient {
     }
 
     private ModelResponse parse(String body) {
-        JsonNode content = readContent(body);
-        JsonNode payload;
-        try {
-            payload = MAPPER.readTree(content.asText());
-        } catch (IOException exception) {
-            throw new ModelOutputFormatException("模型输出不是合法 JSON", exception);
-        }
-        JsonNode answer = payload.get("answer");
-        JsonNode uncertainty = payload.get("uncertainty");
-        JsonNode citationIds = payload.get("citationIds");
-        if (answer == null || uncertainty == null || citationIds == null || !citationIds.isArray()) {
-            throw new ModelOutputFormatException("模型输出缺少 answer/uncertainty/citationIds 字段");
-        }
-        java.util.List<String> ids = new java.util.ArrayList<>();
-        citationIds.forEach(node -> ids.add(node.asText()));
-        return new ModelResponse(
-                answer.asText(),
-                uncertainty.asDouble(),
-                ids,
-                payload.path("handoffRequired").asBoolean(false)
-        );
-    }
-
-    private static JsonNode readContent(String body) {
         JsonNode root;
         try {
             root = MAPPER.readTree(body);
@@ -136,7 +112,8 @@ public final class OpenAiCompatibleChatClient implements ModelChatClient {
         if (content.isMissingNode() || content.asText().isBlank()) {
             throw new ModelOutputFormatException("模型响应缺少 choices[0].message.content");
         }
-        return content;
+        // 内层 JSON 的解析规则与 Spring AI 适配器共用，避免两条链路降级判定漂移。
+        return ModelOutputParser.parse(content.asText());
     }
 
     private static String trimTrailingSlash(String baseUrl) {
