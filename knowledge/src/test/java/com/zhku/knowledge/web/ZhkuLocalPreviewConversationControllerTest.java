@@ -171,9 +171,17 @@ class ZhkuLocalPreviewConversationControllerTest {
                 new PublicElectiveCreditLimitService(creditLimitEvidenceFinder()),
                 clock
         );
-        LocalPreviewConversationFacade facade = new LocalPreviewConversationFacade(
+        // 装配改为回答链路（五级顺序）：澄清/规则复用既有路由，通知级与检索级此处缺省。
+        LocalPreviewAnswerChain chain = new LocalPreviewAnswerChain(
                 store,
                 router,
+                null,
+                null,
+                clock
+        );
+        LocalPreviewConversationFacade facade = new LocalPreviewConversationFacade(
+                store,
+                chain,
                 clock,
                 SESSION_TTL
         );

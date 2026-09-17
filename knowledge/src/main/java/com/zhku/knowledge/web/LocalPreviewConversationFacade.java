@@ -4,13 +4,13 @@ import com.zhku.knowledge.conversation.ConversationState;
 import com.zhku.knowledge.conversation.ConversationStore;
 import com.zhku.knowledge.conversation.StoreResult;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeAnswer;
-import com.zhku.knowledge.conversation.elective.ElectiveRetakeReply;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeReplyType;
-import com.zhku.knowledge.conversation.publicelective.PublicElectiveConversationRouter;
+import com.zhku.knowledge.routing.AnswerRoute;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -23,18 +23,18 @@ import java.util.UUID;
 public final class LocalPreviewConversationFacade {
 
     private final ConversationStore store;
-    private final PublicElectiveConversationRouter conversationRouter;
+    private final LocalPreviewAnswerChain answerChain;
     private final Clock clock;
     private final Duration sessionTtl;
 
     public LocalPreviewConversationFacade(
             ConversationStore store,
-            PublicElectiveConversationRouter conversationRouter,
+            LocalPreviewAnswerChain answerChain,
             Clock clock,
             Duration sessionTtl
     ) {
         this.store = Objects.requireNonNull(store, "会话存储不能为空");
-        this.conversationRouter = Objects.requireNonNull(conversationRouter, "会话规则路由不能为空");
+        this.answerChain = Objects.requireNonNull(answerChain, "回答链路不能为空");
         this.clock = Objects.requireNonNull(clock, "时钟不能为空");
         this.sessionTtl = Objects.requireNonNull(sessionTtl, "会话有效期不能为空");
         if (sessionTtl.isZero() || sessionTtl.isNegative()) {
@@ -59,7 +59,8 @@ public final class LocalPreviewConversationFacade {
         if (visible.outcome() == StoreResult.Outcome.NOT_FOUND) {
             return sessionInvalid();
         }
-        return ConversationReply.from(conversationRouter.route(sessionId, message));
+        // 会话存在性由门面保证（未知 ID 不得被一条消息隐式创建），作答顺序交给回答链路。
+        return ConversationReply.from(answerChain.reply(sessionId, message));
     }
 
     public ConversationReply cancelConversation(UUID sessionId) {
@@ -100,11 +101,14 @@ public final class LocalPreviewConversationFacade {
     }
 
     private static ConversationReply sessionInvalid() {
-        return reply(ElectiveRetakeReplyType.SESSION_INVALID, "当前会话不存在，请新建对话。");
+        return new ConversationReply(
+                ElectiveRetakeReplyType.SESSION_INVALID, "当前会话不存在，请新建对话。", null,
+                AnswerRoute.INSUFFICIENT_EVIDENCE, true, List.of());
     }
 
     private static ConversationReply reply(ElectiveRetakeReplyType type, String message) {
-        return new ConversationReply(type, message, null);
+        return new ConversationReply(
+                type, message, null, AnswerRoute.INSUFFICIENT_EVIDENCE, true, List.of());
     }
 
     public record ConversationCreated(UUID sessionId, Instant expiresAt) {
@@ -115,16 +119,38 @@ public final class LocalPreviewConversationFacade {
         }
     }
 
+    /**
+     * 会话回复（HTTP 响应体）。
+     *
+     * <p>字段语义：{@code type/message/answer} 沿用既有语义（只追加原则）；
+     * {@code route} 为五级路由结论、{@code handoffRequired} 表示需转人工渠道、
+     * {@code citationIds} 为服务端为本轮获准证据分配的不透明引用标识——
+     * 后三者是本阶段新增的**只追加**字段，前端据此渲染引用卡。</p>
+     */
     public record ConversationReply(
             ElectiveRetakeReplyType type,
             String message,
-            ConversationAnswer answer
+            ConversationAnswer answer,
+            AnswerRoute route,
+            boolean handoffRequired,
+            List<String> citationIds
     ) {
 
-        private static ConversationReply from(ElectiveRetakeReply reply) {
-            ElectiveRetakeAnswer sourceAnswer = reply.answer();
+        public ConversationReply {
+            citationIds = List.copyOf(citationIds);
+        }
+
+        private static ConversationReply from(LocalPreviewAnswerChain.RoutedReply routed) {
+            ElectiveRetakeAnswer sourceAnswer = routed.answer();
             ConversationAnswer answer = sourceAnswer == null ? null : ConversationAnswer.from(sourceAnswer);
-            return new ConversationReply(reply.type(), reply.message(), answer);
+            return new ConversationReply(
+                    routed.type(),
+                    routed.message(),
+                    answer,
+                    routed.route(),
+                    routed.handoffRequired(),
+                    routed.citationIds()
+            );
         }
     }
 
