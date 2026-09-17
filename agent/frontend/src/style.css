@@ -1,3 +1,46 @@
+/* ==========================================================================
+   设计令牌层（Design Tokens）
+   说明：这一层只定义变量、不绑定任何组件。令牌在阶段 7 先行沉淀，
+   是为了让阶段 8 的引用卡/回答卡组件直接使用 var()，避免临时写死色值
+   导致全站风格漂移。取值参照 docs/design-references/ 中的参照库笔记。
+   ========================================================================== */
+:root {
+  /* 颜色：聊天气泡 */
+  --color-bubble-user-bg: #2f5fd0;
+  --color-bubble-user-text: #ffffff;
+  --color-bubble-ai-bg: #f5f5f4;
+  --color-bubble-ai-text: #213547;
+
+  /* 颜色：语义（引用、降级、反馈） */
+  --color-citation-accent: #0f6e56;   /* 阶段8引用卡强调色：可信证据用沉稳的绿色系 */
+  --color-degraded-warning: #ba7517;  /* 安全降级提示：琥珀色，警示但不刺眼 */
+  --color-feedback-subtle: #888780;   /* 点赞/点踩等弱交互图标 */
+
+  /* 间距 */
+  --space-message-gap: 16px;          /* 相邻消息间距 */
+  --space-card-padding: 12px;         /* 卡片内边距 */
+  --space-chat-max-width: 768px;      /* 对话区最大行宽：过宽的长行降低可读性 */
+
+  /* 字阶 */
+  --font-size-body: 15px;             /* 正文 */
+  --font-size-caption: 12px;          /* 引用来源、时间戳等辅助信息 */
+
+  /* 圆角 */
+  --radius-bubble: 12px;
+  --radius-card: 8px;
+}
+
+/* 暗色主题下的令牌翻转：只改变量值，组件无需感知主题切换 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bubble-ai-bg: #2c2c2a;
+    --color-bubble-ai-text: rgba(255, 255, 255, 0.87);
+    --color-citation-accent: #5dcaa5;
+    --color-degraded-warning: #ef9f27;
+    --color-feedback-subtle: #b4b2a9;
+  }
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
