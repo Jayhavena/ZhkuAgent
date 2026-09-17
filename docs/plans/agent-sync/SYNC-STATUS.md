@@ -59,9 +59,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表） |
-| 当前任务 | 会话持久化 JDBC ✅ 与校园工具集 + Function Calling ✅ 均已合并入主线 `7dce9e5`。**下一项：SSE 流式输出**（用冻结的 `zhku.streaming.*`），之后为答案卡后端侧（前端 UI 归 WB-1）；③ 工具接入只需提供 `tools/` 与注册表（已满足），不改编排器 |
-| 状态 | 🟢 活动中（首个交付已合并） |
-| 最新提交 | `7dce9e5`（已与主线同点；下一轮开发请在快进后继续） |
+| 当前任务 | SSE 流式输出：设计与共享 HTTP 装配边界协调中；使用冻结的 `zhku.streaming.*`，之后为答案卡后端侧（前端 UI 归 WB-1） |
+| 状态 | 🟡 待协商（已快进主线 `6e0909e`） |
+| 最新提交 | `6e0909e`（主线状态板更新已同步） |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -84,6 +84,7 @@
 | 线 A / 线 B 归属 | WorkBuddy | 默认 WorkBuddy=线A、另一 Agent=线B；如互换，改本节与第二节两行即可 | ⏳ 待确认 |
 | Spring AI 依赖与 classpath 隔离断言 | 线 A 提问 / WB-1 决策 | 线 A 提出 A（授权改隔离断言）/ B（独立模块）/ C（自实现客户端）三选一。**2026-09-17 用户经 WB-1 决策：不选 A**——该断言（`com.zhku.agent.agent.DefaultAgentFactory` 不可见于 knowledge 预览 classpath）是"不暴露 agent 高权限工具"的机械保障，属项目核心资产。执行顺序：先定位可见性来源，**优先用 `exclusion`/装配层隔离解决（不改断言、不加模块）**；若结构上绕不开，则建独立模块（B）；C 仅在 B 也不可行时考虑 | ✅ 已决策（待线 A 报告根因） |
 | HTTP 装配是否现在做 | 线 A 提问 / WB-1 决策 | **2026-09-17 用户经 WB-1 批准：现在做**——属阶段 8 退出条件（跑通"…→ 引用校验 → 回答卡"）；只追加已冻结字段 `route`/`handoffRequired`，不改旧字段语义；占用已登记。注意：`ZhkuLocalPreviewConfiguration` 后续线 B 的 JDBC 配置切换也要动，合并时以"先合并方先落"处理，冲突时在状态板登记 | ✅ 已批准 |
+| SSE HTTP 接入边界 | CX-1 | SSE 需基于本机预览会话门面输出冻结字段 `revision`、`conversationStatus`、`route`、`handoffRequired`，但 `ZhkuLocalPreviewConfiguration`、`LocalPreviewConversationFacade` 与会话 Controller 当前由线 A 占用。待确认：线 B 是否新建独立 streaming Controller 并等待线 A 的门面字段合入，或由线 A 完成 HTTP 统一装配后线 B 再接入。 | 🟡 待用户/线 A 确认（2026-09-17） |
 
 ## 五、冻结契约（开分前由双方共同确认，确认后只追加）
 
