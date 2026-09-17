@@ -114,3 +114,45 @@
 | 时间 | 合并内容 | 来源分支 | 目标基线 | 检查清单通过 |
 | --- | --- | --- | --- | --- |
 | （暂无） | | | | |
+
+## 八、引用载荷实际下发形态（WB-1 做前端引用卡 UI 的依据）
+
+> 登记方：WB-3（线 A）2026-09-17 17:45。数据来源：阶段 8 HTTP 装配（提交见第二节线 A 行）。
+> 原则同冻结契约：**只追加**；旧字段语义不变。
+
+**接口**：`POST /api/zhku/local-preview/conversations/{sessionId}/messages`（body：`{"message":"…"}`）
+
+**响应体（会话消息）实际形态**：
+
+```json
+{
+  "type": "ANSWER",
+  "message": "每学期公共选修课最高修读 4 学分。",
+  "answer": null,
+  "route": "RETRIEVAL_AUGMENTED",
+  "handoffRequired": false,
+  "citationIds": ["cit-3f9a…"]
+}
+```
+
+| 字段 | 类型 | 语义 | 新旧 |
+| --- | --- | --- | --- |
+| `type` | 枚举字符串 | 既有语义不变：`ANSWER` / `NEED_CLARIFICATION` / `EVIDENCE_UNAVAILABLE` / `OUT_OF_SCOPE` / `SESSION_EXPIRED` / `SESSION_CANCELLED` / `SESSION_INVALID` | 旧（语义不变） |
+| `message` | 字符串 | 面向学生的正文 | 旧 |
+| `answer` | 对象或 null | 既有回答卡：`{conclusion, basis, sourceId, sourceTitle, sourceVersion, sourceLocator, applicableScope}`；**仅"当期通知/规则"级有卡**，检索增强级为 null | 旧（语义不变） |
+| `route` | 枚举字符串 | 五级路由结论：`AWAITING_CLARIFICATION` / `CURRENT_NOTICE` / `HIGH_RISK_RULE` / `RETRIEVAL_AUGMENTED` / `INSUFFICIENT_EVIDENCE` | **新（只追加）** |
+| `handoffRequired` | 布尔 | 是否需转人工渠道（拒答、会话异常、模型降级时为 true） | **新（只追加）** |
+| `citationIds` | 字符串数组 | 服务端为本轮获准证据分配的**不透明标识**；前端只作锚点/透传，**不得解析其含义**；可用它到后端核对来源 | **新（只追加）** |
+
+**关键约束（前端必须知道的）**：
+1. `citationIds` 只在 `route=RETRIEVAL_AUGMENTED` 时非空；其他级别为空数组。标识形如 `cit-<24 位十六进制>`（`RandomCitationIdFactory`），不可预测、同轮不重复。
+2. 全不命中时：`type=OUT_OF_SCOPE`（**旧值不变**）+ `route=INSUFFICIENT_EVIDENCE` + `handoffRequired=true`——请以 `route`/`handoffRequired` 判断"该转人工"，不要用 `type` 判断。
+3. **当前缺口（下一轮补齐，字段名与结构预先登记，WB-1 可先按此预留 UI）**：本版响应只有不透明 `citationIds`，**不带每条引用的标题/定位/页码**。下一轮将追加 `citations` 明细数组（只追加，不影响旧字段）：
+   ```json
+   "citations": [
+     {"citationId": "cit-3f9a…", "sourceTitle": "公共选修规则手册", "sourceLocator": "第 1 页", "pageNumber": 1}
+   ]
+   ```
+   引用卡 UI 建议：先按 `citationIds.length` 渲染锚点，明细到位后填充标题/定位；两者长度恒等且顺序一致。
+4. **流式（SSE）尚无载荷可登记**：本机预览当前是同步响应；SSE 属线 B 的 `zhku.streaming.*`，其事件内嵌字段将沿用 `route`/`handoffRequired`/`citationIds`（冻结契约已约定），待线 B 交付后由该线登记事件形态。
+5. 另有一个单轮问答接口 `POST /api/zhku/local-preview/answers`（`mode/answer/citations/notice`），属阶段 5 既有路径，**不在本次引用卡链路内**，未被改动。

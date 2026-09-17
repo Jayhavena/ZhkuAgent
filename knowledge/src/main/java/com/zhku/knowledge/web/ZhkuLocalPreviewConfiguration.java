@@ -137,13 +137,30 @@ public class ZhkuLocalPreviewConfiguration {
     }
 
     @Bean
-    LocalPreviewConversationFacade zhkuLocalPreviewConversationFacade(
+    LocalPreviewAnswerChain zhkuLocalPreviewAnswerChain(
             ConversationStore zhkuLocalPreviewConversationStore,
             PublicElectiveConversationRouter zhkuLocalPreviewConversationRouter,
+            ObjectProvider<CourseSelectionNoticeService> zhkuLocalPreviewCourseSelectionNoticeService,
+            ObjectProvider<com.zhku.knowledge.rag.RetrievalAugmentedAnswerService>
+                    zhkuLocalPreviewRetrievalService,
+            Clock zhkuLocalPreviewClock) {
+        // 检索增强级可缺省：未配置 zhku.rag.* 时为 null，该级整体跳过，链路退化为既有四级行为。
+        return new LocalPreviewAnswerChain(
+                zhkuLocalPreviewConversationStore,
+                zhkuLocalPreviewConversationRouter,
+                zhkuLocalPreviewCourseSelectionNoticeService.getIfAvailable(),
+                zhkuLocalPreviewRetrievalService.getIfAvailable(),
+                zhkuLocalPreviewClock);
+    }
+
+    @Bean
+    LocalPreviewConversationFacade zhkuLocalPreviewConversationFacade(
+            ConversationStore zhkuLocalPreviewConversationStore,
+            LocalPreviewAnswerChain zhkuLocalPreviewAnswerChain,
             Clock zhkuLocalPreviewClock) {
         return new LocalPreviewConversationFacade(
                 zhkuLocalPreviewConversationStore,
-                zhkuLocalPreviewConversationRouter,
+                zhkuLocalPreviewAnswerChain,
                 zhkuLocalPreviewClock,
                 CONVERSATION_TTL);
     }
