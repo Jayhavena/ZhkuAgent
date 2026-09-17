@@ -32,8 +32,8 @@
 | 项 | 值 |
 | --- | --- |
 | 主线分支 | `zhkuagent-modules`（只接收合并，不直接开发） |
-| 当前基线提交 | `7dce9e5`（2026-09-17 **首次合并**：线 B 会话持久化 JDBC + 校园工具集 + Function Calling；此前的 `0c9e449` 为阶段 5/6/7 收口与安全整改） |
-| 最近合并 | `campus-line-b` → 主线（`7dce9e5`，纯快进，33 文件 +3093，检查清单九项全过） |
+| 当前基线提交 | `7414586`（2026-09-17 **第二次合并**：线 A 阶段 8 主体——五级路由 + 受控检索 + 生成守卫 + 评测 + HTTP 装配 + `V9`；首次合并为 `7dce9e5` 线 B 会话持久化与工具集） |
+| 最近合并 | `campus-line-a` → 主线（`7414586`，纯快进，86 文件 +6136，检查清单逐条核对通过） |
 
 > ✅ 2026-09-16 事故已闭环：本机 git 环境对"带斜杠的引用"（如 `codex/xxx`）写入存在缺陷，commit 触发的自动 gc 曾清空 `refs/heads/codex/`。**全部 6 个分支已迁移为顶层无斜杠命名**（`zhkuagent-modules` / `campus-line-a` / `campus-line-b` / `agent-run-context` / `zhkuagent-mvp` / `backup-fc7d153-before-amend`），`codex/*` 引用已删除，`gc.auto 0` 已设，并新增 `scripts/safeguard-refs.ps1` + post-commit 钩子自动守护。
 >
@@ -48,9 +48,9 @@
 | 分支 | `campus-line-a`（2026-09-17 已快进至主线 `7c94e20`） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineA`（2026-09-17 已创建，专属本线） |
 | Flyway 号段 | `V9`–`V11` |
-| 当前任务 | 阶段 8（WB-3）十批已提交：①五级路由编排器 ②V9 迁移 ③资格过滤/事实切分/profile 原子切换/RRF 融合 ④JDBC 索引任务 ⑤词法+向量召回与降级 ⑥检索增强作答编排+引用审计 ⑦provider 配置与合同测试 ⑧**首份评测基线**（`retrieval-golden-v1, K=3, N=4, Recall@3=1.0000, MRR=1.0000, 引用准确率=0.8750`，向量路不可用、降级运行）⑨三级处理器语义适配 ⑩**HTTP 装配已完成**（五级链路接进本机预览，只追加 `route`/`handoffRequired`/`citationIds`；引用载荷形态见第八节）。全量回归 248 通过/0 失败。**Spring AI 依赖引入仍受阻**：已按用户指示完成根因取证（`ChatModel`/`EmbeddingModel` 同属 `spring-ai-model`，`<exclusion>` 与装配层隔离均被证据否决），下一步按 B（独立模块）推进 |
-| 状态 | 🟡 推进中，含 1 项阻塞待决策（Spring AI 走 B 或 C）（WB-3，2026-09-17） |
-| 最新提交 | `625d795`（十批：HTTP 装配 + 引用载荷形态登记；随后快进合并主线 `7dce9e5`） |
+| 当前任务 | 阶段 8（WB-3）十批已提交并**合并入主线 `7414586`**（①五级路由 ②V9 迁移 ③资格过滤/切分/profile 原子切换/RRF ④JDBC 索引 ⑤词法+向量召回与降级 ⑥作答编排+引用审计 ⑦provider 配置与合同测试 ⑧首份评测基线 ⑨三级处理器语义适配 ⑩HTTP 装配）。**剩余**：Spring AI 段——按最终决策走「精确化断言」（不建独立模块）：`knowledge/pom.xml` 引入版本锁定依赖 + 迁移 `springai-wip/` 适配器入 `knowledge/rag` + 改断言（加强 agent/工具不可见 + 类存在性换行为断言）；之后是真实 embedding profile 打开向量路与证据账本补充 |
+| 状态 | 🟢 活动中（主体已合并；Spring AI 段进行中） |
+| 最新提交 | `7414586`（与主线同点；下一轮开发请在快进后继续） |
 
 ### 线 B：工具 + 编排（Agent：Codex 会话，见第零节 CX-1）
 
@@ -67,22 +67,25 @@
 
 | 文件 / 目录 | 占用方 | 任务 | 声明时间 |
 | --- | --- | --- | --- |
-| `knowledge/pom.xml` | WB-3（线 A） | 阶段 8 任务 3 拟引入 Spring AI 依赖；**因与既有 classpath 隔离测试互斥，已于 16:45 回退，未提交**（详见第四节 Spring AI 条）。占用登记保留至该项落地（当前决策：不走 A，下一步评估 B） | 2026-09-17 16:41（16:45 回退） |
-| `knowledge/src/main/resources/db/migration/V9*` | WB-3（线 A） | 阶段 8 元数据迁移（线 A 号段 `V9`–`V11`，本次首用 `V9`，已提交） | 2026-09-17 16:41 |
-| `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧（资格过滤/切分/profile/索引/召回/路由/生成守卫/评测）；`retrieval/` 与 `eval/` 未列入持续开发指令的"只改你地盘"清单，按"检索侧"处理并在此登记；线 B 未占用这些路径 | 2026-09-17 16:41 |
-| `docs/evidence/` | WB-3（线 A） | 阶段 8 证据账本（`2026-09-17-阶段8-受控检索增强-证据账本.md`） | 2026-09-17 16:41 |
-| `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java`、`LocalPreviewConversationFacade.java`、`ZhkuLocalPreviewConversationController.java` 及对应测试 | WB-3（线 A） | 阶段 8 装配：把五级编排器（澄清/通知/规则三级经语义适配）+ 检索增强作答接进本机预览回答链路；**只追加**已冻结字段（`route`/`handoffRequired`/`citationIds`），不改旧字段语义。**已完成并提交 `625d795`**（全量回归 248 绿）；占用保留至合并回主线 | 2026-09-17 17:24（17:45 完成） |
+| `knowledge/pom.xml` | WB-3（线 A） | 阶段 8 任务 3 引入版本锁定 Spring AI 依赖。**最终决策已定：走"精确化断言"，不在 pom 之外另建模块**（见第四节 Spring AI 条），故本占用继续有效；改动前后按高冲突文件规则处理 | 2026-09-17（16:45 曾因断言互斥回退，现按新决策继续） |
+| `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧（`retrieval/`、`eval/` 经用户确认补入线 A 地盘，见第四节）；线 B 未占用这些路径 | 2026-09-17 16:41 |
+| `docs/evidence/` | WB-3（线 A） | 阶段 8 证据账本 | 2026-09-17 16:41 |
 
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
+>
+> ⚠️ **合并陷阱（2026-09-17 实例）**：同一行被双方同时修改时（如第四节的决策条目），
+> 后合并方的版本会覆盖先合并方——本次 `campus-line-a` 合并即覆盖了 WB-1 写入的
+> "不走 B" 决策文字。**纪律**：合并状态板冲突时必须**逐段合并**（双方内容都保留），
+> 尤其不得让"决策/根因"类内容丢失；合并后由合并方核对第四节是否含双方最新结论。
 
 ## 四、待协商事项
 
 | 事项 | 提出方 | 说明 | 状态 |
 | --- | --- | --- | --- |
 | 前端归属移交 | WB-1 / CX-1 | 用户指定前端（`agent/frontend/`）由 WB-1 负责；原线 B 分工中"体验"部分相应剥离，CX-1 已确认不再改前端文件 | ✅ 已确认（2026-09-17） |
-| Spring AI 依赖与 classpath 隔离断言 | 线 A 提问 / WB-1 决策 | **2026-09-17 用户经 WB-1 决策：不选 A**——隔离断言（`com.zhku.agent.agent.DefaultAgentFactory` 不可见于 knowledge 预览 classpath）是"不暴露 agent 高权限工具"的机械保障，属项目核心资产。执行顺序：先定位可见性来源 → 优先 `exclusion`/装配层隔离（不改断言、不加模块）→ 结构上绕不开再建独立模块（B）→ C 仅在 B 也不可行时考虑。**线 A 根因报告（2026-09-17 17:35，证据见下）**：① 实际失败断言是同一测试里的 `org.springframework.ai.chat.model.ChatModel` 不可见（`ZhkuLocalPreviewApplicationTest:20`、`ZhkuLocalAdminApplicationTest:27`）；② 依赖树取证（`mvn dependency:tree -Dincludes=org.springframework.ai:*`）：`knowledge → spring-ai-openai:1.0.9 → spring-ai-model:1.0.9`，`ChatModel`/`EmbeddingModel` 与 `spring-ai-vector-store` 的 `VectorStore` 分别落在 `spring-ai-model` / `spring-ai-vector-store`（jar 内类清单已核）；③ `<exclusion>` 不可行——排除 `spring-ai-model` 即等于排除要用的 `ChatModel`/`EmbeddingModel` 接口，适配器与 PgVectorStore 全部不可用；④ 装配层隔离不可行——surefire `classpathDependencyExcludes` 只让测试 JVM 看不到该依赖，产物 classpath 仍含 `ChatModel`，属**假绿**，比红灯更糟。结论：**"断言不变 + Spring AI 进 knowledge 模块"在结构上不可同时成立** → 按用户既定顺序，下一步走 **B（独立模块承载 Spring AI，knowledge 保持零 Spring AI 依赖；预览用 provider-neutral 接口 + 自实现客户端）** | ✅ 已决策；**根因已报告，待确认走 B** |
-| 线 A 地盘清单与实际交付包不一致 | WB-3（线 A） | 持续开发指令第一节把线 A 地盘列为 `routing/`、`rag/`、`eval/`、`answer/`，但阶段 8 计划要求的检索侧实现落在 `com.zhku.knowledge.retrieval/`。已在第三节登记占用并继续推进（线 B 未占用该路径）；建议把 `retrieval/`、`docs/evidence/` 补入线 A 地盘清单 | ⏳ 待用户确认 |
+| Spring AI 依赖与 classpath 隔离断言 | 线 A 取证 / WB-1 决策 | **线 A 根因报告（2026-09-17 17:35，证据可复核）**：① 实际失败断言是 `ZhkuLocalPreviewApplicationTest:20` 的 `org.springframework.ai.chat.model.ChatModel` 不可见（另 `ZhkuLocalAdminApplicationTest:27`）；② 依赖树 `knowledge → spring-ai-openai:1.0.9 → spring-ai-model:1.0.9`，`ChatModel`/`EmbeddingModel` 同在 `spring-ai-model`、`VectorStore` 在 `spring-ai-vector-store`；③ `<exclusion>` 不可行（排除即排除掉要用的接口）；④ 测试层 `classpathDependencyExcludes` 只影响测试 JVM、产物仍带 `ChatModel` = **假绿**（线 A 已拒绝采用）。**最终决策：A 与 B 均不采用，改为「精确化断言」**——路线图明确"阶段 8 可在 knowledge 模块引入版本锁定的 Spring AI 依赖"、已批准计划亦要求改 `knowledge/pom.xml`，故失败那条属**被上层设计取代的过期断言**（其意图"预览应用无模型栈"已不成立），而 `DefaultAgentFactory` 那条才是真正的安全边界；建独立模块（B）属计划外变更且会在阶段 8 中途引入跨模块接口改动。执行要求：① 保留并**加强**安全断言（`com.zhku.agent.agent.DefaultAgentFactory` 及高权限工具包不可见）；② 把"`ChatModel` 类不存在"换成**行为断言**（未配置 `zhku.rag.*` 时不创建模型相关 bean、不发生模型调用）；③ 测试内注明改动理由；④ 本行即该守卫变更的透明登记；`springai-wip/` 适配器迁入 `knowledge/rag`，不建新模块 | ✅ 已决策（守卫变更已透明登记；文字曾于 `campus-line-a` 合并时被覆盖，2026-09-17 由 WB-1 恢复） |
+| 线 A 地盘清单与实际交付包不一致 | WB-3（线 A） | 持续开发指令第一节把线 A 地盘列为 `routing/`、`rag/`、`eval/`、`answer/`，但阶段 8 计划要求的检索侧实现落在 `com.zhku.knowledge.retrieval/`。**2026-09-17 用户经 WB-1 确认：同意把 `retrieval/`、`docs/evidence/` 补入线 A 地盘**（线 B 未占用）；持续开发指令已就地更新 | ✅ 已确认（2026-09-17） |
 | 「统一路由编排器」职责重叠 | WB-1 / CX-1 / 线 A | 分工表把"统一路由编排器"同时列在线 B 交付内容，而线 A 的拥有目录含 `knowledge/.../routing/`，阶段 8 计划也由 `KnowledgeAnswerOrchestrator` 承载五级路由测试。**确认边界**：路由判定规则与顺序（五级短路逻辑）归线 A 的 `routing/`；线 B 只提供工具与注册接口（`tools/`），由线 A 的编排器经接口调用，线 B 不改编排器文件；线 B 若需新增"工具分支"，先在状态板登记 | ✅ 双方已确认（CX-1 2026-09-17；线 A 2026-09-17 16:41） |
 | 阶段 8/9/10 迁移号段过期 | WB-1 | 三份计划原写 `V7`/`V8`/`V9`，与既有迁移及已冻结号段冲突。**2026-09-17 用户确认处置**：阶段 8 改用 `V9`；阶段 9/10 号段待分配，由线 A 在阶段 8 交付后按"只追加"原则登记（预期 `V15`/`V16` 起）；三份计划文件已就地更正并标注"登记完成前不得创建迁移文件" | ✅ 已处置（待阶段 8 交付后分配 9/10 号段） |
 | README 修正 | WorkBuddy | 根 README 与 knowledge README 仍写"未实现两轮追问"，与实际不符；待指派由谁修 | ⏳ 待指派 |
@@ -112,16 +115,16 @@
 
 ## 六、下次合并点
 
-- 线 A 阶段 8 交付（R1 链路跑通 + 引用校验 + 回答卡 + 基线报告）后合并回主线；
-- 线 B `SSE 流式输出` 独立可编译测试通过后即可再次合并（不等待线 A）；
-- 每次合并后由被合并方快进跟上新基线。
+- 线 A 剩余增量（Spring AI 精确化断言 + `pom.xml` + 适配器迁入 + 真实 embedding profile 打开向量路 + 证据账本补充）完成后再次合并；
+- 线 B `SSE 流式输出`：**前置已解除**（线 A 的 HTTP 装配已于 `7414586` 合入主线，响应契约稳定），可立即开工；独立可编译测试通过即可合并；
+- 每次合并后由被合并方快进跟上新基线；合并状态板冲突时按第三节"合并陷阱"纪律逐段合并。
 
 ## 七、合并记录
 
 | 时间 | 合并内容 | 来源分支 | 目标基线 | 检查清单通过 |
 | --- | --- | --- | --- | --- |
-| 2026-09-17 | 首次合并：会话持久化 JDBC（`V12`）+ 校园工具集 + Function Calling（33 文件） | `campus-line-b` | `7dce9e5` | ✅ 九项 |
-| （线 A 合并待阶段 8 交付后执行） | | | | |
+| 2026-09-17 | 首次合并：会话持久化 JDBC（`V12`）+ 校园工具集 + Function Calling（33 文件 +3093） | `campus-line-b` | `7dce9e5` | ✅ 九项 |
+| 2026-09-17 | 第二次合并：阶段 8 主体（五级路由 + 受控检索 + 生成守卫 + 引用审计 + 评测基线 + HTTP 装配 + `V9`，86 文件 +6136） | `campus-line-a` | `7414586` | ✅ 逐条核对（纯快进、零冲突；分支工作区另有未提交的 Spring AI 段，不在本次范围） |
 
 ## 八、引用载荷实际下发形态（WB-1 做前端引用卡 UI 的依据）
 
