@@ -1,6 +1,7 @@
 package com.zhku.knowledge.web.streaming;
 
 import com.zhku.knowledge.conversation.ConversationStore;
+import com.zhku.knowledge.conversation.ConversationState;
 import com.zhku.knowledge.conversation.InMemoryConversationStore;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeConversationService;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeEvidence;
@@ -66,6 +67,36 @@ class ConversationStreamProcessorTest {
                         false,
                         List.of());
         assertThat(writer.events.get(2).payload()).isEqualTo(writer.events.get(1).payload());
+    }
+
+    @Test
+    void shouldKeepCitationDetailsAlignedWithCitationIdsInReplyEvent() {
+        UUID sessionId = UUID.randomUUID();
+        LocalPreviewAnswerChain.CitationView citation = new LocalPreviewAnswerChain.CitationView(
+                "cit-0123456789abcdef01234567",
+                "公共选修规则手册",
+                "第 1 页",
+                1
+        );
+        LocalPreviewConversationFacade.ConversationReply reply =
+                new LocalPreviewConversationFacade.ConversationReply(
+                        ElectiveRetakeReplyType.ANSWER,
+                        "已找到可核验证据。",
+                        null,
+                        AnswerRoute.RETRIEVAL_AUGMENTED,
+                        false,
+                        List.of(citation.citationId()),
+                        List.of(citation)
+                );
+
+        ConversationStreamEvent event = ConversationStreamEvent.reply(
+                sessionId,
+                ConversationState.active(sessionId, CLOCK.instant().plus(TTL)),
+                reply
+        );
+
+        assertThat(event.citationIds()).containsExactly(citation.citationId());
+        assertThat(event.citations()).containsExactly(citation);
     }
 
     private static LocalPreviewConversationFacade facade(ConversationStore store) {
