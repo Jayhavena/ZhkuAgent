@@ -32,8 +32,8 @@
 | 项 | 值 |
 | --- | --- |
 | 主线分支 | `zhkuagent-modules`（只接收合并，不直接开发） |
-| 当前基线提交 | `e9cdf84`（2026-09-17 **第三次合并**：线 A Spring AI 精确化断言 + 引用明细 `citations[]` + 版本指纹；此前的 `7414586` 为阶段 8 主体、`7dce9e5` 为线 B 会话持久化与工具集） |
-| 最近合并 | `campus-line-a` → 主线（`e9cdf84`，纯快进，21 文件 +936，检查清单逐条核对通过） |
+| 当前基线提交 | `1573507`（2026-09-18 **第五次合并**：线 B SSE 流式输出；`b333392` 为第四次合并=线 A DashScope 配置/端点归一化/smoke 用例；更早 `e9cdf84` 为第三次） |
+| 最近合并 | `campus-line-b` → 主线（`1573507`，真合并，冲突 1 处 yml 按"逐段保留双方"解决） |
 
 > ✅ 2026-09-16 事故已闭环：本机 git 环境对"带斜杠的引用"（如 `codex/xxx`）写入存在缺陷，commit 触发的自动 gc 曾清空 `refs/heads/codex/`。**全部 6 个分支已迁移为顶层无斜杠命名**（`zhkuagent-modules` / `campus-line-a` / `campus-line-b` / `agent-run-context` / `zhkuagent-mvp` / `backup-fc7d153-before-amend`），`codex/*` 引用已删除，`gc.auto 0` 已设，并新增 `scripts/safeguard-refs.ps1` + post-commit 钩子自动守护。
 >
@@ -59,20 +59,18 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表） |
-| 当前任务 | SSE 流式输出已完成代码与回归；待 `docs/evidence/` 占用边界确认后补证据并合并。之后为答案卡后端侧（前端 UI 归 WB-1） |
-| 状态 | 🟡 待证据账本占用协调 |
-| 最新提交 | `04d9ab6`（SSE 实现与测试；`mvn -pl knowledge test` 276 项通过） |
+| 当前任务 | 会话持久化 JDBC ✅、校园工具集 + Function Calling ✅、**SSE 流式输出 ✅（已合并入主线 `1573507`）**。**下一项：答案卡后端侧**（前端 UI 归 WB-1，已在推进）；`docs/evidence/` 占用协调已随合并解决 |
+| 状态 | 🟢 活动中（三项交付已合并） |
+| 最新提交 | `99ed3be`（SSE 交付状态更新）；代码实现 `04d9ab6`。下一轮请先快进主线到 `1573507` 再开工 |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
 | 文件 / 目录 | 占用方 | 任务 | 声明时间 |
 | --- | --- | --- | --- |
-| `knowledge/pom.xml` | WB-3（线 A） | 阶段 8 任务 3 引入版本锁定 Spring AI 依赖（`spring-ai-bom` 1.0.9 + `spring-ai-openai` + `spring-ai-pgvector-store`，只引库模块不引 starter）。**最终决策已定：走"精确化断言"，不在 pom 之外另建模块**（见第四节 Spring AI 条）；**已按此落地并提交 `b3918f9`**（同步精确化两条隔离断言） | 2026-09-17 16:41（16:45 曾回退；17:55 依决策正式引入） |
-| `knowledge/src/main/resources/db/migration/V9*` | WB-3（线 A） | 阶段 8 元数据迁移（线 A 号段 `V9`–`V11`，本次首用 `V9`，已提交） | 2026-09-17 16:41 |
-| `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧（`retrieval/`、`eval/` 经用户确认补入线 A 地盘，见第四节）；线 B 未占用这些路径 | 2026-09-17 16:41 |
-| `docs/evidence/` | WB-3（线 A） | 阶段 8 证据账本（`2026-09-17-阶段8-受控检索增强-证据账本.md`） | 2026-09-17 16:41 |
-| `knowledge/src/main/resources/application-zhku-local-preview.yml` | WB-3（线 A） | 阶段 8 真实 provider 打通：写入 `zhku.rag.profiles.dashscope.*`（base-url / api-key-env-var / chat-model / embedding-model / embedding-dimensions / timeout / index-profile）与 `active-profile`、`retrieval-scope`、`top-k`；**刻意不写 `zhku.rag.enabled`**（默认关闭，链路由此不启用模型）；文件内只出现环境变量名，绝不含密钥值 | 2026-09-17 18:30 |
-| `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java`、`LocalPreviewConversationFacade.java`、`ZhkuLocalPreviewConversationController.java` 及对应测试 | WB-3（线 A） | 阶段 8 装配：五级链路接进本机预览回答链路；**只追加** `route`/`handoffRequired`/`citationIds`/`citations`，旧字段语义不变。**已提交 `625d795`（装配）与 `b3918f9`（引用明细）**；占用保留至合并回主线 | 2026-09-17 17:24（17:45 / 18:05 完成） |
+| `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧（真实 provider 打通、向量路开启、第二份基线尚未完成） | 2026-09-17 16:41 |
+| `docs/evidence/` | WB-3（线 A）/ WB-1 / CX-1 | 各线证据账本（**共享目录，新增文件不构成冲突**；只追加、不改他线文件） | 2026-09-17 16:41 |
+| `knowledge/src/main/resources/zhku/local-preview/index.html`（校园问答本机预览页） | **WB-1** | 前端改版：去掉页脚免责声明、接入引用卡（`route`/`handoffRequired`/`citationIds`/`citations`）。依据：前端体验职责已由 CX-1 移交 WB-1，本文件为校园问答的唯一界面载体（Vue 应用无该链路） | 2026-09-18 20:44 |
+| `knowledge/src/main/resources/application-zhku-local-preview.yml` | 已合并（两线共用） | 线 A 的 `zhku.rag.*` 与线 B 的 `zhku.streaming.*` 现已并存于主线；**此后任何一方再改此文件前须重新登记**（本次合并冲突即发生在此文件） | 2026-09-18 20:44 |
 
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
@@ -138,6 +136,8 @@
 | 2026-09-17 | 首次合并：会话持久化 JDBC（`V12`）+ 校园工具集 + Function Calling（33 文件 +3093） | `campus-line-b` | `7dce9e5` | ✅ 九项 |
 | 2026-09-17 | 第二次合并：阶段 8 主体（五级路由 + 受控检索 + 生成守卫 + 引用审计 + 评测基线 + HTTP 装配 + `V9`，86 文件 +6136） | `campus-line-a` | `7414586` | ✅ 逐条核对（纯快进、零冲突；分支工作区另有未提交的 Spring AI 段，不在本次范围） |
 | 2026-09-17 | 第三次合并：Spring AI 精确化断言（7 类 agent 类安全断言 + 行为断言）+ `citations[]` 引用明细 + 版本指纹（21 文件 +936） | `campus-line-a` | `e9cdf84` | ✅ 逐条核对（纯快进；`pom.xml` 为全仓唯一一次变更、无冲突面） |
+| 2026-09-18 | 第四次合并：DashScope profile 配置（仅环境变量名）+ 端点 `/v1` 路径归一化 + 真实 smoke 用例（显式 opt-in）+ 验收手册包名修复 + 账本（10 文件 +212） | `campus-line-a` | `b333392` | ✅ 核对（状态板自动合并；决策文字完整） |
+| 2026-09-18 | 第五次合并：SSE 流式输出（`web/streaming/` 5 类 + 会话控制器端点 + 2 测试类 + 设计/计划文档） | `campus-line-b` | `1573507` | ✅ 核对（冲突 1 处 `application-zhku-local-preview.yml`，按"逐段保留双方"解决：`zhku.rag.*` 与 `zhku.streaming.*` 并存） |
 
 ## 八、引用载荷实际下发形态（WB-1 做前端引用卡 UI 的依据）
 
