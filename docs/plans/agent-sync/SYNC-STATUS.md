@@ -179,6 +179,6 @@
 1. `citationIds` / `citations` 只在 `route=RETRIEVAL_AUGMENTED` 时非空；其他级别为空数组（`[]`）。标识形如 `cit-<24 位十六进制>`（`RandomCitationIdFactory`），不可预测、同轮不重复。
 2. 全不命中时：`type=OUT_OF_SCOPE`（**旧值不变**）+ `route=INSUFFICIENT_EVIDENCE` + `handoffRequired=true`——请以 `route`/`handoffRequired` 判断"该转人工"，不要用 `type` 判断。
 3. 引用卡 UI：直接按 `citations[]` 渲染（标题 + 定位 + 页码），`citationIds` 作锚点/透传即可；两者顺序一致，无需自行配对。明细由服务端在同一次分配中产生，**不经过模型**，模型无法影响它。
-4. **流式（SSE）尚无载荷可登记**：本机预览当前是同步响应；SSE 属线 B 的 `zhku.streaming.*`，其事件内嵌字段将沿用 `route`/`handoffRequired`/`citationIds`/`citations`（冻结契约已约定），待线 B 交付后由该线登记事件形态。
+4. **流式（SSE）实际载荷（CX-1，2026-09-18）**：同一会话消息地址以 `Accept: text/event-stream` 协商，顺序为 `accepted` → `reply` → `complete`。三类事件均有 `sessionId`、`revision`、`conversationStatus`；`reply`/`complete` 实际下发 `type`、`message`、`answer`、`route`、`handoffRequired`、`citationIds`，`accepted` 的作答字段为 `null`/空数组。**当前 SSE 尚未下发 `citations[]` 明细**（同步响应已下发）：这是线 B 答案卡后端侧的首项缺口，不得对前端宣称已支持；完整证据见 `docs/evidence/2026-09-18-SSE流式输出-证据账本.md`。
 5. 另有一个单轮问答接口 `POST /api/zhku/local-preview/answers`（`mode/answer/citations/notice`），属阶段 5 既有路径，**不在本次引用卡链路内**，未被改动。
 6. 检索增强级默认**关闭**（未配置 `zhku.rag.*` 时整级跳过）：未开启时不会出现 `route=RETRIEVAL_AUGMENTED`，前端引用卡按"无引用"分支即可。
