@@ -69,9 +69,12 @@
 | --- | --- | --- | --- |
 | `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧（真实 provider 打通、向量路开启、第二份基线尚未完成） | 2026-09-17 16:41 |
 | `docs/evidence/` | WB-3（线 A）/ WB-1 / CX-1 | 各线证据账本（**共享目录，新增文件不构成冲突**；只追加、不改他线文件） | 2026-09-17 16:41 |
-| `knowledge/src/main/resources/zhku/local-preview/index.html`（校园问答本机预览页） | **WB-1** | 前端改版：去掉页脚免责声明、接入引用卡（`route`/`handoffRequired`/`citationIds`/`citations`）。依据：前端体验职责已由 CX-1 移交 WB-1，本文件为校园问答的唯一界面载体（Vue 应用无该链路） | 2026-09-18 20:44 |
 | `knowledge/src/main/resources/application-zhku-local-preview.yml` | 已合并（两线共用） | 线 A 的 `zhku.rag.*` 与线 B 的 `zhku.streaming.*` 现已并存于主线；**此后任何一方再改此文件前须重新登记**（本次合并冲突即发生在此文件） | 2026-09-18 20:44 |
 
+> 已完成并清除的占用：WB-1 对 `knowledge/src/main/resources/zhku/local-preview/index.html` 的占用
+> （页面改版已交付，提交 `0483e6e`：引用卡 UI + 删除页脚免责声明 + 明暗验收截图）。
+> 后续如把 SSE 流式接进该页面，需重新登记占用。
+>
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
 >
