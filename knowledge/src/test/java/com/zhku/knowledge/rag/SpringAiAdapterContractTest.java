@@ -119,6 +119,37 @@ class SpringAiAdapterContractTest {
                 .hasMessageContaining("维度");
     }
 
+    @Test
+    void shouldNotDoubleVersionSegmentWhenBaseUrlAlreadyContainsV1() throws IOException {
+        // 真实厂商兼容模式端点常自带 /v1（如百炼 .../compatible-mode/v1）。
+        // 断言方式：把"双 /v1"路径接成必然失败（500）；正常路径沿用 setUp 的成功桩——
+        // 若归一化失效（请求打到 /v1/v1/chat/completions），本用例会以调用失败暴露。
+        server.createContext("/v1/v1/chat/completions", exchange -> {
+            byte[] bytes = "{}".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(500, bytes.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(bytes);
+            }
+        });
+        chatContent = """
+                {"answer":"ok","uncertainty":0.9,"citationIds":["cit-1"],"handoffRequired":false}
+                """;
+        String baseWithVersion = baseUrl + "/v1";
+        // 走生产同一份归一化逻辑（而非在测试里重复实现），确保被测行为与线上一致。
+        OpenAiApi api = OpenAiCompatibleApiPaths.builder(baseWithVersion, API_KEY).build();
+        SpringAiChatModelClient client = new SpringAiChatModelClient(
+                OpenAiChatModel.builder().openAiApi(api)
+                        .defaultOptions(OpenAiChatOptions.builder().model("stub-chat").build())
+                        .build(),
+                "stub");
+
+        ModelResponse response = client.call(new ModelRequest(
+                "约束", "问题", List.of(new ApprovedEvidence("cit-1", "证据", "来源"))));
+
+        assertThat(response.answer()).isEqualTo("ok");
+        assertThat(lastAuthorization.get()).isEqualTo("Bearer " + API_KEY);
+    }
+
     private OpenAiChatModel chatModel(String model) {
         OpenAiApi api = OpenAiApi.builder()
                 .baseUrl(baseUrl)

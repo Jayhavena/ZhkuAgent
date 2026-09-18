@@ -48,9 +48,9 @@
 | 分支 | `campus-line-a`（2026-09-17 已快进至主线 `7c94e20`） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineA`（2026-09-17 已创建，专属本线） |
 | Flyway 号段 | `V9`–`V11` |
-| 当前任务 | 阶段 8（WB-3）十二批已提交（①五级路由 ②V9 迁移 ③资格过滤/切分/profile 原子切换/RRF ④JDBC 索引 ⑤词法+向量召回与降级 ⑥作答编排+引用审计 ⑦provider 配置与合同测试 ⑧评测基线（含 Prompt/profile/chunking 版本指纹）⑨三级处理器语义适配 ⑩HTTP 装配 ⑪**Spring AI 1.0.9 按决策引入 + 隔离断言精确化**（安全断言加强为 7 类 agent 高权限工具不可见；"ChatModel 类不存在"改为"未配置 `zhku.rag.*` 不创建模型 bean"的行为断言）⑫**引用明细 `citations[]` 已下发**（标识+标题/定位/页码，与 `citationIds` 等长同序，供 WB-1 引用卡））。全量回归 **291 通过/0 失败**。**剩余**：真实供应商 smoke test（需用户提供密钥并显式 opt-in，属停止条件 4）、向量路需真实 embedding profile 才能真正打开 |
-| 状态 | 🟢 推进中（WB-3，2026-09-17）；**新增十一/十二批待合并回主线** |
-| 最新提交 | `84f456e`（账本）；功能提交 `b3918f9`（Spring AI + 断言精确化 + 引用明细）、`8e70646`（版本指纹） |
+| 当前任务 | 阶段 8（WB-3）**十四批**已提交。**真实 provider（百炼 DashScope）进展**：profile 配置（仅环境变量名）+ 端点路径归一化（避免 base-url 自带 `/v1` 时重复拼接）+ 显式 opt-in 的 `DashScopeProviderSmokeTest` 已就绪；**实测网络与端点可达**（收到阿里云 JSON 错误 + request_id），但**密钥被判 `401 invalid_api_key`**（形态诊断：长度 117、`sk-` 开头、不含空白/引号，不符合常见 `sk-`+32 形态）→ 已按停止条件登记第四节，等有效密钥。**因此：向量路未打开、第二份基线（含向量召回）暂记"待评测"**。其余 ①–⑫ 均已完成（含 `citations[]` 引用明细、评测基线含版本指纹）。全量回归 **294 通过 / 0 失败 / 3 跳过**（跳过含 2 个 smoke 的 opt-in 守卫）。顺带修掉验收手册启动主类旧包名笔误 |
+| 状态 | 🟡 推进中；1 项外部阻塞（需有效 `DASHSCOPE_API_KEY`）（WB-3，2026-09-17） |
+| 最新提交 | `2fbfc4f`（十五批：账本刷新到实测值并清掉过期条目）。上批 `44da0e1`（十四批：证据账本登记 401 受阻根因与形态诊断、全量回归结果；另含根 `.gitignore` 追加 `/.workbuddy/`——**属共享文件改动，已登记待协商**）、`4406fcb`（十三批：provider 配置/端点路径归一化/smoke 显式 opt-in/文档笔误；密钥 401 受阻已登记）。**相对主线 `zhkuagent-modules` 领先 2 个提交、反向落后 0**（纯快进条件具备），按线 A 硬性边界**不自行合并回主线**，等你执行 |
 
 ### 线 B：工具 + 编排（Agent：Codex 会话，见第零节 CX-1）
 
@@ -71,6 +71,7 @@
 | `knowledge/src/main/resources/db/migration/V9*` | WB-3（线 A） | 阶段 8 元数据迁移（线 A 号段 `V9`–`V11`，本次首用 `V9`，已提交） | 2026-09-17 16:41 |
 | `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧（`retrieval/`、`eval/` 经用户确认补入线 A 地盘，见第四节）；线 B 未占用这些路径 | 2026-09-17 16:41 |
 | `docs/evidence/` | WB-3（线 A） | 阶段 8 证据账本（`2026-09-17-阶段8-受控检索增强-证据账本.md`） | 2026-09-17 16:41 |
+| `knowledge/src/main/resources/application-zhku-local-preview.yml` | WB-3（线 A） | 阶段 8 真实 provider 打通：写入 `zhku.rag.profiles.dashscope.*`（base-url / api-key-env-var / chat-model / embedding-model / embedding-dimensions / timeout / index-profile）与 `active-profile`、`retrieval-scope`、`top-k`；**刻意不写 `zhku.rag.enabled`**（默认关闭，链路由此不启用模型）；文件内只出现环境变量名，绝不含密钥值 | 2026-09-17 18:30 |
 | `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java`、`LocalPreviewConversationFacade.java`、`ZhkuLocalPreviewConversationController.java` 及对应测试 | WB-3（线 A） | 阶段 8 装配：五级链路接进本机预览回答链路；**只追加** `route`/`handoffRequired`/`citationIds`/`citations`，旧字段语义不变。**已提交 `625d795`（装配）与 `b3918f9`（引用明细）**；占用保留至合并回主线 | 2026-09-17 17:24（17:45 / 18:05 完成） |
 
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
@@ -94,7 +95,9 @@
 | 真实 provider 打通与向量路（阶段 8 收尾） | 线 A 提问 / WB-1 核实 | 线 A 报告两项需外部资源：① 真实供应商 smoke test 需密钥 + 显式 opt-in；② 向量路需真实 embedding profile 才能真正打开（现为降级，首份基线已如实标注）。**WB-1 核实的硬约束**：DeepSeek 官方仅提供 chat 模型（`deepseek-flash`/`deepseek-v4-pro`），**无 embeddings 端点**，故 chat 与 embedding 无法由 DeepSeek 一家覆盖。**2026-09-17 用户决策：采用方案 B——改用阿里云百炼（DashScope）单供应商同时覆盖 chat + embedding**（避免配置拆分与第二套密钥）。参数与端点已登记于第五节；要求：密钥仅从环境变量 `DASHSCOPE_API_KEY` 读取、值不入库；真实 smoke 为显式 opt-in、结果与 profile/模型版本写入证据账本；完成后出**第二份基线（含向量召回）**，仍未过评测前不得宣称效果提升。**2026-09-18 WB-1 补充诊断（针对 401）**：线 A 实测网络/端点可达、收到厂商 `request_id`，鉴权为 `401 invalid_api_key`，且**密钥形态为长度 117、`sk-` 开头，不符合百炼常见 `sk-`+32 形态**。据此最可能的原因（按概率）：① **站点与端点不匹配**——阿里云文档明确"国际站 key 只能走国际端点、国内站 key 只能走国内端点"，用错即返回 401；② 该 key 并非百炼 API Key（长度不符，疑复制了其他平台/其他类型凭据）；③ key 被停用或无模型权限。**用户侧处置**：在百炼控制台确认 key 所属站点（国内 `bailian.console.aliyun.com` / 国际 `modelstudio.console.alibabacloud.com`），在新开的 PowerShell 窗口对**两个端点各跑一次**同一 curl 自检（国内 `https://dashscope.aliyuncs.com/compatible-mode/v1`、国际 `https://dashscope-intl.aliyuncs.com/compatible-mode/v1`），哪边通即用哪边并同步 `base-url`；两边皆 401 则回控制台重新生成 key（注意复制完整、无空格）。**2026-09-18 20:41 用户端自检结果：国内站端点返回 embedding 维度 1024、鉴权通过** → 站点确认为国内站，`base-url` 保持 `https://dashscope.aliyuncs.com/compatible-mode/v1` 不变。这与线 A 的 401 相矛盾，最可能原因是**两次使用的 key 值不同**（昨日环境变量中的值疑为 117 位误值）或**测试进程未继承新设置的环境变量**；处置：先比对环境变量值是否与刚验证通过的 key 一致，一致后在**新开终端**重跑 smoke | ⏳ 降级为"待确认环境变量一致性后重跑" |
 | agent/ 模块只读约定 | WorkBuddy | 首轮双方将 agent/ 视为只读资产；如需修改 ToolCallAgent 复用，先在此登记 | ⏳ 待确认 |
 | 线 A / 线 B 归属 | WorkBuddy | 默认 WorkBuddy=线A、另一 Agent=线B；如互换，改本节与第二节两行即可 | ⏳ 待确认 |
+| 根 `.gitignore` 追加 `/.workbuddy/` | 线 A（WB-3）自查登记 | **越界自查**：线 A 在 `44da0e1` 中顺手给根 `.gitignore` 追加了 `/.workbuddy/`（理由：该目录存协作临时日志，内含供应商响应片段与本机路径，不宜误入版本库）。该文件属**共享根文件、不在线 A 地盘**，严格说应先登记再做——特此补登记。影响面极小（仅忽略本机日志目录，不影响任何源码/配置），但**若你认为该变更应由其他线或用户统一收口，可 `git revert` 该片段或由你在收口时重写该行**，线 A 无异议 | ⏳ 待你的处置意见（当前已生效） |
 | Spring AI 依赖与 classpath 隔离断言 | 线 A 取证 / WB-1 决策 | **线 A 根因证据（可复核）**：依赖树 `knowledge → spring-ai-openai:1.0.9 → spring-ai-model:1.0.9`；`jar tf` 证实 `ChatModel`/`EmbeddingModel` 同在 `spring-ai-model`（排除该 artifact = 把要用的接口一起排除）；仅 surefire 层掩掉只影响测试 JVM、产物 classpath 仍带 `ChatModel` = 假绿（线 A 已拒绝采用）。失败断言实为 `ZhkuLocalPreviewApplicationTest:20` 的 **ChatModel classpath 存在性**那条，而非 agent 类那条。**2026-09-17 最终决策：不走 B（独立模块）**——路线图明确"阶段 8 可在 knowledge 模块引入版本锁定的 Spring AI 依赖"，已批准计划亦要求改 `knowledge/pom.xml`；建独立模块属计划外变更且会在阶段 8 中途引入跨模块接口改动。**改为精确化断言**（下述守卫变更即本行登记）：① 保留并**加强**安全断言——`com.zhku.agent.agent.DefaultAgentFactory` 及高权限工具包不可见；② 把"`ChatModel` 类不存在"换成**行为断言**——未配置 `zhku.rag.*` 时不创建模型相关 bean、不发生模型调用（从"类不存在"升级为"未配置不启用"）；③ 测试内注明改动理由（按 AGENTS.md 注释约定） | ✅ 已决策（守卫变更已透明登记） |
+| 真实 provider 冒烟受阻：`DASHSCOPE_API_KEY` 被阿里云判为无效 | 线 A（WB-3） | 按决策已跑真实 smoke（显式 opt-in：环境变量存在 + `-Dzhku.rag.smoke=true`；端点国内站 `https://dashscope.aliyuncs.com/compatible-mode/v1`，chat `qwen-plus`、embedding `text-embedding-v4`/1024）。**网络与端点正常**（拿到阿里云 JSON 错误响应与 request_id），但鉴权失败：`401 invalid_api_key`。**密钥形态诊断（不打印值、不入库）**：长度 117、以 `sk-` 开头、无空白/引号/非 ASCII/花括号/逗号，但不符合百炼常见 `sk-`+32 形态。可能原因：① 用国际站 key 配了国内站端点（不可混用，请核对 key 来源站点）；② 该值不是百炼 API Key（长度/形态不符，可能贴错凭据或变量）；③ key 已失效/被删除。**需要你**：确认来源与形态后用 `setx DASHSCOPE_API_KEY "..."` 更新用户环境变量（或新会话临时 `$env:DASHSCOPE_API_KEY='...'` 注入，值不要发我），我再重跑 smoke。**在拿到有效 key 之前**：向量路无法打开（embedding 同样 401）、第二份基线只能记"待评测" | ⏳ 待用户提供有效密钥 |
 | HTTP 装配是否现在做 | 线 A 提问 / WB-1 决策 | **2026-09-17 用户经 WB-1 批准：现在做**——属阶段 8 退出条件（跑通"…→ 引用校验 → 回答卡"）；只追加已冻结字段 `route`/`handoffRequired`，不改旧字段语义；占用已登记。注意：`ZhkuLocalPreviewConfiguration` 后续线 B 的 JDBC 配置切换也要动，合并时以"先合并方先落"处理，冲突时在状态板登记 | ✅ 已批准 |
 
 ## 五、冻结契约（开分前由双方共同确认，确认后只追加）
@@ -120,7 +123,8 @@
 
 ## 六、下次合并点
 
-- 线 A 剩余增量（Spring AI 精确化断言 + `pom.xml` + 适配器迁入 + 真实 embedding profile 打开向量路 + 证据账本补充）完成后再次合并；
+- **线 A 第四批可合并增量已就绪（`44da0e1`）**：含 DashScope profile 配置（仅环境变量名）、端点路径归一化、`DashScopeProviderSmokeTest`（显式 opt-in，默认不跑）、验收手册主类笔误修复、证据账本 401 受阻登记、根 `.gitignore` 追加 `/.workbuddy/`。**相对主线纯领先 2 个提交（`0 / 2`），可纯快进合并**；按第一节纪律线 A **不自行合并**，由你执行。合并注意：根 `.gitignore` 为共享文件（见第四节自查行），如你已另行改动该文件需手工并段；
+- 线 A 仍有一项阻塞未解：**向量路打开需有效 `DASHSCOPE_API_KEY`**（embedding `text-embedding-v4`/1024 同样 401）。该项不阻塞上面这批合并；拿到 key 后会追加"第二份基线（含向量召回）"增量再合并；
 - 线 B `SSE 流式输出`：**前置已解除**（线 A 的 HTTP 装配已于 `7414586` 合入主线，响应契约稳定），可立即开工；独立可编译测试通过即可合并；
 - 每次合并后由被合并方快进跟上新基线；合并状态板冲突时按第三节"合并陷阱"纪律逐段合并。
 

@@ -42,7 +42,7 @@ docker compose --env-file infra/.env -f infra/docker-compose.yml up -d
 ```powershell
 $zhkuDbPassword = ((Get-Content -LiteralPath 'infra/.env' | Where-Object { $_ -match '^ZHKU_DB_PASSWORD=' }) -replace '^ZHKU_DB_PASSWORD=', '')
 $env:ZHKU_DB_PASSWORD = $zhkuDbPassword
-.\mvnw.cmd '-Dspring-boot.run.main-class=com.yupi.yuaiagent.zhku.knowledge.web.ZhkuLocalPreviewApplication' spring-boot:run
+.\mvnw.cmd '-Dspring-boot.run.main-class=com.zhku.knowledge.web.ZhkuLocalPreviewApplication' spring-boot:run
 ```
 
 等待终端出现类似信息：

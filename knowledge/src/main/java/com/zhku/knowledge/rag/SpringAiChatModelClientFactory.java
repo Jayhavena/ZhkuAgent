@@ -16,9 +16,8 @@ public final class SpringAiChatModelClientFactory {
     }
 
     public static ModelChatClient create(RagProviderProfile profile, ApiKeyResolver apiKeyResolver) {
-        OpenAiApi api = OpenAiApi.builder()
-                .baseUrl(profile.baseUrl())
-                .apiKey(apiKeyResolver.requireApiKey(profile))
+        OpenAiApi api = OpenAiCompatibleApiPaths
+                .builder(profile.baseUrl(), apiKeyResolver.requireApiKey(profile))
                 .build();
         OpenAiChatModel chatModel = OpenAiChatModel.builder()
                 .openAiApi(api)

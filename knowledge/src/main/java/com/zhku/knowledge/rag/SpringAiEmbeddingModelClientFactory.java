@@ -19,9 +19,8 @@ public final class SpringAiEmbeddingModelClientFactory {
     }
 
     public static EmbeddingClient create(RagProviderProfile profile, ApiKeyResolver apiKeyResolver) {
-        OpenAiApi api = OpenAiApi.builder()
-                .baseUrl(profile.baseUrl())
-                .apiKey(apiKeyResolver.requireApiKey(profile))
+        OpenAiApi api = OpenAiCompatibleApiPaths
+                .builder(profile.baseUrl(), apiKeyResolver.requireApiKey(profile))
                 .build();
         OpenAiEmbeddingModel embeddingModel = new OpenAiEmbeddingModel(
                 api,

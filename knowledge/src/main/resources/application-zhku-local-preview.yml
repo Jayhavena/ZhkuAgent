@@ -5,3 +5,22 @@ server:
 zhku:
   local-preview:
     enabled: true
+  rag:
+    # 刻意不写 enabled：默认关闭。未配置时链路第四级（检索增强）整体不装配，
+    # 既不会创建模型 bean，也不会有任何模型调用。
+    # 开启方式：追加 `enabled: true`，并确保环境变量 DASHSCOPE_API_KEY 存在。
+    # 密钥只写变量名：值不入库、不进日志、不进对话。
+    # 端点纪律：国内站 key 只能用国内站端点；国际站 key 只能用 dashscope-intl，二者不可混用。
+    active-profile: dashscope
+    retrieval-scope: PUBLIC_ELECTIVE
+    top-k: 5
+    profiles:
+      dashscope:
+        base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+        api-key-env-var: DASHSCOPE_API_KEY
+        chat-model: qwen-plus
+        embedding-model: text-embedding-v4
+        # 维度必须与索引 profile 一致（禁止混用维度）：改维度即新建 profile 并重建索引。
+        embedding-dimensions: 1024
+        timeout-seconds: 30
+        index-profile: dashscope-text-embedding-v4-1024
