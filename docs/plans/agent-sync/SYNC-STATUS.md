@@ -59,9 +59,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表） |
-| 当前任务 | 会话持久化 JDBC ✅、校园工具集 + Function Calling ✅、**SSE 流式输出 ✅（已合并入主线 `1573507`）**。**下一项：答案卡后端侧**（前端 UI 归 WB-1，已在推进）；`docs/evidence/` 占用协调已随合并解决 |
-| 状态 | 🟢 活动中（三项交付已合并） |
-| 最新提交 | `99ed3be`（SSE 交付状态更新）；代码实现 `04d9ab6`。下一轮请先快进主线到 `1573507` 再开工 |
+| 当前任务 | 会话持久化 JDBC ✅、校园工具集 + Function Calling ✅、SSE ✅（主线 `1573507`）。答案卡后端侧首项 ✅：SSE 已透传 `citations[]`，与 `citationIds` 保持同长同序；前端 UI 仍归 WB-1。阶段 9 是否分配给线 B，等待用户裁决。 |
+| 状态 | 🟢 活动中（四项可独立交付均有证据） |
+| 最新提交 | `50d92ab`（SSE 引用明细透传 + TDD + 证据账本；knowledge 299 项通过 / 3 项显式跳过） |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
