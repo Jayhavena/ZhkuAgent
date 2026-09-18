@@ -59,9 +59,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表） |
-| 当前任务 | 会话持久化 JDBC ✅ 与校园工具集 + Function Calling ✅ 均已合并入主线 `7dce9e5`。**下一项：SSE 流式输出**（用冻结的 `zhku.streaming.*`），之后为答案卡后端侧（前端 UI 归 WB-1）；③ 工具接入只需提供 `tools/` 与注册表（已满足），不改编排器 |
-| 状态 | 🟢 活动中（首个交付已合并） |
-| 最新提交 | `7dce9e5`（已与主线同点；下一轮开发请在快进后继续） |
+| 当前任务 | SSE 流式输出已完成代码与回归；待 `docs/evidence/` 占用边界确认后补证据并合并。之后为答案卡后端侧（前端 UI 归 WB-1） |
+| 状态 | 🟡 待证据账本占用协调 |
+| 最新提交 | `04d9ab6`（SSE 实现与测试；`mvn -pl knowledge test` 276 项通过） |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -99,6 +99,8 @@
 | Spring AI 依赖与 classpath 隔离断言 | 线 A 取证 / WB-1 决策 | **线 A 根因证据（可复核）**：依赖树 `knowledge → spring-ai-openai:1.0.9 → spring-ai-model:1.0.9`；`jar tf` 证实 `ChatModel`/`EmbeddingModel` 同在 `spring-ai-model`（排除该 artifact = 把要用的接口一起排除）；仅 surefire 层掩掉只影响测试 JVM、产物 classpath 仍带 `ChatModel` = 假绿（线 A 已拒绝采用）。失败断言实为 `ZhkuLocalPreviewApplicationTest:20` 的 **ChatModel classpath 存在性**那条，而非 agent 类那条。**2026-09-17 最终决策：不走 B（独立模块）**——路线图明确"阶段 8 可在 knowledge 模块引入版本锁定的 Spring AI 依赖"，已批准计划亦要求改 `knowledge/pom.xml`；建独立模块属计划外变更且会在阶段 8 中途引入跨模块接口改动。**改为精确化断言**（下述守卫变更即本行登记）：① 保留并**加强**安全断言——`com.zhku.agent.agent.DefaultAgentFactory` 及高权限工具包不可见；② 把"`ChatModel` 类不存在"换成**行为断言**——未配置 `zhku.rag.*` 时不创建模型相关 bean、不发生模型调用（从"类不存在"升级为"未配置不启用"）；③ 测试内注明改动理由（按 AGENTS.md 注释约定） | ✅ 已决策（守卫变更已透明登记） |
 | 真实 provider 冒烟受阻：`DASHSCOPE_API_KEY` 被阿里云判为无效 | 线 A（WB-3） | 按决策已跑真实 smoke（显式 opt-in：环境变量存在 + `-Dzhku.rag.smoke=true`；端点国内站 `https://dashscope.aliyuncs.com/compatible-mode/v1`，chat `qwen-plus`、embedding `text-embedding-v4`/1024）。**网络与端点正常**（拿到阿里云 JSON 错误响应与 request_id），但鉴权失败：`401 invalid_api_key`。**密钥形态诊断（不打印值、不入库）**：长度 117、以 `sk-` 开头、无空白/引号/非 ASCII/花括号/逗号，但不符合百炼常见 `sk-`+32 形态。可能原因：① 用国际站 key 配了国内站端点（不可混用，请核对 key 来源站点）；② 该值不是百炼 API Key（长度/形态不符，可能贴错凭据或变量）；③ key 已失效/被删除。**需要你**：确认来源与形态后用 `setx DASHSCOPE_API_KEY "..."` 更新用户环境变量（或新会话临时 `$env:DASHSCOPE_API_KEY='...'` 注入，值不要发我），我再重跑 smoke。**在拿到有效 key 之前**：向量路无法打开（embedding 同样 401）、第二份基线只能记"待评测" | ⏳ 待用户提供有效密钥 |
 | HTTP 装配是否现在做 | 线 A 提问 / WB-1 决策 | **2026-09-17 用户经 WB-1 批准：现在做**——属阶段 8 退出条件（跑通"…→ 引用校验 → 回答卡"）；只追加已冻结字段 `route`/`handoffRequired`，不改旧字段语义；占用已登记。注意：`ZhkuLocalPreviewConfiguration` 后续线 B 的 JDBC 配置切换也要动，合并时以"先合并方先落"处理，冲突时在状态板登记 | ✅ 已批准 |
+| SSE HTTP 接入边界 | CX-1 | SSE 需基于本机预览会话门面输出冻结字段 `revision`、`conversationStatus`、`route`、`handoffRequired`，但 `ZhkuLocalPreviewConfiguration`、`LocalPreviewConversationFacade` 与会话 Controller 当前由线 A 占用。**2026-09-17 用户确认采用方案 A**：由线 A 完成 HTTP 统一装配并合入后，线 B 再接入 SSE；不新建并行会话端点。 | ✅ 已决策，等待线 A 依赖 |
+| SSE 证据账本路径 | CX-1 | `docs/evidence/` 仍由 WB-3 登记占用；线 B 先完成 SSE 的代码与测试，提交证据账本前需由 WB-3 释放该目录或在本表明确按不同文件并行编辑的边界。 | ⏳ 待确认 |
 
 ## 五、冻结契约（开分前由双方共同确认，确认后只追加）
 
@@ -115,6 +117,7 @@
   （2026-09-17 用户确认按线 B 草案冻结：保留既有 `sessionId` 语义；新增 `revision`、`conversationStatus`、`route`、`handoffRequired`；流式事件沿用这些字段。线 A 后续如需追加字段，按"只追加"原则另行登记）
 - [x] 新配置键 / Profile 命名规范
   （2026-09-17 用户确认按线 B 草案冻结：线 B 侧使用 `zhku.conversation.*`（存储与 TTL）和 `zhku.streaming.*`（SSE）；Profile 沿用 `zhku-local-preview`，新增能力不创建泛化 `local` Profile；密钥继续仅从环境变量读取。线 A 启动后如需新增配置键，沿用 `zhku.` 前缀在此追加）
+  - 线 B 追加（2026-09-17）：SSE 仅使用 `zhku.streaming.enabled`、`zhku.streaming.timeout-millis`、`zhku.streaming.worker-threads`、`zhku.streaming.queue-capacity`；均只在 `zhku-local-preview` Profile 生效，未配置时保持本机预览的同步消息接口可用。
   - 线 A 追加（2026-09-17，只追加不改上文）：受控检索增强配置键 `zhku.rag.enabled`、`zhku.rag.active-profile`，以及按 profile 分组的 `zhku.rag.profiles.<name>.base-url` / `.api-key-env-var` / `.chat-model` / `.embedding-model` / `.embedding-dimensions` / `.timeout-seconds` / `.index-profile`。**一次只允许一个激活 profile**（`active-profile` 单值）；密钥只写环境变量名、值不落配置，配置文件与日志均不得出现密钥值。实现：`RagProviderProfileResolver` / `RagProviderProfile` / `ApiKeyResolver`（`knowledge/.../rag/`）。
   - 线 A 再追加（2026-09-17，装配用）：`zhku.rag.retrieval-scope`（知识范围过滤，如 `PUBLIC_ELECTIVE`；缺省=不限定）、`zhku.rag.top-k`（送模型的候选上限，缺省 5）。语义：`zhku.rag.enabled=true` 但缺 `active-profile` 或 profile 键不全 → **启动失败**（不静默降级）；`enabled` 未设置 → 装配整体不生效（无模型 bean、无检索增强服务）。实现：`RagProviderConfiguration`（`knowledge/.../rag/`）。
   - WB-1 追加（2026-09-17，真实 provider 打通用，只追加）：激活 profile 名 `dashscope`，键为 `zhku.rag.profiles.dashscope.base-url` = `https://dashscope.aliyuncs.com/compatible-mode/v1`（国内站 key 用国内端点，国际站 key 只能用 `https://dashscope-intl.aliyuncs.com/...`，不可混用）、`.api-key-env-var` = `DASHSCOPE_API_KEY`、`.chat-model`（以控制台可用列表为准，如 `qwen-plus`）、`.embedding-model` = `text-embedding-v4`、`.embedding-dimensions` = `1024`（v4 支持 2048/1536/1024(默认)/768/512/256/128/64；**维度必须与索引 profile 及向量列一致，禁止混用**）、`.timeout-seconds`、`.index-profile`。环境变量名与端点属配置事实、可入库；**密钥值不得入库、不得进对话、不得写日志**。
