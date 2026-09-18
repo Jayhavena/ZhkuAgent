@@ -32,8 +32,8 @@
 | 项 | 值 |
 | --- | --- |
 | 主线分支 | `zhkuagent-modules`（只接收合并，不直接开发） |
-| 当前基线提交 | `e9cdf84`（2026-09-17 **第三次合并**：线 A Spring AI 精确化断言 + 引用明细 `citations[]` + 版本指纹；此前的 `7414586` 为阶段 8 主体、`7dce9e5` 为线 B 会话持久化与工具集） |
-| 最近合并 | `campus-line-a` → 主线（`e9cdf84`，纯快进，21 文件 +936，检查清单逐条核对通过） |
+| 当前基线提交 | `1573507`（2026-09-18 **第五次合并**：线 B SSE 流式输出；`b333392` 为第四次合并=线 A DashScope 配置/端点归一化/smoke 用例；更早 `e9cdf84` 为第三次） |
+| 最近合并 | `campus-line-b` → 主线（`1573507`，真合并，冲突 1 处 yml 按"逐段保留双方"解决） |
 
 > ✅ 2026-09-16 事故已闭环：本机 git 环境对"带斜杠的引用"（如 `codex/xxx`）写入存在缺陷，commit 触发的自动 gc 曾清空 `refs/heads/codex/`。**全部 6 个分支已迁移为顶层无斜杠命名**（`zhkuagent-modules` / `campus-line-a` / `campus-line-b` / `agent-run-context` / `zhkuagent-mvp` / `backup-fc7d153-before-amend`），`codex/*` 引用已删除，`gc.auto 0` 已设，并新增 `scripts/safeguard-refs.ps1` + post-commit 钩子自动守护。
 >
@@ -59,21 +59,22 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表） |
-| 当前任务 | 会话持久化 JDBC ✅ 与校园工具集 + Function Calling ✅ 均已合并入主线 `7dce9e5`。**下一项：SSE 流式输出**（用冻结的 `zhku.streaming.*`），之后为答案卡后端侧（前端 UI 归 WB-1）；③ 工具接入只需提供 `tools/` 与注册表（已满足），不改编排器 |
-| 状态 | 🟢 活动中（首个交付已合并） |
-| 最新提交 | `7dce9e5`（已与主线同点；下一轮开发请在快进后继续） |
+| 当前任务 | 会话持久化 JDBC ✅、校园工具集 + Function Calling ✅、**SSE 流式输出 ✅（已合并入主线 `1573507`）**。**下一项：答案卡后端侧**（前端 UI 归 WB-1，已在推进）；`docs/evidence/` 占用协调已随合并解决 |
+| 状态 | 🟢 活动中（三项交付已合并） |
+| 最新提交 | `99ed3be`（SSE 交付状态更新）；代码实现 `04d9ab6`。下一轮请先快进主线到 `1573507` 再开工 |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
 | 文件 / 目录 | 占用方 | 任务 | 声明时间 |
 | --- | --- | --- | --- |
-| `knowledge/pom.xml` | WB-3（线 A） | 阶段 8 任务 3 引入版本锁定 Spring AI 依赖（`spring-ai-bom` 1.0.9 + `spring-ai-openai` + `spring-ai-pgvector-store`，只引库模块不引 starter）。**最终决策已定：走"精确化断言"，不在 pom 之外另建模块**（见第四节 Spring AI 条）；**已按此落地并提交 `b3918f9`**（同步精确化两条隔离断言） | 2026-09-17 16:41（16:45 曾回退；17:55 依决策正式引入） |
-| `knowledge/src/main/resources/db/migration/V9*` | WB-3（线 A） | 阶段 8 元数据迁移（线 A 号段 `V9`–`V11`，本次首用 `V9`，已提交） | 2026-09-17 16:41 |
-| `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧（`retrieval/`、`eval/` 经用户确认补入线 A 地盘，见第四节）；线 B 未占用这些路径 | 2026-09-17 16:41 |
-| `docs/evidence/` | WB-3（线 A） | 阶段 8 证据账本（`2026-09-17-阶段8-受控检索增强-证据账本.md`） | 2026-09-17 16:41 |
-| `knowledge/src/main/resources/application-zhku-local-preview.yml` | WB-3（线 A） | 阶段 8 真实 provider 打通：写入 `zhku.rag.profiles.dashscope.*`（base-url / api-key-env-var / chat-model / embedding-model / embedding-dimensions / timeout / index-profile）与 `active-profile`、`retrieval-scope`、`top-k`；**刻意不写 `zhku.rag.enabled`**（默认关闭，链路由此不启用模型）；文件内只出现环境变量名，绝不含密钥值 | 2026-09-17 18:30 |
-| `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java`、`LocalPreviewConversationFacade.java`、`ZhkuLocalPreviewConversationController.java` 及对应测试 | WB-3（线 A） | 阶段 8 装配：五级链路接进本机预览回答链路；**只追加** `route`/`handoffRequired`/`citationIds`/`citations`，旧字段语义不变。**已提交 `625d795`（装配）与 `b3918f9`（引用明细）**；占用保留至合并回主线 | 2026-09-17 17:24（17:45 / 18:05 完成） |
+| `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧（真实 provider 打通、向量路开启、第二份基线尚未完成） | 2026-09-17 16:41 |
+| `docs/evidence/` | WB-3（线 A）/ WB-1 / CX-1 | 各线证据账本（**共享目录，新增文件不构成冲突**；只追加、不改他线文件） | 2026-09-17 16:41 |
+| `knowledge/src/main/resources/application-zhku-local-preview.yml` | 已合并（两线共用） | 线 A 的 `zhku.rag.*` 与线 B 的 `zhku.streaming.*` 现已并存于主线；**此后任何一方再改此文件前须重新登记**（本次合并冲突即发生在此文件） | 2026-09-18 20:44 |
 
+> 已完成并清除的占用：WB-1 对 `knowledge/src/main/resources/zhku/local-preview/index.html` 的占用
+> （页面改版已交付，提交 `0483e6e`：引用卡 UI + 删除页脚免责声明 + 明暗验收截图）。
+> 后续如把 SSE 流式接进该页面，需重新登记占用。
+>
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
 >
@@ -92,13 +93,15 @@
 | 「统一路由编排器」职责重叠 | WB-1 / CX-1 / 线 A | 分工表把"统一路由编排器"同时列在线 B 交付内容，而线 A 的拥有目录含 `knowledge/.../routing/`，阶段 8 计划也由 `KnowledgeAnswerOrchestrator` 承载五级路由测试。**确认边界**：路由判定规则与顺序（五级短路逻辑）归线 A 的 `routing/`；线 B 只提供工具与注册接口（`tools/`），由线 A 的编排器经接口调用，线 B 不改编排器文件；线 B 若需新增"工具分支"，先在状态板登记 | ✅ 双方已确认（CX-1 2026-09-17；线 A 2026-09-17 16:41） |
 | 阶段 8/9/10 迁移号段过期 | WB-1 | 三份计划原写 `V7`/`V8`/`V9`，与既有迁移及已冻结号段冲突。**2026-09-17 用户确认处置**：阶段 8 改用 `V9`；阶段 9/10 号段待分配，由线 A 在阶段 8 交付后按"只追加"原则登记（预期 `V15`/`V16` 起）；三份计划文件已就地更正并标注"登记完成前不得创建迁移文件" | ✅ 已处置（待阶段 8 交付后分配 9/10 号段） |
 | README 修正 | WorkBuddy | 文档落后于代码，待指派由谁修：① 根 README 与 knowledge README 仍写"未实现两轮追问"；② `docs/zhkuagent/仲园Agent-本机HTTP问答接口开发者验收手册.md` 第 45 行的启动主类仍是旧包名 `com.yupi.yuaiagent.zhku.knowledge.web.ZhkuLocalPreviewApplication`，实际为 `com.zhku.knowledge.web.ZhkuLocalPreviewApplication`（照抄会启动失败） | ⏳ 待指派 |
-| 真实 provider 打通与向量路（阶段 8 收尾） | 线 A 提问 / WB-1 核实 | 线 A 报告两项需外部资源：① 真实供应商 smoke test 需密钥 + 显式 opt-in；② 向量路需真实 embedding profile 才能真正打开（现为降级，首份基线已如实标注）。**WB-1 核实的硬约束**：DeepSeek 官方仅提供 chat 模型（`deepseek-flash`/`deepseek-v4-pro`），**无 embeddings 端点**，故 chat 与 embedding 无法由 DeepSeek 一家覆盖。**2026-09-17 用户决策：采用方案 B——改用阿里云百炼（DashScope）单供应商同时覆盖 chat + embedding**（避免配置拆分与第二套密钥）。参数与端点已登记于第五节；要求：密钥仅从环境变量 `DASHSCOPE_API_KEY` 读取、值不入库；真实 smoke 为显式 opt-in、结果与 profile/模型版本写入证据账本；完成后出**第二份基线（含向量召回）**，仍未过评测前不得宣称效果提升 | ✅ 已决策（方向 B：DashScope 单供应商） |
+| 真实 provider 打通与向量路（阶段 8 收尾） | 线 A 提问 / WB-1 核实 | 线 A 报告两项需外部资源：① 真实供应商 smoke test 需密钥 + 显式 opt-in；② 向量路需真实 embedding profile 才能真正打开（现为降级，首份基线已如实标注）。**WB-1 核实的硬约束**：DeepSeek 官方仅提供 chat 模型（`deepseek-flash`/`deepseek-v4-pro`），**无 embeddings 端点**，故 chat 与 embedding 无法由 DeepSeek 一家覆盖。**2026-09-17 用户决策：采用方案 B——改用阿里云百炼（DashScope）单供应商同时覆盖 chat + embedding**（避免配置拆分与第二套密钥）。参数与端点已登记于第五节；要求：密钥仅从环境变量 `DASHSCOPE_API_KEY` 读取、值不入库；真实 smoke 为显式 opt-in、结果与 profile/模型版本写入证据账本；完成后出**第二份基线（含向量召回）**，仍未过评测前不得宣称效果提升。**2026-09-18 WB-1 补充诊断（针对 401）**：线 A 实测网络/端点可达、收到厂商 `request_id`，鉴权为 `401 invalid_api_key`，且**密钥形态为长度 117、`sk-` 开头，不符合百炼常见 `sk-`+32 形态**。据此最可能的原因（按概率）：① **站点与端点不匹配**——阿里云文档明确"国际站 key 只能走国际端点、国内站 key 只能走国内端点"，用错即返回 401；② 该 key 并非百炼 API Key（长度不符，疑复制了其他平台/其他类型凭据）；③ key 被停用或无模型权限。**用户侧处置**：在百炼控制台确认 key 所属站点（国内 `bailian.console.aliyun.com` / 国际 `modelstudio.console.alibabacloud.com`），在新开的 PowerShell 窗口对**两个端点各跑一次**同一 curl 自检（国内 `https://dashscope.aliyuncs.com/compatible-mode/v1`、国际 `https://dashscope-intl.aliyuncs.com/compatible-mode/v1`），哪边通即用哪边并同步 `base-url`；两边皆 401 则回控制台重新生成 key（注意复制完整、无空格）。**2026-09-18 20:41 用户端自检结果：国内站端点返回 embedding 维度 1024、鉴权通过** → 站点确认为国内站，`base-url` 保持 `https://dashscope.aliyuncs.com/compatible-mode/v1` 不变。这与线 A 的 401 相矛盾，最可能原因是**两次使用的 key 值不同**（昨日环境变量中的值疑为 117 位误值）或**测试进程未继承新设置的环境变量**；处置：先比对环境变量值是否与刚验证通过的 key 一致，一致后在**新开终端**重跑 smoke | ⏳ 降级为"待确认环境变量一致性后重跑" |
 | agent/ 模块只读约定 | WorkBuddy | 首轮双方将 agent/ 视为只读资产；如需修改 ToolCallAgent 复用，先在此登记 | ⏳ 待确认 |
 | 线 A / 线 B 归属 | WorkBuddy | 默认 WorkBuddy=线A、另一 Agent=线B；如互换，改本节与第二节两行即可 | ⏳ 待确认 |
 | 根 `.gitignore` 追加 `/.workbuddy/` | 线 A（WB-3）自查登记 | **越界自查**：线 A 在 `44da0e1` 中顺手给根 `.gitignore` 追加了 `/.workbuddy/`（理由：该目录存协作临时日志，内含供应商响应片段与本机路径，不宜误入版本库）。该文件属**共享根文件、不在线 A 地盘**，严格说应先登记再做——特此补登记。影响面极小（仅忽略本机日志目录，不影响任何源码/配置），但**若你认为该变更应由其他线或用户统一收口，可 `git revert` 该片段或由你在收口时重写该行**，线 A 无异议 | ⏳ 待你的处置意见（当前已生效） |
 | Spring AI 依赖与 classpath 隔离断言 | 线 A 取证 / WB-1 决策 | **线 A 根因证据（可复核）**：依赖树 `knowledge → spring-ai-openai:1.0.9 → spring-ai-model:1.0.9`；`jar tf` 证实 `ChatModel`/`EmbeddingModel` 同在 `spring-ai-model`（排除该 artifact = 把要用的接口一起排除）；仅 surefire 层掩掉只影响测试 JVM、产物 classpath 仍带 `ChatModel` = 假绿（线 A 已拒绝采用）。失败断言实为 `ZhkuLocalPreviewApplicationTest:20` 的 **ChatModel classpath 存在性**那条，而非 agent 类那条。**2026-09-17 最终决策：不走 B（独立模块）**——路线图明确"阶段 8 可在 knowledge 模块引入版本锁定的 Spring AI 依赖"，已批准计划亦要求改 `knowledge/pom.xml`；建独立模块属计划外变更且会在阶段 8 中途引入跨模块接口改动。**改为精确化断言**（下述守卫变更即本行登记）：① 保留并**加强**安全断言——`com.zhku.agent.agent.DefaultAgentFactory` 及高权限工具包不可见；② 把"`ChatModel` 类不存在"换成**行为断言**——未配置 `zhku.rag.*` 时不创建模型相关 bean、不发生模型调用（从"类不存在"升级为"未配置不启用"）；③ 测试内注明改动理由（按 AGENTS.md 注释约定） | ✅ 已决策（守卫变更已透明登记） |
 | 真实 provider 冒烟受阻：`DASHSCOPE_API_KEY` 被阿里云判为无效 | 线 A（WB-3） | 按决策已跑真实 smoke（显式 opt-in：环境变量存在 + `-Dzhku.rag.smoke=true`；端点国内站 `https://dashscope.aliyuncs.com/compatible-mode/v1`，chat `qwen-plus`、embedding `text-embedding-v4`/1024）。**网络与端点正常**（拿到阿里云 JSON 错误响应与 request_id），但鉴权失败：`401 invalid_api_key`。**密钥形态诊断（不打印值、不入库）**：长度 117、以 `sk-` 开头、无空白/引号/非 ASCII/花括号/逗号，但不符合百炼常见 `sk-`+32 形态。可能原因：① 用国际站 key 配了国内站端点（不可混用，请核对 key 来源站点）；② 该值不是百炼 API Key（长度/形态不符，可能贴错凭据或变量）；③ key 已失效/被删除。**需要你**：确认来源与形态后用 `setx DASHSCOPE_API_KEY "..."` 更新用户环境变量（或新会话临时 `$env:DASHSCOPE_API_KEY='...'` 注入，值不要发我），我再重跑 smoke。**在拿到有效 key 之前**：向量路无法打开（embedding 同样 401）、第二份基线只能记"待评测" | ⏳ 待用户提供有效密钥 |
 | HTTP 装配是否现在做 | 线 A 提问 / WB-1 决策 | **2026-09-17 用户经 WB-1 批准：现在做**——属阶段 8 退出条件（跑通"…→ 引用校验 → 回答卡"）；只追加已冻结字段 `route`/`handoffRequired`，不改旧字段语义；占用已登记。注意：`ZhkuLocalPreviewConfiguration` 后续线 B 的 JDBC 配置切换也要动，合并时以"先合并方先落"处理，冲突时在状态板登记 | ✅ 已批准 |
+| SSE HTTP 接入边界 | CX-1 | SSE 需基于本机预览会话门面输出冻结字段 `revision`、`conversationStatus`、`route`、`handoffRequired`，但 `ZhkuLocalPreviewConfiguration`、`LocalPreviewConversationFacade` 与会话 Controller 当前由线 A 占用。**2026-09-17 用户确认采用方案 A**：由线 A 完成 HTTP 统一装配并合入后，线 B 再接入 SSE；不新建并行会话端点。 | ✅ 已决策，等待线 A 依赖 |
+| SSE 证据账本路径 | CX-1 | `docs/evidence/` 仍由 WB-3 登记占用；线 B 先完成 SSE 的代码与测试，提交证据账本前需由 WB-3 释放该目录或在本表明确按不同文件并行编辑的边界。 | ⏳ 待确认 |
 
 ## 五、冻结契约（开分前由双方共同确认，确认后只追加）
 
@@ -115,6 +118,7 @@
   （2026-09-17 用户确认按线 B 草案冻结：保留既有 `sessionId` 语义；新增 `revision`、`conversationStatus`、`route`、`handoffRequired`；流式事件沿用这些字段。线 A 后续如需追加字段，按"只追加"原则另行登记）
 - [x] 新配置键 / Profile 命名规范
   （2026-09-17 用户确认按线 B 草案冻结：线 B 侧使用 `zhku.conversation.*`（存储与 TTL）和 `zhku.streaming.*`（SSE）；Profile 沿用 `zhku-local-preview`，新增能力不创建泛化 `local` Profile；密钥继续仅从环境变量读取。线 A 启动后如需新增配置键，沿用 `zhku.` 前缀在此追加）
+  - 线 B 追加（2026-09-17）：SSE 仅使用 `zhku.streaming.enabled`、`zhku.streaming.timeout-millis`、`zhku.streaming.worker-threads`、`zhku.streaming.queue-capacity`；均只在 `zhku-local-preview` Profile 生效，未配置时保持本机预览的同步消息接口可用。
   - 线 A 追加（2026-09-17，只追加不改上文）：受控检索增强配置键 `zhku.rag.enabled`、`zhku.rag.active-profile`，以及按 profile 分组的 `zhku.rag.profiles.<name>.base-url` / `.api-key-env-var` / `.chat-model` / `.embedding-model` / `.embedding-dimensions` / `.timeout-seconds` / `.index-profile`。**一次只允许一个激活 profile**（`active-profile` 单值）；密钥只写环境变量名、值不落配置，配置文件与日志均不得出现密钥值。实现：`RagProviderProfileResolver` / `RagProviderProfile` / `ApiKeyResolver`（`knowledge/.../rag/`）。
   - 线 A 再追加（2026-09-17，装配用）：`zhku.rag.retrieval-scope`（知识范围过滤，如 `PUBLIC_ELECTIVE`；缺省=不限定）、`zhku.rag.top-k`（送模型的候选上限，缺省 5）。语义：`zhku.rag.enabled=true` 但缺 `active-profile` 或 profile 键不全 → **启动失败**（不静默降级）；`enabled` 未设置 → 装配整体不生效（无模型 bean、无检索增强服务）。实现：`RagProviderConfiguration`（`knowledge/.../rag/`）。
   - WB-1 追加（2026-09-17，真实 provider 打通用，只追加）：激活 profile 名 `dashscope`，键为 `zhku.rag.profiles.dashscope.base-url` = `https://dashscope.aliyuncs.com/compatible-mode/v1`（国内站 key 用国内端点，国际站 key 只能用 `https://dashscope-intl.aliyuncs.com/...`，不可混用）、`.api-key-env-var` = `DASHSCOPE_API_KEY`、`.chat-model`（以控制台可用列表为准，如 `qwen-plus`）、`.embedding-model` = `text-embedding-v4`、`.embedding-dimensions` = `1024`（v4 支持 2048/1536/1024(默认)/768/512/256/128/64；**维度必须与索引 profile 及向量列一致，禁止混用**）、`.timeout-seconds`、`.index-profile`。环境变量名与端点属配置事实、可入库；**密钥值不得入库、不得进对话、不得写日志**。
@@ -135,6 +139,8 @@
 | 2026-09-17 | 首次合并：会话持久化 JDBC（`V12`）+ 校园工具集 + Function Calling（33 文件 +3093） | `campus-line-b` | `7dce9e5` | ✅ 九项 |
 | 2026-09-17 | 第二次合并：阶段 8 主体（五级路由 + 受控检索 + 生成守卫 + 引用审计 + 评测基线 + HTTP 装配 + `V9`，86 文件 +6136） | `campus-line-a` | `7414586` | ✅ 逐条核对（纯快进、零冲突；分支工作区另有未提交的 Spring AI 段，不在本次范围） |
 | 2026-09-17 | 第三次合并：Spring AI 精确化断言（7 类 agent 类安全断言 + 行为断言）+ `citations[]` 引用明细 + 版本指纹（21 文件 +936） | `campus-line-a` | `e9cdf84` | ✅ 逐条核对（纯快进；`pom.xml` 为全仓唯一一次变更、无冲突面） |
+| 2026-09-18 | 第四次合并：DashScope profile 配置（仅环境变量名）+ 端点 `/v1` 路径归一化 + 真实 smoke 用例（显式 opt-in）+ 验收手册包名修复 + 账本（10 文件 +212） | `campus-line-a` | `b333392` | ✅ 核对（状态板自动合并；决策文字完整） |
+| 2026-09-18 | 第五次合并：SSE 流式输出（`web/streaming/` 5 类 + 会话控制器端点 + 2 测试类 + 设计/计划文档） | `campus-line-b` | `1573507` | ✅ 核对（冲突 1 处 `application-zhku-local-preview.yml`，按"逐段保留双方"解决：`zhku.rag.*` 与 `zhku.streaming.*` 并存） |
 
 ## 八、引用载荷实际下发形态（WB-1 做前端引用卡 UI 的依据）
 

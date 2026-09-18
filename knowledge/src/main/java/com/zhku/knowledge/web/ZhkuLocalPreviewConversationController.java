@@ -1,5 +1,7 @@
 package com.zhku.knowledge.web;
 
+import com.zhku.knowledge.web.streaming.SseConversationStreamer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
@@ -32,9 +34,14 @@ public class ZhkuLocalPreviewConversationController {
     );
 
     private final LocalPreviewConversationFacade facade;
+    private final ObjectProvider<SseConversationStreamer> streamerProvider;
 
-    public ZhkuLocalPreviewConversationController(LocalPreviewConversationFacade facade) {
+    public ZhkuLocalPreviewConversationController(
+            LocalPreviewConversationFacade facade,
+            ObjectProvider<SseConversationStreamer> streamerProvider
+    ) {
         this.facade = facade;
+        this.streamerProvider = streamerProvider;
     }
 
     @PostMapping
@@ -44,7 +51,7 @@ public class ZhkuLocalPreviewConversationController {
                 .body(ConversationCreatedResponse.from(facade.createConversation()));
     }
 
-    @PostMapping("/{sessionId}/messages")
+    @PostMapping(value = "/{sessionId}/messages", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> sendMessage(
             @PathVariable UUID sessionId,
             @RequestBody(required = false) ConversationMessageRequest request
@@ -59,6 +66,32 @@ public class ZhkuLocalPreviewConversationController {
         } catch (IllegalArgumentException exception) {
             return badRequest("INVALID_MESSAGE", exception.getMessage());
         } catch (IllegalStateException exception) {
+            return serviceUnavailable();
+        }
+    }
+
+    /**
+     * 与同步消息共用同一资源地址，只由 Accept 协商传输形式。
+     *
+     * <p>未注册流能力时显式失败而非回落 JSON，避免 SSE 客户端把一次性 JSON 误当成长连接。</p>
+     */
+    @PostMapping(value = "/{sessionId}/messages", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public ResponseEntity<?> streamMessage(
+            @PathVariable UUID sessionId,
+            @RequestBody(required = false) ConversationMessageRequest request
+    ) {
+        if (request == null || request.message() == null || request.message().isBlank()) {
+            return badRequest("INVALID_MESSAGE", "消息不能为空");
+        }
+        SseConversationStreamer streamer = streamerProvider.getIfAvailable();
+        if (streamer == null) {
+            return serviceUnavailable();
+        }
+        try {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.TEXT_EVENT_STREAM)
+                    .body(streamer.stream(sessionId, request.message()));
+        } catch (java.util.concurrent.RejectedExecutionException exception) {
             return serviceUnavailable();
         }
     }

@@ -103,6 +103,19 @@ class ZhkuLocalPreviewConversationControllerTest {
     }
 
     @Test
+    void shouldKeepTheSameMessagePathWhenSseIsNotEnabled() throws Exception {
+        MockMvc mockMvc = mockMvc(new MutableClock(START));
+        String sessionId = createSession(mockMvc);
+
+        mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
+                        .accept(MediaType.TEXT_EVENT_STREAM)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"message\":\"公共选修课每学期最多可以选多少学分？\"}"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.code").value("KNOWLEDGE_SERVICE_UNAVAILABLE"));
+    }
+
+    @Test
     void shouldReturnSessionExpiredAtTenMinuteBoundary() throws Exception {
         MutableClock clock = new MutableClock(START);
         MockMvc mockMvc = mockMvc(clock);
@@ -186,7 +199,17 @@ class ZhkuLocalPreviewConversationControllerTest {
                 SESSION_TTL
         );
         return MockMvcBuilders.standaloneSetup(
-                new ZhkuLocalPreviewConversationController(facade)
+                new ZhkuLocalPreviewConversationController(facade, new org.springframework.beans.factory.ObjectProvider<>() {
+                    @Override
+                    public com.zhku.knowledge.web.streaming.SseConversationStreamer getObject() {
+                        return null;
+                    }
+
+                    @Override
+                    public com.zhku.knowledge.web.streaming.SseConversationStreamer getObject(Object... arguments) {
+                        return null;
+                    }
+                })
         ).build();
     }
 

@@ -5,75 +5,141 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>仲园 Agent｜校园资料问答</title>
     <style>
-        :root { color: #193a30; background: #f5f3eb; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+        /* 设计令牌与 agent/frontend/src/style.css 保持同源（绿色系、跟随系统明暗），
+           两端界面共用一套取值，避免出现"两个产品"的观感。 */
+        :root {
+            color-scheme: light dark;
+            --brand: #0f6e56;
+            --on-brand: #ffffff;
+            --page-bg: #f7f7f4;
+            --surface: #ffffff;
+            --text-primary: #213547;
+            --text-secondary: #5f5e5a;
+            --border-subtle: rgba(0, 0, 0, .1);
+            --warning: #ba7517;
+            --warning-bg: rgba(186, 117, 23, .1);
+            --citation-bg: rgba(15, 110, 86, .06);
+            --shadow-card: 0 1px 3px rgba(0, 0, 0, .08);
+            --shadow-card-hover: 0 8px 24px rgba(15, 110, 86, .15);
+            --radius-card: 12px;
+            --radius-inner: 8px;
+            --duration: 200ms;
+            --font-sans: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --brand: #5dcaa5;
+                /* 暗色下品牌色是浅绿，白字对比不足；用深色前景色保证按钮文字可读 */
+                --on-brand: #0d2a22;
+                --page-bg: #1c1c1a;
+                --surface: #262624;
+                --text-primary: rgba(255, 255, 255, .87);
+                --text-secondary: #b4b2a9;
+                --border-subtle: rgba(255, 255, 255, .12);
+                --warning: #ef9f27;
+                --warning-bg: rgba(239, 159, 39, .12);
+                --citation-bg: rgba(93, 202, 165, .08);
+                --shadow-card: 0 1px 3px rgba(0, 0, 0, .4);
+                --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, .5);
+            }
+        }
         * { box-sizing: border-box; }
-        body { margin: 0; }
-        .page-shell { width: min(900px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 64px; }
-        .hero, .card, .answer-panel { border: 1px solid #d7dfd2; border-radius: 18px; background: #fffef9; box-shadow: 0 12px 34px rgba(25, 58, 48, .07); }
-        .hero { padding: 28px 30px; border-top: 4px solid #2d6a4f; }
-        .brand-row, .question-actions, .answer-heading, .source-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-        .brand { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: .02em; }
-        .local-badge, .coverage-tag, .answer-status { margin: 0; padding: 5px 10px; border-radius: 999px; color: #286044; background: #e8f1e8; font-size: 13px; font-weight: 700; }
-        h1 { margin: 22px 0 8px; font-size: clamp(30px, 5vw, 46px); letter-spacing: -.03em; }
-        h2 { margin: 0; font-size: 20px; }
-        .introduction, .field-hint, .preview-notice, .citation-locator, .coverage-copy { color: #5b675e; line-height: 1.75; }
-        .introduction { max-width: 640px; margin: 0; }
-        .coverage { display: flex; align-items: flex-start; gap: 12px; margin-top: 22px; padding: 14px 16px; border-radius: 12px; background: #f1f5ee; }
-        .coverage-copy { margin: 0; font-size: 14px; }
-        .question-card { margin-top: 20px; padding: 24px; }
-        label { display: block; margin-bottom: 10px; font-weight: 700; }
-        textarea { width: 100%; min-height: 116px; resize: vertical; padding: 14px; border: 1px solid #b8c8b7; border-radius: 11px; color: #193a30; background: #fffef9; font: inherit; line-height: 1.65; }
-        textarea:focus-visible, button:focus-visible { outline: 3px solid #b9d4bd; outline-offset: 2px; }
-        .field-hint { margin: 10px 0 0; font-size: 14px; }
+        body { margin: 0; color: var(--text-primary); background: var(--page-bg); font-family: var(--font-sans); line-height: 1.6; }
+        .page-shell { width: min(880px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 64px; }
+        .muted { color: var(--text-secondary); }
+        .card { padding: 24px; border: 1px solid var(--border-subtle); border-radius: var(--radius-card); background: var(--surface); box-shadow: var(--shadow-card); }
+        .card + .card, .stack > * + * { margin-top: 20px; }
+        .brand-row, .row-between { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .brand { margin: 0; font-size: 15px; font-weight: 500; letter-spacing: .02em; }
+        .badge { margin: 0; padding: 4px 10px; border-radius: 999px; color: var(--brand); background: var(--citation-bg); font-size: 12px; font-weight: 500; }
+        h1 { margin: 18px 0 8px; font-size: 2rem; font-weight: 500; letter-spacing: -.01em; }
+        h2 { margin: 0; font-size: 1.05rem; font-weight: 500; }
+        .intro { max-width: 60ch; margin: 0; color: var(--text-secondary); }
+        .topic-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+        .topic-list li { padding: 4px 10px; border: 1px solid var(--border-subtle); border-radius: 999px; color: var(--text-secondary); font-size: 13px; }
+        label { display: block; margin-bottom: 10px; font-weight: 500; }
+        textarea { width: 100%; min-height: 112px; resize: vertical; padding: 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-inner); color: var(--text-primary); background: var(--surface); font: inherit; line-height: 1.65; }
+        textarea::placeholder { color: var(--text-secondary); }
+        textarea:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+        .field-hint { margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; }
         .example-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-        .example-question { border: 1px solid #cbdac9; border-radius: 999px; padding: 7px 11px; color: #286044; background: #fffef9; font: inherit; font-size: 14px; cursor: pointer; }
-        .example-question:hover { background: #edf5eb; }
-        .question-actions { margin-top: 18px; color: #5b675e; font-size: 14px; }
-        button { border: 0; border-radius: 10px; padding: 11px 18px; color: #ffffff; background: #1f5941; font: inherit; font-weight: 700; cursor: pointer; }
-        button:hover:not(:disabled) { background: #2d7655; }
-        button:disabled { cursor: wait; opacity: .72; }
-        .message { margin: 16px 0 0; padding: 12px 14px; border-radius: 11px; line-height: 1.6; }
-        .question-error, .service-error { color: #8b2f2f; background: #fbedeb; }
-        .answer-panel { margin-top: 20px; padding: 24px; }
-        .answer-panel[data-mode="INSUFFICIENT_EVIDENCE"] { border-color: #e2d4b9; }
-        .answer-panel[data-mode="INSUFFICIENT_EVIDENCE"] .answer-status { color: #7f5524; background: #fbf3e6; }
+        .example-question { border: 1px solid var(--border-subtle); border-radius: 999px; padding: 6px 12px; color: var(--text-secondary); background: var(--surface); font: inherit; font-size: 13px; cursor: pointer; transition: border-color var(--duration), color var(--duration); }
+        .example-question:hover { border-color: var(--brand); color: var(--brand); }
+        button { border: 0; border-radius: var(--radius-inner); padding: 10px 18px; color: var(--on-brand); background: var(--brand); font: inherit; font-weight: 500; cursor: pointer; transition: opacity var(--duration); }
+        button:hover:not(:disabled) { opacity: .88; }
+        button:disabled { cursor: wait; opacity: .6; }
+        button.ghost { color: var(--text-secondary); background: transparent; border: 1px solid var(--border-subtle); }
+        button.ghost:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+        .message { margin: 16px 0 0; padding: 12px 14px; border-radius: var(--radius-inner); }
+        .question-error, .service-error { color: var(--warning); background: var(--warning-bg); }
+        .answer-status { margin: 0; padding: 5px 10px; border-radius: 999px; color: var(--brand); background: var(--citation-bg); font-size: 13px; font-weight: 500; }
         .answer-content { margin: 16px 0 0; line-height: 1.9; white-space: pre-wrap; }
-        .citation-panel { margin-top: 20px; padding: 16px; border-left: 4px solid #ad6a35; border-radius: 0 11px 11px 0; background: #fcf7f0; }
-        .citation-heading { margin: 0; color: #7f4c24; font-size: 15px; }
-        .citation-item + .citation-item { margin-top: 13px; }
-        .citation-title { margin: 0; color: #193a30; font-weight: 700; }
-        .citation-locator { margin: 5px 0 0; font-size: 14px; }
-        .preview-notice { margin: 20px 0 0; font-size: 14px; }
+        /* 引用卡：不放整段资料正文，只给"标题 + 定位 + 页码"，学生按定位自行核对原文。
+           编号与 citationIds 顺序恒等，故用序号做锚点、原样透传不透明 ID。 */
+        .citation-panel { margin-top: 20px; padding: 16px; border: 1px solid var(--border-subtle); border-radius: var(--radius-inner); background: var(--citation-bg); }
+        .citation-heading { margin: 0; color: var(--text-primary); font-size: 14px; font-weight: 500; }
+        .citation-list { display: grid; gap: 10px; margin: 12px 0 0; padding: 0; list-style: none; }
+        .citation-item { display: flex; gap: 10px; align-items: baseline; }
+        .citation-index { flex: none; color: var(--brand); font-size: 13px; font-weight: 500; }
+        .citation-title { font-weight: 500; }
+        .citation-locator { color: var(--text-secondary); font-size: 13px; }
+        /* 转人工提示只在后端确实要求 handoff 时出现（数据驱动），不做常驻免责声明 */
+        .handoff { margin: 16px 0 0; padding: 12px 14px; border-left: 3px solid var(--warning); border-radius: 0 var(--radius-inner) var(--radius-inner) 0; color: var(--warning); background: var(--warning-bg); font-size: 14px; }
         [hidden] { display: none !important; }
-        @media (max-width: 560px) { .page-shell { width: min(100% - 24px, 900px); padding-top: 16px; } .hero, .question-card, .answer-panel { padding: 20px; } .brand-row, .question-actions { align-items: flex-start; flex-direction: column; } button[type="submit"] { width: 100%; } }
+        @media (max-width: 560px) {
+            .page-shell { width: min(100% - 24px, 880px); padding-top: 20px; }
+            .card { padding: 18px; }
+            h1 { font-size: 1.6rem; }
+            button[type="submit"] { width: 100%; }
+        }
     </style>
 </head>
 <body>
-<main class="page-shell" aria-labelledby="page-title">
-    <header class="hero">
-        <div class="brand-row"><p class="brand">仲园 Agent</p><p class="local-badge">本机演示</p></div>
-        <h1 id="page-title">校园资料问答</h1>
-        <p class="introduction">当前演示“选修课不及格能否重修”与“公共选修课单学期学分上限”。结论只来自已发布且仍有效的资料，不替代学校审批或当期通知。</p>
-        <div class="coverage"><span class="coverage-tag">当前资料范围</span><p class="coverage-copy">重修问题未说明公共或专业选修课时，系统会先追问必要信息；学分上限仅说明规则，不判断个人是否还能选课。</p></div>
-    </header>
-    <section class="card question-card" aria-labelledby="question-title">
-        <div class="brand-row"><h2 id="question-title">提出你的问题</h2><button id="new-conversation" type="button">开始新对话</button></div>
-        <form id="question-form">
-            <label for="question-input">校园问题</label>
-            <textarea id="question-input" maxlength="500" placeholder="例如：选修课没及格，还能重修吗？"></textarea>
-            <p class="field-hint">输入 1 至 500 个字符。按回车可发送，按 Shift + 回车可换行。</p>
-            <div class="example-list" aria-label="示例问题"><span class="field-hint" style="width:100%;margin:0">试试这样问</span><button class="example-question" type="button" data-question="选修课没及格，还能重修吗？">选修课没及格还能重修吗？</button><button class="example-question" type="button" data-question="公共选修课不及格能重修吗？">公共选修课不及格能重修吗？</button><button class="example-question" type="button" data-question="公共选修课每学期最多可以选多少学分？">公共选修课每学期最多可以选多少学分？</button></div>
-            <div class="question-actions"><span>会话超时或失效后，请开始新对话。</span><button id="submit-question" type="submit">发送问题</button></div>
-            <p id="question-error" class="message question-error" role="alert" hidden></p>
-        </form>
-    </section>
-    <p id="service-error" class="message service-error" role="alert" hidden></p>
-    <section id="answer-panel" class="answer-panel" aria-live="polite" hidden>
-        <div class="answer-heading"><p id="answer-status" class="answer-status"></p></div>
-        <p id="answer-content" class="answer-content"></p>
-        <section id="citation-panel" class="citation-panel" aria-labelledby="citation-title" hidden><div class="source-heading"><h2 id="citation-title" class="citation-heading">资料依据</h2><span class="coverage-tag">可追溯</span></div><div id="citation-list"></div></section>
-        <p id="preview-notice" class="preview-notice">仅供本机开发验证，请以学校正式通知为准。</p>
-    </section>
+<main class="page-shell">
+    <div class="stack">
+        <header class="card">
+            <div class="brand-row"><p class="brand">仲园 Agent</p><p class="badge">本机演示</p></div>
+            <h1>校园资料问答</h1>
+            <p class="intro">回答只取自已发布且仍在有效期内的校园资料，每条结论都可追溯到具体出处。</p>
+            <ul class="topic-list">
+                <li>选修课重修</li>
+                <li>公共选修课学分上限</li>
+            </ul>
+        </header>
+
+        <section class="card" aria-labelledby="question-title">
+            <div class="row-between"><h2 id="question-title">提出你的问题</h2><button id="new-conversation" class="ghost" type="button">开始新对话</button></div>
+            <form id="question-form">
+                <label for="question-input">校园问题</label>
+                <textarea id="question-input" maxlength="500" placeholder="例如：公共选修课每学期最多可以选多少学分？"></textarea>
+                <p class="field-hint">输入 1 至 500 个字符。按回车发送，Shift + 回车换行。</p>
+                <div class="example-list" aria-label="示例问题">
+                    <button class="example-question" type="button" data-question="选修课没及格，还能重修吗？">选修课没及格还能重修吗？</button>
+                    <button class="example-question" type="button" data-question="公共选修课不及格能重修吗？">公共选修课不及格能重修吗？</button>
+                    <button class="example-question" type="button" data-question="公共选修课每学期最多可以选多少学分？">公共选修课每学期最多可以选多少学分？</button>
+                </div>
+                <div class="row-between" style="margin-top:18px">
+                    <span class="field-hint" style="margin:0">会话失效后可点「开始新对话」。</span>
+                    <button id="submit-question" type="submit">发送问题</button>
+                </div>
+                <p id="question-error" class="message question-error" role="alert" hidden></p>
+            </form>
+        </section>
+
+        <p id="service-error" class="message service-error" role="alert" hidden></p>
+
+        <section id="answer-panel" class="card" aria-live="polite" hidden>
+            <div class="row-between"><p id="answer-status" class="answer-status"></p><p id="answer-conversation" class="field-hint" style="margin:0"></p></div>
+            <p id="answer-content" class="answer-content"></p>
+            <section id="citation-panel" hidden aria-labelledby="citation-title">
+                <div class="citation-panel">
+                    <div class="row-between"><h2 id="citation-title" class="citation-heading">资料依据</h2><span class="badge">可追溯</span></div>
+                    <ol id="citation-list" class="citation-list"></ol>
+                </div>
+            </section>
+            <p id="handoff-notice" class="handoff" hidden></p>
+        </section>
+    </div>
 </main>
 <script>
     const conversationApi = "/api/zhku/local-preview/conversations";
@@ -89,8 +155,20 @@
     const answerContent = document.querySelector("#answer-content");
     const citationPanel = document.querySelector("#citation-panel");
     const citationList = document.querySelector("#citation-list");
+    const handoffNotice = document.querySelector("#handoff-notice");
     let sessionId = readStoredConversation().sessionId;
     let requestEpoch = 0;
+
+    // 路由结论 → 面向学生的状态标签。理由：五级路由是可信边界的对外表达，
+    // 学生需要知道"这条结论是当期通知、规则还是检索资料"，而不是只看到一句答案。
+    const routeLabels = {
+        AWAITING_CLARIFICATION: "需要补充信息",
+        CURRENT_NOTICE: "当期通知",
+        HIGH_RISK_RULE: "规则依据",
+        RETRIEVAL_AUGMENTED: "资料检索",
+        INSUFFICIENT_EVIDENCE: "证据不足"
+    };
+    const handoffText = "这条问题需要人工确认，请通过学校官方渠道核实后再办理。";
 
     restorePendingClarification();
     if (!sessionId) { void createConversationOnLoad(); }
@@ -147,7 +225,7 @@
             }
             if (expectedEpoch !== requestEpoch) { return; }
             await ensureConversation(expectedEpoch);
-            if (expectedEpoch === requestEpoch) { renderClarification("已开始新对话。请描述你想确认的选修课重修问题。"); }
+            if (expectedEpoch === requestEpoch) { renderClarification("已开始新对话。请描述你想确认的问题。"); }
         } catch (error) {
             if (expectedEpoch === requestEpoch) { showServiceError(); }
         } finally {
@@ -166,29 +244,123 @@
     }
 
     function renderReply(payload) {
-        if (payload.type === "NEED_CLARIFICATION") { renderClarification(payload.message); return; }
-        if (payload.type === "ANSWER" && isAnswer(payload.answer)) { renderAnswer(payload.answer); return; }
-        if (payload.type === "OUT_OF_SCOPE") { renderOutOfScope("网络公共选修课的具体限制暂未纳入本机演示范围，请以当期选课通知为准。"); return; }
-        // 后端已区分“资料缺失”和“通知过期”等拒答原因；前端覆盖原文会掩盖治理状态，
-        // 使学生无法判断应等待新通知还是改走官方查询渠道。
-        if (payload.type === "EVIDENCE_UNAVAILABLE") { renderOutOfScope(payload.message || "当前没有可确认的有效依据，无法给出确定性结论。", "当前暂无有效通知"); return; }
+        const route = typeof payload.route === "string" ? payload.route : null;
+        // 转人工只看 route/handoffRequired（冻结契约要求），不看旧字段 type——
+        // 旧值 OUT_OF_SCOPE 在新链路里同时承载"范围外"与"证据不足"两种结论。
+        const needsHandoff = payload.handoffRequired === true || route === "INSUFFICIENT_EVIDENCE";
+        if (route) { answerStatus.textContent = routeLabels[route] || "回答"; }
+        // 旧路径（无 route 字段）保留原有状态文案：后端已区分"资料缺失"与"通知过期"等原因，
+        // 前端覆盖原文会掩盖治理状态，学生无法判断该等新通知还是改走官方渠道。
+        if (payload.type === "EVIDENCE_UNAVAILABLE") {
+            renderOutOfScope(payload.message || "当前没有可确认的有效依据，无法给出确定性结论。", "当前暂无有效通知", true);
+            return;
+        }
+        if (needsHandoff) {
+            renderOutOfScope(payload.message || "当前没有可确认的有效依据，无法给出确定性结论。", route ? routeLabels[route] : "需要人工确认", true);
+            return;
+        }
+        if (route === "AWAITING_CLARIFICATION" || payload.type === "NEED_CLARIFICATION") { renderClarification(payload.message); return; }
         if (payload.type === "SESSION_INVALID" || payload.type === "SESSION_EXPIRED" || payload.type === "SESSION_CANCELLED") {
             sessionId = null;
             clearStoredConversation();
-            renderClarification("当前会话已失效，请点击“开始新对话”后重试。");
+            renderClarification("当前会话已失效，请点击「开始新对话」后重试。");
             return;
         }
+        if (route === "RETRIEVAL_AUGMENTED" || Array.isArray(payload.citations) && payload.citations.length > 0) {
+            renderRetrieved(payload);
+            return;
+        }
+        if (isAnswer(payload.answer)) { renderStructuredAnswer(payload.answer, route); return; }
+        if (payload.type === "ANSWER" && typeof payload.message === "string") {
+            answerPanel.dataset.mode = "ANSWER";
+            if (!route) { answerStatus.textContent = "结论"; }
+            answerContent.textContent = payload.message;
+            answerPanel.hidden = false;
+            storeConversation({ sessionId, pendingPrompt: null });
+            return;
+        }
+        if (payload.type === "EVIDENCE_UNAVAILABLE") { renderOutOfScope(payload.message || "当前没有可确认的有效依据，无法给出确定性结论。", "当前暂无有效通知", true); return; }
+        if (payload.type === "OUT_OF_SCOPE") { renderOutOfScope(payload.message || "网络公共选修课的具体限制暂未纳入本机演示范围，请以当期选课通知为准。", "范围外", false); return; }
         showServiceError();
     }
 
     function isAnswer(answer) { return answer && typeof answer.conclusion === "string" && typeof answer.basis === "string" && typeof answer.sourceId === "string" && typeof answer.sourceTitle === "string" && typeof answer.sourceVersion === "string" && typeof answer.sourceLocator === "string" && typeof answer.applicableScope === "string"; }
-    function renderClarification(message) { answerPanel.dataset.mode = "NEED_CLARIFICATION"; answerStatus.textContent = "需要补充信息"; answerContent.textContent = message; citationList.replaceChildren(); citationPanel.hidden = true; answerPanel.hidden = false; storeConversation({ sessionId, pendingPrompt: message }); }
-    function renderOutOfScope(message, status = "当前范围暂不支持") { answerPanel.dataset.mode = "OUT_OF_SCOPE"; answerStatus.textContent = status; answerContent.textContent = message; citationList.replaceChildren(); citationPanel.hidden = true; answerPanel.hidden = false; storeConversation({ sessionId, pendingPrompt: null }); }
-    function renderAnswer(answer) { answerPanel.dataset.mode = "ANSWER"; answerStatus.textContent = "结论与资料依据"; answerContent.textContent = `结论：${answer.conclusion}\n\n依据：${answer.basis}\n\n适用范围：${answer.applicableScope}`; citationList.replaceChildren(); appendSource("来源", `${answer.sourceTitle}（${answer.sourceVersion}）`); appendSource("定位", answer.sourceLocator); appendSource("来源编号", answer.sourceId); citationPanel.hidden = false; answerPanel.hidden = false; storeConversation({ sessionId, pendingPrompt: null }); }
-    function appendSource(label, value) { const item = document.createElement("article"); item.className = "citation-item"; const title = document.createElement("p"); const locator = document.createElement("p"); title.className = "citation-title"; locator.className = "citation-locator"; title.textContent = label; locator.textContent = value; item.append(title, locator); citationList.append(item); }
-    function resetMessages() { questionError.hidden = true; questionError.textContent = ""; serviceError.hidden = true; serviceError.textContent = ""; answerPanel.hidden = true; answerPanel.dataset.mode = ""; citationList.replaceChildren(); }
+
+    function renderClarification(message) {
+        answerPanel.dataset.mode = "NEED_CLARIFICATION";
+        if (!answerStatus.textContent) { answerStatus.textContent = routeLabels.AWAITING_CLARIFICATION; }
+        answerContent.textContent = message;
+        clearCitations();
+        answerPanel.hidden = false;
+        storeConversation({ sessionId, pendingPrompt: message });
+    }
+
+    // 检索增强级：正文来自 message，依据来自 citations[]（标题 + 定位 + 页码）。
+    function renderRetrieved(payload) {
+        answerPanel.dataset.mode = "ANSWER";
+        answerStatus.textContent = routeLabels.RETRIEVAL_AUGMENTED;
+        answerContent.textContent = payload.message || "";
+        renderCitations(payload.citations);
+        answerPanel.hidden = false;
+        storeConversation({ sessionId, pendingPrompt: null });
+    }
+
+    // 当期通知 / 规则级：沿用既有回答卡结构（结论 + 依据 + 适用范围 + 来源）。
+    function renderStructuredAnswer(answer, route) {
+        answerPanel.dataset.mode = "ANSWER";
+        answerStatus.textContent = route ? (routeLabels[route] || "结论") : "结论与资料依据";
+        answerContent.textContent = `结论：${answer.conclusion}\n\n依据：${answer.basis}\n\n适用范围：${answer.applicableScope}`;
+        renderCitations([{ citationId: answer.sourceId, sourceTitle: answer.sourceTitle, sourceLocator: `${answer.sourceLocator}｜${answer.sourceVersion}` }]);
+        answerPanel.hidden = false;
+        storeConversation({ sessionId, pendingPrompt: null });
+    }
+
+    function renderOutOfScope(message, status, needsHandoff) {
+        answerPanel.dataset.mode = "OUT_OF_SCOPE";
+        answerStatus.textContent = status;
+        answerContent.textContent = message;
+        clearCitations();
+        // 只有后端确实要求转人工时才提示官方渠道：这是信息而非常驻免责声明。
+        handoffNotice.textContent = handoffText;
+        handoffNotice.hidden = !needsHandoff;
+        answerPanel.hidden = false;
+        storeConversation({ sessionId, pendingPrompt: null });
+    }
+
+    function renderCitations(citations) {
+        citationList.replaceChildren();
+        const items = Array.isArray(citations) ? citations : [];
+        let index = 0;
+        for (const citation of items) {
+            if (!citation || typeof citation.sourceTitle !== "string") { continue; }
+            index += 1;
+            const item = document.createElement("li");
+            item.className = "citation-item";
+            item.id = `cite-${index}`;
+            // 不透明引用 ID 原样透传（契约要求前端不解析其含义），仅作锚点/排查用。
+            if (typeof citation.citationId === "string") { item.dataset.citationId = citation.citationId; }
+            const indexLabel = document.createElement("span");
+            indexLabel.className = "citation-index";
+            indexLabel.textContent = `[${index}]`;
+            const body = document.createElement("div");
+            const title = document.createElement("div");
+            title.className = "citation-title";
+            title.textContent = citation.sourceTitle;
+            const locator = document.createElement("div");
+            locator.className = "citation-locator";
+            locator.textContent = [citation.sourceLocator, citation.pageNumber ? `第 ${citation.pageNumber} 页` : null].filter(Boolean).join(" · ");
+            body.append(title);
+            if (locator.textContent) { body.append(locator); }
+            item.append(indexLabel, body);
+            citationList.append(item);
+        }
+        citationPanel.hidden = items.length === 0;
+    }
+
+    function clearCitations() { citationList.replaceChildren(); citationPanel.hidden = true; }
+    function resetMessages() { questionError.hidden = true; questionError.textContent = ""; serviceError.hidden = true; serviceError.textContent = ""; answerPanel.hidden = true; answerPanel.dataset.mode = ""; answerStatus.textContent = ""; answerContent.textContent = ""; handoffNotice.hidden = true; clearCitations(); }
     function showQuestionError(message) { questionError.textContent = message; questionError.hidden = false; }
-    function showServiceError() { serviceError.textContent = "本机会话服务暂不可用，请确认预览服务和数据库均已启动。"; serviceError.hidden = false; }
+    function showServiceError() { serviceError.textContent = "本机会话服务暂不可用，请确认预览服务与数据库均已启动。"; serviceError.hidden = false; }
     function setLoading(isLoading) { submitButton.disabled = isLoading; newConversationButton.disabled = isLoading; submitButton.textContent = isLoading ? "正在发送…" : "发送问题"; }
     function requestOptions(body) { return { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8" }, body: body ? JSON.stringify(body) : undefined }; }
     async function readPayload(response) { try { return await response.json(); } catch (error) { return {}; } }
