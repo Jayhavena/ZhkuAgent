@@ -10,6 +10,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -134,6 +135,24 @@ class AnonymousFeedbackContractTest {
         @Override
         public boolean saveIfAbsent(AnonymousFeedbackEvent event) {
             return eventsByDedupeKey.putIfAbsent(event.dedupeKey(), event) == null;
+        }
+
+        @Override
+        public List<AnonymousFeedbackEvent> findExpiredAtOrBefore(Instant expiresAt) {
+            return List.of();
+        }
+
+        @Override
+        public void replaceExpiredWithAggregates(
+                List<AnonymousFeedbackEvent> expiredEvents,
+                List<FeedbackAggregate> aggregates
+        ) {
+            throw new UnsupportedOperationException("匿名接收契约不调用清理操作");
+        }
+
+        @Override
+        public List<FeedbackAggregate> listAggregates() {
+            return List.of();
         }
 
         private int size() {

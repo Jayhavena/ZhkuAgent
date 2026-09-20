@@ -1,0 +1,128 @@
+package com.zhku.knowledge.feedback;
+
+import com.zhku.knowledge.ZhkuDatabaseTestConfig;
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/** V16 的 JDBC 契约：只清理本测试写入的随机软引用，不重置共享测试库。 */
+class JdbcFeedbackRepositoryTest {
+
+    private static final String DATABASE_URL = System.getProperty(
+            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+    );
+    private static final String DATABASE_USER = System.getProperty("zhku.db.user", "zhkuagent");
+    private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+    private static final DataSource DATA_SOURCE = new DriverManagerDataSource(
+            DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD
+    );
+
+    private final String guideIdentifier = "feedback-test-" + UUID.randomUUID();
+    private final JdbcFeedbackRepository repository = new JdbcFeedbackRepository(DATA_SOURCE);
+
+    @BeforeAll
+    static void migrateSchema() {
+        assertThat(DATABASE_PASSWORD)
+                .as("运行匿名反馈 JDBC 测试时必须显式提供本机密码")
+                .isNotBlank();
+        Flyway.configure()
+                .dataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
+    }
+
+    @AfterEach
+    void removeOnlyThisTestsRows() throws SQLException {
+        try (Connection connection = DATA_SOURCE.getConnection();
+             PreparedStatement aggregateDelete = connection.prepareStatement(
+                     "DELETE FROM anonymous_feedback_aggregate WHERE guide_identifier = ?"
+             );
+             PreparedStatement eventDelete = connection.prepareStatement(
+                     "DELETE FROM anonymous_feedback_event WHERE guide_identifier = ?"
+             )) {
+            aggregateDelete.setString(1, guideIdentifier);
+            aggregateDelete.executeUpdate();
+            eventDelete.setString(1, guideIdentifier);
+            eventDelete.executeUpdate();
+        }
+    }
+
+    @Test
+    void shouldPersistDedupeAndReplaceExpiredEventsWithAggregates() {
+        AnonymousFeedbackEvent event = event("a", "d", Instant.parse("2026-06-01T00:00:00Z"));
+
+        assertThat(repository.saveIfAbsent(event)).isTrue();
+        assertThat(repository.saveIfAbsent(event)).isFalse();
+        assertThat(repository.findExpiredAtOrBefore(Instant.parse("2026-08-29T23:59:59Z")))
+                .isEmpty();
+
+        List<AnonymousFeedbackEvent> expired = repository.findExpiredAtOrBefore(
+                Instant.parse("2026-08-30T00:00:00Z")
+        );
+        FeedbackAggregate aggregate = new FeedbackAggregate(
+                guideIdentifier, "2026-1", FeedbackReason.NOT_HELPFUL,
+                LocalDate.of(2026, 6, 1), 1L
+        );
+        repository.replaceExpiredWithAggregates(expired, List.of(aggregate));
+
+        assertThat(repository.findExpiredAtOrBefore(Instant.parse("2026-08-30T00:00:00Z")))
+                .isEmpty();
+        assertThat(repository.listAggregates())
+                .contains(aggregate);
+    }
+
+    @Test
+    void shouldProvideOnlyAnonymousFeedbackColumns() throws SQLException {
+        try (Connection connection = DATA_SOURCE.getConnection()) {
+            DatabaseMetaData metadata = connection.getMetaData();
+            assertThat(columnsOf(metadata, "anonymous_feedback_event")).containsExactlyInAnyOrder(
+                    "guide_identifier", "guide_version", "feedback_reason",
+                    "anonymous_session_hash", "dedupe_key", "created_at", "expires_at"
+            );
+            assertThat(columnsOf(metadata, "anonymous_feedback_aggregate")).containsExactlyInAnyOrder(
+                    "guide_identifier", "guide_version", "feedback_reason",
+                    "feedback_date", "feedback_count"
+            );
+            assertThat(columnsOf(metadata, "anonymous_feedback_event"))
+                    .doesNotContain("message", "student_id", "name", "contact", "question", "answer");
+            assertThat(columnsOf(metadata, "anonymous_feedback_aggregate"))
+                    .doesNotContain("message", "student_id", "name", "contact", "question", "answer");
+        }
+    }
+
+    private AnonymousFeedbackEvent event(String hashSeed, String dedupeSeed, Instant createdAt) {
+        return new AnonymousFeedbackEvent(
+                guideIdentifier, "2026-1", FeedbackReason.NOT_HELPFUL,
+                hashSeed.repeat(64), dedupeSeed.repeat(64), createdAt, createdAt.plusSeconds(90L * 24 * 60 * 60)
+        );
+    }
+
+    private static Set<String> columnsOf(DatabaseMetaData metadata, String tableName)
+            throws SQLException {
+        Set<String> columns = new HashSet<>();
+        try (ResultSet result = metadata.getColumns(null, "public", tableName, null)) {
+            while (result.next()) {
+                columns.add(result.getString("COLUMN_NAME"));
+            }
+        }
+        return columns;
+    }
+}
