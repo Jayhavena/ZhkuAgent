@@ -82,12 +82,12 @@
 
 | 项 | 值 |
 | --- | --- |
-| 分支 | `campus-line-a`（2026-09-20 **已快进至主线 `b33a76a`**：`4ca8fb2 --ff-only--> b33a76a`，纯快进、无独有提交；阶段 8 收尾已由第六次合并 `df6d31b` 入库） |
+| 分支 | `campus-line-a`（2026-09-20 **已快进至主线 `9d10653`**：`63b2c2c --ff-only--> 9d10653`，纯快进、无独有提交；阶段 8 收尾已由第六次合并 `df6d31b` 入库） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineA`（2026-09-17 已创建，专属本线） |
-| Flyway 号段 | `V9`–`V11` |
-| 当前任务 | 阶段 8（WB-3）**十六批**已提交，**真实 provider 与向量路均已打开**。① **真实 smoke ✅ 通过**（2026-09-18 用户重设密钥后原样重跑：chat `qwen-plus` 1613ms/结构合法/回填服务端引用标识，embedding `text-embedding-v4` 829ms/**1024 维**；第 1 轮 401 的根因是**环境变量里的值不对**，非站点/端点问题——两轮记录都在账本）；② **向量路打开**：补齐 `JdbcEmbeddingProfileStore`（退旧启新同事务 + 库级单 ACTIVE 兜底 + provider/model/维度不可静默变更），新增 7 例真实库用例（含"退役 profile 索引条目保留"举证回滚窗口）；③ **第二份基线（含向量召回）已产出**：`Recall@3=1.0000, MRR=1.0000`（与首份**持平**）、引用准确率 `0.8750→0.3333` 经逐题分母核实为**分母效应**（首份逐题候选 2/1/1/1，第二份 3/3/3/3），**不宣称提升也不宣称退化**；④ **数据侧发现（需你决策）**：演示库 3 来源/9 片段中，仅 2 个"学生可见+权利确认"，其 `knowledge_scope` 为 `ELECTIVE_RETAKE`/`PUBLIC_ELECTIVE_CREDIT_LIMIT`，而配置范围是 `PUBLIC_ELECTIVE`（**精确匹配**）→ **当前配置下演示库合格条目为 0**，向量路"机制已通、数据未备"；⑤ 另开 1 例 opt-in 用例 `RetrievalVectorBaselineEvalTest`（默认跳过，避免日常回归产生真实费用）。全量回归（合并主线后）见下 |
-| 状态 | 🟢 阶段 8 已交付并入库（2026-09-20 第六次合并 `df6d31b`）；**已快进至 `b33a76a` 待命**。余 2 项待用户裁决 = ① 演示语料范围/补充；② **阶段 9/10 的归属与号段**（裁决前不得开工、**不得创建任何迁移文件**） |
-| 最新提交 | `4ca8fb2`（十六批补：账本与状态板）——已随 `df6d31b` 进入主线。**2026-09-20 已按纪律完成同步**：`git status --porcelain` 干净 → `git merge zhkuagent-modules --ff-only` 纯快进 `4ca8fb2 → b33a76a` → `git for-each-ref refs/heads` **7 条引用完好**；同步后全量回归 **307 通过 / 0 失败 / 0 错误 / 4 跳过**（`BUILD SUCCESS`，含线 B 新并入的 `ConversationStreamProcessorTest` 与 SSE 事件类改动）。**工作区未受影响**（本次未触发主 worktree 的 `worktrees/` 管理目录缺陷） |
+| Flyway 号段 | `V9`–`V11`（阶段 8 已用 `V9`）＋ **阶段 9 用 `V15`**、**阶段 10 用 `V17`–`V18`**（2026-09-20 用户最终裁决；阶段 9 迁移**只创建一个文件**） |
+| 当前任务 | **阶段 9 已开工（2026-09-20）**，范围＝用户裁决：①办事清单模型与解析器（新包 `com.zhku.knowledge.serviceguide`）②统一回答卡扩展；任务 4/5/6（反馈侧）属线 B。**排期：先做用户裁决的补数据任务**（新增一份"已发布+学生可见+`PUBLIC_ELECTIVE`"资料，走本机 8124 既有治理链路：submissions → extract → split → review → publish，带 `knowledgeScope=PUBLIC_ELECTIVE`/`documentFamily=STUDENT_HANDBOOK`，发布时 `studentVisible=true` + `sharingRightsConfirmed=true`；**不直接写库、不改 `zhku.rag.retrieval-scope`、不放宽资格过滤**）→ 重跑两份评测并如实入账本 → 再做 V15 迁移 + serviceguide 模型与解析器（RED 先行）+ 回答卡扩展 + `ServiceGuideAcceptanceTest`。阶段 8 成果（真实 provider 打通、向量路、第二份基线、`JdbcEmbeddingProfileStore` 7 例）已全部入库 |
+| 状态 | 🟢 阶段 9 实施中（WB-3，2026-09-20 开工）；占用已在 §三 登记（`serviceguide/`、`V15__*`、回答卡扩展面）；**硬边界**：V15 不与线 B `V16` 建外键（软引用=清单标识+版本号）、渠道/电话/链接/地点只能来自审核资料、不代办不认定资格不自动改规则、不混入阶段 10 的表/Controller |
+| 最新提交 | `63b2c2c`（十六批补 + 状态板同步登记；已随主线入库）。**2026-09-20 第二次同步**：porcelain 干净 → `--ff-only` `63b2c2c → 9d10653` → 7 条引用完好。历史：同步后全量回归 **307 通过 / 0 失败 / 0 错误 / 4 跳过** |
 
 ### 线 B：工具 + 编排（Agent：Codex 会话，见第零节 CX-1）
 
@@ -108,6 +108,9 @@
 | `knowledge/src/main/resources/zhku/local-preview/index.html` | WB-1（前端） | SSE 流式接进问答页（**实现与 6 张验收截图已完成、尚未提交**）；阶段 9 反馈交互复用同一占用 | 2026-09-20 09:20 |
 | `docs/evidence/` | WB-3（线 A）/ WB-1 / CX-1 | 各线证据账本（**共享目录，新增文件不构成冲突**；只追加、不改他线文件） | 2026-09-17 16:41 |
 | `knowledge/src/main/resources/application-zhku-local-preview.yml` | 已合并（两线共用） | 线 A 的 `zhku.rag.*` 与线 B 的 `zhku.streaming.*` 现已并存于主线；**此后任何一方再改此文件前须重新登记**（本次合并冲突即发生在此文件） | 2026-09-18 20:44 |
+| `knowledge/src/main/java/com/zhku/knowledge/serviceguide/` 及 `knowledge/src/test/java/com/zhku/knowledge/serviceguide/` | WB-3（线 A） | 阶段 9 任务 2：不可变 `ServiceGuide` / `GuideStep` / `OfficialChannel` / `HumanHandoffReason` + 只返回"有当前有效证据"的清单解析器（**新包，主+测试目录一并占用**） | 2026-09-20 09:46 |
+| `knowledge/src/main/resources/db/migration/V15__*` | WB-3（线 A） | 阶段 9 线 A 迁移（最终裁决号段）：`service_guide` / 步骤 / 材料 / 官方渠道 / 风险提示 / 关联规则与通知版本。**自包含、不与线 B 的 `V16` 建外键**；确需关联用软引用（清单标识 + 版本号）。**同一时刻只有一个会话创建迁移文件** | 2026-09-20 09:46 |
+| 回答卡扩展面（任务 3）：`knowledge/.../answer/` 的展示层 + `knowledge/.../web/LocalPreviewConversationFacade` 及对应测试 + `knowledge/.../rag/` 的回答载荷类型 | WB-3（线 A） | 阶段 9 任务 3：结论后附"下一步 / 需确认事项 / 官方人工渠道"；高风险或证据不足时只保留人工渠道与风险提示。**统一回答卡属共享面，只追加字段、不改旧字段语义**；新字段须同步登记进 §八（WB-1 据此做前端）。**动手前若有他线正在改这些文件，先停下协商** | 2026-09-20 09:46 |
 
 > 已完成并清除的占用：WB-1 对 `knowledge/src/main/resources/zhku/local-preview/index.html` 的
 > 引用卡改版占用（已交付 `0483e6e`：引用卡 UI + 删除页脚免责声明 + 明暗验收截图）。
