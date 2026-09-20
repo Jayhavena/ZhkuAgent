@@ -99,6 +99,12 @@ class RetrievalAcceptanceEvalTest {
                     goldenCase.query(), K, lexical, vectorUnavailable);
             List<UUID> ranked = outcome.chunks().stream().map(chunk -> chunk.chunkId()).toList();
 
+            // 逐题记录候选条数：引用准确率的分母是"本轮实际返回的候选数"，不是固定 K——
+            // 不记录分母，两份基线之间该指标的差异就无法归因（容易被误读成"退化"）。
+            System.out.println("[EVAL-DETAIL] q=" + goldenCase.query()
+                    + ", lexicalCandidates=" + lexical.retrieve(goldenCase.query(), K).size()
+                    + ", rankedCandidates=" + ranked.size());
+
             assertThat(ranked)
                     .as("内部资料永恒不可召回：" + goldenCase.query())
                     .doesNotContain(RetrievalGoldenSet.CHUNK_INTERNAL_DECOY);

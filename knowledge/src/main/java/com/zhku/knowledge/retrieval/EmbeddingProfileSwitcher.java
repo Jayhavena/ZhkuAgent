@@ -7,7 +7,8 @@ import java.util.Objects;
  *
  * <p>embedding 变更的唯一合法路径：新 profile 完成索引重建与评测后，
  * 由本切换器"退旧启新"——旧 ACTIVE 退役但保留（回滚窗口），新 profile 上线。
- * 两次写操作由存储实现保证同事务；切换器本身只负责状态机约束。</p>
+ * 两次写操作由存储实现保证同事务（见 {@link EmbeddingProfileStore#switchActive}）；
+ * 切换器本身只负责状态机约束。</p>
  */
 public final class EmbeddingProfileSwitcher {
 
@@ -29,8 +30,12 @@ public final class EmbeddingProfileSwitcher {
             throw new IllegalStateException(
                     "只有 BUILDING 状态的 profile 可以激活，当前状态：" + candidate.status());
         }
-        store.findActive().ifPresent(active -> store.save(active.withStatus(ProfileStatus.RETIRED)));
-        store.save(candidate.withStatus(ProfileStatus.ACTIVE));
+        store.findActive().ifPresentOrElse(
+                // 有在役 profile → 一次事务内退旧启新，避免出现"两个 ACTIVE"或"零 ACTIVE"的中间态。
+                active -> store.switchActive(active.profileId(), profileId),
+                // 首个 profile：库中本来没有 ACTIVE，直接启用。
+                () -> store.save(new EmbeddingProfile(candidate.profileId(), candidate.provider(),
+                        candidate.model(), candidate.dimensions(), ProfileStatus.ACTIVE)));
     }
 
     /**
@@ -45,7 +50,9 @@ public final class EmbeddingProfileSwitcher {
             throw new IllegalStateException(
                     "只能回滚到 RETIRED 状态的 profile，当前状态：" + target.status());
         }
-        store.findActive().ifPresent(active -> store.save(active.withStatus(ProfileStatus.RETIRED)));
-        store.save(target.withStatus(ProfileStatus.ACTIVE));
+        store.findActive().ifPresentOrElse(
+                active -> store.switchActive(active.profileId(), profileId),
+                () -> store.save(new EmbeddingProfile(target.profileId(), target.provider(),
+                        target.model(), target.dimensions(), ProfileStatus.ACTIVE)));
     }
 }
