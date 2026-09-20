@@ -45,8 +45,8 @@
 | 项 | 值 |
 | --- | --- |
 | 主线分支 | `zhkuagent-modules`（只接收合并，不直接开发） |
-| 当前基线提交 | `2cba965`（2026-09-20 **第七次合并**：线 B SSE 证据账本补齐 + SSE 事件透传 `citations[]`；`df6d31b` 为第六次合并=线 A 阶段 8 收尾（真实向量路 + 第二份基线 + 账本）；`1573507` 为第五次、`b333392` 为第四次、`e9cdf84` 为第三次） |
-| 最近合并 | `campus-line-b` → 主线（`2cba965`，**冲突 0**：状态板命中行不重叠）；`campus-line-a` → 主线（`df6d31b`，**冲突 0**） |
+| 当前基线提交 | `e7b9d3a`（2026-09-20 **第八次合并**：线 A 同步登记，纯文档；`03daff4` 为合并后复核登记、`2cba965` 为第七次合并=线 B SSE 账本补齐 + 引用明细透传、`df6d31b` 为第六次合并=线 A 阶段 8 收尾、`1573507` 为第五次、`b333392` 为第四次、`e9cdf84` 为第三次） |
+| 最近合并 | `campus-line-a` → 主线（`e7b9d3a`，**冲突 0**，仅状态板线 A 行）；`campus-line-b` → 主线（`2cba965`，**冲突 0**） |
 
 > ⚠️ **2026-09-20 本机事故（第二次，类型不同于 09-16）**：主 worktree
 > `D:\alldesk\Projects\ZhkuAgent` 的**每-worktree 管理目录**
@@ -61,6 +61,16 @@
 > 核对；② 写操作前确认没有未提交改动（或先备份到仓库外）；
 > ③ 合并这类可复算的操作优先在健康 worktree 里用 `merge-tree` 路线执行。
 > 修复脚本尚未入库（当前为手工步骤），待登记后再评估是否落成 `scripts/` 下的一次性脚本。
+>
+> 🔴 **2026-09-20 09:37 第三次复现，已定位触发条件**：**在主线 worktree 执行 `git merge <分支>` 必定删除
+> 管理目录**（三次 `git merge` 全部触发；而 `git add` / `commit` / `reset` / `checkout` / `stash` 之后的
+> `add`+`commit` 均正常）。症状固定：先打印 `index.html` 的 `LF will be replaced by CRLF` 警告，
+> 紧接着 `Unable to create .../index.lock` + `fatal: Unable to write index.`，管理目录随之消失。
+> **硬性纪律：主线 worktree 一律禁止直接 `git merge`**——改用 §一 所述 `merge-tree --write-tree`
+> + `commit-tree`（双父）+ `update-ref` 的等价路线，在健康 worktree 里执行；
+> 且**每次 `git merge` 失败后必须先重建管理目录 + `git reset` 再继续**（重建后索引为空，
+> 不 reset 就提交会把全仓"删掉"）。
+> 第六次（`df6d31b`）、第七次（`2cba965`）、第八次（`e7b9d3a`）合并均以该路线完成，结果与常规合并等价。
 
 > ✅ 2026-09-16 事故已闭环：本机 git 环境对"带斜杠的引用"（如 `codex/xxx`）写入存在缺陷，commit 触发的自动 gc 曾清空 `refs/heads/codex/`。**全部 6 个分支已迁移为顶层无斜杠命名**（`zhkuagent-modules` / `campus-line-a` / `campus-line-b` / `agent-run-context` / `zhkuagent-mvp` / `backup-fc7d153-before-amend`），`codex/*` 引用已删除，`gc.auto 0` 已设，并新增 `scripts/safeguard-refs.ps1` + post-commit 钩子自动守护。
 >
@@ -160,7 +170,8 @@
 
 ## 六、下次合并点
 
-- **两条线当前都没有待合并增量**：`campus-line-a`（`4ca8fb2`）已于第六次合并 `df6d31b` 入库、`campus-line-b`（`d84195c`）已于第七次合并 `2cba965` 入库；两侧均无独有提交，只需各自 `git merge zhkuagent-modules` 快进跟上；
+- **两条线当前都没有待合并增量**：`campus-line-a`（`63b2c2c`）已于第八次合并 `e7b9d3a` 入库、`campus-line-b`（`d84195c`）已于第七次合并 `2cba965` 入库；两侧均无独有提交，只需各自 `git merge zhkuagent-modules` 快进跟上（线 A 到 `e7b9d3a`、线 B 同时跟到 `e7b9d3a`）；
+- **合并执行纪律（本机缺陷）**：主线 worktree **禁止直接 `git merge`**（第三次复现即为此因），一律用 `merge-tree --write-tree` + `commit-tree` + `update-ref` 路线，在健康 worktree 里执行；详见第一节事故说明；
 - **唯一阻塞开工的是裁决**：阶段 9/10 的号段与归属（见第四节）与演示语料范围。裁决后由 PM 先把号段写入 §五，再放行对应会话；
 - WB-1 手里还有**未提交**的 SSE 页面接入 + 6 张验收截图（主 worktree），属其地盘、按第四节 WB-1 纪律自行按路径提交；
 - 每次合并后由被合并方快进跟上新基线；合并状态板冲突时按第三节"合并陷阱"纪律逐段合并；
@@ -177,6 +188,7 @@
 | 2026-09-18 | 第五次合并：SSE 流式输出（`web/streaming/` 5 类 + 会话控制器端点 + 2 测试类 + 设计/计划文档） | `campus-line-b` | `1573507` | ✅ 核对（冲突 1 处 `application-zhku-local-preview.yml`，按"逐段保留双方"解决：`zhku.rag.*` 与 `zhku.streaming.*` 并存）。**事后缺口**：本次 13 个文件里没有证据账本，违反九项清单第 7 条 → 已由线 B 在 `2b25bb1` 补齐（见第七次合并） |
 | 2026-09-20 | 第六次合并：线 A 阶段 8 收尾（`JdbcEmbeddingProfileStore` + 7 例真实库用例 + `RetrievalVectorBaselineEvalTest` + 逐题分母留痕 + 账本，8 文件 +940） | `campus-line-a` | `df6d31b` | ✅ 冲突 0（主线只有 1 个 PM 文档提交，无文件重叠）。**注**：本次合并于 09-18 21:1x 发起、冲突已解决但**未提交**，悬置两天后于 09-20 由 PM 收口提交；暂存区经 `git diff --cached --name-only` 核对只有线 A 的 8 个文件，未混入他线文件 |
 | 2026-09-20 | 第七次合并：线 B SSE 证据账本补齐 + SSE 事件透传 `citations[]`（4 文件） | `campus-line-b` | `2cba965` | ✅ 九项（`merge-tree` 试算冲突 0；状态板命中行不重叠已实测：线 A 改 §二线A行/§四/§六、线 B 改 §二线B行/§八第 4 条）。**执行方式**：因主 worktree 管理目录被本机缺陷清除，改用 `merge-tree --write-tree` + `commit-tree`（双父）+ `update-ref` 完成，结果与常规合并等价 |
+| 2026-09-20 | 第八次合并：线 A 同步登记（纯文档，仅状态板线 A 行；含两侧"已快进至 `b33a76a`、7 引用完好、同步后回归 307/0/4"记录） | `campus-line-a` | `e7b9d3a` | ✅ 九项（`merge-tree` 试算冲突 0；本次是 1/1 分叉的真合并，状态板命中行不重叠）。**执行方式**：主 worktree 的 `git merge` 第三次触发管理目录缺陷（见第一节），改用 `merge-tree --write-tree` + `commit-tree` + `update-ref` 完成；本轮为纯文档变更，**未重跑回归**（代码状态与 `03daff4` 完全相同） |
 
 > **合并后独立复核（PM，2026-09-20 09:28）**：在**合并后的主线 worktree** 跑
 > `.\mvnw.cmd -pl knowledge test`（密码从用户级环境变量注入，不入命令行）→
