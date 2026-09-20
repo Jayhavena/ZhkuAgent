@@ -6,6 +6,10 @@ import com.zhku.knowledge.governance.KnowledgeGovernancePublisher;
 import com.zhku.knowledge.governance.KnowledgeGovernanceRepository;
 import com.zhku.knowledge.governance.KnowledgeSubmissionService;
 import com.zhku.knowledge.governance.LocalKnowledgeFileStore;
+import com.zhku.knowledge.feedback.FeedbackAggregateQueryService;
+import com.zhku.knowledge.feedback.FeedbackRepository;
+import com.zhku.knowledge.feedback.FeedbackRetentionService;
+import com.zhku.knowledge.feedback.JdbcFeedbackRepository;
 import com.zhku.knowledge.ingestion.PdfPageTextExtractor;
 import com.zhku.knowledge.publication.LocalKnowledgePublisherFactory;
 import com.zhku.knowledge.publication.ReviewedKnowledgePublisher;
@@ -99,6 +103,27 @@ public class ZhkuLocalAdminConfiguration {
         return new NoticeGovernancePublisher(
                 repository, publisher, noticeRepository
         );
+    }
+
+    @Bean
+    FeedbackRepository zhkuLocalAdminFeedbackRepository(
+            DriverManagerDataSource dataSource
+    ) {
+        return new JdbcFeedbackRepository(dataSource);
+    }
+
+    @Bean
+    FeedbackAggregateQueryService zhkuLocalAdminFeedbackAggregateQueryService(
+            FeedbackRepository feedbackRepository
+    ) {
+        return new FeedbackAggregateQueryService(feedbackRepository);
+    }
+
+    @Bean
+    FeedbackRetentionService zhkuLocalAdminFeedbackRetentionService(
+            FeedbackRepository feedbackRepository
+    ) {
+        return new FeedbackRetentionService(feedbackRepository, Clock.systemUTC());
     }
 
     @Bean

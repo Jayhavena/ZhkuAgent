@@ -10,7 +10,10 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  * <p>它只扫描本机预览所需的校园问答组件，知识模块不引入模型依赖，验证链路不需要模型密钥。</p>
  */
 @SpringBootApplication(
-        scanBasePackageClasses = ZhkuLocalPreviewController.class,
+        scanBasePackages = {
+                "com.zhku.knowledge.web",
+                "com.zhku.knowledge.feedback"
+        },
         exclude = DataSourceAutoConfiguration.class
 )
 public class ZhkuLocalPreviewApplication {
