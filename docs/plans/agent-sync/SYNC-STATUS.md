@@ -108,6 +108,7 @@
 | `knowledge/src/main/resources/zhku/local-preview/index.html` | WB-1（前端） | SSE 流式接进问答页（**实现与 6 张验收截图已完成、尚未提交**）；阶段 9 反馈交互复用同一占用 | 2026-09-20 09:20 |
 | `docs/evidence/` | WB-3（线 A）/ WB-1 / CX-1 | 各线证据账本（**共享目录，新增文件不构成冲突**；只追加、不改他线文件） | 2026-09-17 16:41 |
 | `knowledge/src/main/resources/application-zhku-local-preview.yml` | 已合并（两线共用） | 线 A 的 `zhku.rag.*` 与线 B 的 `zhku.streaming.*` 现已并存于主线；**此后任何一方再改此文件前须重新登记**（本次合并冲突即发生在此文件） | 2026-09-18 20:44 |
+| `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewApplication.java`、`knowledge/src/main/java/com/zhku/knowledge/feedback/AnonymousFeedbackController.java`、`FeedbackPreviewConfiguration.java` 及 `FeedbackPreviewEndpointTest` | CX-1（线 B） | 阶段 9 学生侧匿名反馈接线：仅把反馈控制器/专用装配置入本机预览组件扫描并验证 `/zhku/feedback`；不改会话门面、回答/RAG 或任何前端资源 | 2026-09-20 |
 
 > 已完成并清除的占用：WB-1 对 `knowledge/src/main/resources/zhku/local-preview/index.html` 的
 > 引用卡改版占用（已交付 `0483e6e`：引用卡 UI + 删除页脚免责声明 + 明暗验收截图）。
