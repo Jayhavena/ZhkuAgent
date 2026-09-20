@@ -109,6 +109,7 @@
 | `docs/evidence/` | WB-3（线 A）/ WB-1 / CX-1 | 各线证据账本（**共享目录，新增文件不构成冲突**；只追加、不改他线文件） | 2026-09-17 16:41 |
 | `knowledge/src/main/resources/application-zhku-local-preview.yml` | 已合并（两线共用） | 线 A 的 `zhku.rag.*` 与线 B 的 `zhku.streaming.*` 现已并存于主线；**此后任何一方再改此文件前须重新登记**（本次合并冲突即发生在此文件） | 2026-09-18 20:44 |
 | `knowledge/src/main/java/com/zhku/knowledge/feedback/`、同名测试目录、Flyway `V16` | CX-1（线 B） | 阶段 9 匿名枚举反馈闭环：90 天保留/去重、管理员最小聚合审核 API；不含前端、答案卡或 `serviceguide/` | 2026-09-20 |
+| `knowledge/src/main/java/com/zhku/knowledge/governance/web/FeedbackAdminController.java`、`ZhkuLocalAdminConfiguration.java` 及同名测试 | CX-1（线 B） | 阶段 9 管理员最小聚合审核 API 的本机适配和反馈 bean 装配；仅新增聚合读取，不改本机预览或前端资源 | 2026-09-20 |
 
 > 已完成并清除的占用：WB-1 对 `knowledge/src/main/resources/zhku/local-preview/index.html` 的
 > 引用卡改版占用（已交付 `0483e6e`：引用卡 UI + 删除页脚免责声明 + 明暗验收截图）。
