@@ -190,7 +190,7 @@ PublicElectiveGroundedAnswerAcceptanceTest
 | `src/test/java/com/yupi/yuaiagent/zhku/knowledge/answer/PublicElectiveGroundedAnswerAcceptanceTest.java` | 修改 | 使用共享数据库配置。 |
 | `docs/zhkuagent/仲园Agent-本机HTTP问答接口开发者验收手册.md` | 修改 | 记录一键验收命令、分层含义与完整仓库测试边界。 |
 
-实际 Java 包路径应沿用 `com.yupi.yuaiagent.zhku.knowledge.publication`，避免创建仅为测试存在的平行配置体系。
+实际 Java 包路径应沿用 `com.zhku.knowledge.publication`，避免创建仅为测试存在的平行配置体系。
 
 ## 8. 验收标准
 

@@ -24,7 +24,7 @@
 Set-Location D:\alldesk\Projects\SuperAgent-zhkuagent-mvp
 $zhkuDbPassword = ((Get-Content -LiteralPath 'infra/.env' | Where-Object { $_ -match '^ZHKU_DB_PASSWORD=' }) -replace '^ZHKU_DB_PASSWORD=', '')
 $env:ZHKU_DB_PASSWORD = $zhkuDbPassword
-.\mvnw.cmd '-Dspring-boot.run.main-class=com.yupi.yuaiagent.zhku.knowledge.web.ZhkuLocalPreviewApplication' spring-boot:run
+.\mvnw.cmd '-Dspring-boot.run.main-class=com.zhku.knowledge.web.ZhkuLocalPreviewApplication' spring-boot:run
 ```
 
 ### 完整查看接口响应

@@ -34,7 +34,7 @@ docker compose --env-file infra/.env -f infra/docker-compose.yml up -d
 ```powershell
 $zhkuDbPassword = ((Get-Content -LiteralPath 'infra/.env' | Where-Object { $_ -match '^ZHKU_DB_PASSWORD=' }) -replace '^ZHKU_DB_PASSWORD=', '')
 $env:ZHKU_DB_PASSWORD = $zhkuDbPassword
-.\mvnw.cmd '-Dspring-boot.run.main-class=com.yupi.yuaiagent.zhku.knowledge.governance.web.ZhkuLocalAdminApplication' spring-boot:run
+.\mvnw.cmd '-Dspring-boot.run.main-class=com.zhku.knowledge.governance.web.ZhkuLocalAdminApplication' spring-boot:run
 ```
 
 浏览器访问：`http://127.0.0.1:8124/api/zhku/local-admin`。
@@ -46,7 +46,7 @@ $env:ZHKU_DB_PASSWORD = $zhkuDbPassword
 ```powershell
 $zhkuDbPassword = ((Get-Content -LiteralPath 'infra/.env' | Where-Object { $_ -match '^ZHKU_DB_PASSWORD=' }) -replace '^ZHKU_DB_PASSWORD=', '')
 $env:ZHKU_DB_PASSWORD = $zhkuDbPassword
-.\mvnw.cmd '-Dspring-boot.run.main-class=com.yupi.yuaiagent.zhku.knowledge.web.ZhkuLocalPreviewApplication' spring-boot:run
+.\mvnw.cmd '-Dspring-boot.run.main-class=com.zhku.knowledge.web.ZhkuLocalPreviewApplication' spring-boot:run
 ```
 
 浏览器访问：`http://127.0.0.1:8123/api/zhku/local-preview`。管理员页第 5 步的“打开问答验证页”会打开这个地址。
