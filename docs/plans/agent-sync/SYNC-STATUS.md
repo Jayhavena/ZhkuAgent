@@ -178,6 +178,14 @@
 | 2026-09-20 | 第六次合并：线 A 阶段 8 收尾（`JdbcEmbeddingProfileStore` + 7 例真实库用例 + `RetrievalVectorBaselineEvalTest` + 逐题分母留痕 + 账本，8 文件 +940） | `campus-line-a` | `df6d31b` | ✅ 冲突 0（主线只有 1 个 PM 文档提交，无文件重叠）。**注**：本次合并于 09-18 21:1x 发起、冲突已解决但**未提交**，悬置两天后于 09-20 由 PM 收口提交；暂存区经 `git diff --cached --name-only` 核对只有线 A 的 8 个文件，未混入他线文件 |
 | 2026-09-20 | 第七次合并：线 B SSE 证据账本补齐 + SSE 事件透传 `citations[]`（4 文件） | `campus-line-b` | `2cba965` | ✅ 九项（`merge-tree` 试算冲突 0；状态板命中行不重叠已实测：线 A 改 §二线A行/§四/§六、线 B 改 §二线B行/§八第 4 条）。**执行方式**：因主 worktree 管理目录被本机缺陷清除，改用 `merge-tree --write-tree` + `commit-tree`（双父）+ `update-ref` 完成，结果与常规合并等价 |
 
+> **合并后独立复核（PM，2026-09-20 09:28）**：在**合并后的主线 worktree** 跑
+> `.\mvnw.cmd -pl knowledge test`（密码从用户级环境变量注入，不入命令行）→
+> **307 通过 / 0 失败 / 0 错误 / 4 跳过，`BUILD SUCCESS`**，退出码 0。
+> 4 个跳过 = `DashScopeProviderSmokeTest` 2 个 opt-in 守卫 + `RetrievalVectorBaselineEvalTest` 1 个
+> opt-in + `PdfPageTextExtractorTest` 1 个既有跳过（均在预期内，与"默认不依赖网络与密钥"一致）。
+> 与两侧自述（线 A 306、线 B 299）口径差异来自测试数叠加：+1 = 线 B `ConversationStreamProcessorTest`
+> 新增用例。**这是九项清单第 5 条"全量测试通过"的 PM 侧证据**（此前两次合并只有分支自述，本轮补上）。
+
 ## 八、引用载荷实际下发形态（WB-1 做前端引用卡 UI 的依据）
 
 > 登记方：WB-3（线 A）2026-09-17 17:45。数据来源：阶段 8 HTTP 装配（提交见第二节线 A 行）。
