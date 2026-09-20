@@ -48,7 +48,7 @@
 | 当前基线提交 | `e7b9d3a`（2026-09-20 **第八次合并**：线 A 同步登记，纯文档；`03daff4` 为合并后复核登记、`2cba965` 为第七次合并=线 B SSE 账本补齐 + 引用明细透传、`df6d31b` 为第六次合并=线 A 阶段 8 收尾、`1573507` 为第五次、`b333392` 为第四次、`e9cdf84` 为第三次） |
 | 最近合并 | `campus-line-a` → 主线（`e7b9d3a`，**冲突 0**，仅状态板线 A 行）；`campus-line-b` → 主线（`2cba965`，**冲突 0**） |
 
-> ⚠️ **2026-09-20 本机事故（第二次，类型不同于 09-16）**：主 worktree
+> ⚠️ **2026-09-20 本机事故（类型不同于 09-16；累计复现三次，触发条件见下方 🔴 段）**：主 worktree
 > `D:\alldesk\Projects\ZhkuAgent` 的**每-worktree 管理目录**
 > `<common-dir>/worktrees/ZhkuAgent` 在 `git` 写操作（`merge` / `stash`）后**被静默删除**，
 > 表现为 `fatal: not a git repository: …/worktrees/ZhkuAgent`、`Unable to create index.lock`。
@@ -141,8 +141,10 @@
 | 根 `.gitignore` 追加 `/.workbuddy/` | 线 A（WB-3）自查登记 | **越界自查**：线 A 在 `44da0e1` 中顺手给根 `.gitignore` 追加了 `/.workbuddy/`（理由：该目录存协作临时日志，内含供应商响应片段与本机路径，不宜误入版本库）。该文件属**共享根文件、不在线 A 地盘**，严格说应先登记再做——特此补登记。影响面极小（仅忽略本机日志目录，不影响任何源码/配置），但**若你认为该变更应由其他线或用户统一收口，可 `git revert` 该片段或由你在收口时重写该行**，线 A 无异议 | ⏳ 待你的处置意见（当前已生效） |
 | HTTP 装配是否现在做 | 线 A 提问 / WB-1 决策 | **2026-09-17 用户经 WB-1 批准：现在做**——属阶段 8 退出条件（跑通"…→ 引用校验 → 回答卡"）；只追加已冻结字段 `route`/`handoffRequired`，不改旧字段语义；占用已登记。注意：`ZhkuLocalPreviewConfiguration` 后续线 B 的 JDBC 配置切换也要动，合并时以"先合并方先落"处理，冲突时在状态板登记 | ✅ 已批准 |
 | SSE HTTP 接入边界 | CX-1 | SSE 需基于本机预览会话门面输出冻结字段 `revision`、`conversationStatus`、`route`、`handoffRequired`，但 `ZhkuLocalPreviewConfiguration`、`LocalPreviewConversationFacade` 与会话 Controller 当前由线 A 占用。**2026-09-17 用户确认采用方案 A**：由线 A 完成 HTTP 统一装配并合入后，线 B 再接入 SSE；不新建并行会话端点。 | ✅ 已决策，等待线 A 依赖 |
+| 阶段 9 迁移的跨线依赖（`V15` / `V16`） | PM（本项目，2026-09-20 裁决） | 阶段 9 计划原把"办事清单 + 反馈"写成**一个**迁移；按号段裁决拆成 `V15`（线 A：`service_guide`、步骤、材料、官方渠道、风险提示、关联规则/通知版本）与 `V16`（线 B：反馈事件、匿名会话散列、枚举原因、创建/到期时间、去重键）。**风险**：各线在自己分支独立跑回归时**看不到对方分支的迁移文件**，若 `V16` 对 `V15` 的表建外键，线 B 的回归会直接变红。**裁决**：**两条迁移互不建外键，各自自包含**；确需关联处用**软引用**（清单标识 + 版本号，不加 FK 约束），由服务层校验。**另**：`V16` 中禁止出现 `message` / `student_id` / `name` / `contact` / 原问题 / 原回答列（白名单约束，计划已写明），此点属硬边界，违反即不合 | ✅ 已决策（PM 在号段/接口边界授权内；两线按此执行） |
+| 线 B"答案卡升级（后端侧）"与阶段 9 回答卡扩展的归属重叠 | PM（本项目，2026-09-20 裁决） | 分工表/持续开发指令曾把"答案卡升级（后端侧）"列在线 B，而阶段 9 第 3 项"扩展统一回答卡"按 2026-09-20 裁决归**线 A**（回答卡代码在 `answer/`，属线 A 地盘）。**裁决**：回答卡的**扩展**统一由线 A 做；线 B 该任务**视为已收尾**（其已合并部分＝SSE 事件透传 `citations[]`，见第七次合并）。线 B 不再动 `answer/`；若发现回答卡与 SSE 载荷不一致，先登记不直接改 | ✅ 已决策（避免两线重复实现同一件事） |
 | SSE 证据账本路径 | CX-1 | `docs/evidence/` 仍由 WB-3 登记占用；线 B 先完成 SSE 的代码与测试，提交证据账本前需由 WB-3 释放该目录或在本表明确按不同文件并行编辑的边界。**2026-09-20 已闭环**：按"共享目录、只追加、不改他线文件"的既有边界，线 B 已提交 `docs/evidence/2026-09-18-SSE流式输出-证据账本.md`（`2b25bb1`），并随第七次合并入库 | ✅ 已解决（2026-09-20） |
-| 主 worktree 管理目录被 git 写入清除（本机事故） | PM（本项目） | **2026-09-20 复现两次**：在 `D:\alldesk\Projects\ZhkuAgent` 执行 `git merge` / `git stash` 后，`<common-dir>/worktrees/ZhkuAgent` 被静默删除（报 `not a git repository`、`Unable to create index.lock`）。**对象库与 7 条分支引用均未受损**，只丢该 worktree 的 HEAD/index；已按"重建 `gitdir`/`commondir`/`HEAD` + `git reset` 重建索引"修复，未提交改动（WB-1 的 `index.html`）**零丢失**。第七次合并改用 `merge-tree --write-tree` + `commit-tree` + `update-ref` 完成。详见第一节事故说明 | ⚠️ 已知本机缺陷，规避纪律已写入第一节 |
+| 主 worktree 管理目录被 git 写入清除（本机事故） | PM（本项目） | **2026-09-20 复现三次，已定位触发条件**：在 `D:\alldesk\Projects\ZhkuAgent` 执行 **`git merge <分支>` 必定触发**（三次全中；而 `add`/`commit`/`reset`/`checkout`/`stash` 均正常），`<common-dir>/worktrees/ZhkuAgent` 被静默删除（报 `not a git repository`、`Unable to create index.lock`）。**对象库与 7 条分支引用均未受损**，只丢该 worktree 的 HEAD/index；已按"重建 `gitdir`/`commondir`/`HEAD` + `git reset` 重建索引"修复三次，未提交改动（WB-1 的 `index.html`）**零丢失**。第六/七/八次合并全部改用 `merge-tree --write-tree` + `commit-tree` + `update-ref` 完成，结果与常规合并等价。**硬性纪律：主线 worktree 禁止直接 `git merge`** | 🔴 已知本机缺陷，触发条件与纪律见第一节 |
 | 阶段 9 / 10 的号段与归属 | PM（本项目） | 阶段 8 已交付入库，**号段分配的触发条件已满足但仍未登记**（§五 第 5 项）。当前线 A 阶段 8 已收尾、线 B 四项交付均已入库，两条线**都在等这次裁决才能开工**；若不裁决，线 B 将无事可做。PM 提案：阶段 9 → `V15`–`V16`（清单/回答卡归线 A、反馈闭环 + 管理员最小 API 归线 B、管理界面归 WB-1）；阶段 10 → `V17`–`V18`（归线 A）。**属"改变产品范围/资源分配"，等用户明确裁决后再写入 §五 并放行** | ✅ 已裁决（2026-09-20 用户选"按提案执行"）：号段与归属已写入 §五 第 5 项，三条线已放行 |
 
 ## 五、冻结契约（开分前由双方共同确认，确认后只追加）
