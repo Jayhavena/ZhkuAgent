@@ -145,9 +145,20 @@ class RetrievalVectorBaselineEvalTest {
         System.out.println("[EVAL-INDEX] profile=" + PROFILE + ", runId=" + run.runId()
                 + ", candidateChunks=" + run.candidateChunks() + ", indexedEntries=" + run.indexedEntries()
                 + ", embeddingModel=" + EMBEDDING_MODEL + ", dimensions=" + DIMENSIONS);
-        // 黄金集共 5 个片段，其中 1 条来源为 INTERNAL_ONLY → 资格过滤只放行 4 条候选并全部入索引。
-        assertThat(run.candidateChunks()).isEqualTo(4);
-        assertThat(run.indexedEntries()).isEqualTo(4);
+        // 口径事实（必须随报告一起看）：索引任务按"整库合格语料"建索引，本机演示库与本评测
+        // 共用同一个数据库，所以候选池 = 评测夹具 + 演示库中已发布且学生可见的同范围片段。
+        // 因此**不断言条目总数**（写死总数会在演示语料增长后无故变红——2026-09-20 实际发生），
+        // 只断言"夹具的 4 条已发布片段都在索引里"，并把当时的语料状态打印留痕。
+        System.out.println("[EVAL-CORPUS] indexEntries=" + run.indexedEntries()
+                + ", eligibleChunksByScope=" + eligibleChunksByScope());
+        assertThat(run.indexedEntries()).isGreaterThanOrEqualTo(4);
+        assertThat(indexedChunkIds(PROFILE)).contains(
+                RetrievalGoldenSet.CHUNK_CREDIT_LIMIT,
+                RetrievalGoldenSet.CHUNK_NO_DEFERRAL,
+                RetrievalGoldenSet.CHUNK_WITHDRAWAL_WINDOW,
+                RetrievalGoldenSet.CHUNK_NO_SELECTION);
+        // 内部资料在**索引侧**就应被资格过滤挡住（索引与召回共用同一份判定）。
+        assertThat(indexedChunkIds(PROFILE)).doesNotContain(RetrievalGoldenSet.CHUNK_INTERNAL_DECOY);
 
         // 内部诱饵另行强制入索引（用真实向量）：评测要证明"检索侧自己会挡掉"，
         // 而不是靠"它压根没被索引"——后者无法证明召回侧的资格过滤真的生效。
@@ -265,6 +276,53 @@ class RetrievalVectorBaselineEvalTest {
             return result.getLong(1);
         } catch (SQLException exception) {
             throw new IllegalStateException("无法统计 ACTIVE profile", exception);
+        }
+    }
+
+    /** 某 profile 下已写入的索引条目对应的片段标识（用于"夹具是否都进了索引"的形状断言）。 */
+    private java.util.Set<UUID> indexedChunkIds(String profileId) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "SELECT chunk_id FROM retrieval_index_entry WHERE profile_id = ?")) {
+            statement.setString(1, profileId);
+            try (var result = statement.executeQuery()) {
+                java.util.Set<UUID> ids = new java.util.HashSet<>();
+                while (result.next()) {
+                    ids.add(result.getObject("chunk_id", UUID.class));
+                }
+                return ids;
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("无法读取索引条目", exception);
+        }
+    }
+
+    /**
+     * 当前库里"已发布 + 学生可见 + 权利已确认"的片段数（按知识范围分组）。
+     *
+     * <p>这是本评测的**语料指纹**：索引任务按整库语料建索引，演示语料增长会改变候选池，
+     * 不记录它就说不清两份基线之间的差异是"代码变了"还是"语料变了"。</p>
+     */
+    private String eligibleChunksByScope() {
+        String sql = """
+                SELECT source.knowledge_scope, COUNT(chunk.id)
+                FROM knowledge_chunk chunk
+                JOIN knowledge_source source ON source.id = chunk.source_id
+                WHERE source.publication_status = 'PUBLISHED'
+                  AND source.visibility_scope = 'STUDENT_VISIBLE'
+                  AND source.sharing_rights_confirmed
+                GROUP BY source.knowledge_scope ORDER BY source.knowledge_scope
+                """;
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             var result = statement.executeQuery()) {
+            List<String> entries = new ArrayList<>();
+            while (result.next()) {
+                entries.add(result.getString(1) + "=" + result.getInt(2));
+            }
+            return String.join(",", entries);
+        } catch (SQLException exception) {
+            throw new IllegalStateException("无法统计语料状态", exception);
         }
     }
 
