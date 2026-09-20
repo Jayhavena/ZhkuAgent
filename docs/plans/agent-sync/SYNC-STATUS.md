@@ -59,9 +59,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表） |
-| 当前任务 | 会话持久化 JDBC ✅、校园工具集 + Function Calling ✅、**SSE 流式输出 ✅（已合并入主线 `1573507`）**。**下一项：答案卡后端侧**（前端 UI 归 WB-1，已在推进）；`docs/evidence/` 占用协调已随合并解决 |
-| 状态 | 🟢 活动中（三项交付已合并） |
-| 最新提交 | `99ed3be`（SSE 交付状态更新）；代码实现 `04d9ab6`。下一轮请先快进主线到 `1573507` 再开工 |
+| 当前任务 | 会话持久化 JDBC ✅、校园工具集 + Function Calling ✅、SSE ✅（主线 `1573507`）。答案卡后端侧首项 ✅：SSE 已透传 `citations[]`，与 `citationIds` 保持同长同序；前端 UI 仍归 WB-1。阶段 9 是否分配给线 B，等待用户裁决。 |
+| 状态 | 🟢 活动中（四项可独立交付均有证据） |
+| 最新提交 | `50d92ab`（SSE 引用明细透传 + TDD + 证据账本；knowledge 299 项通过 / 3 项显式跳过） |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -181,6 +181,6 @@
 1. `citationIds` / `citations` 只在 `route=RETRIEVAL_AUGMENTED` 时非空；其他级别为空数组（`[]`）。标识形如 `cit-<24 位十六进制>`（`RandomCitationIdFactory`），不可预测、同轮不重复。
 2. 全不命中时：`type=OUT_OF_SCOPE`（**旧值不变**）+ `route=INSUFFICIENT_EVIDENCE` + `handoffRequired=true`——请以 `route`/`handoffRequired` 判断"该转人工"，不要用 `type` 判断。
 3. 引用卡 UI：直接按 `citations[]` 渲染（标题 + 定位 + 页码），`citationIds` 作锚点/透传即可；两者顺序一致，无需自行配对。明细由服务端在同一次分配中产生，**不经过模型**，模型无法影响它。
-4. **流式（SSE）尚无载荷可登记**：本机预览当前是同步响应；SSE 属线 B 的 `zhku.streaming.*`，其事件内嵌字段将沿用 `route`/`handoffRequired`/`citationIds`/`citations`（冻结契约已约定），待线 B 交付后由该线登记事件形态。
+4. **流式（SSE）实际载荷（CX-1，2026-09-18）**：同一会话消息地址以 `Accept: text/event-stream` 协商，顺序为 `accepted` → `reply` → `complete`。三类事件均有 `sessionId`、`revision`、`conversationStatus`；`reply`/`complete` 实际下发 `type`、`message`、`answer`、`route`、`handoffRequired`、`citationIds`、`citations`，后两者长度恒等、顺序一致；`accepted` 的作答字段为 `null`/空数组。完整证据见 `docs/evidence/2026-09-18-SSE流式输出-证据账本.md`。
 5. 另有一个单轮问答接口 `POST /api/zhku/local-preview/answers`（`mode/answer/citations/notice`），属阶段 5 既有路径，**不在本次引用卡链路内**，未被改动。
 6. 检索增强级默认**关闭**（未配置 `zhku.rag.*` 时整级跳过）：未开启时不会出现 `route=RETRIEVAL_AUGMENTED`，前端引用卡按"无引用"分支即可。
