@@ -25,8 +25,22 @@ public final class LocalKnowledgePublisherFactory {
                         "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
                 ),
                 databaseValue("zhku.db.user", "ZHKU_DB_USER", "zhkuagent"),
-                databaseValue("zhku.db.password", "ZHKU_DB_PASSWORD", null)
+                databasePassword()
         );
+    }
+
+    private static String databasePassword() {
+        if (System.getProperty("zhku.db.password") != null) {
+            // 系统属性容易出现在启动命令、诊断输出或构建记录中，密码只能由进程环境提供。
+            throw new IllegalArgumentException(
+                    "密码不接受系统属性注入，请使用环境变量 ZHKU_DB_PASSWORD"
+            );
+        }
+        String fromEnvironment = System.getenv("ZHKU_DB_PASSWORD");
+        if (fromEnvironment != null && !fromEnvironment.isBlank()) {
+            return fromEnvironment;
+        }
+        throw new IllegalArgumentException("缺少数据库密码：请设置环境变量 ZHKU_DB_PASSWORD");
     }
 
     private static String databaseValue(
