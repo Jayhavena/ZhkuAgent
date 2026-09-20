@@ -1,6 +1,8 @@
 package com.zhku.knowledge.feedback;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,12 @@ import java.util.Set;
  * 身份字段可能被静默接受，造成未受治理的数据收集。</p>
  */
 @RestController
+@Profile("zhku-local-preview")
+@ConditionalOnProperty(
+        prefix = "zhku.local-preview",
+        name = "enabled",
+        havingValue = "true"
+)
 @RequestMapping("/zhku/feedback")
 public final class AnonymousFeedbackController {
 
