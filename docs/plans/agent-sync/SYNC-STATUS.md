@@ -16,14 +16,27 @@
 
 | 会话 ID | 宿主 | 地盘（目录级） | 分支 / worktree | 状态 |
 | --- | --- | --- | --- | --- |
-| WB-1 | WorkBuddy 会话①（前端） | `agent/frontend/`、`docs/design-references/` | `campus-line-a` / 主 worktree | 🟢 活动中 |
+| WB-1 | WorkBuddy 会话①（前端） | `agent/frontend/`、`docs/design-references/`、`knowledge/src/main/resources/zhku/local-preview/`（2026-09-18 用户裁决补登：本机预览问答页是前端交付物，物理上无法移出该目录） | `zhkuagent-modules` / 主 worktree `D:\alldesk\Projects\ZhkuAgent`（**登记例外，2026-09-18 用户裁决**，详见下方纠正登记） | 🟢 活动中 |
 | WB-2 | WorkBuddy 会话②（其他内容） | 待该会话开工时自填 | 主 worktree（与 WB-1 共享工作区，禁止同时 commit） | ⬜ 待登记 |
-| WB-3 | WorkBuddy 会话③（线 A：检索+生成+评测） | 线 A：`knowledge/` 检索与生成侧（`routing/`、`retrieval/`、`rag/`、`eval/`）、Flyway `V9`–`V11`、`docs/evidence/`；与线 B 在 `knowledge/` 内的占用以「文件占用声明」为准 | `campus-line-a` / `ZhkuAgent-lineA` | 🟢 活动中（2026-09-17 已上岗；阶段 8 已完成十批提交，详见第二节线 A 行） |
+| WB-3 | WorkBuddy 会话③（线 A：检索+生成+评测） | 线 A：`knowledge/` 检索与生成侧（`routing/`、`retrieval/`、`rag/`、`eval/`）、Flyway `V9`–`V11`、`docs/evidence/`；与线 B 在 `knowledge/` 内的占用以「文件占用声明」为准 | `campus-line-a` / `ZhkuAgent-lineA` | 🟢 阶段 8 已交付并入库（2026-09-20 第六次合并 `df6d31b`）；等待阶段 9/10 归属与号段裁决 |
 | CX-1 | Codex 会话（线 B） | 线 B：工具 + 编排（`agent/` 工具侧、`knowledge/`，**前端体验职责已移交 WB-1**） | `campus-line-b` / `ZhkuAgent-lineB` | 🟢 活动中（首个交付已合并入主线 `7dce9e5`） |
 
 > 同 worktree 多会话（WB-1 / WB-2）额外纪律：任一时刻只允许一个会话执行
 > `git commit`；commit 前必须 `git status --porcelain` 核对暂存区只有自己
 > 地盘的文件。
+
+> **WB-1 纪律纠正登记（2026-09-18，用户裁决）**：WB-1 的业务提交 `0483e6e`
+> （本机问答页改版）**直接落在主线 `zhkuagent-modules`**（父提交 `958a0aa`，非合并提交），
+> 违反第一节"主线只接收合并，不直接开发"；且改动文件
+> `knowledge/src/main/resources/zhku/local-preview/index.html` 当时不在上表 WB-1 已登记地盘内。
+> 用户裁决采用"如实登记"方案，处置如下：
+> ① 地盘按上表补登 `knowledge/src/main/resources/zhku/local-preview/`；
+> ② 分支 / worktree 如实登记为 `zhkuagent-modules` / 主 worktree（原先登记的
+> `campus-line-a` 有误——该分支实为 WB-3 在 `ZhkuAgent-lineA` 使用）；
+> ③ WB-1 提交纪律：只按**路径** `git add` 自己地盘内的文件（禁止 `git add -A` / `git add .`），
+> commit 前 `git status --porcelain` 核对暂存区不含他线文件；要改地盘外文件先登记再动手；
+> ④ 如后续要求 WB-1 改走"独立分支提交、由 PM 合并"，需先为 WB-1 分配**专属 worktree**——
+> 主 worktree 现与 WB-2 共享且带有他线未提交改动，就地切分支会带走并干扰他人工作区。
 
 ---
 
@@ -32,8 +45,22 @@
 | 项 | 值 |
 | --- | --- |
 | 主线分支 | `zhkuagent-modules`（只接收合并，不直接开发） |
-| 当前基线提交 | `1573507`（2026-09-18 **第五次合并**：线 B SSE 流式输出；`b333392` 为第四次合并=线 A DashScope 配置/端点归一化/smoke 用例；更早 `e9cdf84` 为第三次） |
-| 最近合并 | `campus-line-b` → 主线（`1573507`，真合并，冲突 1 处 yml 按"逐段保留双方"解决） |
+| 当前基线提交 | `2cba965`（2026-09-20 **第七次合并**：线 B SSE 证据账本补齐 + SSE 事件透传 `citations[]`；`df6d31b` 为第六次合并=线 A 阶段 8 收尾（真实向量路 + 第二份基线 + 账本）；`1573507` 为第五次、`b333392` 为第四次、`e9cdf84` 为第三次） |
+| 最近合并 | `campus-line-b` → 主线（`2cba965`，**冲突 0**：状态板命中行不重叠）；`campus-line-a` → 主线（`df6d31b`，**冲突 0**） |
+
+> ⚠️ **2026-09-20 本机事故（第二次，类型不同于 09-16）**：主 worktree
+> `D:\alldesk\Projects\ZhkuAgent` 的**每-worktree 管理目录**
+> `<common-dir>/worktrees/ZhkuAgent` 在 `git` 写操作（`merge` / `stash`）后**被静默删除**，
+> 表现为 `fatal: not a git repository: …/worktrees/ZhkuAgent`、`Unable to create index.lock`。
+> 仓库本体（对象库与 `refs/heads` 7 条引用）**未受损**；仅该 worktree 的 HEAD/index 丢失。
+> 处置：从任一健康 worktree 重建管理目录（`gitdir` / `commondir` / `HEAD` 三个文件），
+> 再 `git reset`（mixed，不动工作区）重建索引；**第七次合并因此改用工作区无关的
+> `git merge-tree --write-tree` + `commit-tree` + `update-ref` 完成**（结果与常规 `git merge` 等价，
+> 内容为 `merge-tree` 的零冲突结果）。
+> **规避纪律**：① 主 worktree 每次 `git` 写操作前后都要 `Test-Path <common-dir>/worktrees/ZhkuAgent/HEAD`
+> 核对；② 写操作前确认没有未提交改动（或先备份到仓库外）；
+> ③ 合并这类可复算的操作优先在健康 worktree 里用 `merge-tree` 路线执行。
+> 修复脚本尚未入库（当前为手工步骤），待登记后再评估是否落成 `scripts/` 下的一次性脚本。
 
 > ✅ 2026-09-16 事故已闭环：本机 git 环境对"带斜杠的引用"（如 `codex/xxx`）写入存在缺陷，commit 触发的自动 gc 曾清空 `refs/heads/codex/`。**全部 6 个分支已迁移为顶层无斜杠命名**（`zhkuagent-modules` / `campus-line-a` / `campus-line-b` / `agent-run-context` / `zhkuagent-mvp` / `backup-fc7d153-before-amend`），`codex/*` 引用已删除，`gc.auto 0` 已设，并新增 `scripts/safeguard-refs.ps1` + post-commit 钩子自动守护。
 >
@@ -45,12 +72,12 @@
 
 | 项 | 值 |
 | --- | --- |
-| 分支 | `campus-line-a`（2026-09-18 已合并主线 `1573507`，见 `776d255`） |
+| 分支 | `campus-line-a`（2026-09-20 **已并入主线 `2cba965`**，见第六次合并 `df6d31b`；分支无独有提交） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineA`（2026-09-17 已创建，专属本线） |
 | Flyway 号段 | `V9`–`V11` |
 | 当前任务 | 阶段 8（WB-3）**十六批**已提交，**真实 provider 与向量路均已打开**。① **真实 smoke ✅ 通过**（2026-09-18 用户重设密钥后原样重跑：chat `qwen-plus` 1613ms/结构合法/回填服务端引用标识，embedding `text-embedding-v4` 829ms/**1024 维**；第 1 轮 401 的根因是**环境变量里的值不对**，非站点/端点问题——两轮记录都在账本）；② **向量路打开**：补齐 `JdbcEmbeddingProfileStore`（退旧启新同事务 + 库级单 ACTIVE 兜底 + provider/model/维度不可静默变更），新增 7 例真实库用例（含"退役 profile 索引条目保留"举证回滚窗口）；③ **第二份基线（含向量召回）已产出**：`Recall@3=1.0000, MRR=1.0000`（与首份**持平**）、引用准确率 `0.8750→0.3333` 经逐题分母核实为**分母效应**（首份逐题候选 2/1/1/1，第二份 3/3/3/3），**不宣称提升也不宣称退化**；④ **数据侧发现（需你决策）**：演示库 3 来源/9 片段中，仅 2 个"学生可见+权利确认"，其 `knowledge_scope` 为 `ELECTIVE_RETAKE`/`PUBLIC_ELECTIVE_CREDIT_LIMIT`，而配置范围是 `PUBLIC_ELECTIVE`（**精确匹配**）→ **当前配置下演示库合格条目为 0**，向量路"机制已通、数据未备"；⑤ 另开 1 例 opt-in 用例 `RetrievalVectorBaselineEvalTest`（默认跳过，避免日常回归产生真实费用）。全量回归（合并主线后）见下 |
-| 状态 | 🟢 推进中（WB-3，2026-09-18）；**外部阻塞已解除**（密钥修好、Docker 库已拉起）；余 1 项待你决策 = 演示语料范围/补充 |
-| 最新提交 | `055d9a1`（十六批：向量路 + 第二份基线 + 账本）与合并提交 `776d255`（并入主线 `1573507`）。上批 `2fbfc4f`/`cd72e3a`（十五批：账本刷新、状态板）。**相对主线领先 2 个提交、落后 0**，按线 A 硬性边界**不自行合并回主线**，等你执行 |
+| 状态 | 🟢 阶段 8 已交付并入库（2026-09-20 第六次合并 `df6d31b`）；余 1 项待用户决策 = 演示语料范围/补充；**下一阶段（9/10）的归属与号段待裁决**（裁决前不得开工） |
+| 最新提交 | `4ca8fb2`（十六批补：账本与状态板）——已随 `df6d31b` 进入主线；上批 `055d9a1`（十六批：向量路 + 第二份基线）。**当前落后主线 1 个合并提交、无独有提交**，开工前先 `git merge zhkuagent-modules` 快进即可 |
 
 ### 线 B：工具 + 编排（Agent：Codex 会话，见第零节 CX-1）
 
@@ -60,20 +87,21 @@
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表） |
 | 当前任务 | 会话持久化 JDBC ✅、校园工具集 + Function Calling ✅、SSE ✅（主线 `1573507`）。答案卡后端侧首项 ✅：SSE 已透传 `citations[]`，与 `citationIds` 保持同长同序；前端 UI 仍归 WB-1。阶段 9 是否分配给线 B，等待用户裁决。 |
-| 状态 | 🟢 活动中（四项可独立交付均有证据） |
-| 最新提交 | `50d92ab`（SSE 引用明细透传 + TDD + 证据账本；knowledge 299 项通过 / 3 项显式跳过） |
+| 状态 | 🟢 活动中，**已并入主线 `2cba965`**（第七次合并）；第五次合并欠的"同批证据账本"（九项清单第 7 条）已由 `2b25bb1` 补齐并随本次合并入库 |
+| 最新提交 | `d84195c`（答案卡后端侧状态）；上批 `50d92ab`（SSE 引用明细透传 + TDD + 账本；knowledge 299 项通过 / 3 项跳过）、`bbb3764`/`2b25bb1`（SSE 证据账本补齐与格式清理） |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
 | 文件 / 目录 | 占用方 | 任务 | 声明时间 |
 | --- | --- | --- | --- |
-| `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧（真实 provider 打通、向量路开启、第二份基线尚未完成） | 2026-09-17 16:41 |
+| `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧——**已交付**（真实 provider 打通、向量路开启、第二份基线已产出）；阶段 9 开工前须按新包（`serviceguide/`、`feedback/`）另行登记 | 2026-09-17 16:41 |
+| `knowledge/src/main/resources/zhku/local-preview/index.html` | WB-1（前端） | SSE 流式接进问答页（**实现与 6 张验收截图已完成、尚未提交**）；阶段 9 反馈交互复用同一占用 | 2026-09-20 09:20 |
 | `docs/evidence/` | WB-3（线 A）/ WB-1 / CX-1 | 各线证据账本（**共享目录，新增文件不构成冲突**；只追加、不改他线文件） | 2026-09-17 16:41 |
 | `knowledge/src/main/resources/application-zhku-local-preview.yml` | 已合并（两线共用） | 线 A 的 `zhku.rag.*` 与线 B 的 `zhku.streaming.*` 现已并存于主线；**此后任何一方再改此文件前须重新登记**（本次合并冲突即发生在此文件） | 2026-09-18 20:44 |
 
-> 已完成并清除的占用：WB-1 对 `knowledge/src/main/resources/zhku/local-preview/index.html` 的占用
-> （页面改版已交付，提交 `0483e6e`：引用卡 UI + 删除页脚免责声明 + 明暗验收截图）。
-> 后续如把 SSE 流式接进该页面，需重新登记占用。
+> 已完成并清除的占用：WB-1 对 `knowledge/src/main/resources/zhku/local-preview/index.html` 的
+> 引用卡改版占用（已交付 `0483e6e`：引用卡 UI + 删除页脚免责声明 + 明暗验收截图）。
+> **2026-09-20 因 SSE 接入已重新登记**（见上表）。
 >
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
@@ -103,7 +131,9 @@
 | 根 `.gitignore` 追加 `/.workbuddy/` | 线 A（WB-3）自查登记 | **越界自查**：线 A 在 `44da0e1` 中顺手给根 `.gitignore` 追加了 `/.workbuddy/`（理由：该目录存协作临时日志，内含供应商响应片段与本机路径，不宜误入版本库）。该文件属**共享根文件、不在线 A 地盘**，严格说应先登记再做——特此补登记。影响面极小（仅忽略本机日志目录，不影响任何源码/配置），但**若你认为该变更应由其他线或用户统一收口，可 `git revert` 该片段或由你在收口时重写该行**，线 A 无异议 | ⏳ 待你的处置意见（当前已生效） |
 | HTTP 装配是否现在做 | 线 A 提问 / WB-1 决策 | **2026-09-17 用户经 WB-1 批准：现在做**——属阶段 8 退出条件（跑通"…→ 引用校验 → 回答卡"）；只追加已冻结字段 `route`/`handoffRequired`，不改旧字段语义；占用已登记。注意：`ZhkuLocalPreviewConfiguration` 后续线 B 的 JDBC 配置切换也要动，合并时以"先合并方先落"处理，冲突时在状态板登记 | ✅ 已批准 |
 | SSE HTTP 接入边界 | CX-1 | SSE 需基于本机预览会话门面输出冻结字段 `revision`、`conversationStatus`、`route`、`handoffRequired`，但 `ZhkuLocalPreviewConfiguration`、`LocalPreviewConversationFacade` 与会话 Controller 当前由线 A 占用。**2026-09-17 用户确认采用方案 A**：由线 A 完成 HTTP 统一装配并合入后，线 B 再接入 SSE；不新建并行会话端点。 | ✅ 已决策，等待线 A 依赖 |
-| SSE 证据账本路径 | CX-1 | `docs/evidence/` 仍由 WB-3 登记占用；线 B 先完成 SSE 的代码与测试，提交证据账本前需由 WB-3 释放该目录或在本表明确按不同文件并行编辑的边界。 | ⏳ 待确认 |
+| SSE 证据账本路径 | CX-1 | `docs/evidence/` 仍由 WB-3 登记占用；线 B 先完成 SSE 的代码与测试，提交证据账本前需由 WB-3 释放该目录或在本表明确按不同文件并行编辑的边界。**2026-09-20 已闭环**：按"共享目录、只追加、不改他线文件"的既有边界，线 B 已提交 `docs/evidence/2026-09-18-SSE流式输出-证据账本.md`（`2b25bb1`），并随第七次合并入库 | ✅ 已解决（2026-09-20） |
+| 主 worktree 管理目录被 git 写入清除（本机事故） | PM（本项目） | **2026-09-20 复现两次**：在 `D:\alldesk\Projects\ZhkuAgent` 执行 `git merge` / `git stash` 后，`<common-dir>/worktrees/ZhkuAgent` 被静默删除（报 `not a git repository`、`Unable to create index.lock`）。**对象库与 7 条分支引用均未受损**，只丢该 worktree 的 HEAD/index；已按"重建 `gitdir`/`commondir`/`HEAD` + `git reset` 重建索引"修复，未提交改动（WB-1 的 `index.html`）**零丢失**。第七次合并改用 `merge-tree --write-tree` + `commit-tree` + `update-ref` 完成。详见第一节事故说明 | ⚠️ 已知本机缺陷，规避纪律已写入第一节 |
+| 阶段 9 / 10 的号段与归属 | PM（本项目） | 阶段 8 已交付入库，**号段分配的触发条件已满足但仍未登记**（§五 第 5 项）。当前线 A 阶段 8 已收尾、线 B 四项交付均已入库，两条线**都在等这次裁决才能开工**；若不裁决，线 B 将无事可做。PM 提案：阶段 9 → `V15`–`V16`（清单/回答卡归线 A、反馈闭环 + 管理员最小 API 归线 B、管理界面归 WB-1）；阶段 10 → `V17`–`V18`（归线 A）。**属"改变产品范围/资源分配"，等用户明确裁决后再写入 §五 并放行** | ⏳ 待用户裁决（当前唯一阻塞两条线开工的事项） |
 
 ## 五、冻结契约（开分前由双方共同确认，确认后只追加）
 
@@ -126,13 +156,15 @@
   - WB-1 追加（2026-09-17，真实 provider 打通用，只追加）：激活 profile 名 `dashscope`，键为 `zhku.rag.profiles.dashscope.base-url` = `https://dashscope.aliyuncs.com/compatible-mode/v1`（国内站 key 用国内端点，国际站 key 只能用 `https://dashscope-intl.aliyuncs.com/...`，不可混用）、`.api-key-env-var` = `DASHSCOPE_API_KEY`、`.chat-model`（以控制台可用列表为准，如 `qwen-plus`）、`.embedding-model` = `text-embedding-v4`、`.embedding-dimensions` = `1024`（v4 支持 2048/1536/1024(默认)/768/512/256/128/64；**维度必须与索引 profile 及向量列一致，禁止混用**）、`.timeout-seconds`、`.index-profile`。环境变量名与端点属配置事实、可入库；**密钥值不得入库、不得进对话、不得写日志**。
 - [x] Flyway 号段：线 A `V9`–`V11`、线 B `V12`–`V14`（2026-09-16 双方建线时已按此执行，无异议。
   2026-09-17 用户确认追加：阶段 8 用 `V9`；**阶段 9、10 号段待分配**，由线 A 在阶段 8 交付后追加登记（预期自 `V15`/`V16` 起），登记前不得创建迁移文件。既有 `V1`–`V8` 不可改写）
+  - PM 追加（2026-09-20，只追加不改上文）：阶段 8 **已交付并入库**（第六次合并 `df6d31b`），号段分配的**触发条件已满足**；具体方案**待用户裁决**（PM 提案：阶段 9 → `V15`–`V16`、阶段 10 → `V17`–`V18`）。**在裁决并登记前，任何会话不得创建迁移文件**。已用：`V9`（线 A 检索目录）、`V12`（线 B 会话持久化）；`V10`/`V11`/`V13`/`V14` 仍空闲，按"不回收、不改写"处理。
 
 ## 六、下次合并点
 
-- **线 A 第五批可合并增量已就绪（`055d9a1`，已先并入主线 `1573507`）**：`JdbcEmbeddingProfileStore`（退旧启新同事务 + 库级单 ACTIVE 兜底 + 身份不可变）、7 例真实库用例、`RetrievalVectorBaselineEvalTest`（真实向量第二份基线，显式 opt-in）、`RetrievalAcceptanceEvalTest` 增补逐题分母留痕、证据账本（smoke 两轮记录 + 第二份基线与分母归因 + 演示语料范围发现）。**相对主线领先 2 个提交、落后 0**，按第一节纪律线 A **不自行合并**，由你执行；
-- **已解除**：向量路的密钥阻塞（用户重设环境变量后 smoke 2/2 通过）。**新出现的待决策项**：演示库现有语料在 `PUBLIC_ELECTIVE` 精确匹配下**合格条目为 0**（详见第四节），要用起向量路需补资料或调整 `zhku.rag.retrieval-scope`；
-- 线 B `SSE 流式输出`：**前置已解除**（线 A 的 HTTP 装配已于 `7414586` 合入主线，响应契约稳定），可立即开工；独立可编译测试通过即可合并；
-- 每次合并后由被合并方快进跟上新基线；合并状态板冲突时按第三节"合并陷阱"纪律逐段合并。
+- **两条线当前都没有待合并增量**：`campus-line-a`（`4ca8fb2`）已于第六次合并 `df6d31b` 入库、`campus-line-b`（`d84195c`）已于第七次合并 `2cba965` 入库；两侧均无独有提交，只需各自 `git merge zhkuagent-modules` 快进跟上；
+- **唯一阻塞开工的是裁决**：阶段 9/10 的号段与归属（见第四节）与演示语料范围。裁决后由 PM 先把号段写入 §五，再放行对应会话；
+- WB-1 手里还有**未提交**的 SSE 页面接入 + 6 张验收截图（主 worktree），属其地盘、按第四节 WB-1 纪律自行按路径提交；
+- 每次合并后由被合并方快进跟上新基线；合并状态板冲突时按第三节"合并陷阱"纪律逐段合并；
+- **主 worktree 执行 git 写操作前**：按第一节 2026-09-20 事故说明先核对 `<common-dir>/worktrees/ZhkuAgent` 是否完好。
 
 ## 七、合并记录
 
@@ -142,7 +174,9 @@
 | 2026-09-17 | 第二次合并：阶段 8 主体（五级路由 + 受控检索 + 生成守卫 + 引用审计 + 评测基线 + HTTP 装配 + `V9`，86 文件 +6136） | `campus-line-a` | `7414586` | ✅ 逐条核对（纯快进、零冲突；分支工作区另有未提交的 Spring AI 段，不在本次范围） |
 | 2026-09-17 | 第三次合并：Spring AI 精确化断言（7 类 agent 类安全断言 + 行为断言）+ `citations[]` 引用明细 + 版本指纹（21 文件 +936） | `campus-line-a` | `e9cdf84` | ✅ 逐条核对（纯快进；`pom.xml` 为全仓唯一一次变更、无冲突面） |
 | 2026-09-18 | 第四次合并：DashScope profile 配置（仅环境变量名）+ 端点 `/v1` 路径归一化 + 真实 smoke 用例（显式 opt-in）+ 验收手册包名修复 + 账本（10 文件 +212） | `campus-line-a` | `b333392` | ✅ 核对（状态板自动合并；决策文字完整） |
-| 2026-09-18 | 第五次合并：SSE 流式输出（`web/streaming/` 5 类 + 会话控制器端点 + 2 测试类 + 设计/计划文档） | `campus-line-b` | `1573507` | ✅ 核对（冲突 1 处 `application-zhku-local-preview.yml`，按"逐段保留双方"解决：`zhku.rag.*` 与 `zhku.streaming.*` 并存） |
+| 2026-09-18 | 第五次合并：SSE 流式输出（`web/streaming/` 5 类 + 会话控制器端点 + 2 测试类 + 设计/计划文档） | `campus-line-b` | `1573507` | ✅ 核对（冲突 1 处 `application-zhku-local-preview.yml`，按"逐段保留双方"解决：`zhku.rag.*` 与 `zhku.streaming.*` 并存）。**事后缺口**：本次 13 个文件里没有证据账本，违反九项清单第 7 条 → 已由线 B 在 `2b25bb1` 补齐（见第七次合并） |
+| 2026-09-20 | 第六次合并：线 A 阶段 8 收尾（`JdbcEmbeddingProfileStore` + 7 例真实库用例 + `RetrievalVectorBaselineEvalTest` + 逐题分母留痕 + 账本，8 文件 +940） | `campus-line-a` | `df6d31b` | ✅ 冲突 0（主线只有 1 个 PM 文档提交，无文件重叠）。**注**：本次合并于 09-18 21:1x 发起、冲突已解决但**未提交**，悬置两天后于 09-20 由 PM 收口提交；暂存区经 `git diff --cached --name-only` 核对只有线 A 的 8 个文件，未混入他线文件 |
+| 2026-09-20 | 第七次合并：线 B SSE 证据账本补齐 + SSE 事件透传 `citations[]`（4 文件） | `campus-line-b` | `2cba965` | ✅ 九项（`merge-tree` 试算冲突 0；状态板命中行不重叠已实测：线 A 改 §二线A行/§四/§六、线 B 改 §二线B行/§八第 4 条）。**执行方式**：因主 worktree 管理目录被本机缺陷清除，改用 `merge-tree --write-tree` + `commit-tree`（双父）+ `update-ref` 完成，结果与常规合并等价 |
 
 ## 八、引用载荷实际下发形态（WB-1 做前端引用卡 UI 的依据）
 
