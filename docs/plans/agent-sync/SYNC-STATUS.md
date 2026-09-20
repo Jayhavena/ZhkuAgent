@@ -16,10 +16,10 @@
 
 | 会话 ID | 宿主 | 地盘（目录级） | 分支 / worktree | 状态 |
 | --- | --- | --- | --- | --- |
-| WB-1 | WorkBuddy 会话①（前端） | `agent/frontend/`、`docs/design-references/`、`knowledge/src/main/resources/zhku/local-preview/`（2026-09-18 用户裁决补登：本机预览问答页是前端交付物，物理上无法移出该目录） | `zhkuagent-modules` / 主 worktree `D:\alldesk\Projects\ZhkuAgent`（**登记例外，2026-09-18 用户裁决**，详见下方纠正登记） | 🟢 活动中 |
+| WB-1 | WorkBuddy 会话①（前端） | `agent/frontend/`、`docs/design-references/`、`knowledge/src/main/resources/zhku/local-preview/`（2026-09-18 用户裁决补登：本机预览问答页是前端交付物，物理上无法移出该目录）、**`knowledge/src/main/resources/zhku/local-admin/`（2026-09-20 用户裁决：阶段 9 管理员最小审核界面）** | `zhkuagent-modules` / 主 worktree `D:\alldesk\Projects\ZhkuAgent`（**登记例外，2026-09-18 用户裁决**，详见下方纠正登记） | 🟢 活动中；**阶段 9 管理员界面已放行**（`local-admin/index.html`，开工前登记占用） |
 | WB-2 | WorkBuddy 会话②（其他内容） | 待该会话开工时自填 | 主 worktree（与 WB-1 共享工作区，禁止同时 commit） | ⬜ 待登记 |
-| WB-3 | WorkBuddy 会话③（线 A：检索+生成+评测） | 线 A：`knowledge/` 检索与生成侧（`routing/`、`retrieval/`、`rag/`、`eval/`）、Flyway `V9`–`V11`、`docs/evidence/`；与线 B 在 `knowledge/` 内的占用以「文件占用声明」为准 | `campus-line-a` / `ZhkuAgent-lineA` | 🟢 阶段 8 已交付并入库（2026-09-20 第六次合并 `df6d31b`）；等待阶段 9/10 归属与号段裁决 |
-| CX-1 | Codex 会话（线 B） | 线 B：工具 + 编排（`agent/` 工具侧、`knowledge/`，**前端体验职责已移交 WB-1**） | `campus-line-b` / `ZhkuAgent-lineB` | 🟢 活动中（首个交付已合并入主线 `7dce9e5`） |
+| WB-3 | WorkBuddy 会话③（线 A：检索+生成+评测） | 线 A：`knowledge/` 检索与生成侧（`routing/`、`retrieval/`、`rag/`、`eval/`、**`serviceguide/`**＝阶段 9 办事清单模型与解析器）、Flyway `V9`–`V11` + **`V15`（阶段 9）** + **`V17`–`V18`（阶段 10）**、`docs/evidence/`；与线 B 在 `knowledge/` 内的占用以「文件占用声明」为准 | `campus-line-a` / `ZhkuAgent-lineA` | 🟢 阶段 8 已入库；**阶段 9（清单/解析器 + 回答卡扩展）与阶段 10 已由用户裁决放行**，开工前先登记占用 |
+| CX-1 | Codex 会话（线 B） | 线 B：工具 + 编排（`agent/` 工具侧、`knowledge/`、**`feedback/`（2026-09-20 用户裁决：阶段 9 匿名枚举反馈闭环 + 90 天保留去重 + 管理员最小审核 API）**，前端体验职责已移交 WB-1）；Flyway `V12`–`V14` + **`V16`（阶段 9）** | `campus-line-b` / `ZhkuAgent-lineB` | 🟢 四项交付已入库（`2cba965`）；**阶段 9 反馈侧已放行**，开工前先登记占用 |
 
 > 同 worktree 多会话（WB-1 / WB-2）额外纪律：任一时刻只允许一个会话执行
 > `git commit`；commit 前必须 `git status --porcelain` 核对暂存区只有自己
@@ -137,13 +137,13 @@
 | 根 `.gitignore` 追加 `/.workbuddy/` | 线 A（WB-3）自查登记 | **越界自查**：线 A 在 `44da0e1` 中顺手给根 `.gitignore` 追加了 `/.workbuddy/`（理由：该目录存协作临时日志，内含供应商响应片段与本机路径，不宜误入版本库）。该文件属**共享根文件、不在线 A 地盘**，严格说应先登记再做——特此补登记。影响面极小（仅忽略本机日志目录，不影响任何源码/配置），但**若你认为该变更应由其他线或用户统一收口，可 `git revert` 该片段或由你在收口时重写该行**，线 A 无异议 | ⏳ 待你的处置意见（当前已生效） |
 | Spring AI 依赖与 classpath 隔离断言 | 线 A 取证 / WB-1 决策 | **线 A 根因证据（可复核）**：依赖树 `knowledge → spring-ai-openai:1.0.9 → spring-ai-model:1.0.9`；`jar tf` 证实 `ChatModel`/`EmbeddingModel` 同在 `spring-ai-model`（排除该 artifact = 把要用的接口一起排除）；仅 surefire 层掩掉只影响测试 JVM、产物 classpath 仍带 `ChatModel` = 假绿（线 A 已拒绝采用）。失败断言实为 `ZhkuLocalPreviewApplicationTest:20` 的 **ChatModel classpath 存在性**那条，而非 agent 类那条。**2026-09-17 最终决策：不走 B（独立模块）**——路线图明确"阶段 8 可在 knowledge 模块引入版本锁定的 Spring AI 依赖"，已批准计划亦要求改 `knowledge/pom.xml`；建独立模块属计划外变更且会在阶段 8 中途引入跨模块接口改动。**改为精确化断言**（下述守卫变更即本行登记）：① 保留并**加强**安全断言——`com.zhku.agent.agent.DefaultAgentFactory` 及高权限工具包不可见；② 把"`ChatModel` 类不存在"换成**行为断言**——未配置 `zhku.rag.*` 时不创建模型相关 bean、不发生模型调用（从"类不存在"升级为"未配置不启用"）；③ 测试内注明改动理由（按 AGENTS.md 注释约定） | ✅ 已决策（守卫变更已透明登记） |
 | 真实 provider 冒烟受阻（`401 invalid_api_key`）→ **已解决** | 线 A（WB-3） | 第 1 轮（2026-09-17）：端点国内站 `https://dashscope.aliyuncs.com/compatible-mode/v1`（chat `qwen-plus`、embedding `text-embedding-v4`/1024），网络与端点可达（拿到阿里云 JSON + `request_id`），但鉴权 `401 invalid_api_key`；密钥形态诊断（不打印值）：长度 117、`sk-` 开头，不符合百炼常见 `sk-`+32。**根因（现已确认）：环境变量里的值本身不对**（贴错凭据），与站点/端点无关。**第 2 轮（2026-09-18）用户重设环境变量后原样重跑：2/2 通过**（chat 1613ms、结构合法且回填服务端引用标识；embedding 829ms、**1024 维**）。两轮记录与"能/不能说明什么"已入证据账本；密钥值全程未入库、未进日志、未进对话 | ✅ 已解决 |
-| 演示语料与检索范围不匹配（向量路的"数据侧"发现） | 线 A（WB-3）新登记 | 读取演示库核对：共 3 来源 / 9 片段；满足"已发布 + 学生可见 + 权利已确认"的只有 2 个来源，其 `knowledge_scope` 分别为 `ELECTIVE_RETAKE`(2 片段) 与 `PUBLIC_ELECTIVE_CREDIT_LIMIT`(1 片段)；而配置登记的范围是 `PUBLIC_ELECTIVE`，过滤为**精确匹配**（`RetrievalEligibilityFilter.evaluate`）→ **以当前配置范围检索，演示库合格条目为 0**。第三个来源为 `INTERNAL_ONLY` 且权利未确认，本就不许进入索引与召回（未放宽过滤绕过）。**影响**：向量路"机制已通（真实 embedding + 索引重建 + 原子切换可跑）"，但"演示库上有可用条目"这一步未成立。**处置建议（需你选）**：① 补一份"学生可见 + `PUBLIC_ELECTIVE` 范围"的已发布资料；② 或把 `zhku.rag.retrieval-scope` 调整为与现有资料一致的范围（属配置键取值变更，按"只追加"原则登记）；③ 或先不动，等阶段 9/10 语料扩充时一并处理。**在此之前不得宣称"向量检索已生效/效果提升"** | ⏳ 待你决策 |
+| 演示语料与检索范围不匹配（向量路的"数据侧"发现） | 线 A（WB-3）新登记 | 读取演示库核对：共 3 来源 / 9 片段；满足"已发布 + 学生可见 + 权利已确认"的只有 2 个来源，其 `knowledge_scope` 分别为 `ELECTIVE_RETAKE`(2 片段) 与 `PUBLIC_ELECTIVE_CREDIT_LIMIT`(1 片段)；而配置登记的范围是 `PUBLIC_ELECTIVE`，过滤为**精确匹配**（`RetrievalEligibilityFilter.evaluate`）→ **以当前配置范围检索，演示库合格条目为 0**。第三个来源为 `INTERNAL_ONLY` 且权利未确认，本就不许进入索引与召回（未放宽过滤绕过）。**影响**：向量路"机制已通（真实 embedding + 索引重建 + 原子切换可跑）"，但"演示库上有可用条目"这一步未成立。**处置建议（需你选）**：① 补一份"学生可见 + `PUBLIC_ELECTIVE` 范围"的已发布资料；② 或把 `zhku.rag.retrieval-scope` 调整为与现有资料一致的范围（属配置键取值变更，按"只追加"原则登记）；③ 或先不动，等阶段 9/10 语料扩充时一并处理。**在此之前不得宣称"向量检索已生效/效果提升"** | ✅ 已裁决（2026-09-20 用户选①：**补一份"学生可见 + `PUBLIC_ELECTIVE` 范围"的已发布资料**，不改检索范围配置、不放宽过滤）。执行侧＝线 A（走既有治理链路：提交 → 人工审核 → 事务发布，并随批提交证据；补齐后重跑第二份基线并在账本登记新数字，**仍不得宣称"提升"**） |
 | 根 `.gitignore` 追加 `/.workbuddy/` | 线 A（WB-3）自查登记 | **越界自查**：线 A 在 `44da0e1` 中顺手给根 `.gitignore` 追加了 `/.workbuddy/`（理由：该目录存协作临时日志，内含供应商响应片段与本机路径，不宜误入版本库）。该文件属**共享根文件、不在线 A 地盘**，严格说应先登记再做——特此补登记。影响面极小（仅忽略本机日志目录，不影响任何源码/配置），但**若你认为该变更应由其他线或用户统一收口，可 `git revert` 该片段或由你在收口时重写该行**，线 A 无异议 | ⏳ 待你的处置意见（当前已生效） |
 | HTTP 装配是否现在做 | 线 A 提问 / WB-1 决策 | **2026-09-17 用户经 WB-1 批准：现在做**——属阶段 8 退出条件（跑通"…→ 引用校验 → 回答卡"）；只追加已冻结字段 `route`/`handoffRequired`，不改旧字段语义；占用已登记。注意：`ZhkuLocalPreviewConfiguration` 后续线 B 的 JDBC 配置切换也要动，合并时以"先合并方先落"处理，冲突时在状态板登记 | ✅ 已批准 |
 | SSE HTTP 接入边界 | CX-1 | SSE 需基于本机预览会话门面输出冻结字段 `revision`、`conversationStatus`、`route`、`handoffRequired`，但 `ZhkuLocalPreviewConfiguration`、`LocalPreviewConversationFacade` 与会话 Controller 当前由线 A 占用。**2026-09-17 用户确认采用方案 A**：由线 A 完成 HTTP 统一装配并合入后，线 B 再接入 SSE；不新建并行会话端点。 | ✅ 已决策，等待线 A 依赖 |
 | SSE 证据账本路径 | CX-1 | `docs/evidence/` 仍由 WB-3 登记占用；线 B 先完成 SSE 的代码与测试，提交证据账本前需由 WB-3 释放该目录或在本表明确按不同文件并行编辑的边界。**2026-09-20 已闭环**：按"共享目录、只追加、不改他线文件"的既有边界，线 B 已提交 `docs/evidence/2026-09-18-SSE流式输出-证据账本.md`（`2b25bb1`），并随第七次合并入库 | ✅ 已解决（2026-09-20） |
 | 主 worktree 管理目录被 git 写入清除（本机事故） | PM（本项目） | **2026-09-20 复现两次**：在 `D:\alldesk\Projects\ZhkuAgent` 执行 `git merge` / `git stash` 后，`<common-dir>/worktrees/ZhkuAgent` 被静默删除（报 `not a git repository`、`Unable to create index.lock`）。**对象库与 7 条分支引用均未受损**，只丢该 worktree 的 HEAD/index；已按"重建 `gitdir`/`commondir`/`HEAD` + `git reset` 重建索引"修复，未提交改动（WB-1 的 `index.html`）**零丢失**。第七次合并改用 `merge-tree --write-tree` + `commit-tree` + `update-ref` 完成。详见第一节事故说明 | ⚠️ 已知本机缺陷，规避纪律已写入第一节 |
-| 阶段 9 / 10 的号段与归属 | PM（本项目） | 阶段 8 已交付入库，**号段分配的触发条件已满足但仍未登记**（§五 第 5 项）。当前线 A 阶段 8 已收尾、线 B 四项交付均已入库，两条线**都在等这次裁决才能开工**；若不裁决，线 B 将无事可做。PM 提案：阶段 9 → `V15`–`V16`（清单/回答卡归线 A、反馈闭环 + 管理员最小 API 归线 B、管理界面归 WB-1）；阶段 10 → `V17`–`V18`（归线 A）。**属"改变产品范围/资源分配"，等用户明确裁决后再写入 §五 并放行** | ⏳ 待用户裁决（当前唯一阻塞两条线开工的事项） |
+| 阶段 9 / 10 的号段与归属 | PM（本项目） | 阶段 8 已交付入库，**号段分配的触发条件已满足但仍未登记**（§五 第 5 项）。当前线 A 阶段 8 已收尾、线 B 四项交付均已入库，两条线**都在等这次裁决才能开工**；若不裁决，线 B 将无事可做。PM 提案：阶段 9 → `V15`–`V16`（清单/回答卡归线 A、反馈闭环 + 管理员最小 API 归线 B、管理界面归 WB-1）；阶段 10 → `V17`–`V18`（归线 A）。**属"改变产品范围/资源分配"，等用户明确裁决后再写入 §五 并放行** | ✅ 已裁决（2026-09-20 用户选"按提案执行"）：号段与归属已写入 §五 第 5 项，三条线已放行 |
 
 ## 五、冻结契约（开分前由双方共同确认，确认后只追加）
 
@@ -167,6 +167,12 @@
 - [x] Flyway 号段：线 A `V9`–`V11`、线 B `V12`–`V14`（2026-09-16 双方建线时已按此执行，无异议。
   2026-09-17 用户确认追加：阶段 8 用 `V9`；**阶段 9、10 号段待分配**，由线 A 在阶段 8 交付后追加登记（预期自 `V15`/`V16` 起），登记前不得创建迁移文件。既有 `V1`–`V8` 不可改写）
   - PM 追加（2026-09-20，只追加不改上文）：阶段 8 **已交付并入库**（第六次合并 `df6d31b`），号段分配的**触发条件已满足**；具体方案**待用户裁决**（PM 提案：阶段 9 → `V15`–`V16`、阶段 10 → `V17`–`V18`）。**在裁决并登记前，任何会话不得创建迁移文件**。已用：`V9`（线 A 检索目录）、`V12`（线 B 会话持久化）；`V10`/`V11`/`V13`/`V14` 仍空闲，按"不回收、不改写"处理。
+  - PM 追加（2026-09-20，**用户裁决：按提案执行**，只追加不改上文）：**阶段 9 / 10 号段与归属已定**。
+    **号段**：阶段 9 → `V15`–`V16`；阶段 10 → `V17`–`V18`（自 `V15` 起连续；`V10`/`V11`/`V13`/`V14` 仍空闲，不回收、不改写）。
+    **归属**：阶段 9 的 ①办事清单模型与解析器、②统一回答卡扩展 → **线 A（WB-3）**；
+    ③匿名枚举反馈闭环（含 90 天保留与去重）、④管理员最小审核 **API** → **线 B（CX-1）**；
+    ⑤管理员最小审核**界面** → **WB-1**。阶段 10 全部（遥测/评测/门禁/观测/隐私）→ **线 A（WB-3）**。
+    **开工纪律**：各线动手前先在 §三 登记自己新包的占用；迁移文件只能取自本行号段，且**同一时刻只允许一个会话创建迁移文件**（阶段 9 的两侧需各用各的号：线 A 用 `V15`，线 B 用 `V16`）。
 
 ## 六、下次合并点
 
