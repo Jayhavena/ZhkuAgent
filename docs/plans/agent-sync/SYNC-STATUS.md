@@ -98,9 +98,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表）+ 阶段 9 `V16`（匿名反馈） |
-| 当前任务 | 阶段 9 匿名反馈已于第十次合并 `da0620c` 入库；数据库密码系统属性入口已按 PM 裁决移除。全量分段回归发现 4 个 `web/` 测试仍用该被禁入口，等待跨线测试调整授权；前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
-| 状态 | 🟡 密码来源 TDD 完成（RED 2 例 → GREEN 2 例）；前三批回归 302 项通过，最后预览批 4 项因旧测试夹具写入 `zhku.db.password` 失败。未创建迁移、未改 RAG/YAML/前端；`privacy/` 占用保留，待测试夹具处置后继续。 |
-| 最新提交 | `294fea3`（README/验收文档修正）；阶段 9 交付已随 `da0620c` 入库；本次密码来源修正待提交。 |
+| 当前任务 | 阶段 9 匿名反馈已于第十次合并 `da0620c` 入库；数据库密码系统属性入口及预览测试夹具迁移均已完成，等待 PM 合并；前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
+| 状态 | 🟡 密码来源 TDD 完成（RED 2 例 → GREEN 2 例）；预览装配/夹具 TDD 完成（进程环境密码移除时 RED 4 例 → GREEN 8 例）。分段全量 334 项运行 / 0 失败 / 0 错误 / 4 跳过；未创建迁移、未改 RAG/YAML/前端。 |
+| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ 本次预览夹具迁移待提交；阶段 9 交付已随 `da0620c` 入库。 |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -116,6 +116,7 @@
 | `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewApplication.java`、`knowledge/src/main/java/com/zhku/knowledge/feedback/AnonymousFeedbackController.java`、`FeedbackPreviewConfiguration.java` 及 `FeedbackPreviewEndpointTest` | CX-1（线 B） | 阶段 9 学生侧匿名反馈接线：仅把反馈控制器/专用装配置入本机预览组件扫描并验证 `/zhku/feedback`；不改会话门面、回答/RAG 或任何前端资源 | 2026-09-20 |
 | `knowledge/src/main/java/com/zhku/knowledge/privacy/` 及同名测试目录 | CX-1（线 B） | 阶段 10 第 6 项提前放行：密钥、匿名数据、配置回显和导出字段白名单检查；仅新增检查与测试，不创建迁移，不改 `rag/`、配置文件或前端 | 2026-09-20 |
 | `knowledge/src/main/java/com/zhku/knowledge/publication/LocalKnowledgePublisherFactory.java`、`knowledge/src/test/java/com/zhku/knowledge/ZhkuDatabaseTestConfig.java` 及 `LocalKnowledgePublisherFactoryTest` | CX-1（线 B，PM 裁决） | 移除数据库密码的系统属性入口；保留 URL/用户的非敏感系统属性。密码属性被设置即 fail-fast，测试/生产均仅接收 `ZHKU_DB_PASSWORD` 环境变量 | 2026-09-20 |
+| `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java`、`knowledge/src/test/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfigurationTest.java`、`knowledge/src/test/java/com/zhku/knowledge/web/streaming/ZhkuLocalPreviewStreamingConfigurationTest.java` | CX-1（线 B，PM 裁决） | 预览装配从 Spring `Environment` 取得 `ZHKU_DB_PASSWORD`；两份夹具以测试 Environment 注入占位值，不再写入 JVM 系统属性 `zhku.db.password` | 2026-09-20 |
 
 > 已完成并清除的占用：WB-1 对 `knowledge/src/main/resources/zhku/local-preview/index.html` 的
 > 引用卡改版占用（已交付 `0483e6e`：引用卡 UI + 删除页脚免责声明 + 明暗验收截图）。
@@ -139,8 +140,8 @@
 
 | 事项 | 提出方 | 说明 | 状态 |
 | --- | --- | --- | --- |
-| 数据库密码仍允许系统属性注入 | CX-1（线 B，阶段 10 第 6 项检查） | PM 已裁决“移除”，CX-1 已在 `LocalKnowledgePublisherFactory` 与 `ZhkuDatabaseTestConfig` 移除回退并新增 2 例 fail-fast 用例（RED 后转绿）。URL/用户系统属性保留。全量最后一批发现 4 个 `web/` 测试仍通过 `TestPropertyValues.applyToSystemProperties` 写入该被禁键，见下一行。 | ✅ 生产/测试密码来源已修正（2026-09-20） |
-| 本机预览配置测试仍写入被禁密码属性 | CX-1（线 B，分段全量回归） | `ZhkuLocalPreviewConfigurationTest` 2 例、`web/streaming/ZhkuLocalPreviewStreamingConfigurationTest` 2 例仍把 `zhku.db.password=test-password` 放入 JVM 系统属性；新 fail-fast 正确阻断，最后预览批共 4 项失败。两文件不在本轮“仅限两处”改动面且属 Web 共享测试，请裁定由所属方删除该测试属性、改用测试进程环境变量，或授权 CX-1 做这一处测试夹具迁移。 | ⏳ 待裁定 |
+| 数据库密码仍允许系统属性注入 | CX-1（线 B，阶段 10 第 6 项检查） | PM 裁决“移除”已落实：CLI 路径的 `LocalKnowledgePublisherFactory` 与测试帮助类均拒绝 `zhku.db.password`，URL/用户系统属性保留；预览路径改由 Spring `Environment` 提供密码。 | ✅ 已完成（2026-09-20） |
+| 本机预览配置测试仍写入被禁密码属性 | CX-1（线 B，分段全量回归） | PM 已授权迁移：两份夹具改为用 `TestPropertyValues.of("ZHKU_DB_PASSWORD=test-password").applyTo(context.getEnvironment())` 注入测试 Environment，不再调用 `applyToSystemProperties`。在移除进程环境密码时 RED 4 例，预览装配改读 Spring `Environment` 后 GREEN 8 例；分段全量 334/0/0/4。 | ✅ 已完成（2026-09-20） |
 | 前端归属移交 | WB-1 / CX-1 | 用户指定前端（`agent/frontend/`）由 WB-1 负责；原线 B 分工中"体验"部分相应剥离，CX-1 已确认不再改前端文件 | ✅ 已确认（2026-09-17） |
 | Spring AI 依赖与 classpath 隔离断言 | 线 A 取证 / WB-1 决策 | **线 A 根因报告（2026-09-17 17:35，证据可复核）**：① 实际失败断言是 `ZhkuLocalPreviewApplicationTest:20` 的 `org.springframework.ai.chat.model.ChatModel` 不可见（另 `ZhkuLocalAdminApplicationTest:27`）；② 依赖树 `knowledge → spring-ai-openai:1.0.9 → spring-ai-model:1.0.9`，`ChatModel`/`EmbeddingModel` 同在 `spring-ai-model`、`VectorStore` 在 `spring-ai-vector-store`；③ `<exclusion>` 不可行（排除即排除掉要用的接口）；④ 测试层 `classpathDependencyExcludes` 只影响测试 JVM、产物仍带 `ChatModel` = **假绿**（线 A 已拒绝采用）。**最终决策：A 与 B 均不采用，改为「精确化断言」**——路线图明确"阶段 8 可在 knowledge 模块引入版本锁定的 Spring AI 依赖"、已批准计划亦要求改 `knowledge/pom.xml`，故失败那条属**被上层设计取代的过期断言**（其意图"预览应用无模型栈"已不成立），而 `DefaultAgentFactory` 那条才是真正的安全边界；建独立模块（B）属计划外变更且会在阶段 8 中途引入跨模块接口改动。执行要求：① 保留并**加强**安全断言（`com.zhku.agent.agent.DefaultAgentFactory` 及高权限工具包不可见）；② 把"`ChatModel` 类不存在"换成**行为断言**（未配置 `zhku.rag.*` 时不创建模型相关 bean、不发生模型调用）；③ 测试内注明改动理由；④ 本行即该守卫变更的透明登记；`springai-wip/` 适配器迁入 `knowledge/rag`，不建新模块 | ✅ 已决策（守卫变更已透明登记；文字曾于 `campus-line-a` 合并时被覆盖，2026-09-17 由 WB-1 恢复） |
 | 线 A 地盘清单与实际交付包不一致 | WB-3（线 A） | 持续开发指令第一节把线 A 地盘列为 `routing/`、`rag/`、`eval/`、`answer/`，但阶段 8 计划要求的检索侧实现落在 `com.zhku.knowledge.retrieval/`。**2026-09-17 用户经 WB-1 确认：同意把 `retrieval/`、`docs/evidence/` 补入线 A 地盘**（线 B 未占用）；持续开发指令已就地更新 | ✅ 已确认（2026-09-17） |

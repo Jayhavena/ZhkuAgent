@@ -14,16 +14,17 @@ import com.zhku.knowledge.notice.CurrentNoticeFinder;
 import com.zhku.knowledge.notice.JdbcNoticeRepository;
 import com.zhku.knowledge.notice.NoticeRepository;
 import com.zhku.knowledge.answer.GroundedAnswerService;
-import com.zhku.knowledge.publication.LocalKnowledgePublisherFactory;
 import com.zhku.knowledge.publication.ReviewedKnowledgePublisher;
 import java.time.Clock;
 import java.time.Duration;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +48,10 @@ public class ZhkuLocalPreviewConfiguration {
     );
 
     @Bean
-    GroundedAnswerService zhkuLocalPreviewAnswerService() {
-        ReviewedKnowledgePublisher publisher = LocalKnowledgePublisherFactory.create();
+    GroundedAnswerService zhkuLocalPreviewAnswerService(Environment environment) {
+        ReviewedKnowledgePublisher publisher = new ReviewedKnowledgePublisher(
+                localPreviewDataSource(environment)
+        );
         return new GroundedAnswerService(publisher::searchPublished);
     }
 
@@ -63,8 +66,8 @@ public class ZhkuLocalPreviewConfiguration {
     }
 
     @Bean
-    JdbcElectiveRetakeEvidenceFinder zhkuLocalPreviewElectiveRetakeEvidenceFinder() {
-        return new JdbcElectiveRetakeEvidenceFinder(LocalKnowledgePublisherFactory.createDataSource());
+    JdbcElectiveRetakeEvidenceFinder zhkuLocalPreviewElectiveRetakeEvidenceFinder(Environment environment) {
+        return new JdbcElectiveRetakeEvidenceFinder(localPreviewDataSource(environment));
     }
 
     @Bean
@@ -80,8 +83,8 @@ public class ZhkuLocalPreviewConfiguration {
     }
 
     @Bean
-    CreditLimitEvidenceFinder zhkuLocalPreviewCreditLimitEvidenceFinder() {
-        return new JdbcCreditLimitEvidenceFinder(LocalKnowledgePublisherFactory.createDataSource());
+    CreditLimitEvidenceFinder zhkuLocalPreviewCreditLimitEvidenceFinder(Environment environment) {
+        return new JdbcCreditLimitEvidenceFinder(localPreviewDataSource(environment));
     }
 
     @Bean
@@ -91,8 +94,8 @@ public class ZhkuLocalPreviewConfiguration {
     }
 
     @Bean
-    NoticeRepository zhkuLocalPreviewNoticeRepository() {
-        return new JdbcNoticeRepository(LocalKnowledgePublisherFactory.createDataSource());
+    NoticeRepository zhkuLocalPreviewNoticeRepository(Environment environment) {
+        return new JdbcNoticeRepository(localPreviewDataSource(environment));
     }
 
     @Bean
@@ -163,5 +166,23 @@ public class ZhkuLocalPreviewConfiguration {
                 zhkuLocalPreviewAnswerChain,
                 zhkuLocalPreviewClock,
                 CONVERSATION_TTL);
+    }
+
+    /**
+     * 预览容器从 Spring Environment 获取密码，既可读取 OS 环境变量，也能让夹具注入临时值。
+     * CLI 仍使用 LocalKnowledgePublisherFactory 的环境变量 fail-fast，避免两条入口放宽密码纪律。
+     */
+    private static DriverManagerDataSource localPreviewDataSource(Environment environment) {
+        String password = environment.getProperty("ZHKU_DB_PASSWORD");
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("缺少数据库密码：请设置环境变量 ZHKU_DB_PASSWORD");
+        }
+        return new DriverManagerDataSource(
+                environment.getProperty(
+                        "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+                ),
+                environment.getProperty("zhku.db.user", "zhkuagent"),
+                password
+        );
     }
 }

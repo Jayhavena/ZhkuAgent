@@ -12,38 +12,42 @@ class ZhkuLocalPreviewStreamingConfigurationTest {
 
     @Test
     void shouldNotRegisterStreamerWhenStreamingSwitchIsOff() {
-        TestPropertyValues.of("zhku.db.password=test-password")
-                .applyToSystemProperties(() -> new ApplicationContextRunner()
-                        .withPropertyValues(
-                                "spring.profiles.active=zhku-local-preview",
-                                "zhku.local-preview.enabled=true",
-                                "zhku.streaming.enabled=false"
-                        )
-                        .withUserConfiguration(
-                                ZhkuLocalPreviewConfiguration.class,
-                                ZhkuLocalPreviewStreamingConfiguration.class
-                        )
-                        .run(context -> assertThat(context)
-                                .doesNotHaveBean(SseConversationStreamer.class)));
+        new ApplicationContextRunner()
+                .withInitializer(context -> TestPropertyValues.of(
+                        "ZHKU_DB_PASSWORD=test-password"
+                ).applyTo(context.getEnvironment()))
+                .withPropertyValues(
+                        "spring.profiles.active=zhku-local-preview",
+                        "zhku.local-preview.enabled=true",
+                        "zhku.streaming.enabled=false"
+                )
+                .withUserConfiguration(
+                        ZhkuLocalPreviewConfiguration.class,
+                        ZhkuLocalPreviewStreamingConfiguration.class
+                )
+                .run(context -> assertThat(context)
+                        .doesNotHaveBean(SseConversationStreamer.class));
     }
 
     @Test
     void shouldRegisterBoundedStreamerOnlyWhenAllPreviewSwitchesAreEnabled() {
-        TestPropertyValues.of("zhku.db.password=test-password")
-                .applyToSystemProperties(() -> new ApplicationContextRunner()
-                        .withPropertyValues(
-                                "spring.profiles.active=zhku-local-preview",
-                                "zhku.local-preview.enabled=true",
-                                "zhku.streaming.enabled=true",
-                                "zhku.streaming.timeout-millis=30000",
-                                "zhku.streaming.worker-threads=2",
-                                "zhku.streaming.queue-capacity=16"
-                        )
-                        .withUserConfiguration(
-                                ZhkuLocalPreviewConfiguration.class,
-                                ZhkuLocalPreviewStreamingConfiguration.class
-                        )
-                        .run(context -> assertThat(context)
-                                .hasSingleBean(SseConversationStreamer.class)));
+        new ApplicationContextRunner()
+                .withInitializer(context -> TestPropertyValues.of(
+                        "ZHKU_DB_PASSWORD=test-password"
+                ).applyTo(context.getEnvironment()))
+                .withPropertyValues(
+                        "spring.profiles.active=zhku-local-preview",
+                        "zhku.local-preview.enabled=true",
+                        "zhku.streaming.enabled=true",
+                        "zhku.streaming.timeout-millis=30000",
+                        "zhku.streaming.worker-threads=2",
+                        "zhku.streaming.queue-capacity=16"
+                )
+                .withUserConfiguration(
+                        ZhkuLocalPreviewConfiguration.class,
+                        ZhkuLocalPreviewStreamingConfiguration.class
+                )
+                .run(context -> assertThat(context)
+                        .hasSingleBean(SseConversationStreamer.class));
     }
 }

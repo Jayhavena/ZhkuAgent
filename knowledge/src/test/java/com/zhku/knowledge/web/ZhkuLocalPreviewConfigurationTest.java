@@ -50,39 +50,43 @@ class ZhkuLocalPreviewConfigurationTest {
 
     @Test
     void shouldRegisterConversationComponentsOnlyForEnabledLocalPreview() {
-        // 配置工厂要求密码是生产安全边界；测试仅注入占位值，绝不连接真实数据库。
-        TestPropertyValues.of("zhku.db.password=test-password")
-                .applyToSystemProperties(() -> new ApplicationContextRunner()
-                        .withPropertyValues(
-                                "spring.profiles.active=zhku-local-preview",
-                                "zhku.local-preview.enabled=true"
-                        )
-                        .withUserConfiguration(
-                                ZhkuLocalPreviewConfiguration.class,
-                                ZhkuLocalPreviewConversationController.class
-                        )
-                        .run(context -> assertThat(context)
-                                .hasSingleBean(ConversationStore.class)
-                                .hasSingleBean(CreditLimitEvidenceFinder.class)
-                                .hasSingleBean(PublicElectiveCreditLimitService.class)
-                                .hasSingleBean(PublicElectiveConversationRouter.class)
-                                .hasSingleBean(LocalPreviewConversationFacade.class)
-                                .hasSingleBean(ZhkuLocalPreviewConversationController.class)));
+        // 测试密码只写入 Spring Environment，避免绕过生产侧对 JVM 密码属性的拒绝。
+        new ApplicationContextRunner()
+                .withInitializer(context -> TestPropertyValues.of(
+                        "ZHKU_DB_PASSWORD=test-password"
+                ).applyTo(context.getEnvironment()))
+                .withPropertyValues(
+                        "spring.profiles.active=zhku-local-preview",
+                        "zhku.local-preview.enabled=true"
+                )
+                .withUserConfiguration(
+                        ZhkuLocalPreviewConfiguration.class,
+                        ZhkuLocalPreviewConversationController.class
+                )
+                .run(context -> assertThat(context)
+                        .hasSingleBean(ConversationStore.class)
+                        .hasSingleBean(CreditLimitEvidenceFinder.class)
+                        .hasSingleBean(PublicElectiveCreditLimitService.class)
+                        .hasSingleBean(PublicElectiveConversationRouter.class)
+                        .hasSingleBean(LocalPreviewConversationFacade.class)
+                        .hasSingleBean(ZhkuLocalPreviewConversationController.class));
     }
 
     @Test
     void shouldEnableCurrentNoticeServiceOnlyWithExplicitTermAndOfficialChannel() {
-        TestPropertyValues.of("zhku.db.password=test-password")
-                .applyToSystemProperties(() -> new ApplicationContextRunner()
-                        .withPropertyValues(
-                                "spring.profiles.active=zhku-local-preview",
-                                "zhku.local-preview.enabled=true",
-                                "zhku.local-preview.current-academic-term=2026-2027-1",
-                                "zhku.local-preview.course-selection-official-query-url=https://jwc.zhku.edu.cn"
-                        )
-                        .withUserConfiguration(ZhkuLocalPreviewConfiguration.class)
-                        .run(context -> assertThat(context)
-                                .hasSingleBean(NoticeRepository.class)
-                                .hasSingleBean(CourseSelectionNoticeService.class)));
+        new ApplicationContextRunner()
+                .withInitializer(context -> TestPropertyValues.of(
+                        "ZHKU_DB_PASSWORD=test-password"
+                ).applyTo(context.getEnvironment()))
+                .withPropertyValues(
+                        "spring.profiles.active=zhku-local-preview",
+                        "zhku.local-preview.enabled=true",
+                        "zhku.local-preview.current-academic-term=2026-2027-1",
+                        "zhku.local-preview.course-selection-official-query-url=https://jwc.zhku.edu.cn"
+                )
+                .withUserConfiguration(ZhkuLocalPreviewConfiguration.class)
+                .run(context -> assertThat(context)
+                        .hasSingleBean(NoticeRepository.class)
+                        .hasSingleBean(CourseSelectionNoticeService.class));
     }
 }
