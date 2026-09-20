@@ -96,9 +96,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表） |
-| 当前任务 | 会话持久化 JDBC ✅、校园工具集 + Function Calling ✅、SSE ✅（主线 `1573507`）。答案卡后端侧首项 ✅：SSE 已透传 `citations[]`，与 `citationIds` 保持同长同序；前端 UI 仍归 WB-1。阶段 9 是否分配给线 B，等待用户裁决。 |
-| 状态 | 🟢 活动中，**已并入主线 `2cba965`**（第七次合并）；第五次合并欠的"同批证据账本"（九项清单第 7 条）已由 `2b25bb1` 补齐并随本次合并入库 |
-| 最新提交 | `d84195c`（答案卡后端侧状态）；上批 `50d92ab`（SSE 引用明细透传 + TDD + 账本；knowledge 299 项通过 / 3 项跳过）、`bbb3764`/`2b25bb1`（SSE 证据账本补齐与格式清理） |
+| 当前任务 | 阶段 9：匿名枚举反馈闭环（90 天保留与去重）+ 管理员最小聚合审核 API；前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
+| 状态 | 🟢 进行中（已登记 `feedback/` 与 V16 占用） |
+| 最新提交 | `d84195c`（已随第七次合并入主线；本轮基线 `5a28c45`） |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -108,6 +108,7 @@
 | `knowledge/src/main/resources/zhku/local-preview/index.html` | WB-1（前端） | SSE 流式接进问答页（**实现与 6 张验收截图已完成、尚未提交**）；阶段 9 反馈交互复用同一占用 | 2026-09-20 09:20 |
 | `docs/evidence/` | WB-3（线 A）/ WB-1 / CX-1 | 各线证据账本（**共享目录，新增文件不构成冲突**；只追加、不改他线文件） | 2026-09-17 16:41 |
 | `knowledge/src/main/resources/application-zhku-local-preview.yml` | 已合并（两线共用） | 线 A 的 `zhku.rag.*` 与线 B 的 `zhku.streaming.*` 现已并存于主线；**此后任何一方再改此文件前须重新登记**（本次合并冲突即发生在此文件） | 2026-09-18 20:44 |
+| `knowledge/src/main/java/com/zhku/knowledge/feedback/`、同名测试目录、Flyway `V16` | CX-1（线 B） | 阶段 9 匿名枚举反馈闭环：90 天保留/去重、管理员最小聚合审核 API；不含前端、答案卡或 `serviceguide/` | 2026-09-20 |
 
 > 已完成并清除的占用：WB-1 对 `knowledge/src/main/resources/zhku/local-preview/index.html` 的
 > 引用卡改版占用（已交付 `0483e6e`：引用卡 UI + 删除页脚免责声明 + 明暗验收截图）。
