@@ -87,10 +87,45 @@ class JdbcRetrievalIndexingTest {
 
         IndexRunResult result = service.indexProfile(PROFILE, CHUNKING_VERSION, "PUBLIC_ELECTIVE");
 
-        assertThat(result.indexedEntries()).isEqualTo(2);
+        // 索引任务按"整库合格语料"建索引，而本机演示库与本用例共用同一个数据库：除本用例夹具外，
+        // 演示库中已发布且学生可见的同范围片段也会被索引。因此**不硬编码条目数**——写死会在演示
+        // 语料增长后无故变红（2026-09-20 实际发生过一次），改为断言不变式：
+        // ① 夹具的两条合格片段必须入索引；② 不合格来源一条都不入；③ 入索引的每一条都真的满足
+        // 资格条件（用 SQL 独立复算，避免"索引器与被测过滤器同错"造成假绿）。
         assertThat(runStatus(result.runId())).isEqualTo("COMPLETED");
-        assertThat(indexedChunkIds()).containsExactlyInAnyOrder(ELIGIBLE_CHUNK_1, ELIGIBLE_CHUNK_2);
+        assertThat(result.indexedEntries()).isGreaterThanOrEqualTo(2);
+        assertThat(indexedChunkIds()).contains(ELIGIBLE_CHUNK_1, ELIGIBLE_CHUNK_2);
         assertThat(indexedChunkIds()).doesNotContain(DRAFT_CHUNK, INTERNAL_CHUNK);
+        assertThat(ineligibleIndexedEntryCount()).isZero();
+    }
+
+    /**
+     * 本 profile 下"入索引但不满足资格条件"的条目数（不变式：恒为 0）。
+     *
+     * <p>独立复算而不是复用 {@link RetrievalEligibilityFilter}：被测量与测量器若是同一份实现，
+     * 实现写错时两边会一起错，测试仍然绿。判据与过滤器一致：来源已发布 + 学生可见 + 分享权利已确认
+     * + 知识范围等于本次索引限定范围。</p>
+     */
+    private long ineligibleIndexedEntryCount() throws SQLException {
+        String sql = """
+                SELECT COUNT(*)
+                FROM retrieval_index_entry entry
+                JOIN knowledge_chunk chunk ON chunk.id = entry.chunk_id
+                JOIN knowledge_source source ON source.id = chunk.source_id
+                WHERE entry.profile_id = ?
+                  AND NOT (source.publication_status = 'PUBLISHED'
+                           AND source.visibility_scope = 'STUDENT_VISIBLE'
+                           AND source.sharing_rights_confirmed
+                           AND source.knowledge_scope = 'PUBLIC_ELECTIVE')
+                """;
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, PROFILE);
+            try (ResultSet result = statement.executeQuery()) {
+                assertThat(result.next()).isTrue();
+                return result.getLong(1);
+            }
+        }
     }
 
     @Test
