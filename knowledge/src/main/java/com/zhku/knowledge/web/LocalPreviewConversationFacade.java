@@ -6,6 +6,7 @@ import com.zhku.knowledge.conversation.StoreResult;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeAnswer;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeReplyType;
 import com.zhku.knowledge.routing.AnswerRoute;
+import com.zhku.knowledge.serviceguide.ServiceGuideCard;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -159,6 +160,17 @@ public final class LocalPreviewConversationFacade {
         }
     }
 
+    /**
+     * 统一回答卡（HTTP 响应体 `answer` 对象）。
+     *
+     * <p>旧字段 `{conclusion, basis, sourceId, sourceTitle, sourceVersion, sourceLocator,
+     * applicableScope}` 语义不变（只追加原则）；后三个数组为阶段 9 **只追加**字段，
+     * 来自已审核办事清单：`guideNextSteps`＝下一步（含是否需个案核对）、
+     * `guideConfirmations`＝需确认事项（必须以当期官方信息核对的内容）、
+     * `guideOfficialChannels`＝官方人工渠道（类型/名称/值，只来自审核资料）。
+     * 尚未接清单链路的层级为 `null`；高风险或证据不足时由服务端只填人工渠道与
+     * 需确认事项、`guideNextSteps` 恒为空数组。</p>
+     */
     public record ConversationAnswer(
             String conclusion,
             String basis,
@@ -166,7 +178,10 @@ public final class LocalPreviewConversationFacade {
             String sourceTitle,
             String sourceVersion,
             String sourceLocator,
-            String applicableScope
+            String applicableScope,
+            List<ServiceGuideCard.NextStep> guideNextSteps,
+            List<String> guideConfirmations,
+            List<ServiceGuideCard.Channel> guideOfficialChannels
     ) {
 
         private static ConversationAnswer from(ElectiveRetakeAnswer answer) {
@@ -177,8 +192,33 @@ public final class LocalPreviewConversationFacade {
                     answer.sourceTitle(),
                     answer.sourceVersion(),
                     answer.sourceLocator(),
-                    answer.applicableScope()
-            );
+                    answer.applicableScope(),
+                    null,
+                    null,
+                    null);
+        }
+
+        /**
+         * 清单增强卡：旧字段取自既有回答，新字段取自已审核清单视图。
+         * 清单视图为空时返回原卡（新字段为 null），保证未接清单的层级行为完全不变。
+         */
+        private static ConversationAnswer withServiceGuide(
+                ElectiveRetakeAnswer answer, ServiceGuideCard card) {
+            ConversationAnswer base = from(answer);
+            if (card == null) {
+                return base;
+            }
+            return new ConversationAnswer(
+                    base.conclusion(),
+                    base.basis(),
+                    base.sourceId(),
+                    base.sourceTitle(),
+                    base.sourceVersion(),
+                    base.sourceLocator(),
+                    base.applicableScope(),
+                    card.nextSteps(),
+                    card.confirmations(),
+                    card.officialChannels());
         }
     }
 }

@@ -284,3 +284,8 @@
    - 本机管理员聚合读取：`GET /zhku/local-admin/feedback/aggregates`，响应数组元素固定为 `guideIdentifier`、`guideVersion`、`reason`、`feedbackDate`（ISO `yyyy-MM-dd`）和正整数 `count`；不含任何逐条事件、匿名散列、去重键或创建时刻。
    - 本机管理员显式保留执行：`POST /zhku/local-admin/feedback/retention`，响应仅为 `{"aggregatedEventCount":<non-negative integer>}`。到期事件按创建日/清单软引用/版本/原因合并后删除；此 API 不创建候选、发布资料或索引任务。
 8. **阶段 9 学生侧反馈接线（CX-1，2026-09-20）**：预览应用在 `zhku-local-preview` profile 且 `zhku.local-preview.enabled=true` 时已扫描反馈控制器；`POST /zhku/feedback` 可从该入口到达。入口测试已确认合法请求 `201`，非法原因枚举与 65 位散列均为 `400`；接线没有修改会话门面、回答/RAG 载荷或任何前端资源。操作边界见 `docs/zhkuagent/仲园Agent-匿名反馈管理员操作手册.md`。
+9. **阶段 9 统一回答卡扩展（WB-3，2026-09-20，只追加）**：`answer` 对象新增三个**可空数组**字段（旧字段语义不变；未接清单链路的层级为 `null`）：
+   - `guideNextSteps`：对象数组 `{order, instruction, requiresIdentityCheck}`——"下一步"；`requiresIdentityCheck=true` 的步骤需要身份/资格个案核对，前端必须同时提示转人工；
+   - `guideConfirmations`：字符串数组——"需确认事项"（必须以当期官方信息核对的内容，来自已审核风险提示）；
+   - `guideOfficialChannels`：对象数组 `{channelType, name, value}`——"官方人工渠道"，`channelType ∈ {SCHOOL_OFFICE, PHONE, WEBSITE, EMAIL}`，**只来自审核资料**（服务端不生成、不含内部审计定位）。
+   约束：高风险/个案/证据不足场景服务端只填 `guideOfficialChannels` + `guideConfirmations`，`guideNextSteps` **恒为空数组**（不伪装成可办结步骤）。**当前状态**：字段契约已入库并随响应下发（未接清单链路的层级为 `null`）；卡片填充接线与端到端验收随 `ServiceGuideAcceptanceTest` 增量落地，WB-1 可先按本契约做 UI。
