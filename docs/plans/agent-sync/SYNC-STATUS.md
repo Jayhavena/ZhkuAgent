@@ -96,9 +96,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表）+ 阶段 9 `V16`（匿名反馈） |
-| 当前任务 | 阶段 9 匿名枚举反馈闭环 + 管理员最小聚合审核 API 与学生侧预览接线已交付，等待验收；前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
-| 状态 | 🟡 待验收：反馈专属 13 项全绿；全量回归的 14 项失败已由 PM 在不含本交付的主线复现，根因是共享演示语料态漂移，P0 归线 A 修复；CX-1 未越权修改资料问答/检索验收。 |
-| 最新提交 | `b00e0f5`（匿名枚举契约）/ `049e592`（V16 + 保留聚合）/ `6a5caab`（管理员聚合 API）/ `058131d`（预览端点接线） |
+| 当前任务 | 阶段 9 匿名反馈已于第十次合并 `da0620c` 入库；阶段 10 第 6 项检查已开工，因发现数据库密码系统属性兼容入口（§四）暂停，等待裁定；前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
+| 状态 | 🟡 文档小尾巴已完成；阶段 10 隐私检查未创建迁移、未修改生产代码。`privacy/` 占用保留，待确认 `ZHKU_DB_PASSWORD` 是否必须成为唯一密码来源后再继续 TDD。 |
+| 最新提交 | `294fea3`（README/验收文档修正）；阶段 9 交付已随 `da0620c` 入库。 |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -112,6 +112,7 @@
 | `knowledge/src/main/resources/db/migration/V15__*` | WB-3（线 A） | 阶段 9 线 A 迁移（最终裁决号段）：`service_guide` / 步骤 / 材料 / 官方渠道 / 风险提示 / 关联规则与通知版本。**自包含、不与线 B 的 `V16` 建外键**；确需关联用软引用（清单标识 + 版本号）。**同一时刻只有一个会话创建迁移文件** | 2026-09-20 09:46 |
 | 回答卡扩展面（任务 3）：`knowledge/.../answer/` 的展示层 + `knowledge/.../web/LocalPreviewConversationFacade` 及对应测试 + `knowledge/.../rag/` 的回答载荷类型 | WB-3（线 A） | 阶段 9 任务 3：结论后附"下一步 / 需确认事项 / 官方人工渠道"；高风险或证据不足时只保留人工渠道与风险提示。**统一回答卡属共享面，只追加字段、不改旧字段语义**；新字段须同步登记进 §八（WB-1 据此做前端）。**动手前若有他线正在改这些文件，先停下协商** | 2026-09-20 09:46 |
 | `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewApplication.java`、`knowledge/src/main/java/com/zhku/knowledge/feedback/AnonymousFeedbackController.java`、`FeedbackPreviewConfiguration.java` 及 `FeedbackPreviewEndpointTest` | CX-1（线 B） | 阶段 9 学生侧匿名反馈接线：仅把反馈控制器/专用装配置入本机预览组件扫描并验证 `/zhku/feedback`；不改会话门面、回答/RAG 或任何前端资源 | 2026-09-20 |
+| `knowledge/src/main/java/com/zhku/knowledge/privacy/` 及同名测试目录 | CX-1（线 B） | 阶段 10 第 6 项提前放行：密钥、匿名数据、配置回显和导出字段白名单检查；仅新增检查与测试，不创建迁移，不改 `rag/`、配置文件或前端 | 2026-09-20 |
 
 > 已完成并清除的占用：WB-1 对 `knowledge/src/main/resources/zhku/local-preview/index.html` 的
 > 引用卡改版占用（已交付 `0483e6e`：引用卡 UI + 删除页脚免责声明 + 明暗验收截图）。
@@ -135,12 +136,13 @@
 
 | 事项 | 提出方 | 说明 | 状态 |
 | --- | --- | --- | --- |
+| 数据库密码仍允许系统属性注入 | CX-1（线 B，阶段 10 第 6 项检查） | `knowledge/.../publication/LocalKnowledgePublisherFactory` 的 `databaseValue` 仍优先接受 `zhku.db.password` 系统属性，之后才读取 `ZHKU_DB_PASSWORD`。这与 2026-09-20 已冻结的“密码只从环境变量注入”不一致；当前代码没有回显密码值，但来源约束尚未满足。该文件不在本轮允许的 `privacy/`/`feedback/` 改动面，CX-1 已停止在此处，不自行修改。请裁定由所属方改为只接受环境变量，或明确保留该兼容入口。 | ⏳ 待裁定 |
 | 前端归属移交 | WB-1 / CX-1 | 用户指定前端（`agent/frontend/`）由 WB-1 负责；原线 B 分工中"体验"部分相应剥离，CX-1 已确认不再改前端文件 | ✅ 已确认（2026-09-17） |
 | Spring AI 依赖与 classpath 隔离断言 | 线 A 取证 / WB-1 决策 | **线 A 根因报告（2026-09-17 17:35，证据可复核）**：① 实际失败断言是 `ZhkuLocalPreviewApplicationTest:20` 的 `org.springframework.ai.chat.model.ChatModel` 不可见（另 `ZhkuLocalAdminApplicationTest:27`）；② 依赖树 `knowledge → spring-ai-openai:1.0.9 → spring-ai-model:1.0.9`，`ChatModel`/`EmbeddingModel` 同在 `spring-ai-model`、`VectorStore` 在 `spring-ai-vector-store`；③ `<exclusion>` 不可行（排除即排除掉要用的接口）；④ 测试层 `classpathDependencyExcludes` 只影响测试 JVM、产物仍带 `ChatModel` = **假绿**（线 A 已拒绝采用）。**最终决策：A 与 B 均不采用，改为「精确化断言」**——路线图明确"阶段 8 可在 knowledge 模块引入版本锁定的 Spring AI 依赖"、已批准计划亦要求改 `knowledge/pom.xml`，故失败那条属**被上层设计取代的过期断言**（其意图"预览应用无模型栈"已不成立），而 `DefaultAgentFactory` 那条才是真正的安全边界；建独立模块（B）属计划外变更且会在阶段 8 中途引入跨模块接口改动。执行要求：① 保留并**加强**安全断言（`com.zhku.agent.agent.DefaultAgentFactory` 及高权限工具包不可见）；② 把"`ChatModel` 类不存在"换成**行为断言**（未配置 `zhku.rag.*` 时不创建模型相关 bean、不发生模型调用）；③ 测试内注明改动理由；④ 本行即该守卫变更的透明登记；`springai-wip/` 适配器迁入 `knowledge/rag`，不建新模块 | ✅ 已决策（守卫变更已透明登记；文字曾于 `campus-line-a` 合并时被覆盖，2026-09-17 由 WB-1 恢复） |
 | 线 A 地盘清单与实际交付包不一致 | WB-3（线 A） | 持续开发指令第一节把线 A 地盘列为 `routing/`、`rag/`、`eval/`、`answer/`，但阶段 8 计划要求的检索侧实现落在 `com.zhku.knowledge.retrieval/`。**2026-09-17 用户经 WB-1 确认：同意把 `retrieval/`、`docs/evidence/` 补入线 A 地盘**（线 B 未占用）；持续开发指令已就地更新 | ✅ 已确认（2026-09-17） |
 | 「统一路由编排器」职责重叠 | WB-1 / CX-1 / 线 A | 分工表把"统一路由编排器"同时列在线 B 交付内容，而线 A 的拥有目录含 `knowledge/.../routing/`，阶段 8 计划也由 `KnowledgeAnswerOrchestrator` 承载五级路由测试。**确认边界**：路由判定规则与顺序（五级短路逻辑）归线 A 的 `routing/`；线 B 只提供工具与注册接口（`tools/`），由线 A 的编排器经接口调用，线 B 不改编排器文件；线 B 若需新增"工具分支"，先在状态板登记 | ✅ 双方已确认（CX-1 2026-09-17；线 A 2026-09-17 16:41） |
 | 阶段 8/9/10 迁移号段过期 | WB-1 | 三份计划原写 `V7`/`V8`/`V9`，与既有迁移及已冻结号段冲突。**2026-09-17 用户确认处置**：阶段 8 改用 `V9`；阶段 9/10 号段待分配，由线 A 在阶段 8 交付后按"只追加"原则登记（预期 `V15`/`V16` 起）；三份计划文件已就地更正并标注"登记完成前不得创建迁移文件" | ✅ 已处置（待阶段 8 交付后分配 9/10 号段） |
-| README 修正 | WorkBuddy | 文档落后于代码，待指派由谁修：① 根 README 与 knowledge README 仍写"未实现两轮追问"；② `docs/zhkuagent/仲园Agent-本机HTTP问答接口开发者验收手册.md` 第 45 行的启动主类仍是旧包名 `com.yupi.yuaiagent.zhku.knowledge.web.ZhkuLocalPreviewApplication`，实际为 `com.zhku.knowledge.web.ZhkuLocalPreviewApplication`（照抄会启动失败） | ⏳ 待指派 |
+| README 修正 | CX-1 | 根/knowledge README 的两轮澄清表述已修正；核对并修正 `docs/zhkuagent/` 中 3 份旧包名残留及规划清单的过期记录。交付 `294fea3`。 | ✅ 已完成（2026-09-20） |
 | 真实 provider 打通与向量路（阶段 8 收尾） | 线 A 提问 / WB-1 核实 | 线 A 报告两项需外部资源：① 真实供应商 smoke test 需密钥 + 显式 opt-in；② 向量路需真实 embedding profile 才能真正打开（现为降级，首份基线已如实标注）。**WB-1 核实的硬约束**：DeepSeek 官方仅提供 chat 模型（`deepseek-flash`/`deepseek-v4-pro`），**无 embeddings 端点**，故 chat 与 embedding 无法由 DeepSeek 一家覆盖。**2026-09-17 用户决策：采用方案 B——改用阿里云百炼（DashScope）单供应商同时覆盖 chat + embedding**（避免配置拆分与第二套密钥）。参数与端点已登记于第五节；要求：密钥仅从环境变量 `DASHSCOPE_API_KEY` 读取、值不入库；真实 smoke 为显式 opt-in、结果与 profile/模型版本写入证据账本；完成后出**第二份基线（含向量召回）**，仍未过评测前不得宣称效果提升。**2026-09-18 WB-1 补充诊断（针对 401）**：线 A 实测网络/端点可达、收到厂商 `request_id`，鉴权为 `401 invalid_api_key`，且**密钥形态为长度 117、`sk-` 开头，不符合百炼常见 `sk-`+32 形态**。据此最可能的原因（按概率）：① **站点与端点不匹配**——阿里云文档明确"国际站 key 只能走国际端点、国内站 key 只能走国内端点"，用错即返回 401；② 该 key 并非百炼 API Key（长度不符，疑复制了其他平台/其他类型凭据）；③ key 被停用或无模型权限。**用户侧处置**：在百炼控制台确认 key 所属站点（国内 `bailian.console.aliyun.com` / 国际 `modelstudio.console.alibabacloud.com`），在新开的 PowerShell 窗口对**两个端点各跑一次**同一 curl 自检（国内 `https://dashscope.aliyuncs.com/compatible-mode/v1`、国际 `https://dashscope-intl.aliyuncs.com/compatible-mode/v1`），哪边通即用哪边并同步 `base-url`；两边皆 401 则回控制台重新生成 key（注意复制完整、无空格）。**2026-09-18 20:41 用户端自检结果：国内站端点返回 embedding 维度 1024、鉴权通过** → 站点确认为国内站，`base-url` 保持 `https://dashscope.aliyuncs.com/compatible-mode/v1` 不变。这与线 A 的 401 相矛盾，最可能原因是**两次使用的 key 值不同**（昨日环境变量中的值疑为 117 位误值）或**测试进程未继承新设置的环境变量**；处置：先比对环境变量值是否与刚验证通过的 key 一致，一致后在**新开终端**重跑 smoke | ⏳ 降级为"待确认环境变量一致性后重跑" |
 | agent/ 模块只读约定 | WorkBuddy | 首轮双方将 agent/ 视为只读资产；如需修改 ToolCallAgent 复用，先在此登记 | ⏳ 待确认 |
 | 线 A / 线 B 归属 | WorkBuddy | 默认 WorkBuddy=线A、另一 Agent=线B；如互换，改本节与第二节两行即可 | ⏳ 待确认 |
