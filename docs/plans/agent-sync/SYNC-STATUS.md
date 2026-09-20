@@ -96,9 +96,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表）+ 阶段 9 `V16`（匿名反馈） |
-| 当前任务 | 阶段 9 匿名枚举反馈闭环 + 管理员最小聚合审核 API 已交付，等待验收；前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
-| 状态 | 🟡 待验收：反馈专属 11 项全绿；全量回归发现 3 个既有资料问答/检索验收类共 14 个失败，详见本轮证据账本，未越权修改。 |
-| 最新提交 | `b00e0f5`（匿名枚举契约）/ `049e592`（V16 + 保留聚合）/ `6a5caab`（管理员聚合 API） |
+| 当前任务 | 阶段 9 匿名枚举反馈闭环 + 管理员最小聚合审核 API 与学生侧预览接线已交付，等待验收；前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
+| 状态 | 🟡 待验收：反馈专属 13 项全绿；全量回归的 14 项失败已由 PM 在不含本交付的主线复现，根因是共享演示语料态漂移，P0 归线 A 修复；CX-1 未越权修改资料问答/检索验收。 |
+| 最新提交 | `b00e0f5`（匿名枚举契约）/ `049e592`（V16 + 保留聚合）/ `6a5caab`（管理员聚合 API）/ `058131d`（预览端点接线） |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -117,6 +117,8 @@
 > 2026-09-20 已完成并清除 CX-1 对 `feedback/`、`V16`、
 > `governance/web/FeedbackAdminController.java` 与 `ZhkuLocalAdminConfiguration.java` 的阶段 9 占用；
 > 交付提交为 `b00e0f5`、`049e592`、`6a5caab`，等待验收。
+>
+> 2026-09-20 已完成并清除 CX-1 对 `ZhkuLocalPreviewApplication.java`、`feedback/AnonymousFeedbackController.java`、`FeedbackPreviewConfiguration.java` 与 `FeedbackPreviewEndpointTest` 的学生侧接线占用；交付提交为 `058131d`，验证预览入口 `POST /zhku/feedback` 的正常、非法枚举与超长散列边界，未触及会话、回答/RAG 或前端资源。
 >
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
@@ -255,3 +257,4 @@
    - 匿名反馈边界：`POST /zhku/feedback`，JSON **只能**含 `guideIdentifier`（1–128 位 `[A-Za-z0-9._-]`）、`guideVersion`（同前）、`reason`（`NOT_HELPFUL` / `INCORRECT` / `OUTDATED` / `MISSING_INFORMATION`）和 64 位十六进制 `anonymousSessionHash`。未知字段一律 `400`，因此自由文本或身份字段不能被静默接收。成功首次为 `201`、同日同散列/清单/版本/原因重复为 `200`；两种回执均仅为 `{"accepted":true,"duplicate":<boolean>}`，绝不返回散列、去重键或事件 ID。**注意**：该边界已完成契约测试；本机预览应用的扫描范围属于冻结的共享 HTTP 装配，本轮未改动，学生侧 UI 接入前须先登记该装配改动。
    - 本机管理员聚合读取：`GET /zhku/local-admin/feedback/aggregates`，响应数组元素固定为 `guideIdentifier`、`guideVersion`、`reason`、`feedbackDate`（ISO `yyyy-MM-dd`）和正整数 `count`；不含任何逐条事件、匿名散列、去重键或创建时刻。
    - 本机管理员显式保留执行：`POST /zhku/local-admin/feedback/retention`，响应仅为 `{"aggregatedEventCount":<non-negative integer>}`。到期事件按创建日/清单软引用/版本/原因合并后删除；此 API 不创建候选、发布资料或索引任务。
+8. **阶段 9 学生侧反馈接线（CX-1，2026-09-20）**：预览应用在 `zhku-local-preview` profile 且 `zhku.local-preview.enabled=true` 时已扫描反馈控制器；`POST /zhku/feedback` 可从该入口到达。入口测试已确认合法请求 `201`，非法原因枚举与 65 位散列均为 `400`；接线没有修改会话门面、回答/RAG 载荷或任何前端资源。操作边界见 `docs/zhkuagent/仲园Agent-匿名反馈管理员操作手册.md`。
