@@ -98,9 +98,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表）+ 阶段 9 `V16`（匿名反馈） |
-| 当前任务 | 阶段 10 第 6 项「密钥、隐私与保留检查」已完成，等待 PM 验收；阶段 9 匿名反馈与密码修复均已随第十四次合并 `3cf9331` 入库。前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
-| 状态 | 🟡 隐私检查 TDD 完成：保留边界 RED（期望 1 / 实际 2）→ GREEN；遥测自由文本伪装 RED → GREEN。新增 `privacy/` 白名单边界与 2 个测试类共 7 例；反馈+隐私契约组 18/0/0，模块全量 347 运行 / 0 失败 / 0 错误 / 4 跳过。未创建迁移、未改 RAG/YAML/前端。 |
-| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ 本提交（阶段 10 隐私与保留检查，等待 PM 验收）。 |
+| 当前任务 | **P0-lite SSE HTTP 内容协商修复已完成，等待 PM 验收**：具体 `ResponseEntity<SseEmitter>` 已恢复 Spring MVC emitter 处理；阶段 10 第 6 项隐私检查也待验收。前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
+| 状态 | 🟡 SSE HTTP TDD 完成：新回归在修前 RED（期望 200 / 实际 500，`No converter for SseEmitter`）→ GREEN；控制器/处理器/配置组 14/0/0；8126 真机 curl 为 HTTP 200，收到 `accepted → reply → complete`；模块全量 349/0/0/4。未创建迁移、未改 RAG/YAML/前端。 |
+| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ `f7211ac`（阶段 10 隐私与保留检查，等待 PM 验收）/ 本提交（P0-lite SSE HTTP 内容协商修复，等待 PM 验收）。 |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -128,6 +128,8 @@
 > 2026-09-20 已完成并清除 CX-1 对 `ZhkuLocalPreviewApplication.java`、`feedback/AnonymousFeedbackController.java`、`FeedbackPreviewConfiguration.java` 与 `FeedbackPreviewEndpointTest` 的学生侧接线占用；交付提交为 `058131d`，验证预览入口 `POST /zhku/feedback` 的正常、非法枚举与超长散列边界，未触及会话、回答/RAG 或前端资源。
 >
 > 2026-09-21 已完成并清除 CX-1 对 `privacy/` 及同名测试目录的阶段 10 第 6 项占用；交付为匿名遥测/配置回显/聚合导出白名单与反馈保留服务的到期二次核验。未创建迁移，未改 `rag/`、配置文件或前端。
+>
+> 2026-09-21 已完成并清除 CX-1 对 `ZhkuLocalPreviewConversationController.java`、对应控制器测试与 SSE 证据账本的 P0-lite 占用；交付为具体 `ResponseEntity<SseEmitter>`、原 JSON 400/503 的异常处理，以及同地址 HTTP 内容协商回归和 8126 curl 验证。未创建迁移，未改 RAG/YAML/前端。
 >
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
