@@ -98,9 +98,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表）+ 阶段 9 `V16`（匿名反馈） |
-| 当前任务 | 阶段 9 匿名反馈已于第十次合并 `da0620c` 入库；数据库密码系统属性入口及预览测试夹具迁移均已完成，等待 PM 合并；前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
-| 状态 | 🟡 密码来源 TDD 完成（RED 2 例 → GREEN 2 例）；预览装配/夹具 TDD 完成（进程环境密码移除时 RED 4 例 → GREEN 8 例）。分段全量 334 项运行 / 0 失败 / 0 错误 / 4 跳过；未创建迁移、未改 RAG/YAML/前端。 |
-| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ 本次预览夹具迁移待提交；阶段 9 交付已随 `da0620c` 入库。 |
+| 当前任务 | 阶段 10 第 6 项「密钥、隐私与保留检查」已完成，等待 PM 验收；阶段 9 匿名反馈与密码修复均已随第十四次合并 `3cf9331` 入库。前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
+| 状态 | 🟡 隐私检查 TDD 完成：保留边界 RED（期望 1 / 实际 2）→ GREEN；遥测自由文本伪装 RED → GREEN。新增 `privacy/` 白名单边界与 2 个测试类共 7 例；反馈+隐私契约组 18/0/0，模块全量 347 运行 / 0 失败 / 0 错误 / 4 跳过。未创建迁移、未改 RAG/YAML/前端。 |
+| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ 本提交（阶段 10 隐私与保留检查，等待 PM 验收）。 |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -114,7 +114,6 @@
 | `knowledge/src/main/resources/db/migration/V15__*` | WB-3（线 A） | 阶段 9 线 A 迁移（最终裁决号段）：`service_guide` / 步骤 / 材料 / 官方渠道 / 风险提示 / 关联规则与通知版本。**自包含、不与线 B 的 `V16` 建外键**；确需关联用软引用（清单标识 + 版本号）。**同一时刻只有一个会话创建迁移文件** | 2026-09-20 09:46 |
 | 回答卡扩展面（任务 3）：`knowledge/.../answer/` 的展示层 + `knowledge/.../web/LocalPreviewConversationFacade` 及对应测试 + `knowledge/.../rag/` 的回答载荷类型 | WB-3（线 A） | 阶段 9 任务 3：结论后附"下一步 / 需确认事项 / 官方人工渠道"；高风险或证据不足时只保留人工渠道与风险提示。**统一回答卡属共享面，只追加字段、不改旧字段语义**；新字段须同步登记进 §八（WB-1 据此做前端）。**动手前若有他线正在改这些文件，先停下协商** | 2026-09-20 09:46 |
 | `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewApplication.java`、`knowledge/src/main/java/com/zhku/knowledge/feedback/AnonymousFeedbackController.java`、`FeedbackPreviewConfiguration.java` 及 `FeedbackPreviewEndpointTest` | CX-1（线 B） | 阶段 9 学生侧匿名反馈接线：仅把反馈控制器/专用装配置入本机预览组件扫描并验证 `/zhku/feedback`；不改会话门面、回答/RAG 或任何前端资源 | 2026-09-20 |
-| `knowledge/src/main/java/com/zhku/knowledge/privacy/` 及同名测试目录 | CX-1（线 B） | 阶段 10 第 6 项提前放行：密钥、匿名数据、配置回显和导出字段白名单检查；仅新增检查与测试，不创建迁移，不改 `rag/`、配置文件或前端 | 2026-09-20 |
 | `knowledge/src/main/java/com/zhku/knowledge/publication/LocalKnowledgePublisherFactory.java`、`knowledge/src/test/java/com/zhku/knowledge/ZhkuDatabaseTestConfig.java` 及 `LocalKnowledgePublisherFactoryTest` | CX-1（线 B，PM 裁决） | 移除数据库密码的系统属性入口；保留 URL/用户的非敏感系统属性。密码属性被设置即 fail-fast，测试/生产均仅接收 `ZHKU_DB_PASSWORD` 环境变量 | 2026-09-20 |
 | `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java`、`knowledge/src/test/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfigurationTest.java`、`knowledge/src/test/java/com/zhku/knowledge/web/streaming/ZhkuLocalPreviewStreamingConfigurationTest.java` | CX-1（线 B，PM 裁决） | 预览装配从 Spring `Environment` 取得 `ZHKU_DB_PASSWORD`；两份夹具以测试 Environment 注入占位值，不再写入 JVM 系统属性 `zhku.db.password` | 2026-09-20 |
 
@@ -127,6 +126,8 @@
 > 交付提交为 `b00e0f5`、`049e592`、`6a5caab`，等待验收。
 >
 > 2026-09-20 已完成并清除 CX-1 对 `ZhkuLocalPreviewApplication.java`、`feedback/AnonymousFeedbackController.java`、`FeedbackPreviewConfiguration.java` 与 `FeedbackPreviewEndpointTest` 的学生侧接线占用；交付提交为 `058131d`，验证预览入口 `POST /zhku/feedback` 的正常、非法枚举与超长散列边界，未触及会话、回答/RAG 或前端资源。
+>
+> 2026-09-21 已完成并清除 CX-1 对 `privacy/` 及同名测试目录的阶段 10 第 6 项占用；交付为匿名遥测/配置回显/聚合导出白名单与反馈保留服务的到期二次核验。未创建迁移，未改 `rag/`、配置文件或前端。
 >
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
