@@ -37,13 +37,16 @@ docker compose --env-file infra/.env -f infra/docker-compose.yml up -d
 
 ## 三、启动本机预览服务
 
-在当前 PowerShell 中执行以下命令。命令从已忽略的 `infra\.env` 读取密码，但不会把密码显示在终端或写入代码：
+在当前 PowerShell 中执行以下命令。密码只从**进程环境变量**注入（从用户级环境变量读取，不显示在终端、不写入代码）：
 
 ```powershell
-$zhkuDbPassword = ((Get-Content -LiteralPath 'infra/.env' | Where-Object { $_ -match '^ZHKU_DB_PASSWORD=' }) -replace '^ZHKU_DB_PASSWORD=', '')
-$env:ZHKU_DB_PASSWORD = $zhkuDbPassword
-.\mvnw.cmd '-Dspring-boot.run.main-class=com.zhku.knowledge.web.ZhkuLocalPreviewApplication' spring-boot:run
+$env:ZHKU_DB_PASSWORD = [Environment]::GetEnvironmentVariable('ZHKU_DB_PASSWORD','User')
+.\mvnw.cmd -pl knowledge '-Dspring-boot.run.main-class=com.zhku.knowledge.web.ZhkuLocalPreviewApplication' spring-boot:run
 ```
+
+> ⚠️ 两个容易踩的坑：
+> 1. **必须带 `-pl knowledge`**——预览主类在 `knowledge` 模块，在仓库根目录不带 `-pl` 会把 `spring-boot:run` 作用到聚合父工程上，报 `找不到或无法加载主类 …ZhkuLocalPreviewApplication`。
+> 2. **密码不能用 `-Dzhku.db.password=` 系统属性传**（会被 `LocalKnowledgePublisherFactory` 的 fail-fast 拒绝，理由：系统属性会进命令行与构建日志）；`infra\.env` 目前为空文件，不要按它读取。
 
 等待终端出现类似信息：
 
@@ -178,11 +181,11 @@ http://127.0.0.1:8123/api/zhku/local-preview
 
 预期结果：`Tests run: 11, Failures: 0, Errors: 0`。
 
-如果还要验证真实数据库发布器，可临时以 Java 系统属性传入密码：
+如果还要验证真实数据库发布器，用环境变量注入密码（原稿的 `-Dzhku.db.password=` 系统属性写法已被 fail-fast 拒绝，勿再用）：
 
 ```powershell
-$zhkuDbPassword = ((Get-Content -LiteralPath 'infra/.env' | Where-Object { $_ -match '^ZHKU_DB_PASSWORD=' }) -replace '^ZHKU_DB_PASSWORD=', '')
-.\mvnw.cmd "-Dzhku.db.password=$zhkuDbPassword" '-Dtest=ReviewedKnowledgePublisherTest' test
+$env:ZHKU_DB_PASSWORD = [Environment]::GetEnvironmentVariable('ZHKU_DB_PASSWORD','User')
+.\mvnw.cmd -pl knowledge '-Dtest=ReviewedKnowledgePublisherTest' test
 ```
 
 当前不把整个仓库的 `.\mvnw.cmd test` 作为本机问答接口的验收门槛：仓库中仍有通用 Agent 的应用上下文测试，需要单独的模型和其他外部环境配置。这些问题不应通过给仲园 Agent 预览接口添加模型依赖来掩盖。
@@ -207,7 +210,9 @@ Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 8123 -State Listen -Erro
 
 | 现象 | 原因 | 处理方式 |
 | --- | --- | --- |
-| 启动时报“缺少数据库配置” | 当前终端没有 `ZHKU_DB_PASSWORD` | 按第三节先从 `infra\.env` 读取并设置环境变量，再启动服务。 |
+| 启动时报“缺少数据库配置” | 当前终端没有 `ZHKU_DB_PASSWORD` | 按第三节先设置进程环境变量（`$env:ZHKU_DB_PASSWORD = [Environment]::GetEnvironmentVariable('ZHKU_DB_PASSWORD','User')`），再启动服务。 |
+| 启动报 `找不到或无法加载主类 …ZhkuLocalPreviewApplication` | 少了 `-pl knowledge`（命令被作用到聚合父工程） | 使用第三节的完整命令，必须带 `-pl knowledge`。 |
+| 启动报 `Password 不接受系统属性注入` | 用了 `-Dzhku.db.password=` 系统属性 | 改为环境变量注入，见第三节。 |
 | 启动时报 DashScope 密钥缺失 | 启动了普通主应用，而不是专用入口 | 确认命令含 `ZhkuLocalPreviewApplication`。本机预览不需要模型密钥。 |
 | 请求返回 503 | 数据库容器停止、密码变更，或数据库暂时不可用 | 检查 Docker Desktop、容器状态和 `infra\.env` 中的当前密码。 |
 | 请求返回 404 | 服务未启动，或启动的不是专用入口 | 检查启动日志中的应用名称应为 `ZhkuLocalPreviewApplication`。 |
