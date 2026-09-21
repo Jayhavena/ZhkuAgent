@@ -15,6 +15,10 @@ import com.zhku.knowledge.notice.JdbcNoticeRepository;
 import com.zhku.knowledge.notice.NoticeRepository;
 import com.zhku.knowledge.answer.GroundedAnswerService;
 import com.zhku.knowledge.publication.ReviewedKnowledgePublisher;
+import com.zhku.knowledge.serviceguide.JdbcServiceGuideRepository;
+import com.zhku.knowledge.serviceguide.ServiceGuideBindings;
+import com.zhku.knowledge.serviceguide.ServiceGuideCardProvider;
+import com.zhku.knowledge.serviceguide.ServiceGuideResolver;
 import java.time.Clock;
 import java.time.Duration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -160,12 +164,35 @@ public class ZhkuLocalPreviewConfiguration {
     LocalPreviewConversationFacade zhkuLocalPreviewConversationFacade(
             ConversationStore zhkuLocalPreviewConversationStore,
             LocalPreviewAnswerChain zhkuLocalPreviewAnswerChain,
-            Clock zhkuLocalPreviewClock) {
+            Clock zhkuLocalPreviewClock,
+            ServiceGuideCardProvider zhkuLocalPreviewServiceGuideCardProvider) {
         return new LocalPreviewConversationFacade(
                 zhkuLocalPreviewConversationStore,
                 zhkuLocalPreviewAnswerChain,
                 zhkuLocalPreviewClock,
-                CONVERSATION_TTL);
+                CONVERSATION_TTL,
+                zhkuLocalPreviewServiceGuideCardProvider,
+                // 绑定键显式写死在本机装配里（方案 A）：不按问题猜清单，换绑定＝改代码＝走评审。
+                ServiceGuideBindings.ELECTIVE_ADJUST);
+    }
+
+    /**
+     * 办事清单卡片提供者（阶段 9，方案 A：配置驱动显式绑定）。
+     *
+     * <p><b>为什么独立成 bean 且不碰密码装配</b>：清单链路只消费既有的 `localPreviewDataSource`，
+     * 与线 B 的"密码只来自 Environment"纪律保持分离——两侧各自的改动都不需要动对方。</p>
+     *
+     * <p><b>可缺省性</b>：该 bean 未装配时门面拿到 null 提供者，回答卡的 `guideCard` 恒为 null，
+     * 既有四级行为完全不变；解析不到清单时也只是卡片降级为"只留人工渠道"，不会拒答。</p>
+     */
+    @Bean
+    ServiceGuideCardProvider zhkuLocalPreviewServiceGuideCardProvider(
+            Environment environment,
+            Clock zhkuLocalPreviewClock) {
+        ServiceGuideResolver resolver = new ServiceGuideResolver(
+                new JdbcServiceGuideRepository(localPreviewDataSource(environment)),
+                zhkuLocalPreviewClock);
+        return new ServiceGuideCardProvider(ServiceGuideBindings.firstBatch(), resolver);
     }
 
     /**

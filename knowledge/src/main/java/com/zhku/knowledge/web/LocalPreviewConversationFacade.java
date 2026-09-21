@@ -6,7 +6,9 @@ import com.zhku.knowledge.conversation.StoreResult;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeAnswer;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeReplyType;
 import com.zhku.knowledge.routing.AnswerRoute;
+import com.zhku.knowledge.serviceguide.HumanHandoffReason;
 import com.zhku.knowledge.serviceguide.ServiceGuideCard;
+import com.zhku.knowledge.serviceguide.ServiceGuideCardProvider;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -27,12 +29,32 @@ public final class LocalPreviewConversationFacade {
     private final LocalPreviewAnswerChain answerChain;
     private final Clock clock;
     private final Duration sessionTtl;
+    /** 可为 null：未装配清单链路时，回答卡上的清单字段恒为 null，既有行为完全不变。 */
+    private final ServiceGuideCardProvider guideCards;
+    private final String guideBindingKey;
 
     public LocalPreviewConversationFacade(
             ConversationStore store,
             LocalPreviewAnswerChain answerChain,
             Clock clock,
             Duration sessionTtl
+    ) {
+        this(store, answerChain, clock, sessionTtl, null, null);
+    }
+
+    /**
+     * 装配清单卡片的构造入口（只追加参数，旧构造签名保留并委托到这里）。
+     *
+     * <p>绑定键由装配侧显式给出（见 {@code ZhkuLocalPreviewConfiguration}），门面不做任何
+     * "按问题猜清单"的推断——猜错会把不相干的清单当成依据发给学生。</p>
+     */
+    public LocalPreviewConversationFacade(
+            ConversationStore store,
+            LocalPreviewAnswerChain answerChain,
+            Clock clock,
+            Duration sessionTtl,
+            ServiceGuideCardProvider guideCards,
+            String guideBindingKey
     ) {
         this.store = Objects.requireNonNull(store, "会话存储不能为空");
         this.answerChain = Objects.requireNonNull(answerChain, "回答链路不能为空");
@@ -41,6 +63,10 @@ public final class LocalPreviewConversationFacade {
         if (sessionTtl.isZero() || sessionTtl.isNegative()) {
             throw new IllegalArgumentException("会话有效期必须为正数");
         }
+        this.guideCards = guideCards;
+        this.guideBindingKey = guideBindingKey == null || guideBindingKey.isBlank()
+                ? null
+                : guideBindingKey.strip();
     }
 
     public ConversationCreated createConversation() {
@@ -61,7 +87,8 @@ public final class LocalPreviewConversationFacade {
             return sessionInvalid();
         }
         // 会话存在性由门面保证（未知 ID 不得被一条消息隐式创建），作答顺序交给回答链路。
-        return ConversationReply.from(answerChain.reply(sessionId, message));
+        LocalPreviewAnswerChain.RoutedReply routed = answerChain.reply(sessionId, message);
+        return ConversationReply.from(routed, guideCardFor(routed));
     }
 
     public ConversationReply cancelConversation(UUID sessionId) {
@@ -104,12 +131,42 @@ public final class LocalPreviewConversationFacade {
     private static ConversationReply sessionInvalid() {
         return new ConversationReply(
                 ElectiveRetakeReplyType.SESSION_INVALID, "当前会话不存在，请新建对话。", null,
-                AnswerRoute.INSUFFICIENT_EVIDENCE, true, List.of(), List.of());
+                AnswerRoute.INSUFFICIENT_EVIDENCE, true, List.of(), List.of(), null);
     }
 
     private static ConversationReply reply(ElectiveRetakeReplyType type, String message) {
         return new ConversationReply(
-                type, message, null, AnswerRoute.INSUFFICIENT_EVIDENCE, true, List.of(), List.of());
+                type, message, null, AnswerRoute.INSUFFICIENT_EVIDENCE, true, List.of(), List.of(),
+                null);
+    }
+
+    /**
+     * 回答卡上的清单卡挂载（阶段 9，只追加）。三条例外都是刻意的：
+     * ① 未装配清单链路（`guideCards`/绑定键为空）→ null，既有层级行为完全不变；
+     * ② 会话类问题（过期/取消/无效）→ 不附卡，它与"办事依据"无关，附卡会被误读成办理指引；
+     * ③ 规则级以外的无卡层级且未要求转人工 → 不附卡（检索增强级正常作答时不需要下一步指引）。
+     */
+    private ServiceGuideCard guideCardFor(LocalPreviewAnswerChain.RoutedReply routed) {
+        if (guideCards == null || guideBindingKey == null) {
+            return null;
+        }
+        boolean sessionIssue = switch (routed.type()) {
+            case SESSION_EXPIRED, SESSION_CANCELLED, SESSION_INVALID -> true;
+            default -> false;
+        };
+        if (sessionIssue) {
+            return null;
+        }
+        if (routed.handoffRequired()) {
+            // 检索增强级仍要转人工＝生成侧拒答/降级；其余转人工都归"规则缺失/证据不足"。
+            HumanHandoffReason reason = routed.route() == AnswerRoute.RETRIEVAL_AUGMENTED
+                    ? HumanHandoffReason.MODEL_REFUSAL
+                    : HumanHandoffReason.RULE_MISSING;
+            return guideCards.handoffCard(guideBindingKey, reason).orElse(null);
+        }
+        return routed.answer() == null
+                ? null
+                : guideCards.fullCard(guideBindingKey).orElse(null);
     }
 
     public record ConversationCreated(UUID sessionId, Instant expiresAt) {
@@ -137,7 +194,8 @@ public final class LocalPreviewConversationFacade {
             AnswerRoute route,
             boolean handoffRequired,
             List<String> citationIds,
-            List<LocalPreviewAnswerChain.CitationView> citations
+            List<LocalPreviewAnswerChain.CitationView> citations,
+            ServiceGuideCard guideCard
     ) {
 
         public ConversationReply {
@@ -145,7 +203,24 @@ public final class LocalPreviewConversationFacade {
             citations = List.copyOf(citations);
         }
 
-        private static ConversationReply from(LocalPreviewAnswerChain.RoutedReply routed) {
+        /**
+         * 兼容构造器（只追加原则的落点）：历史调用方按原 7 参构造（如 SSE 流式处理），
+         * 语义完全不变，清单卡为 null。**不要求他线改代码是本字段"只追加"的应有之义。**
+         */
+        public ConversationReply(
+                ElectiveRetakeReplyType type,
+                String message,
+                ConversationAnswer answer,
+                AnswerRoute route,
+                boolean handoffRequired,
+                List<String> citationIds,
+                List<LocalPreviewAnswerChain.CitationView> citations
+        ) {
+            this(type, message, answer, route, handoffRequired, citationIds, citations, null);
+        }
+
+        private static ConversationReply from(
+                LocalPreviewAnswerChain.RoutedReply routed, ServiceGuideCard guideCard) {
             ElectiveRetakeAnswer sourceAnswer = routed.answer();
             ConversationAnswer answer = sourceAnswer == null ? null : ConversationAnswer.from(sourceAnswer);
             return new ConversationReply(
@@ -155,22 +230,13 @@ public final class LocalPreviewConversationFacade {
                     routed.route(),
                     routed.handoffRequired(),
                     routed.citationIds(),
-                    routed.citations()
+                    routed.citations(),
+                    guideCard
             );
         }
     }
 
-    /**
-     * 统一回答卡（HTTP 响应体 `answer` 对象）。
-     *
-     * <p>旧字段 `{conclusion, basis, sourceId, sourceTitle, sourceVersion, sourceLocator,
-     * applicableScope}` 语义不变（只追加原则）；后三个数组为阶段 9 **只追加**字段，
-     * 来自已审核办事清单：`guideNextSteps`＝下一步（含是否需个案核对）、
-     * `guideConfirmations`＝需确认事项（必须以当期官方信息核对的内容）、
-     * `guideOfficialChannels`＝官方人工渠道（类型/名称/值，只来自审核资料）。
-     * 尚未接清单链路的层级为 `null`；高风险或证据不足时由服务端只填人工渠道与
-     * 需确认事项、`guideNextSteps` 恒为空数组。</p>
-     */
+    /** 统一回答卡（HTTP 响应体 `answer` 对象）：字段语义不变（只追加原则），清单指引另见 `ConversationReply.guideCard`。 */
     public record ConversationAnswer(
             String conclusion,
             String basis,
@@ -178,10 +244,7 @@ public final class LocalPreviewConversationFacade {
             String sourceTitle,
             String sourceVersion,
             String sourceLocator,
-            String applicableScope,
-            List<ServiceGuideCard.NextStep> guideNextSteps,
-            List<String> guideConfirmations,
-            List<ServiceGuideCard.Channel> guideOfficialChannels
+            String applicableScope
     ) {
 
         private static ConversationAnswer from(ElectiveRetakeAnswer answer) {
@@ -192,33 +255,8 @@ public final class LocalPreviewConversationFacade {
                     answer.sourceTitle(),
                     answer.sourceVersion(),
                     answer.sourceLocator(),
-                    answer.applicableScope(),
-                    null,
-                    null,
-                    null);
-        }
-
-        /**
-         * 清单增强卡：旧字段取自既有回答，新字段取自已审核清单视图。
-         * 清单视图为空时返回原卡（新字段为 null），保证未接清单的层级行为完全不变。
-         */
-        private static ConversationAnswer withServiceGuide(
-                ElectiveRetakeAnswer answer, ServiceGuideCard card) {
-            ConversationAnswer base = from(answer);
-            if (card == null) {
-                return base;
-            }
-            return new ConversationAnswer(
-                    base.conclusion(),
-                    base.basis(),
-                    base.sourceId(),
-                    base.sourceTitle(),
-                    base.sourceVersion(),
-                    base.sourceLocator(),
-                    base.applicableScope(),
-                    card.nextSteps(),
-                    card.confirmations(),
-                    card.officialChannels());
+                    answer.applicableScope()
+            );
         }
     }
 }

@@ -113,6 +113,7 @@
 | `knowledge/src/main/java/com/zhku/knowledge/serviceguide/` 及 `knowledge/src/test/java/com/zhku/knowledge/serviceguide/` | WB-3（线 A） | 阶段 9 任务 2：不可变 `ServiceGuide` / `GuideStep` / `OfficialChannel` / `HumanHandoffReason` + 只返回"有当前有效证据"的清单解析器（**新包，主+测试目录一并占用**） | 2026-09-20 09:46 |
 | `knowledge/src/main/resources/db/migration/V15__*` | WB-3（线 A） | 阶段 9 线 A 迁移（最终裁决号段）：`service_guide` / 步骤 / 材料 / 官方渠道 / 风险提示 / 关联规则与通知版本。**自包含、不与线 B 的 `V16` 建外键**；确需关联用软引用（清单标识 + 版本号）。**同一时刻只有一个会话创建迁移文件** | 2026-09-20 09:46 |
 | 回答卡扩展面（任务 3）：`knowledge/.../answer/` 的展示层 + `knowledge/.../web/LocalPreviewConversationFacade` 及对应测试 + `knowledge/.../rag/` 的回答载荷类型 | WB-3（线 A） | 阶段 9 任务 3：结论后附"下一步 / 需确认事项 / 官方人工渠道"；高风险或证据不足时只保留人工渠道与风险提示。**统一回答卡属共享面，只追加字段、不改旧字段语义**；新字段须同步登记进 §八（WB-1 据此做前端）。**动手前若有他线正在改这些文件，先停下协商** | 2026-09-20 09:46 |
+| `knowledge/.../web/ZhkuLocalPreviewConfiguration.java`（**共享装配入口**） | WB-3（线 A） | 阶段 9 绑定落地的装配点（方案 A，PM 已裁决）：新增 `ServiceGuideCardProvider` bean 并注入门面；**注入位置独立、不触碰线 B 第十四次的 Environment 密码装配**（`localPreviewDataSource` 一行未改）。改动面＝新增 import + 新增 1 个 bean + 门面 bean 多两个构造参数 | 2026-09-21 21:05 |
 | `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewApplication.java`、`knowledge/src/main/java/com/zhku/knowledge/feedback/AnonymousFeedbackController.java`、`FeedbackPreviewConfiguration.java` 及 `FeedbackPreviewEndpointTest` | CX-1（线 B） | 阶段 9 学生侧匿名反馈接线：仅把反馈控制器/专用装配置入本机预览组件扫描并验证 `/zhku/feedback`；不改会话门面、回答/RAG 或任何前端资源 | 2026-09-20 |
 | `knowledge/src/main/java/com/zhku/knowledge/privacy/` 及同名测试目录 | CX-1（线 B） | 阶段 10 第 6 项提前放行：密钥、匿名数据、配置回显和导出字段白名单检查；仅新增检查与测试，不创建迁移，不改 `rag/`、配置文件或前端 | 2026-09-20 |
 | `knowledge/src/main/java/com/zhku/knowledge/publication/LocalKnowledgePublisherFactory.java`、`knowledge/src/test/java/com/zhku/knowledge/ZhkuDatabaseTestConfig.java` 及 `LocalKnowledgePublisherFactoryTest` | CX-1（线 B，PM 裁决） | 移除数据库密码的系统属性入口；保留 URL/用户的非敏感系统属性。密码属性被设置即 fail-fast，测试/生产均仅接收 `ZHKU_DB_PASSWORD` 环境变量 | 2026-09-20 |
@@ -291,8 +292,19 @@
    - 本机管理员聚合读取：`GET /zhku/local-admin/feedback/aggregates`，响应数组元素固定为 `guideIdentifier`、`guideVersion`、`reason`、`feedbackDate`（ISO `yyyy-MM-dd`）和正整数 `count`；不含任何逐条事件、匿名散列、去重键或创建时刻。
    - 本机管理员显式保留执行：`POST /zhku/local-admin/feedback/retention`，响应仅为 `{"aggregatedEventCount":<non-negative integer>}`。到期事件按创建日/清单软引用/版本/原因合并后删除；此 API 不创建候选、发布资料或索引任务。
 8. **阶段 9 学生侧反馈接线（CX-1，2026-09-20）**：预览应用在 `zhku-local-preview` profile 且 `zhku.local-preview.enabled=true` 时已扫描反馈控制器；`POST /zhku/feedback` 可从该入口到达。入口测试已确认合法请求 `201`，非法原因枚举与 65 位散列均为 `400`；接线没有修改会话门面、回答/RAG 载荷或任何前端资源。操作边界见 `docs/zhkuagent/仲园Agent-匿名反馈管理员操作手册.md`。
-9. **阶段 9 统一回答卡扩展（WB-3，2026-09-20，只追加）**：`answer` 对象新增三个**可空数组**字段（旧字段语义不变；未接清单链路的层级为 `null`）：
-   - `guideNextSteps`：对象数组 `{order, instruction, requiresIdentityCheck}`——"下一步"；`requiresIdentityCheck=true` 的步骤需要身份/资格个案核对，前端必须同时提示转人工；
-   - `guideConfirmations`：字符串数组——"需确认事项"（必须以当期官方信息核对的内容，来自已审核风险提示）；
-   - `guideOfficialChannels`：对象数组 `{channelType, name, value}`——"官方人工渠道"，`channelType ∈ {SCHOOL_OFFICE, PHONE, WEBSITE, EMAIL}`，**只来自审核资料**（服务端不生成、不含内部审计定位）。
-   约束：高风险/个案/证据不足场景服务端只填 `guideOfficialChannels` + `guideConfirmations`，`guideNextSteps` **恒为空数组**（不伪装成可办结步骤）。**当前状态**：字段契约已入库并随响应下发（未接清单链路的层级为 `null`）；卡片填充接线与端到端验收随 `ServiceGuideAcceptanceTest` 增量落地，WB-1 可先按本契约做 UI。
+9. **阶段 9 统一回答卡扩展（WB-3，2026-09-20 首次登记 / 2026-09-21 修订，只追加）**：`ConversationReply` **顶层**新增**一个可空对象** `guideCard`（旧字段语义不变；未接清单链路的请求为 `null`）：
+   ```json
+   "guideCard": {
+     "guideIdentifier": "elective-adjust", "guideVersion": "2025版",
+     "title": "选课调整办理指引", "applicableScope": "全日制本科生",
+     "nextSteps": [{"order": 1, "instruction": "…", "requiresIdentityCheck": false}],
+     "confirmations": ["以当学期官方通知为准"],
+     "officialChannels": [{"channelType": "SCHOOL_OFFICE", "name": "教务处学籍科", "value": "教务处 201 室"}],
+     "handoffOnly": false
+   }
+   ```
+   - **修订说明（重要，勿按旧稿对接）**：首次登记把三个数组放在 `answer` 对象上；实现时发现**转人工场景 `answer` 为 `null`**（第五级拒答、通知级证据不足），字段无处安放、契约自相矛盾 → 改为**顶层单个 `guideCard`**，正常与转人工两条路径都能表达，契约面更小。**这是首次登记后、WB-1 消费前的放置位置修订，特此公开登记而非静默改动。**
+   - 语义：`nextSteps`＝下一步（`requiresIdentityCheck=true` 的步骤必须同时提示转人工）；`confirmations`＝需确认事项（必须以当期官方信息核对，来自已审核风险提示）；`officialChannels`＝官方人工渠道，`channelType ∈ {SCHOOL_OFFICE, PHONE, WEBSITE, EMAIL}`，**只来自审核资料**（服务端不生成、不含内部审计定位）。
+   - 约束：`handoffOnly=true` 时 `nextSteps` **恒为空数组**（构造器直接拒绝携带步骤）；会话类问题（过期/取消/无效）不附卡；未命中绑定或清单不可解析时 `guideCard=null`（**绑定解析失败只会"多转人工"，不会静默出错卡**）。
+   - 兼容性：`ConversationReply` 保留**原 7 参构造器**（`guideCard=null`），既有调用方（含 SSE 流式处理）无需改动。
+   - **现状**：字段已随响应下发，绑定＝`serviceguide/ServiceGuideBindings.firstBatch()`（唯一决策点 `elective-adjust`，零迁移）；验收见 `ServiceGuideAcceptanceTest`（5 例，含字段名序列化校验）。
