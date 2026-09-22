@@ -85,6 +85,15 @@
         .citation-locator { color: var(--text-secondary); font-size: 13px; }
         /* 转人工提示只在后端确实要求 handoff 时出现（数据驱动），不做常驻免责声明 */
         .handoff { margin: 16px 0 0; padding: 12px 14px; border-left: 3px solid var(--warning); border-radius: 0 var(--radius-inner) var(--radius-inner) 0; color: var(--warning); background: var(--warning-bg); font-size: 14px; }
+        /* 反馈入口：只在服务端给出清单标识（guideCard）时出现——没有清单标识就无法提交一条
+           指向明确的反馈，前端不会替学生臆造 identifier/version。四个枚举与后端 FeedbackReason 一一对应。 */
+        .feedback-panel { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border-subtle); }
+        .feedback-heading { margin: 0; font-size: 14px; font-weight: 500; }
+        .feedback-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .feedback-actions button { padding: 8px 12px; color: var(--text-secondary); background: transparent; border: 1px solid var(--border-subtle); font-size: 13px; }
+        .feedback-actions button:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+        /* 失败态用警告色：反馈没提交不能渲染成一条不显眼的灰字，否则学生只会反复点。 */
+        .field-hint.feedback-status-error { color: var(--warning); }
         [hidden] { display: none !important; }
         @media (max-width: 560px) {
             .page-shell { width: min(100% - 24px, 880px); padding-top: 20px; }
@@ -138,6 +147,12 @@
                 </div>
             </section>
             <p id="handoff-notice" class="handoff" hidden></p>
+            <section id="feedback-panel" class="feedback-panel" hidden aria-labelledby="feedback-title">
+                <h2 id="feedback-title" class="feedback-heading">这条回答对你有帮助吗？</h2>
+                <p id="feedback-target" class="field-hint"></p>
+                <div id="feedback-actions" class="feedback-actions" role="group" aria-label="反馈原因"></div>
+                <p id="feedback-status" class="field-hint" role="status" hidden></p>
+            </section>
         </section>
     </div>
 </main>
@@ -156,6 +171,19 @@
     const citationPanel = document.querySelector("#citation-panel");
     const citationList = document.querySelector("#citation-list");
     const handoffNotice = document.querySelector("#handoff-notice");
+    const feedbackPanel = document.querySelector("#feedback-panel");
+    const feedbackTarget = document.querySelector("#feedback-target");
+    const feedbackActions = document.querySelector("#feedback-actions");
+    const feedbackStatus = document.querySelector("#feedback-status");
+    const feedbackApi = "/api/zhku/feedback";
+    const feedbackStorageKey = "zhku.local-preview.anonymous-feedback-hash";
+    // 与服务端 FeedbackReason 一一对应；契约只接受枚举，页面不提供自由文本输入。
+    const feedbackReasons = [
+        { reason: "NOT_HELPFUL", label: "没帮上忙" },
+        { reason: "INCORRECT", label: "内容有误" },
+        { reason: "OUTDATED", label: "已经过期" },
+        { reason: "MISSING_INFORMATION", label: "缺少关键信息" }
+    ];
     // 传输层：会话消息用同一资源地址按 Accept 协商为 SSE（状态板 §八 第 4 条：事件顺序固定
     // accepted → reply → complete，reply/complete 载荷与同步响应同形）。服务端未开启流式通道时
     // 返回 503 而非回落 JSON，所以前端不能把一次性 JSON 当长连接，只能按"服务不可用"提示。
@@ -205,6 +233,8 @@
             const reply = await streamReply(expectedEpoch, message);
             if (expectedEpoch !== requestEpoch) { return; }
             renderReply(reply);
+            // 反馈入口只依赖服务端下发的 guideCard，因此同步与流式两条路径都在此处接。
+            renderFeedback(reply.guideCard);
             questionInput.value = "";
         } catch (error) {
             if (expectedEpoch !== requestEpoch) { return; }
@@ -297,6 +327,7 @@
         answerContent.textContent = "正在核对校园资料并生成回答…";
         clearCitations();
         handoffNotice.hidden = true;
+        hideFeedback();
         answerPanel.hidden = false;
     }
 
@@ -387,8 +418,8 @@
     }
 
     // 检索增强级：正文来自 message，依据来自 citations[]（标题 + 定位 + 页码）。
-    // 缺口登记：当前 SSE 事件尚未下发 citations[] 明细（状态板 §八 第 4 条），此时引用卡
-    // 自动不渲染——不补占位假数据；线 B 补齐明细后本函数无需改动即生效。
+    // SSE 与同步响应现在都下发 citations[]（状态板 §八 第 4/11 条），两条传输共用本渲染；
+    // 若某轮确实没有明细，引用卡自动不渲染——不补占位假数据。
     function renderRetrieved(payload) {
         answerPanel.dataset.mode = "ANSWER";
         answerStatus.textContent = routeLabels.RETRIEVAL_AUGMENTED;
@@ -451,7 +482,66 @@
     }
 
     function clearCitations() { citationList.replaceChildren(); citationPanel.hidden = true; }
-    function resetMessages() { questionError.hidden = true; questionError.textContent = ""; serviceError.hidden = true; serviceError.textContent = ""; answerPanel.hidden = true; answerPanel.dataset.mode = ""; answerStatus.textContent = ""; answerContent.textContent = ""; handoffNotice.hidden = true; clearCitations(); }
+
+    // 反馈只挂在"有清单标识"的回答上：没有 guideCard 就没有合法的 guideIdentifier/guideVersion，
+    // 与其让服务端 400，不如不给出入口（也避免把反馈记到不相干的清单上）。
+    function renderFeedback(guideCard) {
+        const target = guideCard && typeof guideCard.guideIdentifier === "string" && typeof guideCard.guideVersion === "string" ? guideCard : null;
+        if (!target) { hideFeedback(); return; }
+        feedbackTarget.textContent = typeof target.title === "string" && target.title ? `针对《${target.title}》${target.guideVersion}` : `针对清单 ${target.guideIdentifier} ${target.guideVersion}`;
+        feedbackActions.replaceChildren();
+        feedbackReasons.forEach(item => { const button = document.createElement("button"); button.type = "button"; button.textContent = item.label; button.addEventListener("click", () => submitFeedback(target, item)); feedbackActions.append(button); });
+        feedbackStatus.hidden = true;
+        feedbackStatus.textContent = "";
+        feedbackPanel.hidden = false;
+    }
+
+    function hideFeedback() { feedbackPanel.hidden = true; feedbackActions.replaceChildren(); feedbackTarget.textContent = ""; feedbackStatus.hidden = true; feedbackStatus.textContent = ""; feedbackStatus.className = "field-hint"; }
+
+    /**
+     * 提交匿名反馈。
+     *
+     * 请求体只含四个白名单字段（服务端对未知字段直接 400），散列在本机生成、只存 localStorage：
+     * 它承担"同日同清单同原因只记一次"的去重，因此必须稳定——每次提交都换新值会让去重失效。
+     */
+    async function submitFeedback(target, item) {
+        const anonymousSessionHash = readOrCreateAnonymousSessionHash();
+        if (!anonymousSessionHash) { showFeedbackStatus("当前浏览器无法生成匿名标识，反馈未提交。"); return; }
+        setFeedbackBusy(true);
+        try {
+            const response = await fetch(feedbackApi, { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8" }, body: JSON.stringify({ guideIdentifier: target.guideIdentifier, guideVersion: target.guideVersion, reason: item.reason, anonymousSessionHash }) });
+            const payload = await readPayload(response);
+            // 服务端 400 会带 detail（例如"清单版本格式不合法"）。原样透出比笼统的"请稍后重试"
+            // 更可诊断：它不是 PII，也不含内部标识；否则学生只会反复重试而看不出是格式被拒。
+            if (!response.ok) { showFeedbackStatus(payload.detail ? `反馈未提交：${payload.detail}` : "反馈未提交，请稍后重试。"); setFeedbackBusy(false); return; }
+            // 201=首次记录，200=同日重复（服务端已去重）；两种回执都不含散列或事件 ID。
+            showFeedbackStatus(payload.duplicate === true ? `已记录：今天已经反馈过「${item.label}」，未重复计数。` : `已记录你的反馈：${item.label}。`, true);
+            feedbackActions.replaceChildren();  // 已提交即收起按钮，避免同一轮反复点击产生噪音
+        } catch (error) {
+            showFeedbackStatus("反馈未提交，请确认预览服务已启动。");
+            setFeedbackBusy(false);
+        }
+    }
+
+    // 状态行默认按"出错"样式呈现（警告色），只有明确的成功回执才降为普通提示色——
+    // 反馈没提交却看着像一条无关紧要的灰字，学生会一直重试。
+    function showFeedbackStatus(message, isSuccess) { feedbackStatus.textContent = message; feedbackStatus.className = isSuccess ? "field-hint" : "field-hint feedback-status-error"; feedbackStatus.hidden = false; }
+    function setFeedbackBusy(busy) { feedbackActions.querySelectorAll("button").forEach(control => { control.disabled = busy; }); }
+
+    // 64 位十六进制（32 字节）随机值：不含学号、姓名等任何个人信息，仅存本机。
+    function readOrCreateAnonymousSessionHash() {
+        const stored = readStoredAnonymousSessionHash();
+        if (stored) { return stored; }
+        if (!window.crypto || typeof window.crypto.getRandomValues !== "function") { return null; }
+        const bytes = new Uint8Array(32);
+        window.crypto.getRandomValues(bytes);
+        const hash = Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+        try { window.localStorage.setItem(feedbackStorageKey, hash); } catch (error) { /* 隐私模式等禁止写入的场景：本次仍可提交，只是不能跨页保持同一标识。 */ }
+        return hash;
+    }
+
+    function readStoredAnonymousSessionHash() { try { const value = window.localStorage.getItem(feedbackStorageKey); return typeof value === "string" && /^[0-9a-f]{64}$/.test(value) ? value : null; } catch (error) { return null; } }
+    function resetMessages() { questionError.hidden = true; questionError.textContent = ""; serviceError.hidden = true; serviceError.textContent = ""; answerPanel.hidden = true; answerPanel.dataset.mode = ""; answerStatus.textContent = ""; answerContent.textContent = ""; handoffNotice.hidden = true; clearCitations(); hideFeedback(); }
     function showQuestionError(message) { questionError.textContent = message; questionError.hidden = false; }
     function showServiceError() { serviceError.textContent = "本机会话服务暂不可用，请确认预览服务与数据库均已启动。"; serviceError.hidden = false; }
     function setLoading(isLoading) { submitButton.disabled = isLoading; newConversationButton.disabled = isLoading; submitButton.textContent = isLoading ? "正在发送…" : "发送问题"; }

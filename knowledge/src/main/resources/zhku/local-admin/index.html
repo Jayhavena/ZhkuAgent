@@ -55,12 +55,26 @@
         .candidate-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
         .candidate-actions { display: flex; flex-wrap: wrap; gap: 8px; }
         .empty { margin: 14px 0 0; color: #5b675e; }
+        /* 反馈聚合是"按天已合并"的最小维度：逐条事件、匿名散列与去重键不下发，
+           因此这里只需要一张平表，不需要详情展开或逐条链接。 */
+        .sub-section { margin-top: 22px; }
+        .config-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+        .config-item { padding: 12px 14px; border: 1px solid #dce4d8; border-radius: 12px; background: #fff; }
+        .config-label { display: block; color: #5b675e; font-size: 13px; font-weight: 700; }
+        .config-value { display: block; margin-top: 6px; font-weight: 700; overflow-wrap: anywhere; }
+        .table-scroll { overflow-x: auto; }
+        .aggregate-table { width: 100%; margin-top: 14px; border-collapse: collapse; font-size: 14px; }
+        .aggregate-table th, .aggregate-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8de; text-align: left; }
+        .aggregate-table th { color: #5b675e; background: #f2f3ef; font-size: 13px; font-weight: 700; white-space: nowrap; }
+        .aggregate-table caption { margin-top: 10px; color: #5b675e; text-align: left; caption-side: bottom; }
+        .aggregate-table td { overflow-wrap: anywhere; }
+        .aggregate-table td.numeric { text-align: right; font-variant-numeric: tabular-nums; }
         dialog { width: min(460px, calc(100% - 32px)); border: 1px solid #d7dfd2; border-radius: 16px; padding: 0; color: #193a30; background: #fffef9; box-shadow: 0 20px 60px rgba(25, 58, 48, .2); }
         dialog::backdrop { background: rgba(25, 58, 48, .32); }
         .dialog-body { padding: 24px; }
         .dialog-body p { color: #5b675e; line-height: 1.7; }
         [hidden] { display: none !important; }
-        @media (max-width: 760px) { .shell { width: min(100% - 24px, 1120px); padding-top: 16px; } .hero, .card { padding: 20px; } .flow-list { grid-template-columns: 1fr; } .grid, .candidate-grid { grid-template-columns: 1fr; } .brand-row, .section-heading, .submission-row, .flow-copy { align-items: flex-start; flex-direction: column; } }
+        @media (max-width: 760px) { .shell { width: min(100% - 24px, 1120px); padding-top: 16px; } .hero, .card { padding: 20px; } .flow-list { grid-template-columns: 1fr; } .grid, .candidate-grid, .config-grid { grid-template-columns: 1fr; } .brand-row, .section-heading, .submission-row, .flow-copy { align-items: flex-start; flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -144,6 +158,22 @@
         <p class="hint">发布成功后，打开问答页并确认回答展示资料标题、页码和适用范围。问答页运行在独立的本机端口。</p>
         <div class="actions"><a class="link-button" href="http://127.0.0.1:8123/api/zhku/local-preview" target="_blank" rel="noopener">打开问答验证页</a></div>
     </section>
+
+    <section class="card" id="feedback-stage" aria-labelledby="feedback-title">
+        <div class="section-heading"><h2 id="feedback-title">6. 匿名反馈审核</h2><button id="refresh-feedback" class="secondary" type="button">刷新反馈聚合</button></div>
+        <p class="hint">学生反馈只含枚举原因与清单标识，按"日期 + 清单 + 版本 + 原因"聚合后在此查看。逐条明细、匿名散列与去重键不会下发到本页；<strong>密钥、环境变量名与端点地址同样不在此展示</strong>——检索配置只回显启用状态。</p>
+        <div id="feedback-config" class="config-grid"></div>
+        <div class="section-heading sub-section"><h3>反馈聚合</h3><span id="feedback-summary" class="status">尚未加载反馈聚合</span></div>
+        <div class="table-scroll">
+            <table class="aggregate-table" id="feedback-table" hidden>
+                <caption>按反馈日期升序；「次数」为当日同清单/版本/原因的反馈条数。</caption>
+                <thead><tr><th scope="col">清单标识</th><th scope="col">版本</th><th scope="col">原因</th><th scope="col">日期</th><th scope="col" class="numeric">次数</th></tr></thead>
+                <tbody id="feedback-rows"></tbody>
+            </table>
+        </div>
+        <p id="feedback-empty" class="empty">尚未加载反馈聚合。</p>
+        <div class="actions"><button id="retention-button" class="secondary" type="button">执行 90 天保留清理</button></div>
+    </section>
     <p id="page-error" class="message error" role="alert" hidden></p><p id="page-success" class="message success" role="status" hidden></p>
 </main>
 
@@ -156,9 +186,14 @@
     const submissionsEndpoint = "/api/zhku/local-admin/submissions";
     const uploadForm = document.querySelector("#upload-form"); const refreshButton = document.querySelector("#refresh-submissions"); const submissionList = document.querySelector("#submission-list"); const submissionEmpty = document.querySelector("#submission-empty"); const reviewStage = document.querySelector("#review-stage"); const candidateSummary = document.querySelector("#candidate-summary"); const candidateList = document.querySelector("#candidate-list"); const publishStage = document.querySelector("#publish-stage"); const publishButton = document.querySelector("#publish-button"); const publishStatus = document.querySelector("#publish-status"); const noticePublicationFields = document.querySelector("#notice-publication-fields"); const verifyStage = document.querySelector("#verify-stage"); const pageError = document.querySelector("#page-error"); const pageSuccess = document.querySelector("#page-success"); const currentStage = document.querySelector("#current-stage"); const stageNote = document.querySelector("#stage-note"); const confirmationDialog = document.querySelector("#confirmation-dialog"); const confirmationTitle = document.querySelector("#confirmation-title"); const confirmationMessage = document.querySelector("#confirmation-message"); const confirmationAccept = document.querySelector("#confirmation-accept");
     let selectedSubmission = null; let pendingConfirmation = null;
+    const feedbackEndpoint = "/api/zhku/local-admin/feedback";
+    const feedbackConfigGrid = document.querySelector("#feedback-config"); const feedbackTable = document.querySelector("#feedback-table"); const feedbackRows = document.querySelector("#feedback-rows"); const feedbackEmpty = document.querySelector("#feedback-empty"); const feedbackSummary = document.querySelector("#feedback-summary"); const refreshFeedbackButton = document.querySelector("#refresh-feedback"); const retentionButton = document.querySelector("#retention-button");
+    // 原因枚举的中文标签；未登记的取值原样显示，避免后端新增枚举时被前端静默吞掉。
+    const feedbackReasonLabels = { NOT_HELPFUL: "没帮上忙", INCORRECT: "内容有误", OUTDATED: "已过期", MISSING_INFORMATION: "信息缺失" };
     // 用统一阶段描述同步步骤条与“下一步”提示，避免页面状态分散维护。
     const stageDescriptions = { SUBMIT: ["提交资料", "下一步：提交一份可读取的公开 PDF，保存为审核草稿。"], EXTRACT: ["提取片段", "下一步：选择资料并提取候选知识片段。"], REVIEW: ["审核内容", "下一步：逐条通过或丢弃候选片段，并记录审核说明。"], PUBLISH: ["发布版本", "下一步：确认所有候选片段均已处理后发布资料。"], VERIFY: ["验证问答", "下一步：在问答页确认回答带有资料依据与页码。"] };
     uploadForm.addEventListener("submit", async event => { event.preventDefault(); clearMessage(); const formData = new FormData(uploadForm); setBusy(uploadForm, true); try { const response = await fetch(submissionsEndpoint, { method: "POST", body: formData }); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "资料提交失败，请检查表单和 PDF。"); return; } showSuccess("资料已保存为审核草稿。请选择该资料并提取候选片段。"); uploadForm.reset(); activateStage("EXTRACT"); await loadSubmissions(payload.id); } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } finally { setBusy(uploadForm, false); } });
+    refreshFeedbackButton.addEventListener("click", loadFeedback); retentionButton.addEventListener("click", () => requestConfirmation("保留清理前请确认", "满 90 天的匿名反馈明细会被合并进聚合后删除，逐条记录不可恢复。确认执行吗？", "确认清理", runFeedbackRetention));
     refreshButton.addEventListener("click", () => loadSubmissions(selectedSubmission?.id)); publishButton.addEventListener("click", () => requestConfirmation("发布前请确认", "发布会归档同一资料族和知识范围的旧版本。确认已完成审核并继续发布吗？", "确认发布", publishSelectedSubmission)); document.querySelector("#confirmation-cancel").addEventListener("click", () => confirmationDialog.close()); confirmationAccept.addEventListener("click", () => { const action = pendingConfirmation; pendingConfirmation = null; confirmationDialog.close(); action?.(); });
     function activateStage(stage) { const currentIndex = ["SUBMIT", "EXTRACT", "REVIEW", "PUBLISH", "VERIFY"].indexOf(stage); document.querySelectorAll(".flow-step").forEach((item, index) => { item.dataset.state = index < currentIndex ? "complete" : index === currentIndex ? "current" : "waiting"; }); const [name, note] = stageDescriptions[stage]; currentStage.textContent = `当前：${name}`; stageNote.textContent = note; }
     // 丢弃与发布共用确认入口，避免高影响操作在一次点击后直接请求接口。
@@ -180,7 +215,18 @@
     async function publishSelectedSubmission() { try { const isOfficialNotice = selectedSubmission.documentFamily === "OFFICIAL_NOTICE"; const url = isOfficialNotice ? `${submissionsEndpoint}/${selectedSubmission.id}/publish-course-selection-notice` : `${submissionsEndpoint}/${selectedSubmission.id}/publish`; const options = isOfficialNotice ? { method: "POST", headers: jsonHeaders(), body: JSON.stringify(noticePublicationPayload()) } : { method: "POST" }; const message = isOfficialNotice ? "当前选课通知已事务发布。请在问答页确认只返回当前有效通知。" : "资料已事务发布。现在可以打开问答验证页确认引用与页码。"; const published = await requestAndReload(url, options, message, "VERIFY"); if (published) { verifyStage.dataset.locked = "false"; } } catch (error) { showError(error.message || "通知发布信息不完整。"); } }
     function submissionStatusLabel(status) { return ({ DRAFT: "审核草稿", IN_REVIEW: "审核中", PUBLISHED: "已发布", ARCHIVED: "已归档" })[status] || "状态待确认"; } function candidateStatusLabel(status) { return ({ PENDING_REVIEW: "待审核", APPROVED: "已通过", DISCARDED: "已丢弃" })[status] || "状态待确认"; }
     function jsonHeaders() { return { "Content-Type": "application/json; charset=UTF-8" }; } async function readJson(response) { try { return await response.json(); } catch (error) { return {}; } } function clearMessage() { pageError.hidden = true; pageSuccess.hidden = true; pageError.textContent = ""; pageSuccess.textContent = ""; } function showError(message) { pageError.textContent = message; pageError.hidden = false; } function showSuccess(message) { pageSuccess.textContent = message; pageSuccess.hidden = false; } function setBusy(form, busy) { form.querySelectorAll("button, input, textarea").forEach(control => { control.disabled = busy; }); }
+    // 配置回显与聚合是两个独立只读接口：任一失败都不该掩盖另一个的结果，故分开处理。
+    async function loadFeedback() { clearMessage(); await loadFeedbackData(); }
+    async function loadFeedbackData() { try { const [configurationResponse, aggregatesResponse] = await Promise.all([fetch(`${feedbackEndpoint}/configuration`), fetch(`${feedbackEndpoint}/aggregates`)]); renderFeedbackConfiguration(await readJson(configurationResponse)); const aggregates = await readJson(aggregatesResponse); if (!aggregatesResponse.ok) { showError(aggregates.message || "无法读取反馈聚合，请确认服务和数据库已启动。"); return false; } renderFeedbackAggregates(Array.isArray(aggregates) ? aggregates : []); return true; } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); return false; } }
+    // 只渲染服务端白名单里的四个字段（provider/model/profile/status）：密钥、环境变量名与端点地址
+    // 已被 PrivacyBoundary.configurationEcho 裁掉，前端不持有也就无从误展示。
+    function renderFeedbackConfiguration(configuration) { feedbackConfigGrid.replaceChildren(); const statusLabel = configuration.status === "ENABLED" ? "已启用" : configuration.status === "DISABLED" ? "未启用" : "未配置"; [["检索状态", statusLabel], ["供应商", configuration.provider], ["模型", configuration.model], ["配置档", configuration.profile]].forEach(([label, value]) => { const item = document.createElement("div"); item.className = "config-item"; const name = document.createElement("span"); name.className = "config-label"; name.textContent = label; const text = document.createElement("span"); text.className = "config-value"; text.textContent = value ?? "未配置"; item.append(name, text); feedbackConfigGrid.append(item); }); }
+    // 聚合行由服务端保证已合并（不含散列/去重键/创建时刻），前端只做展示与合计。
+    function renderFeedbackAggregates(aggregates) { feedbackRows.replaceChildren(); const total = aggregates.reduce((sum, aggregate) => sum + (Number(aggregate.count) || 0), 0); feedbackTable.hidden = aggregates.length === 0; feedbackEmpty.hidden = aggregates.length > 0; feedbackSummary.textContent = aggregates.length === 0 ? "暂无反馈" : `共 ${aggregates.length} 组聚合、${total} 条反馈`; aggregates.forEach(aggregate => { const row = document.createElement("tr"); [aggregate.guideIdentifier, aggregate.guideVersion, feedbackReasonLabels[aggregate.reason] || aggregate.reason, aggregate.feedbackDate, String(aggregate.count ?? 0)].forEach((value, index) => { const cell = document.createElement("td"); cell.textContent = value ?? "—"; if (index === 4) { cell.className = "numeric"; } row.append(cell); }); feedbackRows.append(row); }); }
+    // 保留清理会真实删除到期明细，所以走与其他高影响操作相同的确认弹窗，并显式回报合并条数。
+    async function runFeedbackRetention() { clearMessage(); try { const response = await fetch(`${feedbackEndpoint}/retention`, { method: "POST" }); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "保留清理未完成，请检查服务状态。"); return; } await loadFeedbackData(); showSuccess(`保留清理完成：本次合并并清理 ${payload.aggregatedEventCount ?? 0} 条到期明细。`); } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
     loadSubmissions();
+    loadFeedback();
 </script>
 </body>
 </html>
