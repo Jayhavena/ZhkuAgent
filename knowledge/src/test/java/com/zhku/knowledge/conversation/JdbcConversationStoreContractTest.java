@@ -1,7 +1,8 @@
 package com.zhku.knowledge.conversation;
 
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
+
 import com.zhku.knowledge.ZhkuDatabaseTestConfig;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,11 +49,7 @@ class JdbcConversationStoreContractTest {
         assertThat(DATABASE_PASSWORD)
                 .as("运行 JDBC 会话存储契约测试时必须显式提供本机密码")
                 .isNotBlank();
-        Flyway.configure()
-                .dataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)
-                .locations("classpath:db/migration")
-                .load()
-                .migrate();
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
     }
 
     @BeforeEach

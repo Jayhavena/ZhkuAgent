@@ -1,5 +1,7 @@
 package com.zhku.knowledge.eval;
 
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
+
 import com.zhku.knowledge.ZhkuDatabaseTestConfig;
 import com.zhku.knowledge.rag.GroundedAnswerComposer;
 import com.zhku.knowledge.retrieval.EmbeddingClient;
@@ -12,7 +14,6 @@ import com.zhku.knowledge.retrieval.RetrievalEligibilityFilter;
 import com.zhku.knowledge.retrieval.RetrievalOutcome;
 import com.zhku.knowledge.retrieval.RetrieverUnavailableException;
 import com.zhku.knowledge.retrieval.SourceEligibilitySnapshot;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,11 +60,7 @@ class RetrievalAcceptanceEvalTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        Flyway.configure()
-                .dataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)
-                .locations("classpath:db/migration")
-                .load()
-                .migrate();
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
         dataSource = new DriverManagerDataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
         deleteFixtures();
         seedCorpus();

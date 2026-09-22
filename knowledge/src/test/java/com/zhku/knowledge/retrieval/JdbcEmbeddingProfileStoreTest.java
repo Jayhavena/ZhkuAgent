@@ -1,7 +1,8 @@
 package com.zhku.knowledge.retrieval;
 
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
+
 import com.zhku.knowledge.ZhkuDatabaseTestConfig;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,11 +57,7 @@ class JdbcEmbeddingProfileStoreTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        Flyway.configure()
-                .dataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)
-                .locations("classpath:db/migration")
-                .load()
-                .migrate();
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
         dataSource = new DriverManagerDataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
         store = new JdbcEmbeddingProfileStore(dataSource);
         indexRepository = new JdbcRetrievalIndexRepository(dataSource);

@@ -1,7 +1,8 @@
 package com.zhku.knowledge.publication;
 
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
+
 import com.zhku.knowledge.ZhkuDatabaseTestConfig;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,11 +52,7 @@ class ReviewedKnowledgePublisherTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        Flyway.configure()
-                .dataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)
-                .locations("classpath:db/migration")
-                .load()
-                .migrate();
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
         deleteTestSource();
         publisher = new ReviewedKnowledgePublisher(dataSource());
     }

@@ -1,7 +1,8 @@
 package com.zhku.knowledge.serviceguide;
 
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
+
 import com.zhku.knowledge.ZhkuDatabaseTestConfig;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,11 +41,7 @@ class JdbcServiceGuidePublisherTest {
 
     @BeforeEach
     void setUp() {
-        Flyway.configure()
-                .dataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)
-                .locations("classpath:db/migration")
-                .load()
-                .migrate();
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
         dataSource = new DriverManagerDataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
         publisher = new JdbcServiceGuidePublisher(dataSource);
         repository = new JdbcServiceGuideRepository(dataSource);
