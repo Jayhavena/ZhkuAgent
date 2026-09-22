@@ -4,8 +4,11 @@ import com.zhku.knowledge.conversation.ConversationStore;
 import com.zhku.knowledge.conversation.InMemoryConversationStore;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeConversationService;
 import com.zhku.knowledge.conversation.elective.JdbcElectiveRetakeEvidenceFinder;
+import com.zhku.knowledge.conversation.publicelective.AdjustmentEvidenceFinder;
 import com.zhku.knowledge.conversation.publicelective.CreditLimitEvidenceFinder;
+import com.zhku.knowledge.conversation.publicelective.JdbcAdjustmentEvidenceFinder;
 import com.zhku.knowledge.conversation.publicelective.JdbcCreditLimitEvidenceFinder;
+import com.zhku.knowledge.conversation.publicelective.PublicElectiveAdjustmentService;
 import com.zhku.knowledge.conversation.publicelective.PublicElectiveConversationRouter;
 import com.zhku.knowledge.conversation.publicelective.PublicElectiveCreditLimitService;
 import com.zhku.knowledge.notice.AcademicTerm;
@@ -97,6 +100,22 @@ public class ZhkuLocalPreviewConfiguration {
         return new PublicElectiveCreditLimitService(zhkuLocalPreviewCreditLimitEvidenceFinder);
     }
 
+    /**
+     * "选课调整办理"主题（阶段 9 A-4 批2）：显式主题边界 + 以已发布证据为依据作答。
+     *
+     * <p>与学分上限主题并列装配、互不吞并：判定集中在各自服务内，顺序由路由器显式声明。</p>
+     */
+    @Bean
+    AdjustmentEvidenceFinder zhkuLocalPreviewAdjustmentEvidenceFinder(Environment environment) {
+        return new JdbcAdjustmentEvidenceFinder(localPreviewDataSource(environment));
+    }
+
+    @Bean
+    PublicElectiveAdjustmentService zhkuLocalPreviewAdjustmentService(
+            AdjustmentEvidenceFinder zhkuLocalPreviewAdjustmentEvidenceFinder) {
+        return new PublicElectiveAdjustmentService(zhkuLocalPreviewAdjustmentEvidenceFinder);
+    }
+
     @Bean
     NoticeRepository zhkuLocalPreviewNoticeRepository(Environment environment) {
         return new JdbcNoticeRepository(localPreviewDataSource(environment));
@@ -134,12 +153,14 @@ public class ZhkuLocalPreviewConfiguration {
             PublicElectiveCreditLimitService zhkuLocalPreviewCreditLimitService,
             ObjectProvider<CourseSelectionNoticeService>
                     zhkuLocalPreviewCourseSelectionNoticeService,
+            PublicElectiveAdjustmentService zhkuLocalPreviewAdjustmentService,
             Clock zhkuLocalPreviewClock) {
         return new PublicElectiveConversationRouter(
                 zhkuLocalPreviewConversationStore,
                 zhkuLocalPreviewElectiveRetakeConversationService,
                 zhkuLocalPreviewCreditLimitService,
                 zhkuLocalPreviewCourseSelectionNoticeService.getIfAvailable(),
+                zhkuLocalPreviewAdjustmentService,
                 zhkuLocalPreviewClock);
     }
 
