@@ -1,7 +1,8 @@
 package com.zhku.knowledge.conversation;
 
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
+
 import com.zhku.knowledge.ZhkuDatabaseTestConfig;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
@@ -29,11 +30,7 @@ class ConversationSessionSchemaTest {
         assertThat(DATABASE_PASSWORD)
                 .as("运行数据库契约测试时必须显式提供本机密码")
                 .isNotBlank();
-        Flyway.configure()
-                .dataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)
-                .locations("classpath:db/migration")
-                .load()
-                .migrate();
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
 
         try (Connection connection = DriverManager.getConnection(
                 DATABASE_URL,

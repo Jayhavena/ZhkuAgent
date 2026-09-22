@@ -1,11 +1,12 @@
 package com.zhku.knowledge.serviceguide;
 
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhku.knowledge.ZhkuDatabaseTestConfig;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeReplyType;
 import com.zhku.knowledge.routing.AnswerRoute;
 import com.zhku.knowledge.web.LocalPreviewConversationFacade;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,11 +63,7 @@ class ServiceGuideAcceptanceTest {
 
     @BeforeEach
     void setUp() {
-        Flyway.configure()
-                .dataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)
-                .locations("classpath:db/migration")
-                .load()
-                .migrate();
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
         dataSource = new DriverManagerDataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
         // 用**测试自己的绑定**把卡片提供者指向测试清单，与生产绑定表（firstBatch）完全解耦。
         provider = new ServiceGuideCardProvider(

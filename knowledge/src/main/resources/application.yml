@@ -2,6 +2,12 @@
 spring:
   application:
     name: zhku-knowledge
+  # Flyway 乱序容忍：与测试侧共享入口 ZhkuFlywayTestSupport 同一约定。
+  # 为什么：跨线并行开发会出现"高版本先入共享库、低版本后补"（本项目已发生：V16 先应用、
+  # V15 后补），不开启会让启动时的迁移校验直接失败。它不是放宽校验，也不改已有迁移内容；
+  # 新增迁移仍须先确认编号大于共享库当前最大版本。
+  flyway:
+    out-of-order: true
 server:
   port: 8123
   address: 127.0.0.1

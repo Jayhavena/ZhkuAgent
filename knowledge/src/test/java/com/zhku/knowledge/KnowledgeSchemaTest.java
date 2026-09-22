@@ -1,6 +1,5 @@
 package com.zhku.knowledge;
 
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
@@ -43,15 +42,7 @@ class KnowledgeSchemaTest {
                 .isNotBlank();
 
         // 测试通过真实迁移而非手工建表，确保提交到仓库的结构脚本本身可用。
-        Flyway.configure()
-                .dataSource(
-                        DATABASE_URL,
-                        DATABASE_USER,
-                        DATABASE_PASSWORD
-                )
-                .locations("classpath:db/migration")
-                .load()
-                .migrate();
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
 
         try (Connection connection = DriverManager.getConnection(
                 DATABASE_URL,
