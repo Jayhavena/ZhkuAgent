@@ -194,7 +194,19 @@ public final class KnowledgeGovernancePublisher {
         return List.copyOf(chunks);
     }
 
+    /**
+     * 出处定位：**审核阶段填写的定位优先**。
+     *
+     * <p>为什么：审核人填的是条级定位（如「PDF 第 76 页，第 2、4 条」），它直接决定回答卡
+     * 能不能回答"依据哪一条"；按页码现拼只能给页级（「PDF 第 76 页」），信息在发布这一步被丢掉，
+     * 学生就无法核对到具体条款（本项目已实际踩过：同一范围两种定位粒度并存，引用可核验性下降）。
+     * 未填写时才回退到页级合成，保持对历史数据与"只标了页"的候选兼容。</p>
+     */
     private static String locator(KnowledgeCandidate candidate) {
+        String reviewedLocator = candidate.sourceLocator();
+        if (reviewedLocator != null && !reviewedLocator.isBlank()) {
+            return reviewedLocator.strip();
+        }
         if (candidate.startPageNumber() == candidate.endPageNumber()) {
             return "PDF 第 " + candidate.startPageNumber() + " 页";
         }

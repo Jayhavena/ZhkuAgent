@@ -44,8 +44,18 @@ class ServiceGuideAcceptanceTest {
 
     private static final Instant NOW = Instant.parse("2026-09-21T00:00:00Z");
     private static final Clock CLOCK = Clock.fixed(NOW, ZoneOffset.UTC);
-    private static final String IDENTIFIER = ServiceGuideBindings.ELECTIVE_ADJUST;
-    private static final String VERSION = "2025版";
+
+    /**
+     * **夹具隔离约定（务必保持）**：本用例写入/删除的是**专用测试标识与版本**，
+     * 绝不与演示数据（`elective-adjust / 2025版`）共用标识。
+     *
+     * <p>曾因共用标识出过事故：`@AfterEach` 按标识删行 → 每跑一次全量回归就把演示清单删掉，
+     * 真机验收随即表现为 `guideCard=null`。共享演示库是所有会话共同使用的资产，
+     * 测试只能动自己命名的数据。</p>
+     */
+    private static final String BINDING_KEY = "acceptance-test-binding";
+    private static final String IDENTIFIER = "acceptance-test-guide";
+    private static final String VERSION = "测试版";
 
     private DataSource dataSource;
     private ServiceGuideCardProvider provider;
@@ -58,8 +68,10 @@ class ServiceGuideAcceptanceTest {
                 .load()
                 .migrate();
         dataSource = new DriverManagerDataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+        // 用**测试自己的绑定**把卡片提供者指向测试清单，与生产绑定表（firstBatch）完全解耦。
         provider = new ServiceGuideCardProvider(
-                ServiceGuideBindings.firstBatch(),
+                new ServiceGuideBindings(List.of(new ServiceGuideBindings.Binding(
+                        BINDING_KEY, IDENTIFIER, VERSION))),
                 new ServiceGuideResolver(new JdbcServiceGuideRepository(dataSource), CLOCK));
         deleteFixtures();
     }
@@ -73,7 +85,7 @@ class ServiceGuideAcceptanceTest {
     void shouldCarryStepsConfirmationsAndReviewedChannelsOnAnswerCard() {
         seedGuide(null);
 
-        ServiceGuideCard card = provider.fullCard(IDENTIFIER).orElseThrow();
+        ServiceGuideCard card = provider.fullCard(BINDING_KEY).orElseThrow();
 
         assertThat(card.handoffOnly()).isFalse();
         assertThat(card.title()).isEqualTo("选课调整办理指引");
@@ -93,7 +105,7 @@ class ServiceGuideAcceptanceTest {
         seedGuide(null);
 
         ServiceGuideCard card = provider.handoffCard(
-                IDENTIFIER, HumanHandoffReason.INDIVIDUAL_ASSESSMENT).orElseThrow();
+                BINDING_KEY, HumanHandoffReason.INDIVIDUAL_ASSESSMENT).orElseThrow();
 
         // 个案认定：只留人工渠道 + 需确认事项，绝不给"下一步"。
         assertThat(card.handoffOnly()).isTrue();
@@ -107,9 +119,9 @@ class ServiceGuideAcceptanceTest {
     void shouldNotInventChannelsWhenGuideHasExpired() {
         seedGuide(NOW.minusSeconds(3600));
 
-        assertThat(provider.fullCard(IDENTIFIER)).isEmpty();
+        assertThat(provider.fullCard(BINDING_KEY)).isEmpty();
         ServiceGuideCard card = provider.handoffCard(
-                IDENTIFIER, HumanHandoffReason.RULE_MISSING).orElseThrow();
+                BINDING_KEY, HumanHandoffReason.RULE_MISSING).orElseThrow();
         assertThat(card.nextSteps()).isEmpty();
         assertThat(card.officialChannels()).isEmpty();
     }
@@ -125,7 +137,7 @@ class ServiceGuideAcceptanceTest {
     @Test
     void shouldSerializeGuideCardFieldsAsRegisteredInSectionEight() throws Exception {
         seedGuide(null);
-        ServiceGuideCard card = provider.fullCard(IDENTIFIER).orElseThrow();
+        ServiceGuideCard card = provider.fullCard(BINDING_KEY).orElseThrow();
 
         var reply = new LocalPreviewConversationFacade.ConversationReply(
                 ElectiveRetakeReplyType.ANSWER, "按清单办理。", null,

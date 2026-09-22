@@ -179,6 +179,32 @@ class KnowledgeGovernancePublisherTest {
                 .isEmpty();
     }
 
+    @Test
+    void shouldKeepReviewedClauseLevelLocatorAndFallBackToPageLevelWhenAbsent() {
+        KnowledgeSubmission submission = submission(
+                NEW_SUBMISSION_ID,
+                "带条级定位的新版公共选修规则",
+                KnowledgeSubmissionStatus.IN_REVIEW,
+                "D"
+        );
+        repository.createSubmission(submission);
+        repository.saveCandidates(submission.id(), List.of(
+                // 审核阶段填了条级定位：必须原样保留，不能被按页码现拼覆盖。
+                candidateWithLocator(submission.id(), 1, "带条级定位的新规则", "PDF 第 78 页，第 2、4 条"),
+                // 未填定位（历史数据/仅标页）：回退页级合成，保持兼容。
+                approvedCandidate(submission.id(), 2, "仅标页的新规则")
+        ));
+
+        publisher.publish(submission.id());
+
+        assertThat(reviewedPublisher.searchPublished("带条级定位的新规则"))
+                .extracting(PublishedKnowledgeChunk::sourceLocator)
+                .containsExactly("PDF 第 78 页，第 2、4 条");
+        assertThat(reviewedPublisher.searchPublished("仅标页的新规则"))
+                .extracting(PublishedKnowledgeChunk::sourceLocator)
+                .containsExactly("PDF 第 79 页");
+    }
+
     private void createOldPublishedVersion() {
         reviewedPublisher.publishReplacingScope(
                 new ReviewedKnowledgePublication(
@@ -271,6 +297,29 @@ class KnowledgeGovernancePublisherTest {
                 text,
                 "公共选修规则",
                 "PDF 第 " + (77 + chunkIndex) + " 页",
+                CandidateReviewStatus.APPROVED,
+                "已人工核对原始页文本。",
+                null,
+                FIXED_CLOCK.instant().plusSeconds(chunkIndex),
+                FIXED_CLOCK.instant().plusSeconds(chunkIndex)
+        );
+    }
+
+    private static KnowledgeCandidate candidateWithLocator(
+            UUID submissionId,
+            int chunkIndex,
+            String text,
+            String sourceLocator
+    ) {
+        return new KnowledgeCandidate(
+                UUID.randomUUID(),
+                submissionId,
+                77 + chunkIndex,
+                77 + chunkIndex,
+                "原始页文本",
+                text,
+                "公共选修规则",
+                sourceLocator,
                 CandidateReviewStatus.APPROVED,
                 "已人工核对原始页文本。",
                 null,
