@@ -1,7 +1,7 @@
 package com.zhku.knowledge.feedback;
 
 import com.zhku.knowledge.ZhkuDatabaseTestConfig;
-import org.flywaydb.core.Flyway;
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -42,11 +42,7 @@ class JdbcFeedbackRepositoryTest {
         assertThat(DATABASE_PASSWORD)
                 .as("运行匿名反馈 JDBC 测试时必须显式提供本机密码")
                 .isNotBlank();
-        Flyway.configure()
-                .dataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)
-                .locations("classpath:db/migration")
-                .load()
-                .migrate();
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
     }
 
     @AfterEach

@@ -98,9 +98,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表）+ 阶段 9 `V16`（匿名反馈） |
-| 当前任务 | **Flyway 统一 `outOfOrder` 的线 B 调用点迁移前置已核对**：主线 `f4c61c2` 尚无共享 `ZhkuFlywayTestSupport`，按裁决本批只产出七处调用点清单，等待 helper 入库后再迁移；同时已自查 SSE `guideCard` 不透传内部定位或审计字段。 |
-| 状态 | 🟡 本批未改迁移、生产或测试代码，未新建平行 helper；七处测试入口均为启动时 `migrate()`（当前未设 `outOfOrder`），聚焦 JDBC/模式回归 22/22 通过，分段模块回归 372/0/4。 |
-| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ `f7211ac`（阶段 10 隐私与保留检查）/ `5aea0ab`（P0-lite SSE HTTP 内容协商修复）/ `1df7ca8`（隐私边界真实接线与管理员 HTTP 断言）/ **本批交付**（Flyway helper 前置核对与 SSE 卡片隐私自查，待 helper 入库后迁移）。 |
+| 当前任务 | **Flyway 统一 `outOfOrder` 的线 B 侧调用点已迁移，等待 PM 验收**：6 处 feedback/governance/notice 测试启动迁移已统一走共享 `ZhkuFlywayTestSupport.migrate(...)`；publication 已在第二十三次合并迁移，核对后保持不动。 |
+| 状态 | 🟡 未自建 helper、未改线 A 14 处、迁移文件、`application.yml`、前端或评测；聚焦 JDBC/模式回归 14/14 通过，分段模块回归 374/0/4。 |
+| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ `f7211ac`（阶段 10 隐私与保留检查）/ `5aea0ab`（P0-lite SSE HTTP 内容协商修复）/ `1df7ca8`（隐私边界真实接线与管理员 HTTP 断言）/ **本批交付**（Flyway helper 线 B 六处调用点迁移，待 PM 验收）。 |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -139,6 +139,8 @@
 > 2026-09-22 已完成并清除 CX-1 对 `web/streaming/` 及 `ZhkuLocalPreviewConversationControllerTest` 的 SSE `guideCard` 透传占用；交付为事件载荷只追加顶层卡片、真实 HTTP SSE 帧契约和 8130 真机复验。未创建迁移，未改 `LocalPreviewConversationFacade`、回答卡模型、RAG、前端或评测。
 
 > 2026-09-22 已完成 CX-1 对 Flyway `outOfOrder` 线 B 调用点的迁移前置核对：主线尚无共享 `ZhkuFlywayTestSupport`，故未改七处调用点、未自建平行 helper；清单、启动校验方式、22 项聚焦 JDBC/模式回归与 SSE `guideCard` 隐私结论均已写入本线证据账本。
+
+> 2026-09-22 已完成并清除 CX-1 对 feedback/governance/notice 六处 Flyway 调用点的占用：均改用共享 `ZhkuFlywayTestSupport.migrate(...)`；publication 调用点已由第二十三次合并迁移，核对后未改。聚焦 JDBC/模式回归 14/14、分段模块回归 374/0/4；未触及迁移、YAML、前端、评测或线 A 调用点。
 >
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。

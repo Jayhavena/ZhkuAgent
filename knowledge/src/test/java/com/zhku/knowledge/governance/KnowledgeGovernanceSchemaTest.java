@@ -1,7 +1,7 @@
 package com.zhku.knowledge.governance;
 
 import com.zhku.knowledge.ZhkuDatabaseTestConfig;
-import org.flywaydb.core.Flyway;
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
@@ -38,11 +38,7 @@ class KnowledgeGovernanceSchemaTest {
                 .as("运行资料治理数据库测试时必须显式提供本机密码")
                 .isNotBlank();
 
-        Flyway.configure()
-                .dataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)
-                .locations("classpath:db/migration")
-                .load()
-                .migrate();
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
 
         try (Connection connection = DriverManager.getConnection(
                 DATABASE_URL,
