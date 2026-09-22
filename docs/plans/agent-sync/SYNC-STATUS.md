@@ -97,9 +97,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表）+ 阶段 9 `V16`（匿名反馈） |
-| 当前任务 | **Flyway 统一 `outOfOrder` 的线 B 侧调用点已迁移，等待 PM 验收**：6 处 feedback/governance/notice 测试启动迁移已统一走共享 `ZhkuFlywayTestSupport.migrate(...)`；publication 已在第二十三次合并迁移，核对后保持不动。 |
-| 状态 | 🟡 未自建 helper、未改线 A 14 处、迁移文件、`application.yml`、前端或评测；聚焦 JDBC/模式回归 14/14 通过，分段模块回归 374/0/4。 |
-| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ `f7211ac`（阶段 10 隐私与保留检查）/ `5aea0ab`（P0-lite SSE HTTP 内容协商修复）/ `1df7ca8`（隐私边界真实接线与管理员 HTTP 断言）/ **本批交付**（Flyway helper 线 B 六处调用点迁移，待 PM 验收）。 |
+| 当前任务 | **阶段 10 第 5 项读取侧已完成，等待 PM 验收**：本机管理端只读遥测桶聚合 `GET /zhku/local-admin/telemetry/aggregates`，以及遥测专用输出白名单与 HTTP 契约测试；写入侧交叉核对等线 A 的真实问答接线入库后再做。 |
+| 状态 | 🟢 先 RED 后 GREEN：聚合地址实现前 3 项 HTTP 断言为 404，完成后本批 7/7、相关管理端/遥测 21/21、分段模块 386/0/4。未创建迁移，未改 `telemetry/`、前端、评测、YAML 或线 A 写入侧；不提供任何单条遥测读取路由。 |
+| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ `f7211ac`（阶段 10 隐私与保留检查）/ `5aea0ab`（P0-lite SSE HTTP 内容协商修复）/ `1df7ca8`（隐私边界真实接线与管理员 HTTP 断言）/ **本批待提交**（阶段 10 第 5 项遥测读取侧）。 |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -141,6 +141,8 @@
 > 2026-09-22 已完成 CX-1 对 Flyway `outOfOrder` 线 B 调用点的迁移前置核对：主线尚无共享 `ZhkuFlywayTestSupport`，故未改七处调用点、未自建平行 helper；清单、启动校验方式、22 项聚焦 JDBC/模式回归与 SSE `guideCard` 隐私结论均已写入本线证据账本。
 
 > 2026-09-22 已完成并清除 CX-1 对 feedback/governance/notice 六处 Flyway 调用点的占用：均改用共享 `ZhkuFlywayTestSupport.migrate(...)`；publication 调用点已由第二十三次合并迁移，核对后未改。聚焦 JDBC/模式回归 14/14、分段模块回归 374/0/4；未触及迁移、YAML、前端、评测或线 A 调用点。
+
+> 2026-09-22 已完成并清除 CX-1 对 `governance/`、`governance/web/`、`privacy/` 及对应测试目录的阶段 10 第 5 项读取侧占用：新增本机管理端遥测桶聚合和输出白名单；HTTP RED 为未映射 404，GREEN 后本批 7/7、相关 21/21、分段模块 386/0/4。未创建迁移，未改 `telemetry/` 写入侧、前端、评测、YAML 或任何单条事件读取路由；真实问答写入交叉核对等待线 A 接线入库。
 >
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
@@ -352,3 +354,5 @@
    - **现状**：字段已随 JSON 响应下发，绑定＝`serviceguide/ServiceGuideBindings.firstBatch()`（唯一决策点 `elective-adjust`，零迁移）；验收见 `ServiceGuideAcceptanceTest`（5 例，含字段名序列化校验）与 `PublicElectiveAdjustmentAcceptanceTest`（3 例，规则级 + 完整卡 / 证据不足只留渠道 / 未绑定不附卡）。
 10. **阶段 10 第 6 项隐私管理端状态（CX-1，2026-09-22）**：`GET /zhku/local-admin/feedback/configuration` 仅返回一个 JSON 对象，且字段**固定**为 `provider`、`model`、`profile`、`status`。`provider`/`profile` 为当前激活 profile，`model` 为该 profile 的 chat model，`status` 为 RAG 是否启用（`ENABLED` / `DISABLED`）。该接口不返回 API key、环境变量名、端点地址或任何未审核配置字段；响应统一经 `PrivacyBoundary.configurationEcho` 白名单生成。
 11. **SSE 顶层 `guideCard` 透传（CX-1，2026-09-22）**：同一会话消息地址协商 `Accept: text/event-stream` 时，`reply` 与 `complete` 的业务字段与 JSON `ConversationReply` 逐项一致：`type`、`message`、`answer`、`route`、`handoffRequired`、`citationIds`、`citations`、`guideCard`；另加 SSE 固有快照 `sessionId`、`revision`、`conversationStatus`。`guideCard` 直接使用 JSON 的顶层对象形状（`guideIdentifier`、`guideVersion`、`title`、`applicableScope`、`nextSteps`、`confirmations`、`officialChannels`、`handoffOnly`），完整卡和转人工卡均不重组、不改名。`accepted` 只表示会话快照，以上业务字段保持 `null`/`false`/空数组，`guideCard=null`。
+
+12. **阶段 10 匿名遥测只读聚合（CX-1，2026-09-22）**：`GET /zhku/local-admin/telemetry/aggregates` 仅在既有本机管理员 profile/开关下可用。查询参数 `dimension ∈ {route, failureCategory, handoffRequired, latencyBucket, eventDate}`，缺省 `route`；`from` / `to` 是 ISO 日期，任一缺省时按 UTC 当日与前 29 天补齐，窗口首尾包含。响应为数组：每个元素**仅**含所选维度同名键、`count`、`ratio`（`count / 窗口内事件总数`，四位小数；计数降序稳定排序）；无数据为 `200 []`。输出经过 `PrivacyBoundary.telemetryAggregateExport` 遥测白名单，绝不含自由文本、身份、密钥、事件 ID、匿名散列或去重键；没有按 id、会话或单条事件读取路由。
