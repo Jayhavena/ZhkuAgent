@@ -32,7 +32,9 @@ class JdbcServiceGuideRepositoryTest {
     private static final String DATABASE_PASSWORD =
             ZhkuDatabaseTestConfig.databasePassword();
 
-    private static final String IDENTIFIER = "elective-adjust";
+    // 夹具隔离约定：只动本测试命名的数据，绝不与演示清单（elective-adjust / 2025版）共用标识——
+    // 共享演示库是所有会话的共同资产，测试的清理动作不能把演示数据一起删掉。
+    private static final String IDENTIFIER = "repository-test-guide";
     private static final String PUBLISHED_VERSION = "2025版";
     private static final String INTERNAL_VERSION = "内部参考";
 
