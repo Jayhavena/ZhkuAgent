@@ -1,6 +1,7 @@
 package com.zhku.knowledge.notice;
 
 import com.zhku.knowledge.ZhkuDatabaseTestConfig;
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
 import com.zhku.knowledge.governance.CandidateReviewStatus;
 import com.zhku.knowledge.governance.JdbcKnowledgeGovernanceRepository;
 import com.zhku.knowledge.governance.KnowledgeCandidate;
@@ -9,7 +10,6 @@ import com.zhku.knowledge.governance.KnowledgeGovernanceRepository;
 import com.zhku.knowledge.governance.KnowledgeSubmission;
 import com.zhku.knowledge.governance.KnowledgeSubmissionStatus;
 import com.zhku.knowledge.publication.ReviewedKnowledgePublisher;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,9 +55,7 @@ class NoticeGovernancePublisherTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        Flyway.configure().dataSource(
-                DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD
-        ).locations("classpath:db/migration").load().migrate();
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
         deleteTestData();
         DataSource dataSource = new DriverManagerDataSource(
                 DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD

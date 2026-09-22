@@ -1,11 +1,11 @@
 package com.zhku.knowledge.governance;
 
 import com.zhku.knowledge.ZhkuDatabaseTestConfig;
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
 import com.zhku.knowledge.publication.PublishedKnowledgeChunk;
 import com.zhku.knowledge.publication.ReviewedKnowledgeChunk;
 import com.zhku.knowledge.publication.ReviewedKnowledgePublication;
 import com.zhku.knowledge.publication.ReviewedKnowledgePublisher;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,11 +60,7 @@ class KnowledgeGovernancePublisherTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        Flyway.configure()
-                .dataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)
-                .locations("classpath:db/migration")
-                .load()
-                .migrate();
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
         deleteTestData();
         DataSource dataSource = new DriverManagerDataSource(
                 DATABASE_URL,
