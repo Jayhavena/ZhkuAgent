@@ -1,5 +1,6 @@
 package com.zhku.knowledge.governance.web;
 
+import com.zhku.knowledge.governance.AnonymousTelemetryAggregateQueryService;
 import com.zhku.knowledge.governance.CandidateReviewService;
 import com.zhku.knowledge.governance.JdbcKnowledgeGovernanceRepository;
 import com.zhku.knowledge.governance.KnowledgeGovernancePublisher;
@@ -124,6 +125,13 @@ public class ZhkuLocalAdminConfiguration {
             FeedbackRepository feedbackRepository
     ) {
         return new FeedbackRetentionService(feedbackRepository, Clock.systemUTC());
+    }
+
+    @Bean
+    AnonymousTelemetryAggregateQueryService zhkuLocalAdminTelemetryAggregateQueryService(
+            DriverManagerDataSource dataSource
+    ) {
+        return new AnonymousTelemetryAggregateQueryService(dataSource);
     }
 
     @Bean

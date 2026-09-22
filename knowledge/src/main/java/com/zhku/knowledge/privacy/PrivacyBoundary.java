@@ -2,8 +2,11 @@ package com.zhku.knowledge.privacy;
 
 import com.zhku.knowledge.feedback.FeedbackAggregate;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -24,6 +27,9 @@ public final class PrivacyBoundary {
     );
     private static final Set<String> CONFIGURATION_FIELDS = Set.of(
             "provider", "model", "profile", "status"
+    );
+    private static final Set<String> TELEMETRY_AGGREGATE_DIMENSIONS = Set.of(
+            "route", "failureCategory", "handoffRequired", "latencyBucket", "eventDate"
     );
     private static final Pattern CODE_DIMENSION = Pattern.compile("[A-Z][A-Z0-9_]{0,63}");
     private static final Pattern PROFILE_DIMENSION = Pattern.compile("[A-Za-z0-9._-]{1,128}");
@@ -62,6 +68,30 @@ public final class PrivacyBoundary {
                 "feedbackDate", aggregate.feedbackDate().toString(),
                 "count", aggregate.count()
         );
+    }
+
+    /** 遥测聚合只放行一个已审核维度、计数和比例，不能借管理端导出逐条事件或散列键。 */
+    public static Map<String, Object> telemetryAggregateExport(
+            String dimension,
+            Object value,
+            long count,
+            BigDecimal ratio
+    ) {
+        if (!TELEMETRY_AGGREGATE_DIMENSIONS.contains(dimension)) {
+            throw new IllegalArgumentException("遥测聚合不允许维度：" + dimension);
+        }
+        if (count < 0) {
+            throw new IllegalArgumentException("遥测聚合计数不能为负数");
+        }
+        Objects.requireNonNull(ratio, "遥测聚合比例不能为空");
+        if (ratio.compareTo(BigDecimal.ZERO) < 0 || ratio.compareTo(BigDecimal.ONE) > 0) {
+            throw new IllegalArgumentException("遥测聚合比例必须在零到一之间");
+        }
+        Map<String, Object> export = new LinkedHashMap<>();
+        export.put(dimension, normalizeTelemetryAggregateValue(dimension, value));
+        export.put("count", count);
+        export.put("ratio", ratio.setScale(4, RoundingMode.HALF_UP));
+        return Collections.unmodifiableMap(export);
     }
 
     /** 到期时刻等于当前时刻即应清理，避免匿名明细多保留一个调度周期。 */
@@ -108,5 +138,15 @@ public final class PrivacyBoundary {
         } catch (RuntimeException ignored) {
             return false;
         }
+    }
+
+    private static Object normalizeTelemetryAggregateValue(String dimension, Object value) {
+        if (value == null && "failureCategory".equals(dimension)) {
+            // 数据库允许失败分类缺省，保留空桶比伪造“正常”标签更诚实。
+            return null;
+        }
+        Object normalized = value instanceof LocalDate date ? date.toString() : value;
+        validateTelemetryValue(dimension, normalized);
+        return normalized;
     }
 }
