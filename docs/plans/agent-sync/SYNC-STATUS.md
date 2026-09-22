@@ -98,9 +98,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表）+ 阶段 9 `V16`（匿名反馈） |
-| 当前任务 | **阶段 10 第 6 项下一批已完成，等待 PM 验收**：接线审计发现并补齐匿名遥测、配置回显和聚合导出；到期判定已存在于反馈保留服务，现补 HTTP 层回归。前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
-| 状态 | 🟡 本批 TDD：管理员配置端点修前 `404`、聚合读取修前无匿名遥测日志（两项 RED）→ GREEN；`PrivacyBoundary` 四方法均已有真实调用点，管理员 HTTP 测试扩至 5 例。未创建迁移、未改 RAG/YAML/前端/评测。 |
-| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ `f7211ac`（阶段 10 隐私与保留检查）/ `5aea0ab`（P0-lite SSE HTTP 内容协商修复）/ **本批交付**（隐私边界真实接线与管理员 HTTP 断言）。 |
+| 当前任务 | **SSE `guideCard` 透传已完成，等待 PM 验收**：流式 `reply`/`complete` 现与 JSON 顶层卡片同形；前端 UI 仍归 WB-1，办事清单/回答卡模型仍归线 A。 |
+| 状态 | 🟡 本批 TDD：真实 HTTP SSE 用例修前 `guideCard` 缺失（RED）→ 映射层最小追加后 GREEN；8130 真机已确认 HTTP 200 与三帧下发。未创建迁移、未改门面/回答卡模型/RAG/YAML/前端/评测。 |
+| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ `f7211ac`（阶段 10 隐私与保留检查）/ `5aea0ab`（P0-lite SSE HTTP 内容协商修复）/ `1df7ca8`（隐私边界真实接线与管理员 HTTP 断言）/ **本批交付**（SSE `guideCard` 透传，待 PM 验收）。 |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -134,6 +134,8 @@
 > 2026-09-21 已完成并清除 CX-1 对 `ZhkuLocalPreviewConversationController.java`、对应控制器测试与 SSE 证据账本的 P0-lite 占用；交付为具体 `ResponseEntity<SseEmitter>`、原 JSON 400/503 的异常处理，以及同地址 HTTP 内容协商回归和 8126 curl 验证。未创建迁移，未改 RAG/YAML/前端。
 
 > 2026-09-22 已完成并清除 CX-1 对 `feedback/`、`governance/web/` 及对应测试目录的阶段 10 第 6 项下一批占用；交付为 `PrivacyBoundary` 四方法的真实调用核查、管理员配置回显/匿名遥测/聚合导出接线及 HTTP 断言。未创建迁移，未改 `rag/`、`answer/`、YAML、前端或评测。
+
+> 2026-09-22 已完成并清除 CX-1 对 `web/streaming/` 及 `ZhkuLocalPreviewConversationControllerTest` 的 SSE `guideCard` 透传占用；交付为事件载荷只追加顶层卡片、真实 HTTP SSE 帧契约和 8130 真机复验。未创建迁移，未改 `LocalPreviewConversationFacade`、回答卡模型、RAG、前端或评测。
 >
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
@@ -331,3 +333,4 @@
    - **⚠️ 复验补充（2026-09-22，线 A 实测）**：**JSON 通路已带 `guideCard`（完整/转人工两种形态实测通过）；SSE 通路暂无该字段**——SSE 事件由线 B 的 `web/streaming/` 流式处理器映射，**已指派线 B 透传并补 HTTP 契约断言**（见 §四）。契约本身不变（字段仍挂在会话消息上），前端若走 SSE 需等该透传完成。
    - **现状**：字段已随 JSON 响应下发，绑定＝`serviceguide/ServiceGuideBindings.firstBatch()`（唯一决策点 `elective-adjust`，零迁移）；验收见 `ServiceGuideAcceptanceTest`（5 例，含字段名序列化校验）与 `PublicElectiveAdjustmentAcceptanceTest`（3 例，规则级 + 完整卡 / 证据不足只留渠道 / 未绑定不附卡）。
 10. **阶段 10 第 6 项隐私管理端状态（CX-1，2026-09-22）**：`GET /zhku/local-admin/feedback/configuration` 仅返回一个 JSON 对象，且字段**固定**为 `provider`、`model`、`profile`、`status`。`provider`/`profile` 为当前激活 profile，`model` 为该 profile 的 chat model，`status` 为 RAG 是否启用（`ENABLED` / `DISABLED`）。该接口不返回 API key、环境变量名、端点地址或任何未审核配置字段；响应统一经 `PrivacyBoundary.configurationEcho` 白名单生成。
+11. **SSE 顶层 `guideCard` 透传（CX-1，2026-09-22）**：同一会话消息地址协商 `Accept: text/event-stream` 时，`reply` 与 `complete` 的业务字段与 JSON `ConversationReply` 逐项一致：`type`、`message`、`answer`、`route`、`handoffRequired`、`citationIds`、`citations`、`guideCard`；另加 SSE 固有快照 `sessionId`、`revision`、`conversationStatus`。`guideCard` 直接使用 JSON 的顶层对象形状（`guideIdentifier`、`guideVersion`、`title`、`applicableScope`、`nextSteps`、`confirmations`、`officialChannels`、`handoffOnly`），完整卡和转人工卡均不重组、不改名。`accepted` 只表示会话快照，以上业务字段保持 `null`/`false`/空数组，`guideCard=null`。

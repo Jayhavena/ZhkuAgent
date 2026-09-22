@@ -8,9 +8,17 @@ import com.zhku.knowledge.conversation.elective.CourseType;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeConversationService;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeEvidence;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeEvidenceFinder;
+import com.zhku.knowledge.conversation.publicelective.AdjustmentEvidence;
 import com.zhku.knowledge.conversation.publicelective.CreditLimitEvidence;
+import com.zhku.knowledge.conversation.publicelective.PublicElectiveAdjustmentService;
 import com.zhku.knowledge.conversation.publicelective.PublicElectiveConversationRouter;
 import com.zhku.knowledge.conversation.publicelective.PublicElectiveCreditLimitService;
+import com.zhku.knowledge.serviceguide.GuideStep;
+import com.zhku.knowledge.serviceguide.OfficialChannel;
+import com.zhku.knowledge.serviceguide.ServiceGuide;
+import com.zhku.knowledge.serviceguide.ServiceGuideBindings;
+import com.zhku.knowledge.serviceguide.ServiceGuideCardProvider;
+import com.zhku.knowledge.serviceguide.ServiceGuideResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.MediaType;
@@ -24,9 +32,12 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -147,6 +158,28 @@ class ZhkuLocalPreviewConversationControllerTest {
     }
 
     @Test
+    void shouldKeepFullGuideCardShapeInReplySseFrame() throws Exception {
+        MockMvc mockMvc = guideCardStreamingMockMvc(new MutableClock(START));
+        String sessionId = createSession(mockMvc);
+
+        MvcResult result = mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
+                        .accept(MediaType.TEXT_EVENT_STREAM)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"message\":\"公共选修课选课调整怎么办理\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode reply = replyFrame(result);
+        assertThat(reply.path("guideCard").isObject()).isTrue();
+        assertThat(reply.path("guideCard").path("guideIdentifier").asText())
+                .isEqualTo("elective-adjust");
+        assertThat(reply.path("guideCard").path("nextSteps").isArray()).isTrue();
+        assertThat(reply.path("guideCard").path("confirmations").isArray()).isTrue();
+        assertThat(reply.path("guideCard").path("officialChannels").isArray()).isTrue();
+        assertThat(reply.path("guideCard").path("handoffOnly").asBoolean()).isFalse();
+    }
+
+    @Test
     void shouldReturnSessionExpiredAtTenMinuteBoundary() throws Exception {
         MutableClock clock = new MutableClock(START);
         MockMvc mockMvc = mockMvc(clock);
@@ -253,6 +286,94 @@ class ZhkuLocalPreviewConversationControllerTest {
                     }
                 })
         ).build();
+    }
+
+    private static MockMvc guideCardStreamingMockMvc(MutableClock clock) {
+        ConversationStore store = new InMemoryConversationStore();
+        ElectiveRetakeConversationService retakeService = new ElectiveRetakeConversationService(
+                store, courseType -> Optional.empty(), clock, SESSION_TTL);
+        PublicElectiveAdjustmentService adjustmentService = new PublicElectiveAdjustmentService(
+                () -> Optional.of(new AdjustmentEvidence(
+                        UUID.fromString("6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05"),
+                        "本科生学生手册（2025版）·公共选修课修读与考核规则",
+                        "2025版-公共选修修读与考核-学生可见",
+                        "PDF 第 77 页，第 9、13 条",
+                        "办理公共选修课选课与修读的全日制普通本科生",
+                        "选课、退选、补选和改选应按照每学期《课程选课工作通知》办理。")));
+        PublicElectiveConversationRouter router = new PublicElectiveConversationRouter(
+                store,
+                retakeService,
+                new PublicElectiveCreditLimitService(Optional::empty),
+                null,
+                adjustmentService,
+                clock
+        );
+        ServiceGuideCardProvider guideCards = new ServiceGuideCardProvider(
+                ServiceGuideBindings.firstBatch(),
+                new ServiceGuideResolver((identifier, version) -> Optional.of(guide(clock)), clock)
+        );
+        LocalPreviewConversationFacade facade = new LocalPreviewConversationFacade(
+                store,
+                new LocalPreviewAnswerChain(store, router, null, null, clock),
+                clock,
+                SESSION_TTL,
+                guideCards,
+                ServiceGuideBindings.ELECTIVE_ADJUST
+        );
+        com.zhku.knowledge.web.streaming.SseConversationStreamer streamer =
+                new com.zhku.knowledge.web.streaming.SseConversationStreamer(
+                        new com.zhku.knowledge.web.streaming.ConversationStreamProcessor(
+                                facade, store, clock),
+                        Runnable::run,
+                        5_000L
+                );
+        return MockMvcBuilders.standaloneSetup(
+                new ZhkuLocalPreviewConversationController(facade, new ObjectProvider<>() {
+                    @Override
+                    public com.zhku.knowledge.web.streaming.SseConversationStreamer getObject() {
+                        return streamer;
+                    }
+
+                    @Override
+                    public com.zhku.knowledge.web.streaming.SseConversationStreamer getObject(Object... arguments) {
+                        return streamer;
+                    }
+                })
+        ).build();
+    }
+
+    private static JsonNode replyFrame(MvcResult result) throws Exception {
+        Matcher matcher = Pattern.compile(
+                "event:reply\\Rdata:(\\{[\\s\\S]*?})\\R\\R"
+        ).matcher(result.getResponse().getContentAsString());
+        assertThat(matcher.find()).as("SSE reply 帧").isTrue();
+        return OBJECT_MAPPER.readTree(matcher.group(1));
+    }
+
+    private static ServiceGuide guide(Clock clock) {
+        return new ServiceGuide(
+                "elective-adjust",
+                "2025版",
+                "选课调整办理指引（公共选修课）",
+                "全日制本科生（公共选修课）",
+                List.of(new GuideStep(1, "查看教务处当学期《课程选课工作通知》。", false)),
+                List.of(),
+                List.of(new OfficialChannel(
+                        1,
+                        OfficialChannel.ChannelType.SCHOOL_OFFICE,
+                        "【演示占位】教务处学籍科",
+                        "【演示占位】教务处办公室",
+                        "演示占位：无审核资料依据",
+                        clock.instant()
+                )),
+                List.of(new ServiceGuide.RiskNotice(1, "以当学期《课程选课工作通知》为准。")),
+                "PUBLIC_ELECTIVE_RULE#2025版",
+                "COURSE_NOTICE#2026-2027-1",
+                "审核说明",
+                true,
+                clock.instant(),
+                null
+        );
     }
 
     private static ElectiveRetakeEvidenceFinder evidenceFinder() {
