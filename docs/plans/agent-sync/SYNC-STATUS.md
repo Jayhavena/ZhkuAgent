@@ -1,4 +1,4 @@
-﻿# 多会话同步状态板（SYNC-STATUS）
+# 多会话同步状态板（SYNC-STATUS）
 
 > **本文件是所有协作会话的唯一事实源。**
 > 更新时机：开工 / 收工（提交）/ 合并前 / 合并后，四个时刻必更新。
@@ -98,9 +98,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表）+ 阶段 9 `V16`（匿名反馈） |
-| 当前任务 | **P0-lite SSE HTTP 内容协商修复已完成，等待 PM 验收**：具体 `ResponseEntity<SseEmitter>` 已恢复 Spring MVC emitter 处理；阶段 10 第 6 项隐私检查也待验收。前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
-| 状态 | 🟡 SSE HTTP TDD 完成：新回归在修前 RED（期望 200 / 实际 500，`No converter for SseEmitter`）→ GREEN；控制器/处理器/配置组 14/0/0；8126 真机 curl 为 HTTP 200，收到 `accepted → reply → complete`；模块全量 349/0/0/4。未创建迁移、未改 RAG/YAML/前端。 |
-| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ `f7211ac`（阶段 10 隐私与保留检查，等待 PM 验收）/ 本提交（P0-lite SSE HTTP 内容协商修复，等待 PM 验收）。 |
+| 当前任务 | **阶段 10 第 6 项下一批已完成，等待 PM 验收**：接线审计发现并补齐匿名遥测、配置回显和聚合导出；到期判定已存在于反馈保留服务，现补 HTTP 层回归。前端 UI 归 WB-1，办事清单/回答卡归线 A。 |
+| 状态 | 🟡 本批 TDD：管理员配置端点修前 `404`、聚合读取修前无匿名遥测日志（两项 RED）→ GREEN；`PrivacyBoundary` 四方法均已有真实调用点，管理员 HTTP 测试扩至 5 例。未创建迁移、未改 RAG/YAML/前端/评测。 |
+| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ `f7211ac`（阶段 10 隐私与保留检查）/ `5aea0ab`（P0-lite SSE HTTP 内容协商修复）/ **本批交付**（隐私边界真实接线与管理员 HTTP 断言）。 |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -132,6 +132,8 @@
 > 2026-09-21 已完成并清除 CX-1 对 `privacy/` 及同名测试目录的阶段 10 第 6 项占用；交付为匿名遥测/配置回显/聚合导出白名单与反馈保留服务的到期二次核验。未创建迁移，未改 `rag/`、配置文件或前端。
 >
 > 2026-09-21 已完成并清除 CX-1 对 `ZhkuLocalPreviewConversationController.java`、对应控制器测试与 SSE 证据账本的 P0-lite 占用；交付为具体 `ResponseEntity<SseEmitter>`、原 JSON 400/503 的异常处理，以及同地址 HTTP 内容协商回归和 8126 curl 验证。未创建迁移，未改 RAG/YAML/前端。
+
+> 2026-09-22 已完成并清除 CX-1 对 `feedback/`、`governance/web/` 及对应测试目录的阶段 10 第 6 项下一批占用；交付为 `PrivacyBoundary` 四方法的真实调用核查、管理员配置回显/匿名遥测/聚合导出接线及 HTTP 断言。未创建迁移，未改 `rag/`、`answer/`、YAML、前端或评测。
 >
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
@@ -322,5 +324,6 @@
    - 语义：`nextSteps`＝下一步（`requiresIdentityCheck=true` 的步骤必须同时提示转人工）；`confirmations`＝需确认事项（必须以当期官方信息核对，来自已审核风险提示）；`officialChannels`＝官方人工渠道，`channelType ∈ {SCHOOL_OFFICE, PHONE, WEBSITE, EMAIL}`，**只来自审核资料**（服务端不生成、不含内部审计定位）。
    - 约束：`handoffOnly=true` 时 `nextSteps` **恒为空数组**（构造器直接拒绝携带步骤）；会话类问题（过期/取消/无效）不附卡；未命中绑定或清单不可解析时 `guideCard=null`（**绑定解析失败只会"多转人工"，不会静默出错卡**）。
    - 兼容性：`ConversationReply` 保留**原 7 参构造器**（`guideCard=null`），既有调用方（含 SSE 流式处理）无需改动。
-   - **⚠️ 复验补充（2026-09-22，线 A 实测）**：**JSON 通路已带 `guideCard`（完整/转人工两种形态实测通过）；SSE 通路暂无该字段**——SSE 事件由线 B 的 `web/streaming/` 流式处理器映射，尚未透传。**契约不变**（字段仍挂在会话消息上），前端若走 SSE 需等线 B 在流式载荷中一并透传；属线 B 地盘，线 A 未动。
+   - **⚠️ 复验补充（2026-09-22，线 A 实测）**：**JSON 通路已带 `guideCard`（完整/转人工两种形态实测通过）；SSE 通路暂无该字段**——SSE 事件由线 B 的 `web/streaming/` 流式处理器映射，**已指派线 B 透传并补 HTTP 契约断言**（见 §四）。契约本身不变（字段仍挂在会话消息上），前端若走 SSE 需等该透传完成。
    - **现状**：字段已随 JSON 响应下发，绑定＝`serviceguide/ServiceGuideBindings.firstBatch()`（唯一决策点 `elective-adjust`，零迁移）；验收见 `ServiceGuideAcceptanceTest`（5 例，含字段名序列化校验）与 `PublicElectiveAdjustmentAcceptanceTest`（3 例，规则级 + 完整卡 / 证据不足只留渠道 / 未绑定不附卡）。
+10. **阶段 10 第 6 项隐私管理端状态（CX-1，2026-09-22）**：`GET /zhku/local-admin/feedback/configuration` 仅返回一个 JSON 对象，且字段**固定**为 `provider`、`model`、`profile`、`status`。`provider`/`profile` 为当前激活 profile，`model` 为该 profile 的 chat model，`status` 为 RAG 是否启用（`ENABLED` / `DISABLED`）。该接口不返回 API key、环境变量名、端点地址或任何未审核配置字段；响应统一经 `PrivacyBoundary.configurationEcho` 白名单生成。
