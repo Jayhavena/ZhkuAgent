@@ -4,6 +4,7 @@ import com.zhku.knowledge.conversation.ConversationState;
 import com.zhku.knowledge.conversation.ConversationStatus;
 import com.zhku.knowledge.conversation.elective.ElectiveRetakeReplyType;
 import com.zhku.knowledge.routing.AnswerRoute;
+import com.zhku.knowledge.serviceguide.ServiceGuideCard;
 import com.zhku.knowledge.web.LocalPreviewAnswerChain;
 import com.zhku.knowledge.web.LocalPreviewConversationFacade;
 
@@ -21,7 +22,8 @@ public record ConversationStreamEvent(
         AnswerRoute route,
         boolean handoffRequired,
         List<String> citationIds,
-        List<LocalPreviewAnswerChain.CitationView> citations
+        List<LocalPreviewAnswerChain.CitationView> citations,
+        ServiceGuideCard guideCard
 ) {
 
     public ConversationStreamEvent {
@@ -40,7 +42,8 @@ public record ConversationStreamEvent(
                 null,
                 false,
                 List.of(),
-                List.of()
+                List.of(),
+                null
         );
     }
 
@@ -59,7 +62,8 @@ public record ConversationStreamEvent(
                 reply.route(),
                 reply.handoffRequired(),
                 reply.citationIds(),
-                reply.citations()
+                reply.citations(),
+                reply.guideCard()
         );
     }
 
