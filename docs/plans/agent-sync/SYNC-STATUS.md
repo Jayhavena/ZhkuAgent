@@ -123,7 +123,10 @@
 
 > 已完成并清除的占用：WB-1 对 `knowledge/src/main/resources/zhku/local-preview/index.html` 的
 > 引用卡改版占用（已交付 `0483e6e`：引用卡 UI + 删除页脚免责声明 + 明暗验收截图）。
-> **2026-09-20 因 SSE 接入已重新登记**（见上表）。
+> **2026-09-20 因 SSE 接入重新登记 → 已于 `e1a4303` 交付**（SSE 载荷 + 6 张验收截图）。
+> **2026-09-22 阶段 9 两个界面已交付并清除占用（`41e77fb`：管理员最小审核界面 + 学生侧反馈入口 + 7 张验收截图）**；
+> 其中学生侧反馈有一项**跨界契约冲突**未解（清单版本 `2025版` 被反馈边界判 400，见第四节），
+> 该行未清前**不得宣称"匿名反馈闭环已可用"**。
 >
 > 2026-09-20 已完成并清除 CX-1 对 `feedback/`、`V16`、
 > `governance/web/FeedbackAdminController.java` 与 `ZhkuLocalAdminConfiguration.java` 的阶段 9 占用；
