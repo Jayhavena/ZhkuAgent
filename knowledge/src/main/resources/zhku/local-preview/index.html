@@ -156,8 +156,13 @@
     const citationPanel = document.querySelector("#citation-panel");
     const citationList = document.querySelector("#citation-list");
     const handoffNotice = document.querySelector("#handoff-notice");
+    // 传输层：会话消息用同一资源地址按 Accept 协商为 SSE（状态板 §八 第 4 条：事件顺序固定
+    // accepted → reply → complete，reply/complete 载荷与同步响应同形）。服务端未开启流式通道时
+    // 返回 503 而非回落 JSON，所以前端不能把一次性 JSON 当长连接，只能按"服务不可用"提示。
+    const streamAccept = "text/event-stream";
     let sessionId = readStoredConversation().sessionId;
     let requestEpoch = 0;
+    let activeStream = null;
 
     // 路由结论 → 面向学生的状态标签。理由：五级路由是可信边界的对外表达，
     // 学生需要知道"这条结论是当期通知、规则还是检索资料"，而不是只看到一句答案。
@@ -197,17 +202,102 @@
         try {
             await ensureConversation(expectedEpoch);
             if (expectedEpoch !== requestEpoch) { return; }
-            const response = await fetch(`${conversationApi}/${sessionId}/messages`, requestOptions({ message }));
-            const payload = await readPayload(response);
+            const reply = await streamReply(expectedEpoch, message);
             if (expectedEpoch !== requestEpoch) { return; }
-            if (!response.ok) { response.status === 400 ? showQuestionError(payload.message || "问题格式不正确，请检查后重试。") : showServiceError(); return; }
-            renderReply(payload);
+            renderReply(reply);
             questionInput.value = "";
         } catch (error) {
-            if (expectedEpoch === requestEpoch) { showServiceError(); }
+            if (expectedEpoch !== requestEpoch) { return; }
+            if (error instanceof MessageRejectedError) { showQuestionError(error.message); return; }
+            showServiceError();
         } finally {
             if (expectedEpoch === requestEpoch) { setLoading(false); }
         }
+    }
+
+    /**
+     * 读取一轮流式作答。
+     *
+     * 事件顺序由服务端固定为 accepted → reply → complete，所以"生成中"反馈只依赖 accepted、
+     * 业务渲染只依赖 reply/complete 的载荷：同步与流式共用 renderReply，避免同一消息在两种
+     * 传输方式下给出不同结论（这是契约要求，也是不在此处二次加工字段的原因）。
+     */
+    async function streamReply(expectedEpoch, message) {
+        abortActiveStream();
+        const controller = new AbortController();
+        activeStream = controller;
+        // 请求体必须是对象（{message}），不是裸字符串：服务端按 DTO 绑定，发送裸字符串会得 400。
+        const response = await fetch(`${conversationApi}/${sessionId}/messages`, streamRequestOptions({ message }, controller.signal));
+        if (response.status === 400) {
+            const payload = await readPayload(response);
+            throw new MessageRejectedError(payload.message || "问题格式不正确，请检查后重试。");
+        }
+        if (!response.ok || !response.body) { throw new Error("stream-unavailable"); }
+        // 内容协商回了 JSON（服务端未按流式应答）时按同步载荷渲染，页面不至于整体不可用；
+        // 这与"把一次性 JSON 误当长连接"是相反方向的兼容，不违反契约。
+        if (!isEventStream(response)) { return await readPayload(response); }
+        let reply = null;
+        await readEventStream(response, (name, payload) => {
+            if (expectedEpoch !== requestEpoch || !payload) { return; }
+            if (name === "accepted") { showPending(); return; }
+            // reply 与 complete 载荷同形（服务端约定），后到的 complete 收敛为最终态。
+            if (name === "reply" || name === "complete") { reply = payload; }
+        });
+        // 流结束却没有答复事件：宁可报服务不可用，也不能把空载荷当成"无依据"结论渲染出去。
+        if (!reply) { throw new Error("stream-incomplete"); }
+        return reply;
+    }
+
+    /**
+     * 手工解析 SSE 帧：EventSource 只能发 GET，而会话消息是 POST，所以必须自己读流。
+     * 帧以空行分隔、data 可跨行，CRLF 与 LF 都要兼容（容器与代理的行为不一致）。
+     */
+    async function readEventStream(response, onEvent) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+        try {
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) { break; }
+                buffer = (buffer + decoder.decode(value, { stream: true })).replace(/\r\n/g, "\n");
+                let boundary = buffer.indexOf("\n\n");
+                while (boundary !== -1) {
+                    dispatchFrame(buffer.slice(0, boundary), onEvent);
+                    buffer = buffer.slice(boundary + 2);
+                    boundary = buffer.indexOf("\n\n");
+                }
+            }
+            // 流可能不带结尾空行就结束：残留内容仍是一整帧，直接丢弃会静默丢掉答案。
+            const tail = (buffer + decoder.decode()).trim();
+            if (tail) { dispatchFrame(tail, onEvent); }
+        } finally {
+            reader.cancel().catch(() => {});
+        }
+    }
+
+    function dispatchFrame(frame, onEvent) {
+        let name = "message";
+        const dataLines = [];
+        for (const line of frame.split("\n")) {
+            if (!line || line.startsWith(":")) { continue; }  // 空行与注释（心跳）不参与解析
+            if (line.startsWith("event:")) { name = line.slice(6).trim(); continue; }
+            if (line.startsWith("data:")) { dataLines.push(line.slice(5).replace(/^ /, "")); }
+        }
+        if (dataLines.length === 0) { return; }
+        let payload = null;
+        try { payload = JSON.parse(dataLines.join("\n")); } catch (error) { payload = null; }
+        onEvent(name, payload);
+    }
+
+    // accepted 只代表服务端接单（作答字段为空）：先给出"生成中"反馈，避免模型往返期间界面静止。
+    function showPending() {
+        answerPanel.dataset.mode = "PENDING";
+        answerStatus.textContent = "正在生成";
+        answerContent.textContent = "正在核对校园资料并生成回答…";
+        clearCitations();
+        handoffNotice.hidden = true;
+        answerPanel.hidden = false;
     }
 
     async function startNewConversation() {
@@ -215,6 +305,7 @@
         setLoading(true);
         try {
             const previousSessionId = sessionId;
+            abortActiveStream();
             clearStoredConversation();
             sessionId = null;
             resetMessages();
@@ -296,6 +387,8 @@
     }
 
     // 检索增强级：正文来自 message，依据来自 citations[]（标题 + 定位 + 页码）。
+    // 缺口登记：当前 SSE 事件尚未下发 citations[] 明细（状态板 §八 第 4 条），此时引用卡
+    // 自动不渲染——不补占位假数据；线 B 补齐明细后本函数无需改动即生效。
     function renderRetrieved(payload) {
         answerPanel.dataset.mode = "ANSWER";
         answerStatus.textContent = routeLabels.RETRIEVAL_AUGMENTED;
@@ -363,6 +456,12 @@
     function showServiceError() { serviceError.textContent = "本机会话服务暂不可用，请确认预览服务与数据库均已启动。"; serviceError.hidden = false; }
     function setLoading(isLoading) { submitButton.disabled = isLoading; newConversationButton.disabled = isLoading; submitButton.textContent = isLoading ? "正在发送…" : "发送问题"; }
     function requestOptions(body) { return { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8" }, body: body ? JSON.stringify(body) : undefined }; }
+    function streamRequestOptions(body, signal) { return { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8", "Accept": streamAccept }, body: JSON.stringify(body), signal }; }
+    function isEventStream(response) { return (response.headers.get("content-type") || "").includes(streamAccept); }
+    // 用户改问或开始新对话时必须掐断上一条流：否则旧流晚到的 accepted/reply 会盖掉新一轮的界面。
+    function abortActiveStream() { if (activeStream) { activeStream.abort(); activeStream = null; } }
+    // 服务端明确拒绝输入（400）用独立类型区分于"服务不可用"，避免把校验失败说成服务故障。
+    class MessageRejectedError extends Error {}
     async function readPayload(response) { try { return await response.json(); } catch (error) { return {}; } }
     function readStoredConversation() { try { return JSON.parse(sessionStorage.getItem(conversationStorageKey)) || {}; } catch (error) { return {}; } }
     function storeConversation(value) { if (value.sessionId) { sessionStorage.setItem(conversationStorageKey, JSON.stringify(value)); } }
