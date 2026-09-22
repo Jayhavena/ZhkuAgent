@@ -22,6 +22,7 @@ import com.zhku.knowledge.serviceguide.JdbcServiceGuideRepository;
 import com.zhku.knowledge.serviceguide.ServiceGuideBindings;
 import com.zhku.knowledge.serviceguide.ServiceGuideCardProvider;
 import com.zhku.knowledge.serviceguide.ServiceGuideResolver;
+import com.zhku.knowledge.telemetry.JdbcAnonymousTelemetryRepository;
 import java.time.Clock;
 import java.time.Duration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -181,12 +182,24 @@ public class ZhkuLocalPreviewConfiguration {
                 zhkuLocalPreviewClock);
     }
 
+    /**
+     * 匿名遥测写入端口（阶段 10）：装配即在问答后记一行白名单维度；不装配则不记录。
+     *
+     * <p>与清单链路同样独立成 bean、不碰密码装配；它只是**旁路**——写库失败只 warn，
+     * 不影响作答（由 `LocalPreviewTelemetryWiringTest` 锁定）。</p>
+     */
+    @Bean
+    JdbcAnonymousTelemetryRepository zhkuLocalPreviewTelemetryRepository(Environment environment) {
+        return new JdbcAnonymousTelemetryRepository(localPreviewDataSource(environment));
+    }
+
     @Bean
     LocalPreviewConversationFacade zhkuLocalPreviewConversationFacade(
             ConversationStore zhkuLocalPreviewConversationStore,
             LocalPreviewAnswerChain zhkuLocalPreviewAnswerChain,
             Clock zhkuLocalPreviewClock,
-            ServiceGuideCardProvider zhkuLocalPreviewServiceGuideCardProvider) {
+            ServiceGuideCardProvider zhkuLocalPreviewServiceGuideCardProvider,
+            JdbcAnonymousTelemetryRepository zhkuLocalPreviewTelemetryRepository) {
         return new LocalPreviewConversationFacade(
                 zhkuLocalPreviewConversationStore,
                 zhkuLocalPreviewAnswerChain,
@@ -194,7 +207,8 @@ public class ZhkuLocalPreviewConfiguration {
                 CONVERSATION_TTL,
                 zhkuLocalPreviewServiceGuideCardProvider,
                 // 绑定键显式写死在本机装配里（方案 A）：不按问题猜清单，换绑定＝改代码＝走评审。
-                ServiceGuideBindings.ELECTIVE_ADJUST);
+                ServiceGuideBindings.ELECTIVE_ADJUST,
+                zhkuLocalPreviewTelemetryRepository);
     }
 
     /**

@@ -9,11 +9,18 @@ import com.zhku.knowledge.routing.AnswerRoute;
 import com.zhku.knowledge.serviceguide.HumanHandoffReason;
 import com.zhku.knowledge.serviceguide.ServiceGuideCard;
 import com.zhku.knowledge.serviceguide.ServiceGuideCardProvider;
+import com.zhku.knowledge.telemetry.TelemetryRecorder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -32,6 +39,10 @@ public final class LocalPreviewConversationFacade {
     /** 可为 null：未装配清单链路时，回答卡上的清单字段恒为 null，既有行为完全不变。 */
     private final ServiceGuideCardProvider guideCards;
     private final String guideBindingKey;
+    /** 可为 null：未装配遥测时不做任何记录（默认关闭）。**旁路**——写入失败不影响作答。 */
+    private final TelemetryRecorder telemetry;
+
+    private static final Logger LOG = LoggerFactory.getLogger(LocalPreviewConversationFacade.class);
 
     public LocalPreviewConversationFacade(
             ConversationStore store,
@@ -39,7 +50,7 @@ public final class LocalPreviewConversationFacade {
             Clock clock,
             Duration sessionTtl
     ) {
-        this(store, answerChain, clock, sessionTtl, null, null);
+        this(store, answerChain, clock, sessionTtl, null, null, null);
     }
 
     /**
@@ -56,6 +67,24 @@ public final class LocalPreviewConversationFacade {
             ServiceGuideCardProvider guideCards,
             String guideBindingKey
     ) {
+        this(store, answerChain, clock, sessionTtl, guideCards, guideBindingKey, null);
+    }
+
+    /**
+     * 完整装配（阶段 10 追加匿名遥测）。
+     *
+     * <p>{@code telemetry} 允许为 null：不装配即完全不记录。装配时它只是**旁路**——
+     * 记录失败只会被吞掉并打一条 warn，作答一律照常返回（有测试锁定该约束）。</p>
+     */
+    public LocalPreviewConversationFacade(
+            ConversationStore store,
+            LocalPreviewAnswerChain answerChain,
+            Clock clock,
+            Duration sessionTtl,
+            ServiceGuideCardProvider guideCards,
+            String guideBindingKey,
+            TelemetryRecorder telemetry
+    ) {
         this.store = Objects.requireNonNull(store, "会话存储不能为空");
         this.answerChain = Objects.requireNonNull(answerChain, "回答链路不能为空");
         this.clock = Objects.requireNonNull(clock, "时钟不能为空");
@@ -67,6 +96,7 @@ public final class LocalPreviewConversationFacade {
         this.guideBindingKey = guideBindingKey == null || guideBindingKey.isBlank()
                 ? null
                 : guideBindingKey.strip();
+        this.telemetry = telemetry;
     }
 
     public ConversationCreated createConversation() {
@@ -87,8 +117,68 @@ public final class LocalPreviewConversationFacade {
             return sessionInvalid();
         }
         // 会话存在性由门面保证（未知 ID 不得被一条消息隐式创建），作答顺序交给回答链路。
+        long startedNanos = System.nanoTime();
         LocalPreviewAnswerChain.RoutedReply routed = answerChain.reply(sessionId, message);
+        long elapsedNanos = System.nanoTime() - startedNanos;
+        recordTelemetry(routed, elapsedNanos);
         return ConversationReply.from(routed, guideCardFor(routed));
+    }
+
+    /**
+     * 记录一次匿名遥测（阶段 10）。三条边界：
+     * ① **只落白名单维度**——字段集与 `PrivacyBoundary.anonymousTelemetry` 一致，实现侧还会再校验一次；
+     * ② **旁路**——任何异常都被吞掉并降级为"本次不记录"，作答不受影响；
+     * ③ **不记录会话异常**——未知/过期/取消的会话不是知识事件，记录它们只会污染链路统计。
+     */
+    private void recordTelemetry(LocalPreviewAnswerChain.RoutedReply routed, long elapsedNanos) {
+        if (telemetry == null || isSessionIssue(routed.type())) {
+            return;
+        }
+        try {
+            Map<String, Object> fields = new LinkedHashMap<>();
+            fields.put("route", routed.route().name());
+            fields.put("handoffRequired", routed.handoffRequired());
+            fields.put("failureCategory", failureCategoryOf(routed));
+            fields.put("latencyBucket", latencyBucketOf(elapsedNanos));
+            fields.put("eventDate", LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC).toString());
+            // retrievalProfile / generatorProfile 留空：门面这层拿不到模型栈标识，
+            // 而白名单允许缺省——宁可少两个维度，也不在这里拼一个猜出来的标识。
+            telemetry.record(fields);
+        } catch (RuntimeException exception) {
+            LOG.warn("匿名遥测写入失败，已跳过本次记录（作答不受影响）：{}", exception.getMessage());
+        }
+    }
+
+    private static boolean isSessionIssue(ElectiveRetakeReplyType type) {
+        return type == ElectiveRetakeReplyType.SESSION_EXPIRED
+                || type == ElectiveRetakeReplyType.SESSION_CANCELLED
+                || type == ElectiveRetakeReplyType.SESSION_INVALID;
+    }
+
+    /** 命中＝`NONE`；否则给出可归因的降级/拒答类别（均为白名单允许的代码维度）。 */
+    private static String failureCategoryOf(LocalPreviewAnswerChain.RoutedReply routed) {
+        if (routed.route() == AnswerRoute.INSUFFICIENT_EVIDENCE) {
+            return "RETRIEVAL_MISS";
+        }
+        if (routed.route() == AnswerRoute.RETRIEVAL_AUGMENTED && routed.handoffRequired()) {
+            return "MODEL_DEGRADED";
+        }
+        return "NONE";
+    }
+
+    /** 耗时只落桶：精确毫秒与时间戳结合可参与指纹化，桶化后仅保留运维所需的分布。 */
+    private static String latencyBucketOf(long elapsedNanos) {
+        long millis = elapsedNanos / 1_000_000L;
+        if (millis < 1_000L) {
+            return "LT_1S";
+        }
+        if (millis < 3_000L) {
+            return "S_1_3";
+        }
+        if (millis < 10_000L) {
+            return "S_3_10";
+        }
+        return "GE_10S";
     }
 
     public ConversationReply cancelConversation(UUID sessionId) {
