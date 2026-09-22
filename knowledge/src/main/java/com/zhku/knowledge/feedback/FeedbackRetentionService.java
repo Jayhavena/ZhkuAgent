@@ -1,5 +1,7 @@
 package com.zhku.knowledge.feedback;
 
+import com.zhku.knowledge.privacy.PrivacyBoundary;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -23,7 +25,10 @@ public final class FeedbackRetentionService {
     /** @return 本次转入聚合并删除的事件数 */
     public int aggregateExpired() {
         Instant now = clock.instant();
-        List<AnonymousFeedbackEvent> expiredEvents = repository.findExpiredAtOrBefore(now);
+        List<AnonymousFeedbackEvent> expiredEvents = repository.findExpiredAtOrBefore(now).stream()
+                // 查询条件是第一道筛选；这里再次核验，防止仓储改动误删尚在保留期的匿名明细。
+                .filter(event -> PrivacyBoundary.hasReachedExpiry(event.expiresAt(), now))
+                .toList();
         if (expiredEvents.isEmpty()) {
             return 0;
         }

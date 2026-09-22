@@ -12,6 +12,7 @@ import com.zhku.knowledge.conversation.publicelective.CreditLimitEvidence;
 import com.zhku.knowledge.conversation.publicelective.PublicElectiveConversationRouter;
 import com.zhku.knowledge.conversation.publicelective.PublicElectiveCreditLimitService;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -116,6 +117,36 @@ class ZhkuLocalPreviewConversationControllerTest {
     }
 
     @Test
+    void shouldNegotiateSseAndWriteAllFramesWhenClientRequestsEventStream() throws Exception {
+        MockMvc mockMvc = mockMvc(new MutableClock(START), true);
+        String sessionId = createSession(mockMvc);
+
+        MvcResult result = mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
+                        .accept(MediaType.TEXT_EVENT_STREAM)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"message\":\"公共选修课每学期最多可以选多少学分？\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertThat(result.getResponse().getContentType()).startsWith(MediaType.TEXT_EVENT_STREAM_VALUE);
+        assertThat(result.getResponse().getContentAsString())
+                .contains("event:accepted", "event:reply", "event:complete");
+    }
+
+    @Test
+    void shouldKeepJsonResponseWhenSseIsAvailableButClientRequestsJson() throws Exception {
+        MockMvc mockMvc = mockMvc(new MutableClock(START), true);
+        String sessionId = createSession(mockMvc);
+
+        mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"message\":\"公共选修课每学期最多可以选多少学分？\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type").value("ANSWER"));
+    }
+
+    @Test
     void shouldReturnSessionExpiredAtTenMinuteBoundary() throws Exception {
         MutableClock clock = new MutableClock(START);
         MockMvc mockMvc = mockMvc(clock);
@@ -171,6 +202,10 @@ class ZhkuLocalPreviewConversationControllerTest {
     }
 
     private static MockMvc mockMvc(MutableClock clock) {
+        return mockMvc(clock, false);
+    }
+
+    private static MockMvc mockMvc(MutableClock clock, boolean sseEnabled) {
         ConversationStore store = new InMemoryConversationStore();
         ElectiveRetakeConversationService service = new ElectiveRetakeConversationService(
                 store,
@@ -198,16 +233,23 @@ class ZhkuLocalPreviewConversationControllerTest {
                 clock,
                 SESSION_TTL
         );
+        com.zhku.knowledge.web.streaming.SseConversationStreamer streamer = sseEnabled
+                ? new com.zhku.knowledge.web.streaming.SseConversationStreamer(
+                new com.zhku.knowledge.web.streaming.ConversationStreamProcessor(facade, store, clock),
+                Runnable::run,
+                5_000L
+        )
+                : null;
         return MockMvcBuilders.standaloneSetup(
-                new ZhkuLocalPreviewConversationController(facade, new org.springframework.beans.factory.ObjectProvider<>() {
+                new ZhkuLocalPreviewConversationController(facade, new ObjectProvider<>() {
                     @Override
                     public com.zhku.knowledge.web.streaming.SseConversationStreamer getObject() {
-                        return null;
+                        return streamer;
                     }
 
                     @Override
                     public com.zhku.knowledge.web.streaming.SseConversationStreamer getObject(Object... arguments) {
-                        return null;
+                        return streamer;
                     }
                 })
         ).build();

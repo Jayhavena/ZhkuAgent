@@ -8,10 +8,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -76,24 +78,43 @@ public class ZhkuLocalPreviewConversationController {
      * <p>未注册流能力时显式失败而非回落 JSON，避免 SSE 客户端把一次性 JSON 误当成长连接。</p>
      */
     @PostMapping(value = "/{sessionId}/messages", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<?> streamMessage(
+    /**
+     * 返回类型必须保留 {@link SseEmitter}，不能擦除为通配泛型。
+     *
+     * <p>Spring MVC 依据声明类型选择异步 emitter 处理器；若写成 {@code ResponseEntity<?>}，
+     * 会退回普通消息转换器并在浏览器协商 SSE 时稳定 500。</p>
+     */
+    public ResponseEntity<SseEmitter> streamMessage(
             @PathVariable UUID sessionId,
             @RequestBody(required = false) ConversationMessageRequest request
     ) {
         if (request == null || request.message() == null || request.message().isBlank()) {
-            return badRequest("INVALID_MESSAGE", "消息不能为空");
+            throw new InvalidSseMessageException("消息不能为空");
         }
         SseConversationStreamer streamer = streamerProvider.getIfAvailable();
         if (streamer == null) {
-            return serviceUnavailable();
+            throw new SseServiceUnavailableException();
         }
         try {
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_EVENT_STREAM)
                     .body(streamer.stream(sessionId, request.message()));
         } catch (java.util.concurrent.RejectedExecutionException exception) {
-            return serviceUnavailable();
+            throw new SseServiceUnavailableException();
         }
+    }
+
+    /** 流式成功路径使用具体 emitter 类型，错误路径仍返回原有 JSON 契约。 */
+    @ExceptionHandler(InvalidSseMessageException.class)
+    public ResponseEntity<LocalPreviewErrorResponse> invalidSseMessage(
+            InvalidSseMessageException exception
+    ) {
+        return badRequest("INVALID_MESSAGE", exception.getMessage());
+    }
+
+    @ExceptionHandler(SseServiceUnavailableException.class)
+    public ResponseEntity<LocalPreviewErrorResponse> unavailableSseService() {
+        return serviceUnavailable();
     }
 
     @PostMapping("/{sessionId}/cancel")
@@ -143,5 +164,15 @@ public class ZhkuLocalPreviewConversationController {
     }
 
     public record LocalPreviewErrorResponse(String code, String message) {
+    }
+
+    private static final class InvalidSseMessageException extends RuntimeException {
+
+        private InvalidSseMessageException(String message) {
+            super(message);
+        }
+    }
+
+    private static final class SseServiceUnavailableException extends RuntimeException {
     }
 }
