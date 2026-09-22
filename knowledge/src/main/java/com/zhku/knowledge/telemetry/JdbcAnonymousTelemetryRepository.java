@@ -27,7 +27,7 @@ import java.util.UUID;
  * （哪套检索/生成栈）；哪一级路由＝`route`；命中/降级/转人工＝`failureCategory`（`NONE` 为正常命中）
  * 与 `handoffRequired`；耗时＝`latencyBucket`（只落桶，不落精确值）。</p>
  */
-public final class JdbcAnonymousTelemetryRepository {
+public final class JdbcAnonymousTelemetryRepository implements TelemetryRecorder {
 
     /** NOT NULL 维度：缺失即视为调用方 bug，直接拒绝而不是落一行不完整数据。 */
     private static final List<String> REQUIRED_FIELDS =
@@ -39,6 +39,7 @@ public final class JdbcAnonymousTelemetryRepository {
         this.dataSource = Objects.requireNonNull(dataSource, "数据源不能为空");
     }
 
+    @Override
     public void record(Map<String, Object> fields) {
         Objects.requireNonNull(fields, "遥测字段不能为空");
         // 白名单 + 取值形态校验：自由文本、原问答、身份信息、密钥、逐条散列在此被拒（无副作用）。
