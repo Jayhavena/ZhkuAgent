@@ -17,12 +17,13 @@ public record AnonymousFeedbackSubmission(
         String anonymousSessionHash
 ) {
 
-    private static final Pattern GUIDE_VALUE = Pattern.compile("[A-Za-z0-9._-]{1,128}");
+    private static final Pattern GUIDE_IDENTIFIER = Pattern.compile("[A-Za-z0-9._-]{1,128}");
+    private static final Pattern GUIDE_VERSION = Pattern.compile("[\\p{L}\\p{N}._-]{1,128}");
     private static final Pattern SHA_256_HEX = Pattern.compile("[0-9a-fA-F]{64}");
 
     public AnonymousFeedbackSubmission {
-        guideIdentifier = requireGuideValue(guideIdentifier, "清单标识格式不合法");
-        guideVersion = requireGuideValue(guideVersion, "清单版本格式不合法");
+        guideIdentifier = requireGuideIdentifier(guideIdentifier);
+        guideVersion = requireGuideVersion(guideVersion);
         reason = Objects.requireNonNull(reason, "反馈原因不能为空");
         if (anonymousSessionHash == null || !SHA_256_HEX.matcher(anonymousSessionHash).matches()) {
             throw new IllegalArgumentException("匿名会话散列必须是 64 位十六进制值");
@@ -30,9 +31,17 @@ public record AnonymousFeedbackSubmission(
         anonymousSessionHash = anonymousSessionHash.toLowerCase(Locale.ROOT);
     }
 
-    private static String requireGuideValue(String value, String message) {
-        if (value == null || !GUIDE_VALUE.matcher(value).matches()) {
-            throw new IllegalArgumentException(message);
+    private static String requireGuideIdentifier(String value) {
+        if (value == null || !GUIDE_IDENTIFIER.matcher(value).matches()) {
+            throw new IllegalArgumentException("清单标识格式不合法");
+        }
+        return value;
+    }
+
+    private static String requireGuideVersion(String value) {
+        // 版本是已发布清单的软引用，不能因 ASCII 限制拒绝合法的“2025版”等真实版本。
+        if (value == null || !GUIDE_VERSION.matcher(value).matches()) {
+            throw new IllegalArgumentException("清单版本格式不合法");
         }
         return value;
     }
