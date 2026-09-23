@@ -1,0 +1,53 @@
+{
+  "datasetId": "five-level-routing",
+  "datasetVersion": "v1",
+  "corpusFingerprint": "[EVAL-CORPUS] 学生手册2025版(PDF条级定位) + 当期选课通知2026-2027-1 @ 共享演示库",
+  "createdAt": "2026-09-23",
+  "notes": "五级路由的版本化评测集。预期结论均来自共享演示库中的已审核资料；任何基线数字必须连同本文件的 corpusFingerprint 一起报告，否则数字变没变不可解释。",
+  "cases": [
+    {
+      "caseId": "adjustment-how-to",
+      "question": "公共选修课选课调整怎么办理",
+      "expectedRoute": "HIGH_RISK_RULE",
+      "expectedHandoffRequired": false,
+      "expectRefusal": false,
+      "expectedCitations": [
+        { "sourceLocator": "PDF 第 77 页，第 9、13 条", "pageNumber": 77 }
+      ]
+    },
+    {
+      "caseId": "credit-limit-per-term",
+      "question": "公共选修课一学期最多修多少学分",
+      "expectedRoute": "HIGH_RISK_RULE",
+      "expectedHandoffRequired": false,
+      "expectRefusal": false,
+      "expectedCitations": [
+        { "sourceLocator": "PDF 第 76 页", "pageNumber": 76 }
+      ]
+    },
+    {
+      "caseId": "retake-after-failure",
+      "question": "我公选课不及格了要重修怎么办",
+      "expectedRoute": "AWAITING_CLARIFICATION",
+      "expectedHandoffRequired": false,
+      "expectRefusal": false,
+      "expectedCitations": []
+    },
+    {
+      "caseId": "notice-window",
+      "question": "本学期什么时候选课",
+      "expectedRoute": "CURRENT_NOTICE",
+      "expectedHandoffRequired": false,
+      "expectRefusal": false,
+      "expectedCitations": []
+    },
+    {
+      "caseId": "scholarship-must-refuse",
+      "question": "公共选修课奖学金怎么评定",
+      "expectedRoute": "INSUFFICIENT_EVIDENCE",
+      "expectedHandoffRequired": true,
+      "expectRefusal": true,
+      "expectedCitations": []
+    }
+  ]
+}
