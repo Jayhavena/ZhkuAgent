@@ -109,7 +109,6 @@
 | `knowledge/src/main/resources/zhku/local-preview/index.html` | WB-1（前端） | SSE 流式接进问答页（**已提交 `e1a4303`**：SSE 载荷 + 6 张验收截图）；阶段 9 **学生侧反馈入口**正在同一文件上实现（`POST /zhku/feedback`，四枚举 + 前端本地生成的 64 位十六进制散列，凭证取自 `guideCard`） | 2026-09-20 09:20（2026-09-22 21:25 更新） |
 | `knowledge/src/main/resources/zhku/local-admin/index.html` | WB-1（前端） | 阶段 9 管理员最小审核界面：对接 `GET /zhku/local-admin/feedback/aggregates`、`POST /zhku/local-admin/feedback/retention`、`GET /zhku/local-admin/feedback/configuration`；**只展示聚合与 provider/model/profile/status，绝不展示密钥、环境变量名或端点** | 2026-09-22 21:25 |
 | `docs/evidence/` | WB-3（线 A）/ WB-1 / CX-1 | 各线证据账本（**共享目录，新增文件不构成冲突**；只追加、不改他线文件） | 2026-09-17 16:41 |
-| `knowledge/src/main/resources/zhku/local-admin/index.html` | WB-1（前端） | PM 派发批（`86cb10f`/2026-09-22 提示词 §三）：① 两张真机截图字节相同的 QA 结论；② 新增"匿名质量遥测"只读区（对接 `GET /zhku/local-admin/telemetry/aggregates`，五受限维度、30 天默认窗口、只展示桶/计数/比例，端点未上线时优雅降级）。**真机 8124 验证被管理端启动 P0（线 B）阻塞，先用契约复刻 mock 取证** | 2026-09-23 10:45 |
 | `knowledge/src/main/resources/application-zhku-local-preview.yml` | 已合并（两线共用） | 线 A 的 `zhku.rag.*` 与线 B 的 `zhku.streaming.*` 现已并存于主线；**此后任何一方再改此文件前须重新登记**（本次合并冲突即发生在此文件） | 2026-09-18 20:44 |
 | `knowledge/src/main/java/com/zhku/knowledge/serviceguide/` 及 `knowledge/src/test/java/com/zhku/knowledge/serviceguide/` | WB-3（线 A） | 阶段 9 任务 2：不可变 `ServiceGuide` / `GuideStep` / `OfficialChannel` / `HumanHandoffReason` + 只返回"有当前有效证据"的清单解析器（**新包，主+测试目录一并占用**） | 2026-09-20 09:46 |
 | `knowledge/src/main/resources/db/migration/V15__*` | WB-3（线 A） | 阶段 9 线 A 迁移（最终裁决号段）：`service_guide` / 步骤 / 材料 / 官方渠道 / 风险提示 / 关联规则与通知版本。**自包含、不与线 B 的 `V16` 建外键**；确需关联用软引用（清单标识 + 版本号）。**同一时刻只有一个会话创建迁移文件** | 2026-09-20 09:46 |
@@ -128,6 +127,11 @@
 > **2026-09-22 阶段 9 两个界面已交付并清除占用（`41e77fb`：管理员最小审核界面 + 学生侧反馈入口 + 7 张验收截图）**；
 > 其中学生侧反馈有一项**跨界契约冲突**未解（清单版本 `2025版` 被反馈边界判 400，见第四节），
 > 该行未清前**不得宣称"匿名反馈闭环已可用"**。
+>
+> 2026-09-23 已完成并清除 WB-1 对 `zhku/local-admin/index.html` 的 PM 派发批占用（交付 `aff54e3`：
+> "匿名质量遥测"只读区 + 两张 real-8124 截图同字节 QA 结论 + 新账本
+> `docs/evidence/2026-09-23-WB1-前端界面QA-证据账本.md`）。**两项待办挂在 WB-1 名下**：
+> ① 真机 8124 复验遥测区（等线 B 修管理端启动 P0）；② 反馈闭环复验 `2025版`→201（等线 B 的 B-2）。
 >
 > 2026-09-20 已完成并清除 CX-1 对 `feedback/`、`V16`、
 > `governance/web/FeedbackAdminController.java` 与 `ZhkuLocalAdminConfiguration.java` 的阶段 9 占用；
