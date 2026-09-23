@@ -174,6 +174,33 @@
         <p id="feedback-empty" class="empty">尚未加载反馈聚合。</p>
         <div class="actions"><button id="retention-button" class="secondary" type="button">执行 90 天保留清理</button></div>
     </section>
+
+    <section class="card" id="telemetry-stage" aria-labelledby="telemetry-title">
+        <div class="section-heading"><h2 id="telemetry-title">7. 匿名质量遥测（只读）</h2><button id="refresh-telemetry" class="secondary" type="button">刷新遥测聚合</button></div>
+        <p class="hint">遥测只有匿名计数：没有逐条事件、自由文本、身份或密钥，本页也只展示「取值 / 次数 / 比例」。缺省窗口为近 30 天（含首尾）；比例保留 4 位小数、按次数降序，均由服务端给出。</p>
+        <div class="grid">
+            <label>聚合维度<select id="telemetry-dimension">
+                <option value="route">路由结论（route）</option>
+                <option value="failureCategory">失败类别（failureCategory）</option>
+                <option value="handoffRequired">是否转人工（handoffRequired）</option>
+                <option value="latencyBucket">耗时档（latencyBucket）</option>
+                <option value="eventDate">事件日期（eventDate）</option>
+            </select></label>
+            <div class="candidate-grid">
+                <label>起始日期（含）<input id="telemetry-from" type="date"></label>
+                <label>结束日期（含）<input id="telemetry-to" type="date"></label>
+            </div>
+        </div>
+        <p id="telemetry-validation" class="message error" role="alert" hidden></p>
+        <div class="section-heading sub-section"><h3>聚合结果</h3><span id="telemetry-summary" class="status">尚未加载</span></div>
+        <div class="table-scroll">
+            <table class="aggregate-table" id="telemetry-table" hidden>
+                <thead><tr><th scope="col" id="telemetry-value-heading">取值</th><th scope="col">次数</th><th scope="col" class="numeric">比例</th></tr></thead>
+                <tbody id="telemetry-rows"></tbody>
+            </table>
+        </div>
+        <p id="telemetry-empty" class="empty" hidden></p>
+    </section>
     <p id="page-error" class="message error" role="alert" hidden></p><p id="page-success" class="message success" role="status" hidden></p>
 </main>
 
@@ -190,6 +217,12 @@
     const feedbackConfigGrid = document.querySelector("#feedback-config"); const feedbackTable = document.querySelector("#feedback-table"); const feedbackRows = document.querySelector("#feedback-rows"); const feedbackEmpty = document.querySelector("#feedback-empty"); const feedbackSummary = document.querySelector("#feedback-summary"); const refreshFeedbackButton = document.querySelector("#refresh-feedback"); const retentionButton = document.querySelector("#retention-button");
     // 原因枚举的中文标签；未登记的取值原样显示，避免后端新增枚举时被前端静默吞掉。
     const feedbackReasonLabels = { NOT_HELPFUL: "没帮上忙", INCORRECT: "内容有误", OUTDATED: "已过期", MISSING_INFORMATION: "信息缺失" };
+    const telemetryEndpoint = "/api/zhku/local-admin/telemetry/aggregates";
+    const telemetryDimension = document.querySelector("#telemetry-dimension"); const telemetryFrom = document.querySelector("#telemetry-from"); const telemetryTo = document.querySelector("#telemetry-to"); const telemetryRows = document.querySelector("#telemetry-rows"); const telemetryTable = document.querySelector("#telemetry-table"); const telemetryEmpty = document.querySelector("#telemetry-empty"); const telemetrySummary = document.querySelector("#telemetry-summary"); const telemetryValueHeading = document.querySelector("#telemetry-value-heading"); const telemetryValidation = document.querySelector("#telemetry-validation"); const refreshTelemetryButton = document.querySelector("#refresh-telemetry");
+    // 维度只可能是服务端白名单里的五个；表头文案按维度切换，未知取值原样显示。
+    const telemetryDimensionLabels = { route: "路由结论", failureCategory: "失败类别", handoffRequired: "是否转人工", latencyBucket: "耗时档", eventDate: "事件日期" };
+    // 取值译名与 PrivacyBoundary.anonymousTelemetry 的白名单维度对齐；译不到的（如日期、新增枚举）原样显示。
+    const telemetryValueLabels = { NONE: "正常作答", RETRIEVAL_MISS: "检索未命中", MODEL_DEGRADED: "模型降级", LT_1S: "1 秒以内", S_1_3: "1–3 秒", S_3_10: "3–10 秒", GE_10S: "10 秒及以上" };
     // 用统一阶段描述同步步骤条与“下一步”提示，避免页面状态分散维护。
     const stageDescriptions = { SUBMIT: ["提交资料", "下一步：提交一份可读取的公开 PDF，保存为审核草稿。"], EXTRACT: ["提取片段", "下一步：选择资料并提取候选知识片段。"], REVIEW: ["审核内容", "下一步：逐条通过或丢弃候选片段，并记录审核说明。"], PUBLISH: ["发布版本", "下一步：确认所有候选片段均已处理后发布资料。"], VERIFY: ["验证问答", "下一步：在问答页确认回答带有资料依据与页码。"] };
     uploadForm.addEventListener("submit", async event => { event.preventDefault(); clearMessage(); const formData = new FormData(uploadForm); setBusy(uploadForm, true); try { const response = await fetch(submissionsEndpoint, { method: "POST", body: formData }); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "资料提交失败，请检查表单和 PDF。"); return; } showSuccess("资料已保存为审核草稿。请选择该资料并提取候选片段。"); uploadForm.reset(); activateStage("EXTRACT"); await loadSubmissions(payload.id); } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } finally { setBusy(uploadForm, false); } });
@@ -225,6 +258,56 @@
     function renderFeedbackAggregates(aggregates) { feedbackRows.replaceChildren(); const total = aggregates.reduce((sum, aggregate) => sum + (Number(aggregate.count) || 0), 0); feedbackTable.hidden = aggregates.length === 0; feedbackEmpty.hidden = aggregates.length > 0; feedbackSummary.textContent = aggregates.length === 0 ? "暂无反馈" : `共 ${aggregates.length} 组聚合、${total} 条反馈`; aggregates.forEach(aggregate => { const row = document.createElement("tr"); [aggregate.guideIdentifier, aggregate.guideVersion, feedbackReasonLabels[aggregate.reason] || aggregate.reason, aggregate.feedbackDate, String(aggregate.count ?? 0)].forEach((value, index) => { const cell = document.createElement("td"); cell.textContent = value ?? "—"; if (index === 4) { cell.className = "numeric"; } row.append(cell); }); feedbackRows.append(row); }); }
     // 保留清理会真实删除到期明细，所以走与其他高影响操作相同的确认弹窗，并显式回报合并条数。
     async function runFeedbackRetention() { clearMessage(); try { const response = await fetch(`${feedbackEndpoint}/retention`, { method: "POST" }); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "保留清理未完成，请检查服务状态。"); return; } await loadFeedbackData(); showSuccess(`保留清理完成：本次合并并清理 ${payload.aggregatedEventCount ?? 0} 条到期明细。`); } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
+    // 遥测是只读观测面：任何失败（接口未上线/服务不可用）都降级为中性提示，不得报错或白屏。
+    function isoDate(date) { const pad = (n) => String(n).padStart(2, "0"); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`; }
+    // 缺省窗口与服务端一致（近 30 天含首尾）：显式填上，让管理员始终看得到当前窗口。
+    function setDefaultTelemetryWindow() { const today = new Date(); const start = new Date(today); start.setDate(start.getDate() - 29); telemetryFrom.value = isoDate(start); telemetryTo.value = isoDate(today); }
+    function clearTelemetryResult() { telemetryRows.replaceChildren(); telemetryTable.hidden = true; telemetryEmpty.hidden = false; telemetryEmpty.textContent = ""; }
+    refreshTelemetryButton.addEventListener("click", loadTelemetry);
+    telemetryDimension.addEventListener("change", loadTelemetry);
+    async function loadTelemetry() {
+        clearMessage();
+        const from = telemetryFrom.value; const to = telemetryTo.value;
+        if (from && to && from > to) {
+            // 客户端先拦日期窗口问题，避免把可预防的 400 当成服务故障展示。
+            telemetryValidation.textContent = "起始日期不能晚于结束日期。"; telemetryValidation.hidden = false;
+            clearTelemetryResult(); telemetrySummary.textContent = "日期窗口无效"; return;
+        }
+        telemetryValidation.hidden = true;
+        const params = new URLSearchParams({ dimension: telemetryDimension.value });
+        if (from) { params.set("from", from); }
+        if (to) { params.set("to", to); }
+        try {
+            const response = await fetch(`${telemetryEndpoint}?${params}`);
+            if (response.status === 404) { renderTelemetryUnavailable("观测面尚未启用：本机管理端还没有遥测聚合接口。"); return; }
+            if (!response.ok) { renderTelemetryUnavailable(response.status === 400 ? "请求参数未被接受，请检查日期窗口。" : "遥测聚合暂不可用，请稍后重试。"); return; }
+            const buckets = await readJson(response);
+            if (!Array.isArray(buckets)) { renderTelemetryUnavailable("遥测聚合返回了意外的格式，请稍后重试。"); return; }
+            renderTelemetryBuckets(buckets);
+        } catch (error) { renderTelemetryUnavailable("遥测聚合暂不可用，请确认管理端服务已启动。"); }
+    }
+    // 端点未上线/不可用时的优雅降级：中性文案 + 空态，不写全局错误横幅。
+    function renderTelemetryUnavailable(message) { clearTelemetryResult(); telemetryEmpty.textContent = message; telemetrySummary.textContent = "未启用"; }
+    function renderTelemetryBuckets(buckets) {
+        const dimension = telemetryDimension.value;
+        telemetryValueHeading.textContent = telemetryDimensionLabels[dimension] || "取值";
+        telemetryRows.replaceChildren();
+        telemetryTable.hidden = buckets.length === 0;
+        telemetryEmpty.hidden = buckets.length > 0;
+        telemetryEmpty.textContent = buckets.length === 0 ? "所选窗口内暂无遥测数据。" : "";
+        const total = buckets.reduce((sum, bucket) => sum + (Number(bucket.count) || 0), 0);
+        telemetrySummary.textContent = buckets.length === 0 ? "暂无数据" : `共 ${buckets.length} 个取值、${total} 条事件`;
+        buckets.forEach(bucket => {
+            const row = document.createElement("tr");
+            const value = bucket[dimension];
+            // ratio 服务端已给 4 位小数，但 JSON 数字会丢尾零，展示层补齐格式（不重算、不改序）。
+            const cells = [value === true ? "是" : value === false ? "否" : telemetryValueLabels[value] ?? String(value ?? "—"), String(bucket.count ?? 0), Number(bucket.ratio ?? 0).toFixed(4)];
+            cells.forEach((text, index) => { const cell = document.createElement("td"); cell.textContent = text; if (index === 2) { cell.className = "numeric"; } row.append(cell); });
+            telemetryRows.append(row);
+        });
+    }
+    setDefaultTelemetryWindow();
+    loadTelemetry();
     loadSubmissions();
     loadFeedback();
 </script>
