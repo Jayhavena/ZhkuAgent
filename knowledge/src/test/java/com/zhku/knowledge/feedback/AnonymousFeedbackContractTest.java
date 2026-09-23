@@ -54,6 +54,34 @@ class AnonymousFeedbackContractTest {
     }
 
     @Test
+    void shouldAcceptThePublishedUnicodeGuideVersionOverHttp() throws Exception {
+        mockMvc.perform(post("/zhku/feedback")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"guideIdentifier":"elective-adjust","guideVersion":"2025版",
+                                "reason":"NOT_HELPFUL","anonymousSessionHash":"%s"}
+                                """.formatted(ANONYMOUS_SESSION_HASH)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.accepted").value(true))
+                .andExpect(jsonPath("$.duplicate").value(false));
+
+        assertThat(repository.size()).isOne();
+    }
+
+    @Test
+    void shouldRejectWhitespaceInGuideVersionOverHttp() throws Exception {
+        mockMvc.perform(post("/zhku/feedback")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"guideIdentifier":"elective-adjust","guideVersion":"2025 版",
+                                "reason":"NOT_HELPFUL","anonymousSessionHash":"%s"}
+                                """.formatted(ANONYMOUS_SESSION_HASH)))
+                .andExpect(status().isBadRequest());
+
+        assertThat(repository.size()).isZero();
+    }
+
+    @Test
     void shouldRejectFreeTextAndPiiFieldsBeforeTheyReachStorage() throws Exception {
         for (String forbiddenField : new String[]{
                 "message", "studentId", "student_id", "name", "contact", "question", "answer"

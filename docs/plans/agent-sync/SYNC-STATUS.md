@@ -97,9 +97,9 @@
 | 分支 | `campus-line-b`（顶层命名，2026-09-16 已从 `codex/campus-line-b` 迁移，旧引用已删除；worktree `ZhkuAgent-lineB` 实际绑定的就是本分支） |
 | worktree | `D:\alldesk\Projects\ZhkuAgent-lineB` |
 | Flyway 号段 | `V12`–`V14`（已用 `V12`：会话持久化表）+ 阶段 9 `V16`（匿名反馈） |
-| 当前任务 | **阶段 10 第 5 项读取侧已完成，等待 PM 验收**：本机管理端只读遥测桶聚合 `GET /zhku/local-admin/telemetry/aggregates`，以及遥测专用输出白名单与 HTTP 契约测试；写入侧交叉核对等线 A 的真实问答接线入库后再做。 |
-| 状态 | 🟢 先 RED 后 GREEN：聚合地址实现前 3 项 HTTP 断言为 404，完成后本批 7/7、相关管理端/遥测 21/21、分段模块 386/0/4。未创建迁移，未改 `telemetry/`、前端、评测、YAML 或线 A 写入侧；不提供任何单条遥测读取路由。 |
-| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ `f7211ac`（阶段 10 隐私与保留检查）/ `5aea0ab`（P0-lite SSE HTTP 内容协商修复）/ `1df7ca8`（隐私边界真实接线与管理员 HTTP 断言）/ **`0b29a1a`**（阶段 10 第 5 项遥测读取侧，待 PM 验收）。 |
+| 当前任务 | **B-1 / B-2 / B-3 均已完成，等待 PM 验收**：管理端启动守卫、真实 `2025版` 反馈校验、线 A 遥测接线的独立数据库黑盒交叉核对。 |
+| 状态 | 🟢 B-1 profile+开关启动守卫与 8124 真机通过；B-2 RED 400→GREEN 201、含空格版本仍 400；B-3 真实问答恰好落 1 条八维白名单遥测，未知会话落 0 条；关联回归 29/29。未建迁移，未改前端或线 A `telemetry/`。 |
+| 最新提交 | `294fea3`（README/验收文档修正）/ `68ba4ba`（密码系统属性 fail-fast）/ `d1fb476`（预览密码装配及夹具迁移，已随 `3cf9331` 入库）/ `f7211ac`（阶段 10 隐私与保留检查）/ `5aea0ab`（P0-lite SSE HTTP 内容协商修复）/ `1df7ca8`（隐私边界真实接线与管理员 HTTP 断言）/ `0b29a1a`（阶段 10 第 5 项遥测读取侧）/ `c28f362`（B-1 启动修复）/ `6e4aa09`（B-2 Unicode 版本校验）/ **本批 B-3（遥测回答链路交叉核对）**。 |
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
@@ -152,6 +152,12 @@
 > 2026-09-22 已完成并清除 CX-1 对 feedback/governance/notice 六处 Flyway 调用点的占用：均改用共享 `ZhkuFlywayTestSupport.migrate(...)`；publication 调用点已由第二十三次合并迁移，核对后未改。聚焦 JDBC/模式回归 14/14、分段模块回归 374/0/4；未触及迁移、YAML、前端、评测或线 A 调用点。
 
 > 2026-09-22 已完成并清除 CX-1 对 `governance/`、`governance/web/`、`privacy/` 及对应测试目录的阶段 10 第 5 项读取侧占用：新增本机管理端遥测桶聚合和输出白名单；HTTP RED 为未映射 404，GREEN 后本批 7/7、相关 21/21、分段模块 386/0/4。未创建迁移，未改 `telemetry/` 写入侧、前端、评测、YAML 或任何单条事件读取路由；真实问答写入交叉核对等待线 A 接线入库。
+
+> 2026-09-23 已完成并清除 CX-1 对 `TelemetryAdminController`、本机管理员启动测试与遥测控制器测试的 B-1 P0 占用：单参生产构造器显式 `@Autowired`；profile+开关启动守卫 RED 为 `NoSuchMethodException`、GREEN 后与遥测 HTTP 回归 10/10；8124 真机启动、聚合 GET 200 后已停止验证实例。未改迁移、`telemetry/`、前端或线 A 门面接线。
+
+> 2026-09-23 已完成并清除 CX-1 对 `AnonymousFeedbackSubmission` 与匿名反馈契约测试的 B-2 占用：`guideVersion` 允许 Unicode 字母/数字与 `._-`，`guideIdentifier` 与散列规则不变；真实 `2025版` HTTP RED 400 → GREEN 201，非法含空格版本仍 400；匿名反馈和预览入口回归 8/8。未建迁移、未改前端或反馈存储。
+
+> 2026-09-23 已完成并清除 CX-1 对 `TelemetryAnswerChainCrossCheckTest` 的 B-3 占用：真实问答经既有门面与 JDBC 遥测仓储在专属日期夹具中恰好落 1 条，读取结果严格为八维白名单、无自由文本/身份/密钥/散列；未知会话落 0 条。该独立黑盒核对只读依赖线 A `telemetry/`，未改其生产代码、迁移、前端或评测；关联回归 29/29。
 >
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
