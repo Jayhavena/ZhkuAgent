@@ -63,6 +63,20 @@ class ZhkuLocalAdminApplicationTest {
     }
 
     @Test
+    void shouldCreateTelemetryControllerWhenLocalAdminProfileIsActive() {
+        new ApplicationContextRunner()
+                .withUserConfiguration(ZhkuLocalAdminApplication.class)
+                .withPropertyValues(
+                        "spring.profiles.active=zhku-local-admin",
+                        "zhku.local-admin.enabled=true"
+                )
+                .run(context -> {
+                    assertThat(context).hasNotFailed();
+                    assertThat(context).hasSingleBean(TelemetryAdminController.class);
+                });
+    }
+
+    @Test
     void shouldForceEmbeddedServerToLoopbackAddress() throws Exception {
         ConfigurableWebServerFactory factory = mock(
                 ConfigurableWebServerFactory.class

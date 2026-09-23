@@ -3,6 +3,7 @@ package com.zhku.knowledge.governance.web;
 import com.zhku.knowledge.governance.AnonymousTelemetryAggregateQueryService;
 import com.zhku.knowledge.governance.TelemetryAggregateDimension;
 import com.zhku.knowledge.privacy.PrivacyBoundary;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.context.annotation.Profile;
@@ -30,6 +31,7 @@ public final class TelemetryAdminController {
     private final AnonymousTelemetryAggregateQueryService queryService;
     private final Clock clock;
 
+    @Autowired
     public TelemetryAdminController(AnonymousTelemetryAggregateQueryService queryService) {
         this(queryService, Clock.systemUTC());
     }
