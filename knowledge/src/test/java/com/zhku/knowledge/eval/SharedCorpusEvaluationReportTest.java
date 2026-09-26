@@ -1,0 +1,103 @@
+package com.zhku.knowledge.eval;
+
+import com.zhku.knowledge.ZhkuDatabaseTestConfig;
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
+import com.zhku.knowledge.conversation.ConversationStore;
+import com.zhku.knowledge.conversation.InMemoryConversationStore;
+import com.zhku.knowledge.conversation.elective.ElectiveRetakeConversationService;
+import com.zhku.knowledge.conversation.elective.JdbcElectiveRetakeEvidenceFinder;
+import com.zhku.knowledge.conversation.publicelective.JdbcAdjustmentEvidenceFinder;
+import com.zhku.knowledge.conversation.publicelective.JdbcCreditLimitEvidenceFinder;
+import com.zhku.knowledge.conversation.publicelective.PublicElectiveAdjustmentService;
+import com.zhku.knowledge.conversation.publicelective.PublicElectiveConversationRouter;
+import com.zhku.knowledge.conversation.publicelective.PublicElectiveCreditLimitService;
+import com.zhku.knowledge.serviceguide.JdbcServiceGuideRepository;
+import com.zhku.knowledge.serviceguide.ServiceGuideBindings;
+import com.zhku.knowledge.serviceguide.ServiceGuideCardProvider;
+import com.zhku.knowledge.serviceguide.ServiceGuideResolver;
+import com.zhku.knowledge.web.LocalPreviewAnswerChain;
+import com.zhku.knowledge.web.LocalPreviewConversationFacade;
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import javax.sql.DataSource;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Clock;
+import java.time.Duration;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * 用**真链路**跑版本化评测集，并把对比报告落 `docs/evidence/`（阶段 10 批3 收尾）。
+ *
+ * <p>真链路＝本机预览门面 + 真实 JDBC 证据检索器 + 真实清单解析器，语料即共享演示库。
+ * **只读**：本用例不发任何 INSERT/DELETE，不触碰演示数据（`elective-adjust / 2025版` 等），
+ * 因此无需清理，也不会重演"夹具删演示清单"的事故。</p>
+ *
+ * <p>报告里出现的**每一条数字都必须与 `[EVAL-CORPUS]` 指纹一起引用**——指纹由
+ * {@link EvaluationReport} 构造期强制携带，渲染器把它放在最前。</p>
+ */
+class SharedCorpusEvaluationReportTest {
+
+    private static final String DATABASE_URL = System.getProperty(
+            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
+    private static final String DATABASE_USER = System.getProperty(
+            "zhku.db.user", "zhkuagent");
+    private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+
+    private static final Clock CLOCK = Clock.systemUTC();
+    private static final Duration TTL = Duration.ofMinutes(10);
+    private static final Path REPORT_PATH =
+            Paths.get("..", "docs", "evidence", "2026-09-26-阶段10-Eval对比报告.md");
+
+    @Test
+    void shouldGenerateComparisonReportAgainstSharedCorpus() throws Exception {
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+        EvaluationDatasetLoader loader = new EvaluationDatasetLoader();
+        Path datasetFile = Paths.get("src", "test", "resources", "eval", "datasets",
+                "five-level-routing-v1.json");
+        EvaluationManifest manifest = loader.loadManifest(
+                Paths.get("src", "test", "resources", "eval", "manifest.json"));
+
+        // runVerified：先加载数据集、与清单四处交叉核对，通过才执行（不绕开批2 的加载器）。
+        EvaluationReport report = new EvaluationRunner(realChainTarget(), loader)
+                .runVerified(manifest, manifest.datasets().getFirst(), datasetFile);
+
+        String markdown = EvaluationReportMarkdown.render(report);
+        Files.createDirectories(REPORT_PATH.getParent());
+        Files.writeString(REPORT_PATH, markdown);
+
+        assertThat(report.corpusFingerprint()).startsWith("[EVAL-CORPUS]");
+        assertThat(report.totalCases()).isEqualTo(5);
+        assertThat(markdown).contains("[EVAL-CORPUS]").contains("## 逐用例：预期 vs 实际");
+        // 报告用于人工/后续批次的基线对比，不在此判定产品合格与否。
+        assertThat(markdown).contains("| 用例总数 | " + report.totalCases() + " |");
+    }
+
+    private AnswerTarget realChainTarget() {
+        DataSource dataSource = new DriverManagerDataSource(
+                DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+        ConversationStore store = new InMemoryConversationStore();
+        ElectiveRetakeConversationService retakeService = new ElectiveRetakeConversationService(
+                store, new JdbcElectiveRetakeEvidenceFinder(dataSource), CLOCK, TTL);
+        PublicElectiveCreditLimitService creditLimitService =
+                new PublicElectiveCreditLimitService(new JdbcCreditLimitEvidenceFinder(dataSource));
+        PublicElectiveAdjustmentService adjustmentService = new PublicElectiveAdjustmentService(
+                new JdbcAdjustmentEvidenceFinder(dataSource));
+        // 通知级服务需要外网查询地址与当期学期配置，本用例不装配它：数据集里的通知用例
+        // 会因此在报告里显示为不一致——这正是评测要暴露的事实，不做粉饰。
+        PublicElectiveConversationRouter router = new PublicElectiveConversationRouter(
+                store, retakeService, creditLimitService, null, adjustmentService, CLOCK);
+        LocalPreviewAnswerChain chain = new LocalPreviewAnswerChain(
+                store, router, null, null, CLOCK);
+        ServiceGuideCardProvider guideCards = new ServiceGuideCardProvider(
+                ServiceGuideBindings.firstBatch(),
+                new ServiceGuideResolver(new JdbcServiceGuideRepository(dataSource), CLOCK));
+        LocalPreviewConversationFacade facade = new LocalPreviewConversationFacade(
+                store, chain, CLOCK, TTL, guideCards, ServiceGuideBindings.ELECTIVE_ADJUST, null);
+        return new FacadeAnswerTarget(
+                question -> facade.sendMessage(facade.createConversation().sessionId(), question));
+    }
+}
