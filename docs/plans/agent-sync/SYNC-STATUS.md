@@ -130,8 +130,12 @@
 >
 > 2026-09-23 已完成并清除 WB-1 对 `zhku/local-admin/index.html` 的 PM 派发批占用（交付 `aff54e3`：
 > "匿名质量遥测"只读区 + 两张 real-8124 截图同字节 QA 结论 + 新账本
-> `docs/evidence/2026-09-23-WB1-前端界面QA-证据账本.md`）。**两项待办挂在 WB-1 名下**：
-> ① 真机 8124 复验遥测区（等线 B 修管理端启动 P0）；② 反馈闭环复验 `2025版`→201（等线 B 的 B-2）。
+> `docs/evidence/2026-09-23-WB1-前端界面QA-证据账本.md`）。
+> **两项待办已于 2026-09-26 真机复验后关闭**（P0 修复与 B-2 均已入库）：
+> ① 真机 8124 遥测区：默认窗口真数据 `HIGH_RISK_RULE/4/1.0000`、布尔维度"否"、空窗口空态，全绿；
+> ② 反馈闭环：真机 8123 走完整学生流，`2025版` → **201**、同日同原因再点 → **200**（后端去重生效），
+> 页面零改动。详见该账本第二/三节；截图 `local-admin.real-8124.1440x900.light.png`（更新）与
+> `local-preview.real-8123.1440x900.feedback-{201,200-duplicate}.png`（新增）。
 >
 > 2026-09-20 已完成并清除 CX-1 对 `feedback/`、`V16`、
 > `governance/web/FeedbackAdminController.java` 与 `ZhkuLocalAdminConfiguration.java` 的阶段 9 占用；
