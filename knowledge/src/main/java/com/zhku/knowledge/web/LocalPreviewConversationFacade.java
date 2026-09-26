@@ -155,15 +155,19 @@ public final class LocalPreviewConversationFacade {
                 || type == ElectiveRetakeReplyType.SESSION_INVALID;
     }
 
-    /** 命中＝`NONE`；否则给出可归因的降级/拒答类别（均为白名单允许的代码维度）。 */
-    private static String failureCategoryOf(LocalPreviewAnswerChain.RoutedReply routed) {
-        if (routed.route() == AnswerRoute.INSUFFICIENT_EVIDENCE) {
-            return "RETRIEVAL_MISS";
+    /**
+     * 归因：**依据链路给出的两个显式事实**（是否有可用证据 / 生成是否降级），不用 route 反推。
+     *
+     * <p>为什么不能用 route 反推：生成侧降级与检索侧未召回是**两种不同的失败**，却都会落到同一个
+     * 拒答路由上——按 route 判会把"有证据但模型没答成"记成"根本没召回"，归因表随之失去意义
+     * （阶段 10 第 5 项要的正是"按层定位：未召回 / 候选或融合错误 / 证据对但表达错"）。</p>
+     */
+    static String failureCategoryOf(LocalPreviewAnswerChain.RoutedReply routed) {
+        if (!routed.generationDegraded()) {
+            return "NONE";
         }
-        if (routed.route() == AnswerRoute.RETRIEVAL_AUGMENTED && routed.handoffRequired()) {
-            return "MODEL_DEGRADED";
-        }
-        return "NONE";
+        // 有证据仍降级＝生成侧问题；无可用证据＝检索侧没给出可用依据。
+        return routed.retrievalEvidenceAvailable() ? "MODEL_DEGRADED" : "RETRIEVAL_MISS";
     }
 
     /** 耗时只落桶：精确毫秒与时间戳结合可参与指纹化，桶化后仅保留运维所需的分布。 */
