@@ -25,8 +25,11 @@ public final class EvaluationReportMarkdown {
         markdown.append("| 通过 | ").append(report.passedCases()).append(" / ")
                 .append(report.totalCases()).append(" |\n");
         markdown.append("| 路由命中 | ").append(report.routeMatchedCases()).append(" |\n");
-        markdown.append("| 条级引用命中 | ").append(report.citationMatchedCases()).append(" |\n");
+        markdown.append("| 条级引用命中 | ").append(report.citationMatchedCases())
+                .append(" / ").append(report.citationRequiredCases()).append(" |\n");
         markdown.append("| 拒答判定一致 | ").append(report.refusalMatchedCases()).append(" |\n\n");
+        markdown.append("> 条级引用命中的分母仅含预期引用非空的题；0/0 表示本次没有要求引用的题，"
+                + "不计算命中率。\n\n");
 
         markdown.append("## 逐用例：预期 vs 实际\n\n");
         markdown.append("| caseId | 问题 | 预期路由 | 实际路由 | 预期条级引用 | 实际引用 | 应拒答 | 实际拒答 | 结论 |\n");

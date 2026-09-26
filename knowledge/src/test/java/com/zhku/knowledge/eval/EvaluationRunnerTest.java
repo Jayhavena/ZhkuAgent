@@ -37,6 +37,9 @@ class EvaluationRunnerTest {
         assertThat(report.corpusFingerprint()).isEqualTo(FINGERPRINT);
         assertThat(report.totalCases()).isEqualTo(3);
         assertThat(report.passedCases()).isEqualTo(3);
+        assertThat(report.citationMatchedCases()).isEqualTo(2);
+        assertThat(EvaluationReportMarkdown.render(report))
+                .contains("| 条级引用命中 | 2 / 2 |");
         // 每条都记下"预期 vs 实际"两侧，报告才有可核验性（不能只给一个通过率）。
         assertThat(report.outcomes()).hasSize(3);
         EvaluationReport.CaseOutcome first = report.outcomes().getFirst();
@@ -65,11 +68,15 @@ class EvaluationRunnerTest {
         assertThat(report.totalCases()).isEqualTo(3);
         assertThat(report.passedCases()).isZero();
         assertThat(report.routeMatchedCases()).isEqualTo(1); // 只有 c3 的路由碰巧对
-        // c1 引用正确、c3 无引用预期（不作断言）→ 条级引用命中 2 条。
-        assertThat(report.citationMatchedCases()).isEqualTo(2);
+        // c1 要求引用且命中；c2 要求引用但未命中；c3 不要求引用，不进入汇总分母。
+        assertThat(report.outcomes().getFirst().citationMatched()).isTrue();
+        assertThat(report.outcomes().get(1).citationMatched()).isFalse();
+        assertThat(report.outcomes().get(2).citationMatched()).isTrue();
+        assertThat(report.citationMatchedCases()).isEqualTo(1);
+        assertThat(EvaluationReportMarkdown.render(report))
+                .contains("| 条级引用命中 | 1 / 2 |");
         assertThat(report.refusalMatchedCases()).isEqualTo(2);
         assertThat(report.outcomes().getFirst().routeMatched()).isFalse();
-        assertThat(report.outcomes().get(1).citationMatched()).isFalse();
         assertThat(report.outcomes().get(2).refusalMatched()).isFalse();
     }
 
@@ -99,6 +106,23 @@ class EvaluationRunnerTest {
         assertThat(markdown).contains("| c1 |").contains("HIGH_RISK_RULE");
         assertThat(markdown).contains("PDF 第 77 页，第 9、13 条");
         assertThat(markdown).contains("| 通过 | 3 / 3 |");
+    }
+
+    @Test
+    void shouldReportZeroOfZeroWhenNoCaseRequiresCitation() {
+        EvaluationReport report = new EvaluationReport("no-citation", "v1", FINGERPRINT,
+                List.of(new EvaluationReport.CaseOutcome("clarify", "需要澄清",
+                                AnswerRoute.AWAITING_CLARIFICATION, AnswerRoute.AWAITING_CLARIFICATION,
+                                List.of(), List.of(), false, false),
+                        new EvaluationReport.CaseOutcome("refuse", "应拒答",
+                                AnswerRoute.INSUFFICIENT_EVIDENCE, AnswerRoute.INSUFFICIENT_EVIDENCE,
+                                List.of(), List.of("额外引用也不构成命中要求"), true, true)));
+
+        assertThat(report.passedCases()).isEqualTo(2);
+        assertThat(report.citationMatchedCases()).isZero();
+        String markdown = EvaluationReportMarkdown.render(report);
+        assertThat(markdown).contains("| 条级引用命中 | 0 / 0 |");
+        assertThat(markdown).doesNotContain("100%");
     }
 
     private static EvaluationDataset dataset(String... caseIds) {

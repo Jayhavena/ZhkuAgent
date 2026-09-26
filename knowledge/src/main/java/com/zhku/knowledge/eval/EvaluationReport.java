@@ -43,7 +43,15 @@ public record EvaluationReport(
     }
 
     public long citationMatchedCases() {
-        return outcomes.stream().filter(CaseOutcome::citationMatched).count();
+        // 逐题可跳过引用断言，但汇总不能把“无需断言”当成命中，否则会虚增指标。
+        return outcomes.stream()
+                .filter(outcome -> !outcome.expectedLocators().isEmpty())
+                .filter(CaseOutcome::citationMatched)
+                .count();
+    }
+
+    public long citationRequiredCases() {
+        return outcomes.stream().filter(outcome -> !outcome.expectedLocators().isEmpty()).count();
     }
 
     public long refusalMatchedCases() {
