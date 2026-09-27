@@ -59,7 +59,7 @@ public final class ElectiveRetakeConversationService {
     }
 
     private ElectiveRetakeReply handleNewMessage(UUID sessionId, String message) {
-        if (!isElectiveRetakeQuestion(message)) {
+        if (!matchesRetakeQuestion(message)) {
             return reply(ElectiveRetakeReplyType.OUT_OF_SCOPE, "当前问题不属于已支持的选修课重修咨询范围。", null);
         }
         Optional<CourseType> courseType = resolveCourseType(message);
@@ -81,7 +81,7 @@ public final class ElectiveRetakeConversationService {
             String message,
             ConversationState state
     ) {
-        if (!isElectiveRetakeQuestion(message)) {
+        if (!matchesRetakeQuestion(message)) {
             return reply(ElectiveRetakeReplyType.OUT_OF_SCOPE, "当前问题不属于已支持的选修课重修咨询范围。", null);
         }
         Optional<CourseType> courseType = resolveCourseType(message);
@@ -124,7 +124,7 @@ public final class ElectiveRetakeConversationService {
         Optional<CourseType> courseType = resolveCourseType(message);
         if (courseType.isPresent()
                 && (isStandaloneCourseTypeReply(message, courseType.get())
-                || isElectiveRetakeQuestion(message))) {
+                || matchesRetakeQuestion(message))) {
             ElectiveRetakeReply answer = answerFor(courseType.get());
             if (answer.type() != ElectiveRetakeReplyType.ANSWER) {
                 return answer;
@@ -140,7 +140,7 @@ public final class ElectiveRetakeConversationService {
             }
             return replyForWriteFailure(cleared.outcome());
         }
-        if (message.contains("选修") || isElectiveRetakeQuestion(message)) {
+        if (message.contains("选修") || matchesRetakeQuestion(message)) {
             return reply(ElectiveRetakeReplyType.NEED_CLARIFICATION, CLARIFICATION, null);
         }
         return reply(ElectiveRetakeReplyType.OUT_OF_SCOPE, "请先回答当前澄清问题，或重新发起其他问题。", null);
@@ -212,8 +212,9 @@ public final class ElectiveRetakeConversationService {
         };
     }
 
-    private static boolean isElectiveRetakeQuestion(String message) {
-        boolean elective = message.contains("选修");
+    /** 路由器与服务共用意图门槛；只补“公选课”简称，避免类别词单独触发重修回答。 */
+    public static boolean matchesRetakeQuestion(String message) {
+        boolean elective = message.contains("选修") || message.contains("公选课");
         boolean failure = message.contains("不及格") || message.contains("挂科") || message.contains("没及格");
         return elective && failure && message.contains("重修");
     }

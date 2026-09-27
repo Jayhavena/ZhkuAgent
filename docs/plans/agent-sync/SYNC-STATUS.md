@@ -103,6 +103,8 @@
 
 ## 三、文件占用声明（开工时登记，收工时清除）
 
+> 2026-09-27 已完成并清除 Codex（线 A）本轮占用：重修服务、公共选修路由器及对应测试、`LocalPreviewAnswerChainTest.java`、新增专项真库测试与 `docs/evidence/2026-09-27-公选课重修问法-证据账本.md`。修复“公选课不及格后重修”漏识别，两入口共用意图口径；先 RED（3 个新增断言失败），后相关回归 44/44、真库原题 `HIGH_RISK_RULE` + 第 18 条引用。`five-level-routing / v1` 与 09-26/27 历史报告未改；完整指纹 `[EVAL-CORPUS] 学生手册2025版(PDF条级定位) + 当期选课通知2026-2027-1 @ 共享演示库`。开工时已核对 `eval/` 无并发占用，现已清除。
+
 | 文件 / 目录 | 占用方 | 任务 | 声明时间 |
 | --- | --- | --- | --- |
 | `knowledge/src/main/java/com/zhku/knowledge/retrieval/`、`routing/`、`rag/`、`eval/` 及同名测试目录 | WB-3（线 A） | 阶段 8 检索与生成侧——**已交付**（真实 provider 打通、向量路开启、第二份基线已产出）；阶段 9 开工前须按新包（`serviceguide/`、`feedback/`）另行登记 | 2026-09-17 16:41 |

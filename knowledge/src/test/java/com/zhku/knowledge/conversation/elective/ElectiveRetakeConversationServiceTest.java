@@ -117,6 +117,54 @@ class ElectiveRetakeConversationServiceTest {
     }
 
     @Test
+    void shouldAnswerPublicElectiveRetakeAbbreviationWithoutAskingForKnownCourseType() {
+        MutableClock clock = new MutableClock(START);
+        ConversationStore store = new InMemoryConversationStore();
+        ElectiveRetakeConversationService service = service(store, evidenceFinder(), clock);
+
+        ElectiveRetakeReply reply = service.handle(SESSION_ID, "我公选课不及格了要重修怎么办");
+
+        assertThat(reply.type()).isEqualTo(ElectiveRetakeReplyType.ANSWER);
+        assertThat(reply.answer().conclusion()).isEqualTo("公共选修课成绩不合格，不安排重修。");
+        assertThat(reply.answer().sourceLocator()).isEqualTo("PDF 第 77 页，第 18 条");
+        assertThat(store.find(SESSION_ID, clock).outcome().name()).isEqualTo("NOT_FOUND");
+    }
+
+    @Test
+    void shouldAnswerFullPublicElectiveRetakeQuestionWithoutClarification() {
+        ElectiveRetakeConversationService service = service(
+                new InMemoryConversationStore(), evidenceFinder(), new MutableClock(START));
+
+        ElectiveRetakeReply reply = service.handle(SESSION_ID, "公共选修课不及格了要重修怎么办");
+
+        assertThat(reply.type()).isEqualTo(ElectiveRetakeReplyType.ANSWER);
+        assertThat(reply.answer().conclusion()).isEqualTo("公共选修课成绩不合格，不安排重修。");
+    }
+
+    @Test
+    void shouldNotTreatPublicElectiveWithdrawalQuestionAsRetakeIntent() {
+        ElectiveRetakeConversationService service = service(
+                new InMemoryConversationStore(), evidenceFinder(), new MutableClock(START));
+
+        ElectiveRetakeReply reply = service.handle(SESSION_ID, "公选课怎么退课？");
+
+        assertThat(reply.type()).isEqualTo(ElectiveRetakeReplyType.OUT_OF_SCOPE);
+        assertThat(reply.answer()).isNull();
+    }
+
+    @Test
+    void shouldSafelyRefusePublicElectiveRetakeAbbreviationWithoutQualifiedEvidence() {
+        MutableClock clock = new MutableClock(START);
+        ElectiveRetakeConversationService service = service(
+                new InMemoryConversationStore(), courseType -> Optional.empty(), clock);
+
+        ElectiveRetakeReply reply = service.handle(SESSION_ID, "我公选课不及格了要重修怎么办");
+
+        assertThat(reply.type()).isEqualTo(ElectiveRetakeReplyType.EVIDENCE_UNAVAILABLE);
+        assertThat(reply.answer()).isNull();
+    }
+
+    @Test
     void shouldAskForCourseTypeWhenAmbiguousQuestionFollowsPreviousAnswer() {
         MutableClock clock = new MutableClock(START);
         ConversationStore store = new InMemoryConversationStore();
