@@ -55,6 +55,8 @@ public final class EvaluationRunner {
                     evalCase.expectedCitations().stream()
                             .map(EvaluationDataset.Citation::sourceLocator).toList(),
                     observed.citationLocators(),
+                    evalCase.expectedHandoffRequired(),
+                    observed.handoffRequired(),
                     evalCase.expectRefusal(),
                     observed.refused()));
         }

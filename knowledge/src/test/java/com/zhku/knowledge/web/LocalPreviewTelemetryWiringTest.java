@@ -108,6 +108,33 @@ class LocalPreviewTelemetryWiringTest {
     }
 
     @Test
+    void shouldAttributeByExplicitFactsRatherThanRoute() {
+        // 有证据 + 生成降级 → MODEL_DEGRADED（"证据对但没答成"）。
+        assertThat(LocalPreviewConversationFacade.failureCategoryOf(reply(
+                AnswerRoute.RETRIEVAL_AUGMENTED, false, true, true)))
+                .isEqualTo("MODEL_DEGRADED");
+        // 无可用证据 + 降级 → RETRIEVAL_MISS（"没召回到"）。
+        assertThat(LocalPreviewConversationFacade.failureCategoryOf(reply(
+                AnswerRoute.INSUFFICIENT_EVIDENCE, true, false, true)))
+                .isEqualTo("RETRIEVAL_MISS");
+        // 未降级 → NONE：**即使 route 是证据不足**，也说明归因不按 route 反推（否则这里会记成 RETRIEVAL_MISS）。
+        assertThat(LocalPreviewConversationFacade.failureCategoryOf(reply(
+                AnswerRoute.INSUFFICIENT_EVIDENCE, true, false, false)))
+                .isEqualTo("NONE");
+    }
+
+    private static LocalPreviewAnswerChain.RoutedReply reply(
+            AnswerRoute route,
+            boolean handoffRequired,
+            boolean retrievalEvidenceAvailable,
+            boolean generationDegraded) {
+        return new LocalPreviewAnswerChain.RoutedReply(
+                com.zhku.knowledge.conversation.elective.ElectiveRetakeReplyType.ANSWER,
+                "消息", null, route, handoffRequired, List.of(), List.of(),
+                retrievalEvidenceAvailable, generationDegraded);
+    }
+
+    @Test
     void shouldNotRecordSessionIssues() {
         LocalPreviewConversationFacade facade = facade(recorded::add);
 

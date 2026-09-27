@@ -43,11 +43,23 @@ public record EvaluationReport(
     }
 
     public long citationMatchedCases() {
-        return outcomes.stream().filter(CaseOutcome::citationMatched).count();
+        // 逐题可跳过引用断言，但汇总不能把“无需断言”当成命中，否则会虚增指标。
+        return outcomes.stream()
+                .filter(outcome -> !outcome.expectedLocators().isEmpty())
+                .filter(CaseOutcome::citationMatched)
+                .count();
+    }
+
+    public long citationRequiredCases() {
+        return outcomes.stream().filter(outcome -> !outcome.expectedLocators().isEmpty()).count();
     }
 
     public long refusalMatchedCases() {
         return outcomes.stream().filter(CaseOutcome::refusalMatched).count();
+    }
+
+    public long handoffMatchedCases() {
+        return outcomes.stream().filter(CaseOutcome::handoffMatched).count();
     }
 
     /** 一条用例的对比明细：两侧都留证，便于人工复核"差在哪"。 */
@@ -58,6 +70,8 @@ public record EvaluationReport(
             AnswerRoute actualRoute,
             List<String> expectedLocators,
             List<String> actualLocators,
+            boolean expectedHandoffRequired,
+            boolean actualHandoffRequired,
             boolean expectRefusal,
             boolean actualRefused
     ) {
@@ -86,8 +100,12 @@ public record EvaluationReport(
             return expectRefusal == actualRefused;
         }
 
+        public boolean handoffMatched() {
+            return expectedHandoffRequired == actualHandoffRequired;
+        }
+
         public boolean passed() {
-            return routeMatched() && citationMatched() && refusalMatched();
+            return routeMatched() && citationMatched() && handoffMatched() && refusalMatched();
         }
     }
 }

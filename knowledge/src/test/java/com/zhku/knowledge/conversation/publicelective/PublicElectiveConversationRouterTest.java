@@ -75,6 +75,20 @@ class PublicElectiveConversationRouterTest {
     }
 
     @Test
+    void shouldRoutePublicElectiveRetakeAbbreviationInActiveSession() {
+        InMemoryConversationStore store = new InMemoryConversationStore();
+        UUID sessionId = UUID.randomUUID();
+        store.create(ConversationState.active(sessionId, CLOCK.instant().plus(Duration.ofMinutes(10))));
+        PublicElectiveConversationRouter router = new PublicElectiveConversationRouter(
+                store, retakeService(store), creditLimitService(), CLOCK);
+
+        ElectiveRetakeReply reply = router.route(sessionId, "我公选课不及格了要重修怎么办");
+
+        assertThat(reply.type()).isEqualTo(ElectiveRetakeReplyType.ANSWER);
+        assertThat(reply.answer().conclusion()).isEqualTo("公共选修课成绩不合格，不安排重修。");
+    }
+
+    @Test
     void shouldPrioritizeCurrentCourseSelectionNoticeOverStaticRules() {
         InMemoryConversationStore store = new InMemoryConversationStore();
         UUID sessionId = UUID.randomUUID();

@@ -79,7 +79,7 @@ public final class PublicElectiveConversationRouter {
                 return noticeReply;
             }
         }
-        if (isElectiveRetakeQuestion(message)) {
+        if (ElectiveRetakeConversationService.matchesRetakeQuestion(message)) {
             return electiveRetakeService.handle(sessionId, message);
         }
         if (visible.outcome() != StoreResult.Outcome.FOUND) {
@@ -94,10 +94,5 @@ public final class PublicElectiveConversationRouter {
             }
         }
         return creditLimitService.handle(message).toElectiveRetakeReply();
-    }
-
-    private static boolean isElectiveRetakeQuestion(String message) {
-        boolean failure = message.contains("不及格") || message.contains("挂科") || message.contains("没及格");
-        return message.contains("选修") && failure && message.contains("重修");
     }
 }

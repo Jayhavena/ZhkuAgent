@@ -1,5 +1,7 @@
 package com.zhku.knowledge.eval;
 
+import com.zhku.knowledge.conversation.elective.ElectiveRetakeReplyType;
+import com.zhku.knowledge.routing.AnswerRoute;
 import com.zhku.knowledge.web.LocalPreviewAnswerChain;
 import com.zhku.knowledge.web.LocalPreviewConversationFacade;
 
@@ -42,7 +44,11 @@ public final class FacadeAnswerTarget implements AnswerTarget {
                 .distinct()
                 .filter(locator -> !locators.contains(locator))
                 .forEach(locators::add);
-        // 拒答/转人工以 handoffRequired 为准：链路把"证据不足"与"会话异常"都置为 true。
-        return new ObservedAnswer(reply.route(), List.copyOf(locators), reply.handoffRequired());
+        // 会话异常与已作答但需人工核验都可能转人工；只有证据不足的内容拒答才记为 refused。
+        boolean refused = reply.route() == AnswerRoute.INSUFFICIENT_EVIDENCE
+                && (reply.type() == ElectiveRetakeReplyType.OUT_OF_SCOPE
+                || reply.type() == ElectiveRetakeReplyType.EVIDENCE_UNAVAILABLE);
+        return new ObservedAnswer(reply.route(), List.copyOf(locators),
+                reply.handoffRequired(), refused);
     }
 }

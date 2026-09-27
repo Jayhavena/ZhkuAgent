@@ -127,6 +127,20 @@ class LocalPreviewAnswerChainTest {
         assertThat(reply.citationIds()).isEmpty();
     }
 
+    @Test
+    void shouldRouteExplicitPublicElectiveRetakeAsRuleWithoutClarification() {
+        createSession();
+
+        LocalPreviewAnswerChain.RoutedReply reply =
+                chain(null, null).reply(SESSION, "我公选课不及格了要重修怎么办");
+
+        assertThat(reply.route()).isEqualTo(AnswerRoute.HIGH_RISK_RULE);
+        assertThat(reply.type()).isEqualTo(ElectiveRetakeReplyType.ANSWER);
+        assertThat(reply.answer().conclusion()).isEqualTo("公共选修课成绩不合格，不安排重修。");
+        assertThat(reply.answer().sourceLocator()).isEqualTo("PDF 第 77 页，第 18 条");
+        assertThat(reply.handoffRequired()).isFalse();
+    }
+
     private void createSession() {
         store.create(ConversationState.active(SESSION, CLOCK.instant().plus(TTL)));
     }
