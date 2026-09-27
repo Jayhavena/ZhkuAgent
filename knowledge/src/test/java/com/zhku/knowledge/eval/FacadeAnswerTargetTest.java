@@ -15,15 +15,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * 真链路适配器的映射逻辑（离线替身测死，不连库）。
  *
- * <p>重点两条：① **规则级卡的条级定位**（在 `answer.sourceLocator` 上）必须被采集——
- * 只读 `citations` 会让规则级用例永远"引用未命中"；② 拒答/转人工以 `handoffRequired` 为准。</p>
+ * <p>规则级卡的条级定位在 `answer.sourceLocator` 上；需转人工与拒答是不同事实，
+ * 因此替身必须使用与真实链路一致的回复类型和引用 ID。</p>
  */
 class FacadeAnswerTargetTest {
 
     @Test
     void shouldCollectClauseLocatorFromRuleLevelAnswerCard() {
         FacadeAnswerTarget target = new FacadeAnswerTarget(question -> reply(
-                AnswerRoute.HIGH_RISK_RULE, false,
+                ElectiveRetakeReplyType.ANSWER, AnswerRoute.HIGH_RISK_RULE, false,
                 new ElectiveRetakeAnswer("结论", "依据", UUID.randomUUID(), "学生手册", "2025版",
                         "PDF 第 77 页，第 9、13 条", "全日制本科生"),
                 List.of()));
@@ -32,13 +32,14 @@ class FacadeAnswerTargetTest {
 
         assertThat(observed.route()).isEqualTo(AnswerRoute.HIGH_RISK_RULE);
         assertThat(observed.citationLocators()).containsExactly("PDF 第 77 页，第 9、13 条");
+        assertThat(observed.handoffRequired()).isFalse();
         assertThat(observed.refused()).isFalse();
     }
 
     @Test
     void shouldCollectCitationLocatorsFromRetrievalLevelReply() {
         FacadeAnswerTarget target = new FacadeAnswerTarget(question -> reply(
-                AnswerRoute.RETRIEVAL_AUGMENTED, false, null,
+                ElectiveRetakeReplyType.ANSWER, AnswerRoute.RETRIEVAL_AUGMENTED, false, null,
                 List.of(new LocalPreviewAnswerChain.CitationView(
                                 "cit-1", "学生手册", "PDF 第 76 页，第 2、4 条", 76),
                         new LocalPreviewAnswerChain.CitationView(
@@ -51,18 +52,55 @@ class FacadeAnswerTargetTest {
     }
 
     @Test
-    void shouldTreatHandoffAsRefusal() {
+    void shouldRecognizeEvidenceRefusalAndHandoffSeparately() {
         FacadeAnswerTarget target = new FacadeAnswerTarget(question -> reply(
-                AnswerRoute.INSUFFICIENT_EVIDENCE, true, null, List.of()));
+                ElectiveRetakeReplyType.OUT_OF_SCOPE, AnswerRoute.INSUFFICIENT_EVIDENCE,
+                true, null, List.of()));
 
         ObservedAnswer observed = target.answer("公共选修课奖学金怎么评定");
 
         assertThat(observed.route()).isEqualTo(AnswerRoute.INSUFFICIENT_EVIDENCE);
+        assertThat(observed.handoffRequired()).isTrue();
         assertThat(observed.refused()).isTrue();
         assertThat(observed.citationLocators()).isEmpty();
     }
 
+    @Test
+    void shouldRecognizeUnavailableEvidenceAsRefusal() {
+        FacadeAnswerTarget target = new FacadeAnswerTarget(question -> reply(
+                ElectiveRetakeReplyType.EVIDENCE_UNAVAILABLE,
+                AnswerRoute.INSUFFICIENT_EVIDENCE, true, null, List.of()));
+
+        ObservedAnswer observed = target.answer("无有效依据的问题");
+
+        assertThat(observed.handoffRequired()).isTrue();
+        assertThat(observed.refused()).isTrue();
+    }
+
+    @Test
+    void shouldNotCountAnAnsweredHandoffAsRefusal() {
+        FacadeAnswerTarget target = new FacadeAnswerTarget(question -> reply(
+                ElectiveRetakeReplyType.ANSWER, AnswerRoute.RETRIEVAL_AUGMENTED,
+                true, null, List.of(new LocalPreviewAnswerChain.CitationView(
+                        "cit-human-check", "学生手册", "PDF 第 76 页", 76))));
+
+        ObservedAnswer observed = target.answer("需人工核验的已答问题");
+
+        assertThat(observed.handoffRequired()).isTrue();
+        assertThat(observed.refused()).isFalse();
+    }
+
+    @Test
+    void shouldNotCountSessionFailureAsContentRefusal() {
+        FacadeAnswerTarget target = new FacadeAnswerTarget(question -> reply(
+                ElectiveRetakeReplyType.SESSION_EXPIRED, AnswerRoute.INSUFFICIENT_EVIDENCE,
+                true, null, List.of()));
+
+        assertThat(target.answer("过期会话").refused()).isFalse();
+    }
+
     private static LocalPreviewConversationFacade.ConversationReply reply(
+            ElectiveRetakeReplyType type,
             AnswerRoute route,
             boolean handoffRequired,
             ElectiveRetakeAnswer answer,
@@ -73,7 +111,8 @@ class FacadeAnswerTargetTest {
                         answer.conclusion(), answer.basis(), answer.sourceId(), answer.sourceTitle(),
                         answer.sourceVersion(), answer.sourceLocator(), answer.applicableScope());
         return new LocalPreviewConversationFacade.ConversationReply(
-                ElectiveRetakeReplyType.ANSWER, "消息", card, route, handoffRequired,
-                List.of(), citations);
+                type, "消息", card, route, handoffRequired,
+                citations.stream().map(LocalPreviewAnswerChain.CitationView::citationId).toList(),
+                citations);
     }
 }

@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * 评测执行器与对比报告（阶段 10 批3）。
  *
- * <p>三条判据：① 逐用例给出"预期 vs 实际"（路由 / 条级引用定位符 / 应拒答）与汇总指标；
+ * <p>三条判据：① 逐用例给出"预期 vs 实际"（路由 / 条级引用定位符 / 转人工 / 拒答）与汇总指标；
  * ② 报告**必须**携带 `[EVAL-CORPUS]` 语料指纹（缺指纹的数字按约定视为无效）；
  * ③ 执行器**必须经批2 的加载器与清单交叉核对**——绕开它自己读 JSON 是不允许的，
  * 清单与数据集不一致时必须拒绝执行（而不是"照样跑出一份看起来正常的报告"）。</p>
@@ -23,6 +23,52 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class EvaluationRunnerTest {
 
     private static final String FINGERPRINT = "[EVAL-CORPUS] 测试语料@v1";
+
+    @Test
+    void shouldFailWhenHandoffIsRequiredButAnswerDidNotHandoff() {
+        EvaluationDataset dataset = new EvaluationDataset("handoff-test", "v1", FINGERPRINT,
+                List.of(new EvaluationDataset.Case("c1", "需人工核验", AnswerRoute.RETRIEVAL_AUGMENTED,
+                        true, false, List.of())));
+        EvaluationReport report = new EvaluationRunner(
+                question -> new ObservedAnswer(AnswerRoute.RETRIEVAL_AUGMENTED,
+                        List.of(), false, false),
+                new EvaluationDatasetLoader()).run(dataset);
+
+        assertThat(report.passedCases()).isZero();
+        assertThat(report.outcomes().getFirst().handoffMatched()).isFalse();
+        assertThat(report.outcomes().getFirst().refusalMatched()).isTrue();
+    }
+
+    @Test
+    void shouldFailForUnexpectedHandoffWithoutCallingItRefusal() {
+        EvaluationDataset dataset = new EvaluationDataset("handoff-test", "v1", FINGERPRINT,
+                List.of(new EvaluationDataset.Case("c1", "需人工核验的已答问题",
+                        AnswerRoute.RETRIEVAL_AUGMENTED, false, false, List.of())));
+        EvaluationReport report = new EvaluationRunner(
+                question -> new ObservedAnswer(AnswerRoute.RETRIEVAL_AUGMENTED,
+                        List.of(), true, false), new EvaluationDatasetLoader()).run(dataset);
+
+        assertThat(report.passedCases()).isZero();
+        assertThat(report.outcomes().getFirst().handoffMatched()).isFalse();
+        assertThat(report.outcomes().getFirst().refusalMatched()).isTrue();
+        assertThat(EvaluationReportMarkdown.render(report))
+                .contains("| 应转人工 | 实际转人工 | 应拒答 | 实际拒答 |")
+                .contains("| 否 | 是 | 否 | 否 | ❌ |");
+    }
+
+    @Test
+    void shouldFailRefusalMismatchEvenWhenHandoffMatches() {
+        EvaluationDataset dataset = new EvaluationDataset("refusal-test", "v1", FINGERPRINT,
+                List.of(new EvaluationDataset.Case("c1", "应拒答的问题",
+                        AnswerRoute.INSUFFICIENT_EVIDENCE, true, true, List.of())));
+        EvaluationReport report = new EvaluationRunner(
+                question -> new ObservedAnswer(AnswerRoute.INSUFFICIENT_EVIDENCE,
+                        List.of(), true, false), new EvaluationDatasetLoader()).run(dataset);
+
+        assertThat(report.passedCases()).isZero();
+        assertThat(report.outcomes().getFirst().handoffMatched()).isTrue();
+        assertThat(report.outcomes().getFirst().refusalMatched()).isFalse();
+    }
 
     @Test
     void shouldReportExpectedVersusActualForEveryCaseAndPassWhenAllMatch() throws Exception {
@@ -37,6 +83,11 @@ class EvaluationRunnerTest {
         assertThat(report.corpusFingerprint()).isEqualTo(FINGERPRINT);
         assertThat(report.totalCases()).isEqualTo(3);
         assertThat(report.passedCases()).isEqualTo(3);
+        assertThat(report.handoffMatchedCases()).isEqualTo(3);
+        assertThat(report.refusalMatchedCases()).isEqualTo(3);
+        assertThat(EvaluationReportMarkdown.render(report))
+                .contains("| 转人工判定一致 | 3 |")
+                .contains("| 拒答判定一致 | 3 |");
         assertThat(report.citationMatchedCases()).isEqualTo(2);
         assertThat(EvaluationReportMarkdown.render(report))
                 .contains("| 条级引用命中 | 2 / 2 |");
@@ -57,17 +108,18 @@ class EvaluationRunnerTest {
         Map<String, ObservedAnswer> broken = new LinkedHashMap<>(answers());
         // c1：路由答错；c2：引用了别处（条级定位不符）；c3：该拒答却作答了。
         broken.put("问题一", new ObservedAnswer(AnswerRoute.CURRENT_NOTICE,
-                List.of("PDF 第 77 页，第 9、13 条"), false));
+                List.of("PDF 第 77 页，第 9、13 条"), false, false));
         broken.put("问题二", new ObservedAnswer(AnswerRoute.RETRIEVAL_AUGMENTED,
-                List.of("PDF 第 88 页"), false));
-        broken.put("问题三", new ObservedAnswer(AnswerRoute.HIGH_RISK_RULE, List.of(), false));
+                List.of("PDF 第 88 页"), false, false));
+        broken.put("问题三", new ObservedAnswer(AnswerRoute.HIGH_RISK_RULE,
+                List.of(), false, false));
 
         EvaluationReport report = new EvaluationRunner(broken::get,
                 new EvaluationDatasetLoader()).run(dataset);
 
         assertThat(report.totalCases()).isEqualTo(3);
         assertThat(report.passedCases()).isZero();
-        assertThat(report.routeMatchedCases()).isEqualTo(1); // 只有 c3 的路由碰巧对
+        assertThat(report.routeMatchedCases()).isEqualTo(1); // 只有 c2 的路由仍匹配
         // c1 要求引用且命中；c2 要求引用但未命中；c3 不要求引用，不进入汇总分母。
         assertThat(report.outcomes().getFirst().citationMatched()).isTrue();
         assertThat(report.outcomes().get(1).citationMatched()).isFalse();
@@ -76,6 +128,7 @@ class EvaluationRunnerTest {
         assertThat(EvaluationReportMarkdown.render(report))
                 .contains("| 条级引用命中 | 1 / 2 |");
         assertThat(report.refusalMatchedCases()).isEqualTo(2);
+        assertThat(report.handoffMatchedCases()).isEqualTo(2);
         assertThat(report.outcomes().getFirst().routeMatched()).isFalse();
         assertThat(report.outcomes().get(2).refusalMatched()).isFalse();
     }
@@ -113,10 +166,11 @@ class EvaluationRunnerTest {
         EvaluationReport report = new EvaluationReport("no-citation", "v1", FINGERPRINT,
                 List.of(new EvaluationReport.CaseOutcome("clarify", "需要澄清",
                                 AnswerRoute.AWAITING_CLARIFICATION, AnswerRoute.AWAITING_CLARIFICATION,
-                                List.of(), List.of(), false, false),
+                                List.of(), List.of(), false, false, false, false),
                         new EvaluationReport.CaseOutcome("refuse", "应拒答",
                                 AnswerRoute.INSUFFICIENT_EVIDENCE, AnswerRoute.INSUFFICIENT_EVIDENCE,
-                                List.of(), List.of("额外引用也不构成命中要求"), true, true)));
+                                List.of(), List.of("额外引用也不构成命中要求"),
+                                true, true, true, true)));
 
         assertThat(report.passedCases()).isEqualTo(2);
         assertThat(report.citationMatchedCases()).isZero();
@@ -138,10 +192,11 @@ class EvaluationRunnerTest {
     private static Map<String, ObservedAnswer> answers() {
         Map<String, ObservedAnswer> answers = new LinkedHashMap<>();
         answers.put("问题一", new ObservedAnswer(AnswerRoute.HIGH_RISK_RULE,
-                List.of("PDF 第 77 页，第 9、13 条"), false));
+                List.of("PDF 第 77 页，第 9、13 条"), false, false));
         answers.put("问题二", new ObservedAnswer(AnswerRoute.RETRIEVAL_AUGMENTED,
-                List.of("PDF 第 76 页"), false));
-        answers.put("问题三", new ObservedAnswer(AnswerRoute.INSUFFICIENT_EVIDENCE, List.of(), true));
+                List.of("PDF 第 76 页"), false, false));
+        answers.put("问题三", new ObservedAnswer(AnswerRoute.INSUFFICIENT_EVIDENCE,
+                List.of(), true, true));
         return answers;
     }
 

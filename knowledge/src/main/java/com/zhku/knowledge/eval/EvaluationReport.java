@@ -58,6 +58,10 @@ public record EvaluationReport(
         return outcomes.stream().filter(CaseOutcome::refusalMatched).count();
     }
 
+    public long handoffMatchedCases() {
+        return outcomes.stream().filter(CaseOutcome::handoffMatched).count();
+    }
+
     /** 一条用例的对比明细：两侧都留证，便于人工复核"差在哪"。 */
     public record CaseOutcome(
             String caseId,
@@ -66,6 +70,8 @@ public record EvaluationReport(
             AnswerRoute actualRoute,
             List<String> expectedLocators,
             List<String> actualLocators,
+            boolean expectedHandoffRequired,
+            boolean actualHandoffRequired,
             boolean expectRefusal,
             boolean actualRefused
     ) {
@@ -94,8 +100,12 @@ public record EvaluationReport(
             return expectRefusal == actualRefused;
         }
 
+        public boolean handoffMatched() {
+            return expectedHandoffRequired == actualHandoffRequired;
+        }
+
         public boolean passed() {
-            return routeMatched() && citationMatched() && refusalMatched();
+            return routeMatched() && citationMatched() && handoffMatched() && refusalMatched();
         }
     }
 }
