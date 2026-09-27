@@ -57,4 +57,15 @@ class CourseCreditSummaryToolTest {
         assertThat(result.status()).isEqualTo(CampusToolStatus.INVALID_ARGUMENT);
         assertThat(result.resultJson()).contains("courses");
     }
+
+    @Test
+    void modelSchemaRequiresEveryFieldUsedByExecutor() throws Exception {
+        JsonNode schema = MAPPER.readTree(new CourseCreditSummaryTool().descriptor().inputSchemaJson());
+        JsonNode item = schema.path("properties").path("courses").path("items");
+
+        assertThat(schema.path("required").toString()).isEqualTo("[\"courses\"]");
+        assertThat(item.path("required").toString())
+                .isEqualTo("[\"courseId\",\"category\",\"credits\"]");
+        assertThat(item.path("properties").path("credits").path("minimum").intValue()).isZero();
+    }
 }
