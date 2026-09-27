@@ -69,6 +69,15 @@ public final class RetrievalAugmentedAnswerService {
      * 明细不经过模型，模型无法影响它。</p>
      */
     public Optional<RetrievalAnswer> answerWithCitations(String question) {
+        return attemptWithCitations(question)
+                .filter(result -> result.composed().status() == ComposedAnswerStatus.ANSWERED);
+    }
+
+    /**
+     * 内部归因入口：保留“已检索到候选但生成失败”的事实，供回答链区分模型降级与未召回。
+     * 降级结果绝不能直接作为学生答案；对外作答仍须经过 {@link #answerWithCitations(String)} 的守卫。
+     */
+    public Optional<RetrievalAnswer> attemptWithCitations(String question) {
         Objects.requireNonNull(question, "问题不能为空");
 
         RetrievalOutcome outcome = hybridRetrieval.retrieve(
@@ -100,8 +109,6 @@ public final class RetrievalAugmentedAnswerService {
         }
 
         ComposedAnswer composed = composer.compose(question, approved);
-        return composed.status() == ComposedAnswerStatus.ANSWERED
-                ? Optional.of(new RetrievalAnswer(composed, citations))
-                : Optional.empty();
+        return Optional.of(new RetrievalAnswer(composed, citations));
     }
 }
