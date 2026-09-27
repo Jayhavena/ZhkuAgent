@@ -52,3 +52,21 @@
 | 真实供应商冒烟 | **未执行**：缺 `DASHSCOPE_API_KEY`。没有观察到供应商 tool-call 响应，因此不写“真实模型工具调用已验证”。 |
 
 复现命令与输入方式见 [本机模型工具调用演示](../zhkuagent/本机模型工具调用演示.md)。本批可以表述为“供应商原生工具调用接口的离线契约和服务端受控执行已实现”；**不能表述为“真实供应商调用已验证”**。
+
+## 2026-09-27 线 B 补充：真实 Spring AI 到本机假供应商的协议合同
+
+状态：**本机供应商协议合同已验证；真实 DashScope tool-call 仍因缺少 DASHSCOPE_API_KEY 未验证**。本节是对上节 ChatModel 替身测试的补证，不改变上节当时的验证口径。
+
+API 核对：先经 Context7 查 Spring AI 1.0.x 官方手动工具执行示例（可用版本为 1.0.3，未单列 1.0.9），再对照本机锁定的 **1.0.9 sources.jar** 确认选项合并、`tools` 请求字段与 `tool_calls` 响应映射；最终以本机 HTTP 合同实测为准。
+
+先写 `CourseCreditSpringAiProtocolContractTest`，首次运行因缺少 `CourseCreditChatModelFactory` 编译失败。随后将 CLI 中原有的 `OpenAiApi` / `OpenAiChatModel` 构建逻辑原样抽至此工厂，CLI 与合同测试共用同一份 base URL 版本段处理和模型选项；没有新增供应商配置或密钥来源。
+
+合同使用 JDK `HttpServer` 绑定 `127.0.0.1` 随机端口、假密钥和标准 OpenAI-compatible 响应。成功用例实际接收 Spring AI 1.0.9 发出的请求，核对 `tools` **恰好一个**、名称为 `summarize_course_credits`，且参数 schema 包含 `courses[]` 每项必填的 `courseId/category/credits`、类型及非负数约束；假端点回 `tool_calls` 后，受控注册表执行一次，得到 4.5 学分及原工具的资格边界提示。普通文本、未知工具、负学分参数和 HTTP 400 供应商错误四种路径均不执行获准工具，也不产生计算结果。请求只在测试内存中解析；问题与鉴权值不打印。测试沿用 CLI 的 Spring AI 日志关闭边界，避免异常响应日志泄露请求内容。
+
+| 验证 | 实际结果 |
+| --- | --- |
+| 本机协议合同 + 既有工具调用聚焦 + `SpringAiAdapterContractTest` | **28/28 通过，0 失败，0 错误**（新协议合同 5 项；既有模型工具 18 项；既有适配器 5 项）。命令见演示说明；Maven `-o`，无外网/数据库依赖。 |
+| knowledge 全模块离线回归 | **411 运行 / 8 失败 / 84 错误 / 4 跳过**，不能称全绿。当前仍缺 `ZHKU_DB_PASSWORD`；数据库相关测试无法装配。B-4 的 `GracefulDegradationTest.shouldSafelyRefuseAndClassifyModelTimeoutAsModelDegraded` 仍为既有红例（`RETRIEVAL_MISS` vs `MODEL_DEGRADED`，归线 A）。新协议合同 5/5 通过。 |
+| 真实 DashScope 冒烟 | **未执行**：当前进程缺 `DASHSCOPE_API_KEY`；未观察到真实供应商 tool-call 响应。 |
+
+这批只能证明 Spring AI 1.0.9 与本机假供应商之间的原生工具调用协议及受控执行，不能推断真实 DashScope 当下支持情况或调用成功率。

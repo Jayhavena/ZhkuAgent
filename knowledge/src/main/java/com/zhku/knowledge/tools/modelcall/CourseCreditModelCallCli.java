@@ -9,8 +9,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.ai.openai.OpenAiChatOptions;
-import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.PropertySource;
@@ -41,22 +39,12 @@ public final class CourseCreditModelCallCli {
             // Spring AI 1.0.9 的异常响应分支会把 Prompt 写入 WARN；本机冒烟必须先关掉该包日志。
             logContext.getLogger("org.springframework.ai").setLevel(Level.OFF);
             RagProviderProfile profile = configuredProfile();
-            String key = ApiKeyResolver.systemEnvironment().requireApiKey(profile);
+            // 在读取问题前验证配置和密钥，失败时不让原始问题进入任何模型对象。
+            OpenAiChatModel model = CourseCreditChatModelFactory.create(
+                    profile, ApiKeyResolver.systemEnvironment());
             System.out.println("请输入一行课程学分问题，然后按回车：");
             String question = new BufferedReader(
                     new InputStreamReader(System.in, StandardCharsets.UTF_8)).readLine();
-            // 供应商端点与模型均来自现有 profile；此入口不输出问题、密钥或供应商异常。
-            OpenAiApi.Builder apiBuilder = OpenAiApi.builder()
-                    .baseUrl(profile.baseUrl())
-                    .apiKey(key);
-            if (profile.baseUrl().endsWith("/v1")) {
-                // 现有百炼兼容端点已含 /v1，不能让 Spring AI 再拼一层 /v1。
-                apiBuilder.completionsPath("/chat/completions");
-            }
-            OpenAiChatModel model = OpenAiChatModel.builder()
-                    .openAiApi(apiBuilder.build())
-                    .defaultOptions(OpenAiChatOptions.builder().model(profile.chatModel()).build())
-                    .build();
             var service = new CourseCreditModelCallService(
                     model,
                     new CampusToolRegistry(List.of(new CourseCreditSummaryTool())),

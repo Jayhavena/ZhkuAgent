@@ -167,6 +167,8 @@
 >
 > 2026-09-27 已完成并清除 CX-1 对 `CourseCreditSummaryTool`、新 `tools/modelcall/` 主/测试目录及本线工具账本、演示说明的占用：Spring AI 1.0.9 原生 ToolCall 单工具暴露与受控执行，离线聚焦 18/18；当前缺 `DASHSCOPE_API_KEY`，真实供应商调用未验证。全模块回归受缺 `ZHKU_DB_PASSWORD` 与已登记 B-4 既有红例阻断，详见线 B 工具账本。未改线 A `routing/`、`rag/`、`eval/` 或回答门面。
 >
+> 2026-09-27 已完成并清除 CX-1 对 `tools/modelcall/CourseCreditModelCallCli.java`、同目录模型构建工厂及协议测试、本线工具账本和演示说明的占用：真实 Spring AI 1.0.9 对本机 `HttpServer` 的原生工具协议合同 5/5，连同既有工具与适配器聚焦 28/28；真实 DashScope 因缺 `DASHSCOPE_API_KEY` 未验证。全模块 411 运行 / 8 失败 / 84 错误 / 4 跳过（缺数据库密码 + 既有 B-4 红例），详见账本。未改线 A 路由/RAG/评测或共享问答门面。
+>
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
 >
