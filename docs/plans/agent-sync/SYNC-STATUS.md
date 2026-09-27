@@ -121,7 +121,9 @@
 | `knowledge/src/main/java/com/zhku/knowledge/publication/LocalKnowledgePublisherFactory.java`、`knowledge/src/test/java/com/zhku/knowledge/ZhkuDatabaseTestConfig.java` 及 `LocalKnowledgePublisherFactoryTest` | CX-1（线 B，PM 裁决） | 移除数据库密码的系统属性入口；保留 URL/用户的非敏感系统属性。密码属性被设置即 fail-fast，测试/生产均仅接收 `ZHKU_DB_PASSWORD` 环境变量 | 2026-09-20 |
 | `knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java`、`knowledge/src/test/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfigurationTest.java`、`knowledge/src/test/java/com/zhku/knowledge/web/streaming/ZhkuLocalPreviewStreamingConfigurationTest.java` | CX-1（线 B，PM 裁决） | 预览装配从 Spring `Environment` 取得 `ZHKU_DB_PASSWORD`；两份夹具以测试 Environment 注入占位值，不再写入 JVM 系统属性 `zhku.db.password` | 2026-09-20 |
 
-> 2026-09-27 已完成并清除 Codex（线 A）对 `eval/` 中转人工/拒答评测五个生产文件、两个测试文件及两份 Eval 报告/账本的占用：按现有回复类型与路由契约拆分两维，先 RED（3 个行为断言失败）后 GREEN（评测离线测试 19/19）；旧逐题记录仅能重算转人工一致 3/5，新口径拒答与通过待真库复验，未重跑真实链路。Docker 不可用，本次未做数据库全量回归。
+> 2026-09-27 已完成并清除 Codex（线 A）对 `SharedCorpusEvaluationReportTest.java`、2026-09-27 新报告与 Eval 账本的复验占用：`zhkuagent-postgres` healthy；`five-level-routing / v1`、完整指纹 `[EVAL-CORPUS] 学生手册2025版(PDF条级定位) + 当期选课通知2026-2027-1 @ 共享演示库` 下，**本次真实运行**用例 5 / 通过 2 / 路由 3 / 条级引用 1/2 / 转人工一致 3/5 / 拒答一致 3/5；分段全量 405 + 11 = 416 运行 / 0 失败 / 0 错误 / 3 跳过，演示清单 `elective-adjust / 2025版` 学生可见、3 步骤 / 2 渠道仍在。09-26 历史报告保留。
+
+> 2026-09-27 已完成并清除 Codex（线 A）对 `eval/` 中转人工/拒答评测五个生产文件、两个测试文件及两份 Eval 报告/账本的上次占用：按现有回复类型与路由契约拆分两维，先 RED（3 个行为断言失败）后 GREEN（评测离线测试 19/19）；当时旧逐题记录仅能重算转人工一致 3/5，新口径拒答与通过等待真库复验（现已完成，见上一条）。当时 Docker 不可用，未做数据库全量回归。
 
 > 2026-09-27 已完成并清除 Codex（线 A）对 `eval/EvaluationReport.java`、`EvaluationReportMarkdown.java`、`EvaluationRunnerTest.java` 及两份 Eval 报告/账本的上次占用：先 RED（3 个断言按旧口径失败），后 GREEN（相关离线测试 13/13）；按原逐题结果将条级引用汇总更正为 1/2，未重跑真实链路。Docker 不可用，本次未做数据库全量复验。
 

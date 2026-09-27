@@ -50,7 +50,7 @@ class SharedCorpusEvaluationReportTest {
     private static final Clock CLOCK = Clock.systemUTC();
     private static final Duration TTL = Duration.ofMinutes(10);
     private static final Path REPORT_PATH =
-            Paths.get("..", "docs", "evidence", "2026-09-26-阶段10-Eval对比报告.md");
+            Paths.get("..", "docs", "evidence", "2026-09-27-阶段10-Eval对比报告.md");
 
     @Test
     void shouldGenerateComparisonReportAgainstSharedCorpus() throws Exception {
