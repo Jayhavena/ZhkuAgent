@@ -6,9 +6,9 @@ import java.util.Objects;
 /**
  * 检索增强级的完整作答：受控生成结果 + 引用明细。
  *
- * <p>{@link #composed()} 里的 `citationIds` 是模型可见的白名单标识；
- * {@link #citations()} 是同一批标识的来源明细（标题/定位/页码），
- * 供服务端组装引用卡。两者由服务端在同一次分配中产生，长度与顺序一致。</p>
+ * <p>{@link #composed()} 里的 `citationIds` 是守卫通过后可下发的引用；
+ * {@link #citations()} 是本轮检索候选的服务端来源明细。生成降级时后者只供内部归因，
+ * 不得把候选明细当作已验证引用卡下发给学生。</p>
  */
 public record RetrievalAnswer(ComposedAnswer composed, List<ComposedAnswerCitation> citations) {
 

@@ -91,7 +91,7 @@ public final class LocalPreviewAnswerChain {
         // 只看 route 无法区分（两者都落到拒答），归因会错。
         boolean retrievalEvidenceAvailable = false;
         if (retrievalService != null) {
-            Optional<RetrievalAnswer> retrieval = retrievalService.answerWithCitations(message);
+            Optional<RetrievalAnswer> retrieval = retrievalService.attemptWithCitations(message);
             if (retrieval.isPresent()) {
                 // 引用明细来自检索侧：非空即"检索给出了可用证据"，与生成结论无关。
                 retrievalEvidenceAvailable = !retrieval.get().citations().isEmpty();
