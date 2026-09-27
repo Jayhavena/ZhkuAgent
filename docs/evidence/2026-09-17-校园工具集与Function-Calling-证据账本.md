@@ -70,3 +70,11 @@ API 核对：先经 Context7 查 Spring AI 1.0.x 官方手动工具执行示例�
 | 真实 DashScope 冒烟 | **未执行**：当前进程缺 `DASHSCOPE_API_KEY`；未观察到真实供应商 tool-call 响应。 |
 
 这批只能证明 Spring AI 1.0.9 与本机假供应商之间的原生工具调用协议及受控执行，不能推断真实 DashScope 当下支持情况或调用成功率。
+
+## 2026-09-27 真实 DashScope tool-call 冒烟补证
+
+状态：**真实 DashScope tool-call 已验证（本次本机配置与时点）**。上节“未验证”是当时缺密钥的历史记录，本节在用户完成环境变量配置后追加，不回写旧结果。
+
+本次从 Windows 用户级 `DASHSCOPE_API_KEY` 向当前测试进程注入密钥，未打印或记录其值。使用现有 `application-zhku-local-preview.yml` 的 `dashscope` profile（`qwen-plus`、国内站兼容端点），运行 CLI 的显式 `--live` 路径；没有替换供应商、模型或工具注册表。两次虚构课程冒烟均观察到 `tool=summarize_course_credits`、`status=SUCCESS`、`result.totalCredits=4.5` 与 `boundary` 字段；第二次用纯 ASCII 问题排除当前终端的中文管道编码干扰，类别汇总为 `required=3`、`general education=1.5`。这说明供应商实际返回了工具调用意图，Spring AI 解析后由服务端执行了已批准的纯计算工具；普通文本或客户端自行解析 JSON 不会产生该成功状态。
+
+限制：当前 Codex 终端捕获中的中文 `boundary` 显示乱码，故只把其**字段存在**作为本次真机输出观察；边界原文由离线合同测试确认。此冒烟不证明课程归属、选课资格、毕业资格或跨时点稳定性。最近一次 knowledge 全模块回归仍是 **411 运行 / 8 失败 / 84 错误 / 4 跳过**（缺 `ZHKU_DB_PASSWORD` 与既有 B-4 红例）；本次只更新真实供应商证据，未将全模块写成通过。复现命令见演示说明。
