@@ -173,6 +173,12 @@
 
 > 2026-09-23 已完成并清除 CX-1 对 `TelemetryAnswerChainCrossCheckTest` 的 B-3 占用：真实问答经既有门面与 JDBC 遥测仓储在专属日期夹具中恰好落 1 条，读取结果严格为八维白名单、无自由文本/身份/密钥/散列；未知会话落 0 条。该独立黑盒核对只读依赖线 A `telemetry/`，未改其生产代码、迁移、前端或评测；关联回归 29/29。
 >
+> 2026-09-27 已完成并清除 CX-1 对 `CourseCreditSummaryTool`、新 `tools/modelcall/` 主/测试目录及本线工具账本、演示说明的占用：Spring AI 1.0.9 原生 ToolCall 单工具暴露与受控执行，离线聚焦 18/18；当前缺 `DASHSCOPE_API_KEY`，真实供应商调用未验证。全模块回归受缺 `ZHKU_DB_PASSWORD` 与已登记 B-4 既有红例阻断，详见线 B 工具账本。未改线 A `routing/`、`rag/`、`eval/` 或回答门面。
+>
+> 2026-09-27 已完成并清除 CX-1 对 `tools/modelcall/CourseCreditModelCallCli.java`、同目录模型构建工厂及协议测试、本线工具账本和演示说明的占用：真实 Spring AI 1.0.9 对本机 `HttpServer` 的原生工具协议合同 5/5，连同既有工具与适配器聚焦 28/28；真实 DashScope 因缺 `DASHSCOPE_API_KEY` 未验证。全模块 411 运行 / 8 失败 / 84 错误 / 4 跳过（缺数据库密码 + 既有 B-4 红例），详见账本。未改线 A 路由/RAG/评测或共享问答门面。
+>
+> 2026-09-27 已完成并清除 CX-1 对本线工具账本、演示说明和状态板补证的占用：用户级 `DASHSCOPE_API_KEY` 可用于本机显式 `--live` 冒烟，真实 `qwen-plus` 返回获准 `summarize_course_credits` 调用，CLI 两次观察 `SUCCESS`、总学分 4.5 与 `boundary` 字段；第二次 ASCII 虚构课程输入的类别汇总正确。当前 Codex 终端中文捕获乱码，边界原文以离线测试为准。真实调用已验证；全模块仍非全绿，未改线 A 文件或推送主线。
+>
 > 说明：状态板更新由各线在自己分支进行，主线看到的版本是最近一次合并时的状态；
 > 跨线判断冲突时，以双方分支上的最新登记为准。
 >
