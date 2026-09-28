@@ -1,4 +1,4 @@
-param(
+﻿param(
     [Parameter(Mandatory = $true)][string]$DatabaseUrl,
     [Parameter(Mandatory = $true)][string]$DataRoot,
     [string]$DatabaseUser = 'zhkuagent'

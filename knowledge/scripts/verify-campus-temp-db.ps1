@@ -1,4 +1,4 @@
-param(
+﻿param(
     [int]$Port = 55432,
     [string]$MavenRepo = (Join-Path $env:USERPROFILE '.m2/repository')
 )

@@ -1,4 +1,4 @@
-param(
+﻿param(
     [switch]$UseDatabase,
     [switch]$UseDashScope,
     [switch]$RequireDatabase,

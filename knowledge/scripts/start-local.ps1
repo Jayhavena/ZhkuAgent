@@ -1,4 +1,4 @@
-param(
+﻿param(
     [ValidateSet('preview', 'admin')][string]$Mode = 'preview',
     [Parameter(Mandatory = $true)][string]$DataRoot,
     [int]$Port = 0,

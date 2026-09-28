@@ -1,4 +1,4 @@
-$scriptPath = Join-Path $PSScriptRoot 'ensure-zhku-postgres.ps1'
+﻿$scriptPath = Join-Path $PSScriptRoot 'ensure-zhku-postgres.ps1'
 
 Describe 'ensure-zhku-postgres' {
     BeforeEach {
