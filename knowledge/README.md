@@ -7,7 +7,7 @@
 在仓库根目录执行：
 
 ```powershell
-.\mvnw.cmd -f knowledge/pom.xml -DskipTests package
+.\mvnw.cmd -pl knowledge -am -DskipTests package
 .\knowledge\scripts\start-local.ps1 -Mode preview -DataRoot D:/alldesk/Projects/SuperAgent-zhkuagent-mvp
 .\knowledge\scripts\start-local.ps1 -Mode admin -DataRoot D:/alldesk/Projects/SuperAgent-zhkuagent-mvp
 ```
@@ -24,4 +24,47 @@ knowledge/infra 保留原 Compose 项目名、容器和数据卷声明；本轮�
 
 DataRoot 用作测试工作目录，以便读取既存 PDF 和整理资料。命令行属性 zhku.data-root 默认是模块目录，可在没有真实 PDF 时运行基础测试；完整验收使用原资料目录。
 
-构建输出：普通 knowledge jar 用于 CLI；带 preview/admin 后缀的两个可执行 jar 分别启动问答/管理服务。
+## 校园 Agent 纵切与索引（本机预览）
+
+有 Docker/pgvector 镜像时，可先运行独立的**临时库自动化验收**：
+
+```powershell
+.\knowledge\scripts\verify-campus-temp-db.ps1
+```
+
+脚本生成随机数据库密码，启动无持久卷的专用容器，运行迁移、审核发布、索引/候选、词法降级评测及校园 Agent HTTP 闭环测试，结束后停止并删除容器。模型工具选择使用可控替身；它不验证真实供应商，也不调用原演示库。端口冲突时可指定 `-Port`，但不可使用原演示库的 54329 端口。
+
+根目录构建三个模块（含共享运行上下文）：
+
+```powershell
+.\mvnw.cmd -pl knowledge -am -DskipTests package
+```
+
+`index` 可执行 jar 只在显式 `--live` 下写索引，必须把 `ZHKU_DB_URL` 明确设为专用目标库，并从环境变量提供 `ZHKU_DB_PASSWORD` 与模型 profile 所需密钥。本仓库默认 profile 是 `dashscope`；测试时先在**专用临时测试库**建表、按审核流程发布资料，再执行：
+
+```powershell
+$env:ZHKU_DB_URL = 'jdbc:postgresql://127.0.0.1:<临时库端口>/<临时库名>'
+$env:ZHKU_DB_USER = '<临时库用户>'
+# ZHKU_DB_PASSWORD 与 DASHSCOPE_API_KEY 由当前进程环境安全提供，不写入命令或仓库。
+java -jar .\knowledge\target\knowledge-0.0.1-SNAPSHOT-index.jar --live --scope=PUBLIC_ELECTIVE --chunking-version=fact-aware-v1
+```
+
+CLI 根据预览 YAML 的模型 profile 登记 `BUILDING` 索引 profile；每次运行记录 `runId`、合格候选数、新增条目数。相同 profile/切分版本/来源哈希重跑时新增为零；内容变化须新切分版本。**发布不会自动建索引**：审核发布只更新资料表，CLI 索引读取已发布、学生可见、分享权确认且范围匹配的片段。规则级学分上限使用独立的 `PUBLIC_ELECTIVE_CREDIT_LIMIT` 已发布证据，优先于 RAG；通用 RAG 的示例范围 `PUBLIC_ELECTIVE` 与 YAML 一致。当前检索器仍按配置 profile 检索，尚未强制检查其 `ACTIVE` 状态；不能把 `BUILDING` 误称为已完成上线评测。
+
+默认预览仍关闭模型。具备供应商密钥且**明确选择目标库**时，显式启用预览校园入口：
+
+```powershell
+.\knowledge\scripts\start-local.ps1 -Mode preview -DataRoot <既存数据目录> -Port 18123 -EnableRag -EnableCampusAgent
+```
+
+临时库验收若不用既存 DataRoot，可在已提供临时库密码的会话中直接启动 preview jar，并将 `--zhku.db.url` 指向与索引 CLI 相同的临时库。`-EnableRag` / `-EnableCampusAgent` 对应的 Java 参数分别是 `--zhku.rag.enabled=true` / `--zhku.campus-agent.enabled=true`；不要把密码写在 Java 参数里。
+
+新 JSON 合同与旧 `/conversations` JSON/SSE 路径独立。创建运行：`POST /zhku/local-preview/campus-agent/v1/runs`，请求体示例：
+
+```json
+{"question":"这两门虚构公选课学分合计及每学期上限？","courses":[{"courseId":"ART01","category":"公共选修课","credits":1.5},{"courseId":"HIS02","category":"公共选修课","credits":2}]}
+```
+
+返回 `runId` 后可 `GET /zhku/local-preview/campus-agent/v1/runs/{runId}` 查看状态、步骤、工具结果、出处；`POST /.../{runId}/cancel` 请求取消。`state=STOP_REQUESTED` 只表示停止请求已收到，`terminated=true` 才表示清理完成。若省略 `courses`，模型可以选择追问；它若提交非法工具参数或资料不可核验，服务端会转人工。每次运行及预览会话均只在内存中保存，最多保留 128 条运行，进程重启后消失，**不是 JDBC 运行时持久化**。
+
+构建输出：普通 knowledge jar 供既有 CLI 使用；带 preview/admin/index 后缀的可执行 jar 分别启动问答、管理服务和显式索引任务。

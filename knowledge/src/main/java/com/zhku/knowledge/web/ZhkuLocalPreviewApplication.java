@@ -3,6 +3,8 @@ package com.zhku.knowledge.web;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.context.annotation.Import;
+import com.zhku.knowledge.rag.RagProviderConfiguration;
 
 /**
  * 仲园 Agent 的本机问答预览专用启动入口。
@@ -16,6 +18,8 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
         },
         exclude = DataSourceAutoConfiguration.class
 )
+// 预览只扫描 web/feedback；RAG 配置必须显式导入，内部开关仍保证默认不建模型 bean。
+@Import(RagProviderConfiguration.class)
 public class ZhkuLocalPreviewApplication {
 
     public static void main(String[] args) {

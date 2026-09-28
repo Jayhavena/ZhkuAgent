@@ -3,7 +3,9 @@ param(
     [Parameter(Mandatory = $true)][string]$DataRoot,
     [int]$Port = 0,
     [string]$CurrentAcademicTerm,
-    [string]$CourseSelectionOfficialQueryUrl
+    [string]$CourseSelectionOfficialQueryUrl,
+    [switch]$EnableRag,
+    [switch]$EnableCampusAgent
 )
 
 $ErrorActionPreference = 'Stop'
@@ -24,6 +26,12 @@ $hasQueryUrl = -not [string]::IsNullOrWhiteSpace($CourseSelectionOfficialQueryUr
 if ($hasTerm -xor $hasQueryUrl) {
     throw 'CurrentAcademicTerm and CourseSelectionOfficialQueryUrl must be supplied together.'
 }
+if (($EnableRag -or $EnableCampusAgent) -and $Mode -ne 'preview') {
+    throw 'RAG and campus Agent switches are preview-only.'
+}
+if ($EnableCampusAgent -and -not $EnableRag) {
+    throw 'Campus Agent requires -EnableRag.'
+}
 
 $previousPassword = $env:ZHKU_DB_PASSWORD
 $env:ZHKU_DB_PASSWORD = $passwordLine -replace '^ZHKU_DB_PASSWORD=', ''
@@ -38,6 +46,8 @@ $javaArguments += $jar
 $javaArguments += '--server.address=127.0.0.1'
 $javaArguments += ('--zhku.local-admin.storage-directory=' + (Join-Path $runtimeRoot 'data/local-admin'))
 if ($Mode -eq 'preview') {
+    if ($EnableRag) { $javaArguments += '--zhku.rag.enabled=true' }
+    if ($EnableCampusAgent) { $javaArguments += '--zhku.campus-agent.enabled=true' }
     if ($hasTerm) {
         $javaArguments += ('--zhku.local-preview.current-academic-term=' + $CurrentAcademicTerm)
         $javaArguments += ('--zhku.local-preview.course-selection-official-query-url=' + $CourseSelectionOfficialQueryUrl)

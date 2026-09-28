@@ -21,6 +21,8 @@
     </dependencies>
   </dependencyManagement>
   <dependencies>
+    <!-- 只共享运行上下文，不引入 agent 的通用工具与 Alibaba starter。 -->
+    <dependency><groupId>com.yupi</groupId><artifactId>agent-runtime</artifactId><version>${project.version}</version></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-jdbc</artifactId></dependency>
     <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-core</artifactId></dependency>
@@ -43,6 +45,7 @@
       <execution><id>repackage</id><configuration><skip>true</skip></configuration></execution>
       <execution><id>preview</id><goals><goal>repackage</goal></goals><configuration><classifier>preview</classifier><mainClass>com.zhku.knowledge.web.ZhkuLocalPreviewApplication</mainClass></configuration></execution>
       <execution><id>admin</id><goals><goal>repackage</goal></goals><configuration><classifier>admin</classifier><mainClass>com.zhku.knowledge.governance.web.ZhkuLocalAdminApplication</mainClass></configuration></execution>
+      <execution><id>index</id><goals><goal>repackage</goal></goals><configuration><classifier>index</classifier><mainClass>com.zhku.knowledge.retrieval.IndexPublishedKnowledgeCli</mainClass></configuration></execution>
     </executions></plugin>
   </plugins></build>
 </project>

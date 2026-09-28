@@ -63,8 +63,9 @@ public final class RetrievalIndexingService {
                             "embedding 实际长度与 profile 声明不符：声明 " + profile.dimensions()
                                     + "，实际 " + embedding.length);
                 }
-                repository.appendEntry(runId, profileId, chunk, chunkingVersion, embedding);
-                indexed++;
+                if (repository.appendEntry(runId, profileId, chunk, chunkingVersion, embedding)) {
+                    indexed++;
+                }
             }
         } catch (RuntimeException exception) {
             repository.failRun(runId);

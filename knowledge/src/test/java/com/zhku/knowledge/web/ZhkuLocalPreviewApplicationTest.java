@@ -1,10 +1,17 @@
 package com.zhku.knowledge.web;
 
 import com.zhku.knowledge.rag.ModelChatClient;
+import com.zhku.knowledge.rag.ApiKeyResolver;
 import com.zhku.knowledge.rag.RetrievalAugmentedAnswerService;
+import com.zhku.knowledge.retrieval.HybridRetrievalService;
+import com.zhku.knowledge.campusagent.CampusCreditAgentManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ClassUtils;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,7 +69,52 @@ class ZhkuLocalPreviewApplicationTest {
                     // 链路第四级因此整级跳过，不会发生模型调用。
                     assertThat(context).doesNotHaveBean(ModelChatClient.class);
                     assertThat(context).doesNotHaveBean(RetrievalAugmentedAnswerService.class);
+                    assertThat(context).doesNotHaveBean(CampusCreditAgentManager.class);
                 });
+    }
+
+    @Test
+    void shouldWireRetrievalAndModelWhenRagIsExplicitlyEnabled() {
+        new ApplicationContextRunner()
+                .withPropertyValues("spring.profiles.active=zhku-local-preview",
+                        "zhku.rag.enabled=true")
+                .withUserConfiguration(ZhkuLocalPreviewApplication.class)
+                .run(context -> assertThat(context).hasFailed()
+                        .getFailure().hasMessageContaining("zhku.rag.active-profile"));
+    }
+
+    @Test
+    void shouldCreateRetrievalAndModelBeansWithCompletePreviewProfile() {
+        new ApplicationContextRunner()
+                .withAllowBeanDefinitionOverriding(true)
+                .withUserConfiguration(ZhkuLocalPreviewApplication.class, TestKeyConfiguration.class)
+                .withPropertyValues("spring.profiles.active=zhku-local-preview",
+                        "zhku.local-preview.enabled=true", "zhku.rag.enabled=true",
+                        "zhku.campus-agent.enabled=true",
+                        "zhku.rag.active-profile=stub", "ZHKU_DB_PASSWORD=test-only",
+                        "zhku.rag.profiles.stub.base-url=http://127.0.0.1:19999/v1",
+                        "zhku.rag.profiles.stub.api-key-env-var=ZHKU_RAG_TEST_KEY",
+                        "zhku.rag.profiles.stub.chat-model=stub-chat",
+                        "zhku.rag.profiles.stub.embedding-model=stub-embed",
+                        "zhku.rag.profiles.stub.embedding-dimensions=3",
+                        "zhku.rag.profiles.stub.timeout-seconds=5",
+                        "zhku.rag.profiles.stub.index-profile=index-stub")
+                .run(context -> {
+                    assertThat(context).hasNotFailed();
+                    assertThat(context).hasSingleBean(ModelChatClient.class);
+                    assertThat(context).hasSingleBean(HybridRetrievalService.class);
+                    assertThat(context).hasSingleBean(RetrievalAugmentedAnswerService.class);
+                    assertThat(context).hasSingleBean(CampusCreditAgentManager.class);
+                    assertThat(context).hasSingleBean(CampusAgentPreviewController.class);
+                });
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class TestKeyConfiguration {
+        @Bean
+        ApiKeyResolver zhkuRagApiKeyResolver() {
+            return new ApiKeyResolver(Map.of("ZHKU_RAG_TEST_KEY", "sk-test-only"));
+        }
     }
 
     @Test

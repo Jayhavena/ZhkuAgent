@@ -7,10 +7,10 @@
 在 ZhkuAgent 根目录运行：
 
 ```powershell
-.\mvnw.cmd -f agent/pom.xml -DskipTests package
+.\mvnw.cmd -pl agent -am -DskipTests package
 ```
 
-根 pom.xml 已是统一聚合构建，也可单独指定 agent/pom.xml 构建本模块。
+运行上下文现位于共享 `agent-runtime` 模块；从根目录用 `-am` 一并构建依赖。
 
 ## 启动
 

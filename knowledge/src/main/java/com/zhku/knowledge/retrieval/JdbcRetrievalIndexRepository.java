@@ -14,8 +14,8 @@ import java.util.UUID;
 /**
  * PostgreSQL 检索索引仓储。
  *
- * <p>索引运行与条目写入使用同一事务：任一条目写入失败时整轮回滚，
- * 不会留下"部分条目已可被检索"的中间态。</p>
+ * <p>每条写入各自提交；索引服务失败时按 run_id 清理本轮新增条目并标 FAILED。
+ * 已有同哈希条目保持原审计归属，避免重跑破坏历史引用。</p>
  */
 public final class JdbcRetrievalIndexRepository implements RetrievalIndexRepository {
 
@@ -94,7 +94,7 @@ public final class JdbcRetrievalIndexRepository implements RetrievalIndexReposit
     }
 
     @Override
-    public void appendEntry(
+    public boolean appendEntry(
             UUID runId,
             String profileId,
             IndexableChunk chunk,
@@ -107,6 +107,7 @@ public final class JdbcRetrievalIndexRepository implements RetrievalIndexReposit
                     id, run_id, profile_id, chunk_id, source_version,
                     chunking_version, content_checksum, embedding
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS vector))
+                ON CONFLICT (profile_id, chunk_id, chunking_version) DO NOTHING
                 """;
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -119,9 +120,30 @@ public final class JdbcRetrievalIndexRepository implements RetrievalIndexReposit
             statement.setString(7, chunk.contentChecksum());
             // pgvector 以文本形式接收向量；维度正确性已在服务层校验，此处只负责写入。
             statement.setString(8, toVectorLiteral(embedding));
-            statement.executeUpdate();
+            if (statement.executeUpdate() == 1) {
+                return true;
+            }
         } catch (SQLException exception) {
             throw new IllegalStateException("无法写入索引条目", exception);
+        }
+        // 重跑可以跳过完全相同的条目；同 ID 内容若变化，必须新切分版本重建。
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT source_version, content_checksum FROM retrieval_index_entry
+                     WHERE profile_id = ? AND chunk_id = ? AND chunking_version = ?
+                     """)) {
+            statement.setString(1, profileId);
+            statement.setObject(2, chunk.chunkId());
+            statement.setString(3, chunkingVersion);
+            try (ResultSet result = statement.executeQuery()) {
+                if (result.next() && chunk.sourceVersion().equals(result.getString(1))
+                        && chunk.contentChecksum().equals(result.getString(2))) {
+                    return false;
+                }
+            }
+            throw new IllegalStateException("同一 profile/切分版本的片段内容已变化，请新建切分版本");
+        } catch (SQLException exception) {
+            throw new IllegalStateException("无法核对重复索引条目", exception);
         }
     }
 
@@ -132,7 +154,27 @@ public final class JdbcRetrievalIndexRepository implements RetrievalIndexReposit
 
     @Override
     public void failRun(UUID runId) {
-        finishRun(runId, "FAILED", 0);
+        // 同一事务内删除本轮半成品并标记失败，不能让失败运行留下可召回新条目。
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement delete = connection.prepareStatement(
+                    "DELETE FROM retrieval_index_entry WHERE run_id = ?");
+                 PreparedStatement update = connection.prepareStatement("""
+                         UPDATE retrieval_index_run SET status = 'FAILED', finished_at = CURRENT_TIMESTAMP,
+                         indexed_entries = 0 WHERE id = ?
+                         """)) {
+                delete.setObject(1, runId);
+                delete.executeUpdate();
+                update.setObject(1, runId);
+                update.executeUpdate();
+                connection.commit();
+            } catch (RuntimeException | SQLException exception) {
+                connection.rollback();
+                throw exception;
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("无法清理失败索引运行", exception);
+        }
     }
 
     @Override

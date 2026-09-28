@@ -82,7 +82,7 @@ public class RagProviderConfiguration {
             RagProviderProfile zhkuRagActiveProfile,
             Environment environment) {
         return new JdbcLexicalCandidateRetriever(
-                LocalKnowledgePublisherFactory.createDataSource(),
+                LocalKnowledgePublisherFactory.createDataSource(environment),
                 zhkuRagEligibilityFilter,
                 zhkuRagActiveProfile.indexProfile(),
                 scopeOf(environment));
@@ -95,7 +95,7 @@ public class RagProviderConfiguration {
             EmbeddingClient zhkuRagEmbeddingClient,
             Environment environment) {
         return new JdbcVectorCandidateRetriever(
-                LocalKnowledgePublisherFactory.createDataSource(),
+                LocalKnowledgePublisherFactory.createDataSource(environment),
                 zhkuRagEligibilityFilter,
                 zhkuRagActiveProfile.indexProfile(),
                 scopeOf(environment),
@@ -117,7 +117,7 @@ public class RagProviderConfiguration {
                 zhkuRagChatClient,
                 new AnswerEvidenceGuard(),
                 new RandomCitationIdFactory(),
-                new JdbcCitationAuditRepository(LocalKnowledgePublisherFactory.createDataSource()),
+                new JdbcCitationAuditRepository(LocalKnowledgePublisherFactory.createDataSource(environment)),
                 zhkuLocalPreviewClock,
                 topKOf(environment));
     }

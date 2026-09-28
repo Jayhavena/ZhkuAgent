@@ -4,11 +4,13 @@ WORKDIR /app
 
 # 只复制必要的源代码和配置文件
 COPY pom.xml .
+COPY agent-runtime/pom.xml ./agent-runtime/pom.xml
+COPY agent-runtime/src ./agent-runtime/src
 COPY agent/pom.xml ./agent/pom.xml
 COPY agent/src ./agent/src
 
 # 使用 Maven 执行打包
-RUN mvn -f agent/pom.xml clean package -DskipTests
+RUN mvn -pl agent -am clean package -DskipTests
 
 # 暴露应用端口
 EXPOSE 8123

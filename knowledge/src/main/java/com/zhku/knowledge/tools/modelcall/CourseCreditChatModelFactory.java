@@ -9,12 +9,12 @@ import org.springframework.ai.openai.api.OpenAiApi;
 import java.util.Objects;
 
 /** CLI 与本机协议合同共用的模型构建路径，避免测试到另一份端点拼接逻辑。 */
-final class CourseCreditChatModelFactory {
+public final class CourseCreditChatModelFactory {
 
     private CourseCreditChatModelFactory() {
     }
 
-    static OpenAiChatModel create(RagProviderProfile profile, ApiKeyResolver keyResolver) {
+    public static OpenAiChatModel create(RagProviderProfile profile, ApiKeyResolver keyResolver) {
         Objects.requireNonNull(profile, "模型 profile 不能为空");
         Objects.requireNonNull(keyResolver, "密钥解析器不能为空");
         OpenAiApi.Builder apiBuilder = OpenAiApi.builder()

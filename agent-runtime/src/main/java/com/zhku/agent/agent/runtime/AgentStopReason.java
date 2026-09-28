@@ -23,6 +23,9 @@ public enum AgentStopReason {
      */
     SSE_TIMEOUT,
 
+    /** JSON 运行超过服务端总时间上限。 */
+    RUN_TIMEOUT,
+
     /**
      * 客户端关闭页面、取消请求或发生网络断开。
      */

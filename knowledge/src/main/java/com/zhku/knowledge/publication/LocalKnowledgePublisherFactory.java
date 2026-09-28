@@ -1,6 +1,7 @@
 package com.zhku.knowledge.publication;
 
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.core.env.Environment;
 
 /**
  * 本地开发命令行共用的数据库连接工厂。
@@ -27,6 +28,21 @@ public final class LocalKnowledgePublisherFactory {
                 databaseValue("zhku.db.user", "ZHKU_DB_USER", "zhkuagent"),
                 databasePassword()
         );
+    }
+
+
+    /** 预览容器允许从 Spring Environment 注入临时测试库凭据；生产仍从进程环境读取。 */
+    public static DriverManagerDataSource createDataSource(Environment environment) {
+        if (System.getProperty("zhku.db.password") != null) {
+            throw new IllegalArgumentException("密码不接受系统属性注入，请使用环境变量 ZHKU_DB_PASSWORD");
+        }
+        String password = environment.getProperty("ZHKU_DB_PASSWORD");
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("缺少数据库密码：请设置环境变量 ZHKU_DB_PASSWORD");
+        }
+        return new DriverManagerDataSource(
+                environment.getProperty("zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"),
+                environment.getProperty("zhku.db.user", "zhkuagent"), password);
     }
 
     private static String databasePassword() {

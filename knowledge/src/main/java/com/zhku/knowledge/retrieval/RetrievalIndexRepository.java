@@ -20,8 +20,8 @@ public interface RetrievalIndexRepository {
     /** 开启一次索引运行，返回运行标识（状态 RUNNING）。 */
     UUID startRun(String profileId, String chunkingVersion);
 
-    /** 追写一条索引条目。 */
-    void appendEntry(UUID runId, String profileId, IndexableChunk chunk, String chunkingVersion, float[] embedding);
+    /** 同版本同哈希的重复索引返回 false；内容漂移必须失败，不能静默复用旧向量。 */
+    boolean appendEntry(UUID runId, String profileId, IndexableChunk chunk, String chunkingVersion, float[] embedding);
 
     /** 标记运行成功完成。 */
     void completeRun(UUID runId, int indexedEntries);
