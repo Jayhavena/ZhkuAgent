@@ -1,6 +1,7 @@
 ﻿param(
     [int]$Port = 55432,
-    [string]$MavenRepo = (Join-Path $env:USERPROFILE '.m2/repository')
+    [string]$MavenRepo = (Join-Path $env:USERPROFILE '.m2/repository'),
+    [switch]$RunLiveProvider
 )
 
 $ErrorActionPreference = 'Stop'
@@ -17,8 +18,13 @@ $containerStarted = $false
 $originalDbPassword = [Environment]::GetEnvironmentVariable('ZHKU_DB_PASSWORD', 'Process')
 $originalDbUrl = [Environment]::GetEnvironmentVariable('ZHKU_DB_URL', 'Process')
 $originalDbUser = [Environment]::GetEnvironmentVariable('ZHKU_DB_USER', 'Process')
+$originalApiKey = [Environment]::GetEnvironmentVariable('DASHSCOPE_API_KEY', 'Process')
 
 try {
+    if ($RunLiveProvider) {
+        # 外部供应商调用必须显式选择；默认验收只用可控模型，不外发资料。
+        & (Join-Path $repoRoot 'scripts/Import-ZhkuCredentials.ps1') -RequireDashScope
+    }
     # 每次创建无卷、自动删除的独立库；不能沿用演示库或把随机密码写入仓库。
     docker run --rm -d --name $containerName --publish "127.0.0.1:${Port}:5432" `
         --env "POSTGRES_PASSWORD=$databaseSecret" --env 'POSTGRES_USER=zhkuagent' `
@@ -52,9 +58,19 @@ try {
     & $maven @common "-Dtest=$tests" test
     if ($LASTEXITCODE -ne 0) { throw '校园 Agent 临时库端到端测试失败。' }
     Write-Output '临时库端到端测试完成；模型选择使用可控替身，未调用真实供应商。'
+    if ($RunLiveProvider) {
+        & $maven @common '-Dzhku.campus.live=true' '-Dtest=CampusCreditAgentLiveProviderTest' test
+        if ($LASTEXITCODE -ne 0) { throw '真实供应商校园 Agent 端到端测试失败。' }
+        Write-Output '真实供应商校园 Agent 端到端测试完成；请核对 Surefire 实际运行与跳过数量。'
+    }
 } finally {
     if ($containerStarted) { docker stop $containerName | Out-Null }
     [Environment]::SetEnvironmentVariable('ZHKU_DB_PASSWORD', $originalDbPassword, 'Process')
     [Environment]::SetEnvironmentVariable('ZHKU_DB_URL', $originalDbUrl, 'Process')
     [Environment]::SetEnvironmentVariable('ZHKU_DB_USER', $originalDbUser, 'Process')
+    if ($null -eq $originalApiKey) {
+        Remove-Item Env:DASHSCOPE_API_KEY -ErrorAction SilentlyContinue
+    } else {
+        [Environment]::SetEnvironmentVariable('DASHSCOPE_API_KEY', $originalApiKey, 'Process')
+    }
 }
