@@ -8,8 +8,7 @@
 #   . .\scripts\zhku-preflight.ps1                 # 只检查；未就绪则报错并给指引
 #   . .\scripts\zhku-preflight.ps1 -StartDocker    # 顺便拉起 Docker Desktop 并等待就绪
 #
-# 检查顺序：① docker 守护进程 → ② 容器 zhkuagent-postgres → ③ 端口 54329
-#          → ④ 把 ZHKU_DB_PASSWORD（用户级）注入当前会话
+# 检查顺序：① 继承本机会话凭证 → ② docker 守护进程 → ③ 容器 → ④ 端口 54329
 param(
     [switch]$StartDocker,
     [int]$TimeoutSeconds = 240
@@ -17,6 +16,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $container = 'zhkuagent-postgres'
+& (Join-Path $PSScriptRoot 'Import-ZhkuCredentials.ps1') -UseDatabase -UseDashScope
 
 function Test-DockerDaemon {
     # docker CLI 对未运行的守护进程会返回非 0，用它的退出码判断最省事
@@ -70,12 +70,11 @@ try {
     $tcp.Dispose()
 }
 
-# --- ④ 会话内的密码环境变量（只从用户级环境变量读取，不落盘、不回显值）---
-$env:ZHKU_DB_PASSWORD = [Environment]::GetEnvironmentVariable('ZHKU_DB_PASSWORD', 'User')
+# --- ④ 会话凭证状态（脚本开头已按进程、用户、系统顺序读取，不能清空进程值）---
 if ([string]::IsNullOrWhiteSpace($env:ZHKU_DB_PASSWORD)) {
-    Write-Warning '[preflight] 用户级环境变量 ZHKU_DB_PASSWORD 为空，测试/服务会因缺少密码而失败。'
+    Write-Warning '[preflight] 当前进程尚无 ZHKU_DB_PASSWORD；本机启动脚本可回退读取数据目录的 infra/.env。'
 } else {
-    Write-Host '[preflight] 已把 ZHKU_DB_PASSWORD 注入当前会话（仅环境变量，值不回显）'
+    Write-Host '[preflight] 当前会话可继承 ZHKU_DB_PASSWORD（值不回显）'
 }
 
 Write-Host @'

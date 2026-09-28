@@ -18,6 +18,7 @@
 
 ```powershell
 # 模型密钥从当前会话环境提供，不写入命令或仓库。
+& .\scripts\Import-ZhkuCredentials.ps1 -RequireDashScope
 java -jar D:/alldesk/Projects/ZhkuAgent/agent/target/agent-0.0.1-SNAPSHOT.jar --server.address=127.0.0.1 --server.port=18123
 ```
 

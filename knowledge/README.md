@@ -14,7 +14,9 @@
 
 分别在两个终端启动。默认端口 8123、8124；原服务仍占用端口时不要直接运行，另用 -Port 指定端口。页面内跨入口链接保持原来的 8123/8124，临时端口验收时分别直接打开两个地址。
 
-DataRoot 显式指向既存数据目录：读取其中 infra/.env，上传目录固定为其 data/local-admin。原 PDF 在 data/raw，不复制到新项目。数据库连接仍按既有 zhku.db.* / ZHKU_DB_* 规则解析。
+DataRoot 显式指向既存数据目录：上传目录固定为其 data/local-admin；只有环境中没有数据库密码时才读取其中 infra/.env。原 PDF 在 data/raw，不复制到新项目。数据库连接仍按既有 zhku.db.* / ZHKU_DB_* 规则解析。
+
+启动脚本每次先检查当前进程、Windows 用户级和系统级的 `ZHKU_DB_PASSWORD`；启用 RAG 时同样检查 `DASHSCOPE_API_KEY`，并只把可用值注入所启动的 Java 进程。已有进程值优先，不能被 DataRoot 的 `infra/.env` 覆盖。数据库密码在三个环境级别都没有时才回退到该文件，以兼容原本地数据目录。显式启用 RAG / 校园 Agent 时，`DASHSCOPE_API_KEY` 必须能从环境变量读取。脚本结束后恢复调用方原有进程环境，不打印凭证值。
 
 knowledge/infra 保留原 Compose 项目名、容器和数据卷声明；本轮不执行 Compose up/down，不重建既有容器，不改变已有初始化脚本挂载。不要使用 down -v。新的代码目录不能被误当作新的数据环境。
 
@@ -46,6 +48,7 @@ DataRoot 用作测试工作目录，以便读取既存 PDF 和整理资料。命
 $env:ZHKU_DB_URL = 'jdbc:postgresql://127.0.0.1:<临时库端口>/<临时库名>'
 $env:ZHKU_DB_USER = '<临时库用户>'
 # ZHKU_DB_PASSWORD 与 DASHSCOPE_API_KEY 由当前进程环境安全提供，不写入命令或仓库。
+& .\scripts\Import-ZhkuCredentials.ps1 -RequireDatabase -RequireDashScope
 java -jar .\knowledge\target\knowledge-0.0.1-SNAPSHOT-index.jar --live --scope=PUBLIC_ELECTIVE --chunking-version=fact-aware-v1
 ```
 
