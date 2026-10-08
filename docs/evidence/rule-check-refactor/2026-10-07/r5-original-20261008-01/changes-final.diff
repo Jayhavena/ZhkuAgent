@@ -1,0 +1,409 @@
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckLocatedEvidence.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckLocatedEvidence.java
+@@ -0,0 +1,5 @@
++package com.zhku.knowledge.rulecheck;
++
++/** 当前资格SQL同一次读取的正文/元数据；记录页码不自动证明物理或印刷页码语义。 */
++public record RuleCheckLocatedEvidence(RuleCheckEvidenceSnapshot snapshot,String title,String sourceUrl,
++                                      String sourceLocator,Integer recordedPageNumber,String sectionTitle) { }
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckOriginalEvidenceService.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckOriginalEvidenceService.java
+@@ -0,0 +1,81 @@
++package com.zhku.knowledge.rulecheck;
++
++import java.util.*;
++import java.net.URI;
++import java.nio.charset.StandardCharsets;
++
++/** 内部原文定位；未来HTTP必须从服务端会话取摘录，公开record构造器不是客户端授权。 */
++public final class RuleCheckOriginalEvidenceService {
++    public enum Code { FOUND,INVALID_REFERENCE,REFERENCE_CHANGED,UNAVAILABLE }
++    public record View(String citationId,UUID sourceId,UUID chunkId,String revision,String title,String sourceLocator,
++        Integer recordedPageNumber,String pageNumberKind,String sectionTitle,String safeSourceUrl,
++        String contextText,int contextStartInclusive,int quoteStartInclusive,int quoteEndExclusive,List<String> unknownItems) { }
++    public record Result(Code code,View original) {
++        public Result {if(code==null||(code==Code.FOUND)!=(original!=null))throw new IllegalArgumentException("原文结果必须成功或无正文拒绝");}
++    }
++    @FunctionalInterface public interface Reader {Optional<RuleCheckLocatedEvidence> read(UUID sourceId,UUID chunkId);}
++    private final Reader reader;
++    private final String referenceRevision;
++    private final Set<String> allowedHosts;
++    public RuleCheckOriginalEvidenceService(Reader reader,String referenceRevision,Set<String> allowedHosts) {
++        this.reader=Objects.requireNonNull(reader);
++        if(referenceRevision==null||referenceRevision.isBlank())throw new IllegalArgumentException("原文引用版本必须固定");
++        this.referenceRevision=referenceRevision;
++        var hosts=new HashSet<String>();
++        for(String host:Objects.requireNonNull(allowedHosts)) {
++            if(host==null||!host.matches("[a-zA-Z0-9](?:[a-zA-Z0-9.-]*[a-zA-Z0-9])?")||host.contains(".."))
++                throw new IllegalArgumentException("原件地址只接受显式精确host");
++            hosts.add(host.toLowerCase(Locale.ROOT));
++        }
++        this.allowedHosts=Set.copyOf(hosts);
++    }
++    public Result locate(RuleCheckVerifiedExcerpt reference) {
++        if(reference==null||reference.citationId()==null||reference.citationId().isBlank()||reference.sourceId()==null||reference.chunkId()==null
++                ||!referenceRevision.equals(reference.revision())||reference.checksum()==null||!reference.checksum().matches("[0-9a-fA-F]{64}")
++                ||reference.text()==null||reference.text().isBlank()||reference.startInclusive()<0||reference.endExclusive()<=reference.startInclusive()
++                ||(long)reference.endExclusive()-reference.startInclusive()!=reference.text().length())return refused(Code.INVALID_REFERENCE);
++        try {
++            var found=reader.read(reference.sourceId(),reference.chunkId());
++            if(found==null||found.isEmpty()||found.get().snapshot()==null)return refused(Code.UNAVAILABLE);
++            var row=found.get();var snapshot=row.snapshot();
++            if(!snapshot.eligible()||!reference.sourceId().equals(snapshot.sourceId())||!reference.chunkId().equals(snapshot.chunkId())
++                    ||!reference.revision().equals(snapshot.revision())||!reference.checksum().equalsIgnoreCase(snapshot.checksum()))
++                return refused(Code.REFERENCE_CHANGED);
++            // 当前正文/元数据来自一次资格SQL；这里memo只复用Verifier的hash/span/Unicode校验，不是假第二次fresh SQL。
++            var captured=new RuleCheckEvidenceSnapshot(reference.citationId(),snapshot.sourceId(),snapshot.chunkId(),snapshot.revision(),snapshot.checksum(),snapshot.text(),snapshot.eligible());
++            var verified=new RuleCheckEvidenceVerifier((s,c)->Optional.of(captured)).verify(
++                new RuleCheckEvidenceSpan(reference.citationId(),reference.startInclusive(),reference.endExclusive(),reference.text()),List.of(captured));
++            if(!verified.accepted())return refused(Code.REFERENCE_CHANGED);
++            int start=Math.max(0,reference.startInclusive()-256),end=(int)Math.min((long)snapshot.text().length(),(long)reference.endExclusive()+256);
++            // 向内收缩避免切代理对，并严格保留每侧最多256单位；quote本身边界已核验。
++            if(splits(snapshot.text(),start))start++;if(splits(snapshot.text(),end))end--;
++            String context=snapshot.text().substring(start,end);
++            // 完整核验摘录不能为了展示预算被截断；大段引用须重新切片或改为更小的核验跨度。
++            if(context.getBytes(StandardCharsets.UTF_8).length>8192)return refused(Code.UNAVAILABLE);
++            var unknown=new ArrayList<String>();
++            String title=bounded(row.title(),300),locator=bounded(row.sourceLocator(),500),section=bounded(row.sectionTitle(),2048),url=safeUrl(row.sourceUrl());
++            if(title==null)unknown.add("来源标题尚未记录");if(locator==null)unknown.add("条款定位尚未记录");
++            Integer page=row.recordedPageNumber();if(page!=null&&page<1)page=null;
++            if(page==null)unknown.add("来源页码尚未记录");else unknown.add("记录页码的物理页与印刷页映射尚未核实");
++            if(url==null)unknown.add("暂无已验证安全的原件地址");
++            return new Result(Code.FOUND,new View(reference.citationId(),reference.sourceId(),reference.chunkId(),reference.revision(),title,locator,
++                page,page==null?"UNKNOWN":"RECORDED_SOURCE_PAGE",section,url,context,start,reference.startInclusive(),reference.endExclusive(),List.copyOf(unknown)));
++        } catch(RuntimeException unavailable) {
++            // 读库、映射与坏数据都不能回显旧正文/底层cause；下发后的撤回窗口仍须HTTP层单独处理。
++            return refused(Code.UNAVAILABLE);
++        }
++    }
++    private String safeUrl(String raw) {
++        if(raw==null||raw.length()>2048)return null;
++        try {
++            URI uri=URI.create(raw);
++            if(!"https".equalsIgnoreCase(uri.getScheme())||uri.getHost()==null||uri.getRawUserInfo()!=null
++                    ||(uri.getPort()!=-1&&uri.getPort()!=443)||!allowedHosts.contains(uri.getHost().toLowerCase(Locale.ROOT)))return null;
++            // 仅返回已审核字段的允许链接，不服务端抓取/跟随重定向，也不擅加未经核对的#page。
++            return raw;
++        } catch(IllegalArgumentException invalid){return null;}
++    }
++    private static boolean splits(String text,int position){return position>0&&position<text.length()&&Character.isHighSurrogate(text.charAt(position-1))&&Character.isLowSurrogate(text.charAt(position));}
++    private static String bounded(String value,int max){return value==null||value.isBlank()||value.length()>max?null:value;}
++    private static Result refused(Code code){return new Result(code,null);}
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/JdbcRuleCheckEvidenceReader.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/JdbcRuleCheckEvidenceReader.java
+@@ -6,7 +6,7 @@
+ import java.util.UUID;
+ import java.sql.SQLException;
+ 
+-/** 输出前按持久身份重读现有字段资格；尚未装配学生入口，完整时间/发布清单仍待R6。 */
++/** 按持久身份重读现有字段资格；v2目录仍关闭，完整时间/发布清单与最终下发窗口另待验证。 */
+ public final class JdbcRuleCheckEvidenceReader implements RuleCheckEvidenceVerifier.CurrentEvidenceReader {
+     private final DataSource dataSource;
+     private final String profileId;
+@@ -26,13 +26,18 @@
+     }
+ 
+     @Override public Optional<RuleCheckEvidenceSnapshot> read(UUID sourceId, UUID chunkId) {
++        return readLocated(sourceId,chunkId).map(RuleCheckLocatedEvidence::snapshot);
++    }
++    public Optional<RuleCheckLocatedEvidence> readLocated(UUID sourceId,UUID chunkId) {
+         Objects.requireNonNull(sourceId);
+         Objects.requireNonNull(chunkId);
+         // 按已绑定身份重读而非重新排序候选；配置由服务端给定，不能由模型放宽scope。
+         // 同一SQL快照确认已有字段资格，无法消除读取后到HTTP下发之间的撤回窗口。
+         String sql = """
+                 SELECT source.id AS source_id, chunk.id AS chunk_id, source.source_version,
+-                       chunk.content_checksum, chunk.content
++                       chunk.content_checksum, chunk.content, source.title, chunk.source_locator, chunk.page_number,
++                       CASE WHEN octet_length(source.source_url)<=4096 THEN source.source_url END AS source_url,
++                       CASE WHEN octet_length(chunk.section_title)<=8192 THEN chunk.section_title END AS section_title
+                 FROM knowledge_chunk chunk
+                 JOIN knowledge_source source ON source.id = chunk.source_id
+                 JOIN retrieval_index_entry entry ON entry.chunk_id = chunk.id
+@@ -49,6 +54,8 @@
+                   AND source.sharing_rights_confirmed = TRUE
+                   AND entry.source_version = source.source_version
+                   AND entry.content_checksum = chunk.content_checksum
++                  -- 单片段超限拒绝，避免TEXT正文及元数据无限搬运；不是整份PDF页数限制。
++                  AND length(chunk.content)<=65536
+                 """;
+         try (var connection = dataSource.getConnection(); var statement = connection.prepareStatement(sql)) {
+             statement.setString(1, profileId);
+@@ -63,9 +70,11 @@
+                         rows.getObject("source_id", UUID.class), rows.getObject("chunk_id", UUID.class),
+                         rows.getString("source_version"), rows.getString("content_checksum"),
+                         rows.getString("content"), true);
++                var located=new RuleCheckLocatedEvidence(snapshot,rows.getString("title"),rows.getString("source_url"),
++                    rows.getString("source_locator"),rows.getObject("page_number",Integer.class),rows.getString("section_title"));
+                 // 唯一约束应确保单行；若schema/数据破坏约束则拒绝，不能任取第一个版本。
+                 if (rows.next()) { throw new IllegalStateException("当前证据身份不唯一"); }
+-                return Optional.of(snapshot);
++                return Optional.of(located);
+             }
+         } catch (SQLException unavailable) {
+             // 交给verifier统一受控拒绝，不能把读库失败解释为原快照仍可使用。
+--- before/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckOriginalEvidenceServiceTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckOriginalEvidenceServiceTest.java
+@@ -0,0 +1,105 @@
++package com.zhku.knowledge.rulecheck;
++
++import java.nio.charset.StandardCharsets;
++import java.security.MessageDigest;
++import java.util.*;
++import java.util.concurrent.atomic.AtomicInteger;
++import org.junit.jupiter.api.Test;
++import static com.zhku.knowledge.rulecheck.RuleCheckOriginalEvidenceService.Code.*;
++import static org.assertj.core.api.Assertions.*;
++
++class RuleCheckOriginalEvidenceServiceTest {
++    final UUID source=UUID.randomUUID(),chunk=UUID.randomUUID();
++    static final String TEXT="合成上下文。上限4学分。例外另行核实。";
++    RuleCheckEvidenceSnapshot snapshot(String revision,String hash,String text,boolean eligible){return new RuleCheckEvidenceSnapshot("current-alias",source,chunk,revision,hash,text,eligible);}
++    RuleCheckLocatedEvidence located(RuleCheckEvidenceSnapshot snapshot,String url){return new RuleCheckLocatedEvidence(snapshot,"合成手册",url,"合成第1条",76,"合成章节");}
++    RuleCheckVerifiedExcerpt quote(String text,int start,int end){return new RuleCheckVerifiedExcerpt("round-citation",source,chunk,"v1",sha(text),start,end,text.substring(start,end));}
++    RuleCheckOriginalEvidenceService service(RuleCheckLocatedEvidence row){return new RuleCheckOriginalEvidenceService((s,c)->Optional.of(row),"v1",Set.of("official.example"));}
++    @Test void returnsCurrentMetadataAndQuoteOffsetsWithoutInventingPageKind() {
++        var result=service(located(snapshot("v1",sha(TEXT),TEXT,true),"https://official.example/manual.pdf")).locate(quote(TEXT,6,12));
++        assertThat(result.code()).isEqualTo(FOUND);var view=result.original();assertThat(view.citationId()).isEqualTo("round-citation");
++        assertThat(view.title()).isEqualTo("合成手册");assertThat(view.sourceLocator()).isEqualTo("合成第1条");assertThat(view.recordedPageNumber()).isEqualTo(76);
++        assertThat(view.pageNumberKind()).isEqualTo("RECORDED_SOURCE_PAGE");assertThat(view.safeSourceUrl()).isEqualTo("https://official.example/manual.pdf");
++        assertThat(view.contextText().substring(view.quoteStartInclusive()-view.contextStartInclusive(),view.quoteEndExclusive()-view.contextStartInclusive())).isEqualTo(TEXT.substring(6,12));
++        assertThat(view.unknownItems()).contains("记录页码的物理页与印刷页映射尚未核实");
++    }
++    @Test void versionHashEligibilityAndPersistentIdentityChangesRejectOldReference() {
++        var q=quote(TEXT,6,12);
++        var other=new RuleCheckEvidenceSnapshot("current",UUID.randomUUID(),chunk,"v1",sha(TEXT),TEXT,true);
++        for(var snapshot:List.of(snapshot("v2",sha(TEXT),TEXT,true),snapshot("v1",sha(TEXT+"变"),TEXT+"变",true),snapshot("v1",sha(TEXT),TEXT,false),other)) {
++            var result=service(located(snapshot,null)).locate(q);assertThat(result.code()).isEqualTo(REFERENCE_CHANGED);assertThat(result.original()).isNull();
++        }
++    }
++    @Test void corruptedCurrentTextWithUnchangedStoredChecksumIsRejected() {
++        var result=service(located(snapshot("v1",sha(TEXT),TEXT.replace("4","40"),true),null)).locate(quote(TEXT,6,12));
++        assertThat(result.code()).isEqualTo(REFERENCE_CHANGED);assertThat(result.original()).isNull();
++    }
++    @Test void currentReadFailureOrAbsentRowsDoesNotReturnBodyOrCause() {
++        for(var reader:List.<RuleCheckOriginalEvidenceService.Reader>of((s,c)->Optional.empty(),(s,c)->{throw new IllegalStateException("private database cause");})) {
++            var result=new RuleCheckOriginalEvidenceService(reader,"v1",Set.of()).locate(quote(TEXT,6,12));
++            assertThat(result.code()).isEqualTo(UNAVAILABLE);assertThat(result.original()).isNull();assertThat(result.toString()).doesNotContain(TEXT,"private");
++        }
++    }
++    @Test void invalidReferenceCannotInvokeReader() {
++        var calls=new AtomicInteger();var service=new RuleCheckOriginalEvidenceService((s,c)->{calls.incrementAndGet();return Optional.empty();},"v1",Set.of());
++        for(var q:Arrays.asList(null,new RuleCheckVerifiedExcerpt("",source,chunk,"v1",sha(TEXT),0,1,"合"),
++                new RuleCheckVerifiedExcerpt("c",source,chunk,"v2",sha(TEXT),0,1,"合"),new RuleCheckVerifiedExcerpt("c",source,chunk,"v1",sha(TEXT),-1,1,"合"),
++                new RuleCheckVerifiedExcerpt("c",source,chunk,"v1",sha(TEXT),0,2,"合")))
++            assertThat(service.locate(q).code()).isEqualTo(INVALID_REFERENCE);
++        assertThat(calls).hasValue(0);
++    }
++    @Test void surrogateSplitAndQuoteMismatchAreRejectedByCurrentVerification() {
++        String text="😀合成原文";var service=service(located(snapshot("v1",sha(text),text,true),null));
++        for(var q:List.of(new RuleCheckVerifiedExcerpt("c",source,chunk,"v1",sha(text),0,1,"\uD83D"),
++                new RuleCheckVerifiedExcerpt("c",source,chunk,"v1",sha(text),2,4,"别的")))
++            assertThat(service.locate(q).original()).isNull();
++    }
++    @Test void sourceUrlOnlyAllowsExplicitHttpsHostsWithoutUserInfoOrUnexpectedPort() {
++        for(String url:List.of("javascript:alert(1)","file:///D:/secret","data:text/html,x","http://official.example/manual.pdf",
++            "https://official.example.evil/manual.pdf","https://evil.example@official.example/manual.pdf","https://official.example:8443/manual.pdf","https://evil.example/manual.pdf")) {
++            var result=service(located(snapshot("v1",sha(TEXT),TEXT,true),url)).locate(quote(TEXT,6,12));
++            assertThat(result.code()).isEqualTo(FOUND);assertThat(result.original().safeSourceUrl()).isNull();
++            assertThat(result.original().unknownItems()).contains("暂无已验证安全的原件地址");
++        }
++    }
++    @Test void existingUrlFragmentIsNotReplacedWithUnverifiedPageAnchor() {
++        String url="https://official.example/manual.pdf?download=1#existing";
++        var result=service(located(snapshot("v1",sha(TEXT),TEXT,true),url)).locate(quote(TEXT,6,12));
++        assertThat(result.code()).isEqualTo(FOUND);assertThat(result.original().safeSourceUrl()).isEqualTo(url).doesNotContain("#page=");
++    }
++    @Test void missingMetadataIsExplicitUnknownWithoutInventedValues() {
++        var row=new RuleCheckLocatedEvidence(snapshot("v1",sha(TEXT),TEXT,true),null,null,"",null,null);
++        var result=service(row).locate(quote(TEXT,6,12));assertThat(result.code()).isEqualTo(FOUND);
++        assertThat(result.original().title()).isNull();assertThat(result.original().sourceLocator()).isNull();
++        assertThat(result.original().recordedPageNumber()).isNull();assertThat(result.original().pageNumberKind()).isEqualTo("UNKNOWN");
++        assertThat(result.original().unknownItems()).contains("来源标题尚未记录","条款定位尚未记录","来源页码尚未记录");
++    }
++    @Test void contextWindowIsBoundedAndNeverSplitsSurrogatePairs() {
++        String text="前".repeat(743)+"😀"+"核验摘录"+"😀"+"后".repeat(800);int start=745,end=749;
++        var result=service(located(snapshot("v1",sha(text),text,true),null)).locate(quote(text,start,end));assertThat(result.code()).isEqualTo(FOUND);
++        var view=result.original();assertThat(view.contextText().getBytes(StandardCharsets.UTF_8).length).isLessThanOrEqualTo(8192);
++        assertThat(Character.isLowSurrogate(view.contextText().charAt(0))).isFalse();assertThat(Character.isHighSurrogate(view.contextText().charAt(view.contextText().length()-1))).isFalse();
++        assertThat(view.contextText().substring(start-view.contextStartInclusive(),end-view.contextStartInclusive())).isEqualTo("核验摘录");
++        assertThat(view.contextText().length()).isLessThanOrEqualTo(518);
++    }
++    @Test void cannotTruncateAnOversizedVerifiedExcerptToPretendOriginalShown() {
++        String text="中".repeat(3000);var result=service(located(snapshot("v1",sha(text),text,true),null)).locate(quote(text,0,text.length()));
++        assertThat(result.code()).isEqualTo(UNAVAILABLE);assertThat(result.original()).isNull();
++    }
++    @Test void surrogatePairsAcrossActualWindowEdgesShrinkInsideEachSideBudget() {
++        String text="前".repeat(300)+"😀"+"前".repeat(255)+"核验摘录"+"后".repeat(255)+"😀"+"后".repeat(300);
++        int start=557,end=561;
++        var result=service(located(snapshot("v1",sha(text),text,true),null)).locate(quote(text,start,end));assertThat(result.code()).isEqualTo(FOUND);
++        var view=result.original();assertThat(start-view.contextStartInclusive()).isLessThanOrEqualTo(256);
++        assertThat(view.contextStartInclusive()+view.contextText().length()-end).isLessThanOrEqualTo(256);
++        assertThat(Character.isLowSurrogate(view.contextText().charAt(0))).isFalse();
++        assertThat(Character.isHighSurrogate(view.contextText().charAt(view.contextText().length()-1))).isFalse();
++        assertThat(view.contextText().substring(start-view.contextStartInclusive(),end-view.contextStartInclusive())).isEqualTo("核验摘录");
++    }
++    @Test void sourceLocatorAndTitleStayPlainTextDataForFutureEscapedRendering() {
++        var row=new RuleCheckLocatedEvidence(snapshot("v1",sha(TEXT),TEXT,true),"<img src=x onerror=alert(1)>",null,"<script>locator</script>",1,null);
++        var result=service(row).locate(quote(TEXT,6,12));assertThat(result.code()).isEqualTo(FOUND);
++        assertThat(result.original().title()).isEqualTo(row.title());assertThat(result.original().sourceLocator()).isEqualTo(row.sourceLocator());
++    }
++    static String sha(String value){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}catch(Exception e){throw new AssertionError(e);}}
++}
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRuleCheckEvidenceReaderTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRuleCheckEvidenceReaderTest.java
+@@ -75,6 +75,35 @@
+         assertThat(current.sourceId()).isEqualTo(source);assertThat(current.chunkId()).isEqualTo(chunk);
+         assertThat(current.text()).isEqualTo(TEXT);assertThat(current.revision()).isEqualTo("v1");
+         var result=verify();assertThat(result.accepted()).isTrue();assertThat(result.excerpt().text()).isEqualTo("上限4学分。");
++    }
++    @Test void locatedReadBindsCurrentMetadataToTheSameQualifiedChunk() throws Exception {
++        update("UPDATE knowledge_source SET source_url='https://official.example/manual.pdf' WHERE id=?",source);
++        var result=reader.readLocated(source,chunk);assertThat(result).isPresent();
++        var row=result.orElseThrow();assertThat(row.snapshot().text()).isEqualTo(TEXT);assertThat(row.snapshot().revision()).isEqualTo("v1");
++        assertThat(row.title()).isEqualTo("合成原文核验夹具");assertThat(row.sourceUrl()).isEqualTo("https://official.example/manual.pdf");
++        assertThat(row.sourceLocator()).isEqualTo("合成页1");assertThat(row.recordedPageNumber()).isEqualTo(1);assertThat(row.sectionTitle()).isEqualTo("合成条款");
++    }
++    @Test void originalLookupRechecksWithdrawalVisibilityAndSharing() throws Exception {
++        var service=new RuleCheckOriginalEvidenceService(reader::readLocated,"v1",java.util.Set.of());
++        var quote=new RuleCheckVerifiedExcerpt("round",source,chunk,"v1",sha(TEXT),0,TEXT.length(),TEXT);
++        assertThat(service.locate(quote).code()).isEqualTo(RuleCheckOriginalEvidenceService.Code.FOUND);
++        // 撤回/失去分享资格必须同步转内部，不能构造被现有数据库约束禁止的学生可见行。
++        for(String sql:List.of("UPDATE knowledge_source SET publication_status='ARCHIVED',visibility_scope='INTERNAL_ONLY' WHERE id=?",
++                "UPDATE knowledge_source SET visibility_scope='INTERNAL_ONLY' WHERE id=?","UPDATE knowledge_source SET sharing_rights_confirmed=false,visibility_scope='INTERNAL_ONLY' WHERE id=?")) {
++            update(sql,source);var result=service.locate(quote);assertThat(result.code()).isEqualTo(RuleCheckOriginalEvidenceService.Code.UNAVAILABLE);assertThat(result.original()).isNull();
++            update("UPDATE knowledge_source SET publication_status='PUBLISHED',visibility_scope='STUDENT_VISIBLE',sharing_rights_confirmed=true WHERE id=?",source);
++        }
++    }
++    @Test void oversizedCurrentChunkIsRejectedBeforeReturningDatabaseText() throws Exception {
++        String huge="x".repeat(65537);update("UPDATE knowledge_chunk SET content=?,content_checksum=? WHERE id=?",huge,sha(huge),chunk);
++        update("UPDATE retrieval_index_entry SET content_checksum=? WHERE chunk_id=?",sha(huge),chunk);
++        assertThat(reader.read(source,chunk)).isEmpty();assertThat(reader.readLocated(source,chunk)).isEmpty();
++    }
++    @Test void unlimitedTextMetadataIsSuppressedInSqlWithoutChangingEvidenceText() throws Exception {
++        update("UPDATE knowledge_source SET source_url=? WHERE id=?","x".repeat(4097),source);
++        update("UPDATE knowledge_chunk SET section_title=? WHERE id=?","x".repeat(8193),chunk);
++        var row=reader.readLocated(source,chunk).orElse(null);assertThat(row).isNotNull();
++        assertThat(row.sourceUrl()).isNull();assertThat(row.sectionTitle()).isNull();assertThat(row.snapshot().text()).isEqualTo(TEXT);
+     }
+ 
+     @Test void sourceAndChunkMustBothMatch() {
+--- before/knowledge/scripts/verify-rule-check-refactor.ps1
++++ after/knowledge/scripts/verify-rule-check-refactor.ps1
+@@ -24,7 +24,7 @@
+         'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest',
+         'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest','RuleCheckDecisionServiceTest',
+         'RuleCheckEvidenceCaptureTest','JdbcRuleCheckCitationAuditTargetTest','RuleCheckApplicationServiceTest',
+-        'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest','RuleCheckControllerTest','RuleCheckClarificationStoreTest','BoundedRuleSelectorTest')
++        'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest','RuleCheckControllerTest','RuleCheckClarificationStoreTest','BoundedRuleSelectorTest','RuleCheckOriginalEvidenceServiceTest')
+     $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+         'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
+         'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest','ControlledPreviewConfigurationTest','RuleCheckPreviewHttpTest')
+--- before/docs/product/rule-check-decision-contract.md
++++ after/docs/product/rule-check-decision-contract.md
+@@ -87,3 +87,11 @@
+ 问题2048 UTF16、目录64项、ID128/scope2048；SYSTEM+结构化payload合计65536 UTF8字节，String返回后解析前1024字节上限。每实例准入尝试1–128总限额、每轮等待至多5秒，失败/超时也计，无隐式重试；单worker/单未完成任务，BUSY不排调用者，executor队列1仅线程handoff。取消不证明供应商停止，实际run退出前保留占用；close拒绝新请求/interrupt，不无限等待非协作任务，diagnostic继续展示未退出状态。
+ 
+ 此批只进程内Transport替身，正式CLOSED未装配；String后的预算不证明实际网络读取已限长，真实适配须验证响应读流/连接超时/无重试，供应商用量未知不可估成金额。组件白名单和prompt不证明相关性/注入语义安全/学生收益，A05整体及C组保持OPEN。
++
++## 有界原文定位内部组件（Task2K / A06第一段，2026-10-08）
++
++JDBC read兼容委托readLocated，同一现有字段资格SQL返回正文与title/source_url/source_locator/page_number/section_title。单片段length(content)<=65536数据库字符；URL/section分别4096/8192 UTF8字节超限在SQL为NULL，不搬运无限元数据。当前行完整读取再检查rows.next唯一；所有已有profile/run/scope/版本/hash/学生展示与分享条件保留。此预算是此reader单片段，不宣称整条检索链下载限制或PDF页数限制。
++
++内部定位只接服务端已核验摘录，固定revision、当前一次SQL持久身份/hash/资格匹配，复用Verifier memo校验本次正文hash/Unicode/span/摘录一致。memo不是第二次fresh DB；公开VerifiedExcerpt构造器不授权HTTP输入。返回同轮citation别名、元数据、有界context及原chunk UTF16跨度；完整quote左右最多256单位且不切代理对，context<=8192 UTF8字节，超限无正文拒绝而不截断quote。失败只有固定Code，不含旧正文/cause。
++
++记录页码仅RECORDED_SOURCE_PAGE；缺页UNKNOWN，物理与印刷页映射待B01，不猜PDF页或造#page。SourceURL仅https、显式精确host、无userinfo、默认/443端口、合法URI和2048字符；只返回原字段，不服务端抓取/跟随重定向，不验证远端实际文件/版本。标题/条款/页码/地址缺失明确unknown；文本必须在未来前端逃逸渲染，不称本组件已净化HTML。原文HTTP Session引用绑定、真实点击/页码映射与最终当前身份/资料再核验窗口仍A06后段/A07，正式CLOSED不变。
+--- before/docs/product/rule-check-blockers.md
++++ after/docs/product/rule-check-blockers.md
+@@ -135,3 +135,9 @@
+ ## 2026-10-08 Task2J / A05第一段有界选题组件
+ 
+ 选择协议仅精确审核目录ID/null；不复用事实生成ModelResponse，不收答案/工具/额外字段/重复/尾随/越权ID。Unicode/UTF16输入上限和UTF8请求65536/响应1024字节预算；单worker/单未完成调用、每实例128以内总尝试、每轮5秒以内等待，不重试；cancel不证明外发停止，非协作任务实际退出前BUSY，close不无限等待。31类374项（285纯单元+77真库含12HTTP+12凭据配置）、29计数替身合同；无卷55465 V22连接0/退出。正式CLOSED未装配新组件；真实供应商的物理读取/连接超时/重试/成本及合法ID语义匹配、简单选题基线仍A05后段/C组，不能以prompt声称注入安全。原timeout断言常量重名已修，RED17中只有16项有效行为失败，另1不是业务证据。[证据](../evidence/rule-check-refactor/2026-10-07/r5-selector-20261008-01/acceptance.md)。
++
++## 2026-10-08 Task2K / A06第一段原文定位组件
++
++当前资格SQL一次读正文/元数据，绑定固定引用版本及source/chunk/hash/跨度；单片段65536数据库字符，URL/section SQL字节超限抑制。完整核验摘录左右最多256 UTF16，不切代理对、8192 UTF8字节超限拒绝。仅HTTPS精确host/no userinfo/标准端口返回原URL，不fetch/redirect/擅加页锚；页码标RECORDED_SOURCE_PAGE或UNKNOWN，物理/印刷映射未知。元数据纯文本待前端逃逸，不称HTML已净化。
++
++32类391项（298纯单元+81真库含12HTTP+12凭据配置）、29计数替身合同；无卷55466 V22连接0/退出。有效RED31/13；首GREEN游标映射错误7fail+7error、次GREEN夹具违反V2约束1error已修，第三GREEN104PASS，旧报告保留。撤回/分享false夹具同步INTERNAL，是合法组合而非独立谓词因果隔离。内部组件未装配HTTP或Bean，未来需服务端Session引用proof；正式CLOSED/真实2025DRAFT不变，A06后段/原件页码B01/A07最终外发及B/C/G2继续OPEN。[证据](../evidence/rule-check-refactor/2026-10-07/r5-original-20261008-01/acceptance.md)。
+--- before/docs/product/rule-check-remaining-tasks-2026-10-08.md
++++ after/docs/product/rule-check-remaining-tasks-2026-10-08.md
+@@ -1,12 +1,12 @@
+ # 校园规则查证：剩余任务清单
+ 
+-核对日期：2026-10-08；基于主路线图、R5任务计划、执行账本、卡点表和Task2J最终证据。本文整理既定范围，不批准部署、资料放行或P2扩张。
++核对日期：2026-10-08；基于主路线图、R5任务计划、执行账本、卡点表和Task2K最终证据。本文整理既定范围，不批准部署、资料放行或P2扩张。
+ 
+ ## 当前完成与未完成的分界
+ 
+ - 已完成：R1融合前截断修复、R2管理原文对照、R3结构/非空引用约束、R4在线激活与已有字段资格过滤；R5原文核验、当前数据库读取、五状态决策、共享检索捕获、精确JDBC审计及统一配置/内部应用编排。
+ - 首轮依据已确定为指定2025版；20道开发参考已由用户确认，不再列为待确认。
+-- 最新相关验收为31类374项（285纯单元+77专用临时库含12实际HTTP+12凭据相关配置检查）及29项启动器合同，见Task2J证据；默认关闭目录接口通过不等于真实学生查证已交付。
++- 最新相关验收为32类391项（298纯单元+81专用临时库含12实际HTTP+12凭据相关配置检查）及29项启动器合同，见Task2K证据；默认关闭目录接口通过不等于真实学生查证已交付。
+ - 仍未完成：真实2025规则绑定/语义审核/展示资格、真实具体范围/例外审核、最终下发及原文定位、学生页面、真实模型语义评估、16题报告及用户对照。内部链路通过不代表完整R5或G2通过。
+ - 报告候选排除3道与开发集第18条重叠的题后剩13道，需补3道独立任务，复核家族后才能冻结16道；候选已被AI查看，不称盲测。
+ 
+@@ -23,7 +23,7 @@
+ | A03 | v2请求、响应与接口（严格接口已验证，规则范围/例外待补） | 问题/显式条件限长、严格字段合同；响应完整表达五状态、确认事实、范围、条件/例外、未知与引用；客户端不能提交审核身份、资料资格或可信证据快照 | Codex；A01/A02 |
+ | A04 | 多轮必要澄清（工程完成，真实规则与浏览器待B/A10） | 绑定服务端选定规则、引用版本和已确认条件；不重复/无关追问，不把资料缺失转嫁用户；刷新/切换版本时不使用错误上下文 | Codex；A03；只实现查证必需上下文，不强建完整聊天历史 |
+ | A05 | 有界自然语言规则选择适配（协议组件已验收，真实适配/语义待续） | 模型只返回已审目录ID，严格解析、超时/外发预算、空/歧义/越权/注入/故障拒绝；不生成政策事实、不猜个人条件 | Codex可先替身合同；真实语义表现由C组验证；必要性用简单选题基线对照 |
+-| A06 | 原文查询与定位入口 | 学生点击后到达实际版本/页码/条款；来源元数据与引用绑定；不存在/内部/撤回资料拒绝；资料文本与地址安全展示 | Codex；A01/A03/B01 |
++| A06 | 原文查询与定位入口（内部定位已验收，HTTP/实际页码待续） | 学生点击后到达实际版本/页码/条款；来源元数据与引用绑定；不存在/内部/撤回资料拒绝；资料文本与地址安全展示 | Codex；A01/A03/B01 |
+ | A07 | 最终外发及再次展示边界 | 明确从取证到响应、历史再次展示的复查策略；真实HTTP层撤回/版本/hash/身份变化矩阵；阻断或重取证，不用顺序检查宣称全链原子性 | Codex；A03/A06；完整清单时效继续D组 |
+ | A08 | 学生查证页面与产品入口 | 提问、五状态、原文、条件/例外、独立确认项/未知项、版本说明；主入口改为规则查证，学分/通用Agent放实验导航；保留旧URL | Codex；可先合成页面，真实使用依赖B组 |
+ | A09 | 页面状态与兼容修复 | 修RC-11同键内容冲突说明和完成后仍“正在确认”；丢响应不能说未受理，不自动重复执行未知任务；换账号不展示旧正文；沿用实际涉及的3C合同 | Codex；A08，不把只读查证强塞进学分执行循环 |
+@@ -126,7 +126,7 @@
+ - [主路线图R5–R9与门禁](../superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md)
+ - [R5任务计划](../superpowers/plans/2026-10-08-rule-check-r5-plan.md)
+ - [执行账本](../../.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md)
+-- [最新Task2J工程证据](../evidence/rule-check-refactor/2026-10-07/r5-selector-20261008-01/acceptance.md)
++- [最新Task2K工程证据](../evidence/rule-check-refactor/2026-10-07/r5-original-20261008-01/acceptance.md)
+ - [卡点表B-01至B-04](rule-check-blockers.md)
+ - [2025版本决定](rule-check-2025-reference-decision.md)
+ - [20题开发参考](rule-check-2025-human-reference-development.md)
+--- before/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
++++ after/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
+@@ -210,3 +210,15 @@
+ - [x] 全相关回归/29工具合同/一次最终增量审查/问题证据；正式CLOSED不装配新选择器，真实供应商物理响应/网络超时/重试/语义/简单基线效果仍A05后段与C组。
+ 
+ Expected：prompt注入输出越权或自由事实拒绝；合法ID却选错仍可能发生，协议白名单不能证明相关性。Transport须承担真实网络响应字节/重试/连接超时约束，此批只用进程内替身，响应String限长是解析前检查而非网络读取限长。不添加框架/依赖/资料发布开关。
++
++
++## Task2K / A06第一段：有界原文定位组件（2026-10-08）
++
++11项当前字节/白名单见r5-original-20261008-01/source-before.json。现有JDBC reader增加同一资格SQL快照的title/source_url/source_locator/page_number/section_title，read兼容委托；该reader单片段文本至65536数据库字符，URL/section在SQL截为NULL而不搬运无限元数据。新内部服务只接服务端已核验摘录，按固定revision与当前reader匹配持久身份/hash/正文/span，输出有界上下文及摘录定位，不创建HTTP入口或学生资格。
++
++- [x] 有效RED：当前原文与元数据、hash/版本/资格/ID/span/Unicode变化拒绝，读取故障不回显；原文上下文/UTF8输出预算、安全HTTPS精确host和缺失元数据。
++- [x] GREEN：复用Verifier验证当前一次SQL快照的结构/hash/摘录跨度，不伪称第二次fresh SQL；正文/元数据同读，引用别名保持本轮值；来源URL无服务端抓取/重定向，仅显式host白名单，不造页码。
++- [x] 专用临时库正向元数据、ARCHIVED/INTERNAL/分享拒绝、版本/hash改变、单片段过大拒绝；旧reader及应用/审计/HTTP全相关回归。
++- [x] 29工具合同、一次增量审查、问题证据；A06真实HTTP会话绑定/点击/页面及B01原件映射继续后段，最终复查窗口A07，正式CLOSED不变。
++
++Expected：page_number只标RECORDED_SOURCE_PAGE，不将未审映射的值冒称PDF物理或印刷页，不添加#page导航；无URL/locator时输出未知，不生成外链。上下文保留完整核验摘录，至8192 UTF8字节，左右最多256 UTF16且不切代理对，超限拒绝而非截断摘录。公开VerifiedExcerpt构造器不能授权客户端输入，未来HTTP必须绑定服务端会话结果；本批仅内部组件。
+--- before/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
++++ after/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
+@@ -393,3 +393,25 @@
+ Final: fixed M1静态测试同步缺口：两次成功选择间awaitIdle等待worker实际finally；未制造RED/未称已复现偶发失败，生产占用语义不变。
+ 
+ 接续原文定位A06与最终外发A07；A05真实供应商/物理网络/语义及B/C/G2保持OPEN。
++
++
++Task2K/A06第一段: start — r5-original-20261008-01/source-before.json，接续已授权持续任务。
++Task2K: Ruling: 原文正文/元数据复用同一资格SQL快照，单片段65536数据库字符与元数据SQL限额 — 降低任意超大片段或TEXT元数据读流，原reader兼容但超大片段不再获准 — 成本：合法大段须重切或受控拒绝，不能将新预算称全检索链的物理下载限制。
++Task2K: Ruling: page_number只标已记录来源页，物理/印刷映射与外链页锚依赖B01 — 表字段没有页码语义，不能凭PDF类型猜导航 — 成本：本批不能声称学生一键到实际PDF页，A06整体不关闭。
++Task2K: Ruling: 内部服务只接服务端摘录；复用Verifier时reader返回本次当前SQL快照用于本地结构核验 — 不把memo第二次读取称fresh DB，也不开放客户端VerifiedExcerpt — 成本：原文HTTP会话proof/最终外发仍A06后段/A07，正式目录CLOSED不变。
++
++Task2K/A06第一段: complete — 有效RED31/13，首GREEN104/7fail+7error为游标元数据映射、次104/1error为违反V2夹具，修复后104PASS；最终32类391项（298纯单元+81真库含12HTTP+12凭据配置）、29计数替身合同；无卷55466 V22连接0/退出。一次增量审查；原2025DRAFT/许可保护不变，无原库/模型/部署/commit。
++
++Final: Ruling: M1向内收缩代理对边界以满足每侧256上限 — quote边界已核验合法，不需向外多取一个UTF16单位 — 成本：附近emoji可能不在context中，完整quote不丢失。
++
++Final: Ruling: M2最终增量覆盖所有11项，旧review.diff保留且reviewer已直接补查计划/ledger — 避免无声覆盖原审查证据与遗漏设计依据 — 成本：新修复与最终文档未作二次审查，按一次修复及最终验证收口。
++
++Final: Ruling: 撤回/分享false必须同步INTERNAL，测试不解除V2学生可见约束 — 保持合法数据库状态 — 成本：组合反例不独立证明分享谓词因果，源码SQL及旧矩阵一同审视。
++
++Final: Ruling: 当前一次SQL及本地Verifier memo仅证明此读时资料资格/hash/span；无HTTP/会话proof/最终原子性 — 保留内部阶段与A06后段/A07/B01 — 成本：不能称学生一键原文或真实2025可见。
++
++Final: fixed M1实际左右窗口边界跨代理对RED13/1→向内收缩，保留完整quote/Unicode和每侧<=256；最终完整相关GREEN，无二次审查。
++
++Final: fixed M2保留原审查知识代码diff/全部source-review哈希与审查者实际补查文档说明；生成器修为全部11项，最终changes-final.diff覆盖全部11项，不把最终补差异冒充已重审。
++
++接续A06原文HTTP服务端引用绑定与A07最终展示边界；真实文件/页码B01、供应商A05后段/C与学生浏览器/G2保持OPEN。

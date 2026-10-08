@@ -27,6 +27,7 @@ import java.time.Clock;
 import java.time.Duration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -42,13 +43,15 @@ import org.slf4j.LoggerFactory;
  * <p>服务只在专用 Profile 和显式开关同时开启时创建，防止默认应用启动时连接仅供本地验证的资料库。</p>
  */
 @Configuration(proxyBeanMethods = false)
-@Profile("zhku-local-preview")
-@ConditionalOnProperty(
-        prefix = "zhku.local-preview",
-        name = "enabled",
-        havingValue = "true"
-)
+@Profile({"zhku-local-preview", "zhku-controlled-preview"})
+@ConditionalOnExpression("${zhku.local-preview.enabled:false} or ${zhku.controlled-preview.enabled:false}")
 public class ZhkuLocalPreviewConfiguration {
+
+    @Bean
+    LocalPreviewBindingGuard zhkuLocalPreviewBindingGuard(Environment environment) {
+        // 读取覆盖后的有效值，而不是配置文件默认值；启用预览时不允许静默绑定所有网卡。
+        return new LocalPreviewBindingGuard(environment.getProperty("server.address"));
+    }
 
     private static final Duration CONVERSATION_TTL = Duration.ofMinutes(10);
     private static final Logger LOG = LoggerFactory.getLogger(
@@ -235,6 +238,11 @@ public class ZhkuLocalPreviewConfiguration {
      * CLI 仍使用 LocalKnowledgePublisherFactory 的环境变量 fail-fast，避免两条入口放宽密码纪律。
      */
     private static DriverManagerDataSource localPreviewDataSource(Environment environment) {
+        if (java.util.Arrays.asList(environment.getActiveProfiles()).contains("zhku-controlled-preview")) {
+            // 受控只显式导入领域Bean；读取与身份/归档同一严格目标，不能回退演示库或Spring密码属性。
+            return (DriverManagerDataSource) new com.zhku.knowledge.controlled.ControlledPreviewConfiguration()
+                    .controlledDataSource(environment);
+        }
         String password = environment.getProperty("ZHKU_DB_PASSWORD");
         if (password == null || password.isBlank()) {
             throw new IllegalArgumentException("缺少数据库密码：请设置环境变量 ZHKU_DB_PASSWORD");

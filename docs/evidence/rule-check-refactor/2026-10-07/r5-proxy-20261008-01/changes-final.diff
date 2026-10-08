@@ -1,0 +1,45 @@
+--- before/agent/frontend/nginx.conf
++++ after/agent/frontend/nginx.conf
+@@ -30,10 +30,31 @@
+         proxy_intercept_errors off;
+     }
+ 
++    location ^~ /api/zhku/controlled-preview/v2/ {
++        # 查证入口保留独立命名空间；仅当前启动的后端可处理，代理不授予身份或资料资格。
++        proxy_pass http://host.docker.internal:${ZHKU_CONTROLLED_BACKEND_PORT};
++        proxy_http_version 1.1;
++        proxy_set_header Host $http_host;
++        proxy_set_header Connection "";
++        proxy_set_header X-Real-IP $remote_addr;
++        proxy_set_header X-Forwarded-For $remote_addr;
++        proxy_set_header X-Forwarded-Proto $scheme;
++        proxy_connect_timeout 3s;
++        proxy_read_timeout 45s;
++        proxy_send_timeout 45s;
++        proxy_cache off;
++        # 查询与身份POST丢响应均可能已执行，代理不能重放来猜结果。
++        proxy_next_upstream off;
++        proxy_hide_header Cache-Control;
++        add_header Cache-Control "no-store" always;
++        proxy_intercept_errors off;
++    }
++
+     # 旧匿名、治理和通用Agent路径不进入本次校园展示代理。
+     location = /api { return 404; }
+     # proxy_pass前缀会把无尾斜杠地址自动301；精确拒绝，避免误当成可用API。
+     location = /api/zhku/controlled-preview/v1 { return 404; }
++    location = /api/zhku/controlled-preview/v2 { return 404; }
+     location ^~ /api/ { return 404; }
+ 
+     location / {
+--- before/agent/frontend/start-nginx-preview.ps1
++++ after/agent/frontend/start-nginx-preview.ps1
+@@ -68,7 +68,7 @@
+     if (-not $ready) { throw 'Nginx page readiness failed.' }
+     Write-Host "Nginx page ready: http://127.0.0.1:$WebPort/"
+     Write-Host "Controlled API upstream: host.docker.internal:$BackendPort"
+-    Write-Host 'Campus login, credit tasks, history and retake clarification are wired to the controlled API.'
++    Write-Host 'Only controlled v1/v2 namespaces are proxied; the selected backend determines which functions are available.'
+     Write-Host "Stop this container with: .\start-nginx-preview.cmd -Action Stop -ProjectName $ProjectName"
+ } catch {
+     if ($created) {

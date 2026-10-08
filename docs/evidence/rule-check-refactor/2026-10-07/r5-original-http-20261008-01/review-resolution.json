@@ -1,0 +1,17 @@
+{
+  "reviewer": "/root/r5_original_http_review",
+  "criticalRemaining": 0,
+  "importantRemaining": 0,
+  "verificationStatus": "VERIFIED_FINAL_GREEN",
+  "finalPhase": "r5-original-http-review-final-20261008-01",
+  "fixed": [
+    "I1: 首问和续答在consume/begin前同Session锁核对完整actor；有效RED24/2纯单元+9/1实际HTTP，均0error/skip。新账号先完成题/引用/澄清后旧请求拒绝且不覆盖slot；最终GREEN另核对。",
+    "M1: 审查包端口更正为实测55439；修复最终验收显式Port55470，保留原command/database报告。"
+  ],
+  "deferredMinors": [],
+  "rulings": [
+    "开始前及结束时均核对Session actor — 入口许可后阻塞可能跨越换账号 — 增加纯校验，不用末端拒绝掩盖前置slot覆盖",
+    "身份仓储测试spy实际callRealMethod后一次阻塞 — 复现入口许可到Controller窗口而不mock许可/决策 — 实际SQL/身份线程仍须关闭核对",
+    "仅修一轮重要项，按原约定不重审；最终GREEN和本批增量/hash独立验证，后补文档不冒称重获审查"
+  ]
+}

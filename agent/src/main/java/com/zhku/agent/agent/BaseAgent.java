@@ -2,9 +2,14 @@ package com.zhku.agent.agent;
 
 import cn.hutool.core.util.StrUtil;
 import com.zhku.agent.agent.runtime.AgentRunContext;
+import com.zhku.agent.agent.runtime.AgentRunObservationDispatcher;
 import com.zhku.agent.agent.runtime.AgentRunState;
 import com.zhku.agent.agent.runtime.AgentRunTask;
 import com.zhku.agent.agent.runtime.AgentStopReason;
+import com.zhku.agent.agent.model.AgentExecutionFailure;
+import com.zhku.agent.agent.runtime.contract.AgentRunEvent;
+import com.zhku.agent.agent.runtime.contract.AgentRuntimeError;
+import com.zhku.agent.agent.runtime.contract.AgentRunSnapshot.EndReason;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -120,8 +125,8 @@ public abstract class BaseAgent {
             return String.join("\n", results);
         } catch (RuntimeException exception) {
             // step/think/act 的异常统一到运行边界，在这里标记 FAILED。
-            finishAsFailure(context);
-            log.error("Agent 同步执行失败，runId={}", context.runId(), exception);
+            finishAfterStreamException(context, exception);
+            log.error("Agent 同步执行失败，runId={}，category={}", context.runId(), failureCategory(exception));
 
             // 保留原异常对象及因果链，避免把失败伪装成普通步骤字符串。
             throw exception;
@@ -155,30 +160,34 @@ public abstract class BaseAgent {
             try {
                 executeSteps(
                         context,
-                        result -> sendStreamResult(context, emitter, result)
-                );
+                        result -> sendStreamResult(context, emitter, result));
 
                 // executeSteps 已先设置最终状态；完成回调不会把成功运行改成取消。
+                finalizeRun(context);
                 emitter.complete();
             } catch (UncheckedIOException exception) {
                 // SSE 发送失败属于运行失败，同时保留首个停止原因 SEND_FAILURE。
-                finishAsFailure(context);
+                finishAsFailure(context, AgentRuntimeError.of(AgentRuntimeError.Category.SEND_FAILURE));
                 log.error(
-                        "Agent SSE 发送失败，runId={}",
+                        "Agent SSE 发送失败，runId={}，category={}",
                         context.runId(),
-                        exception
-                );
+                        failureCategory(exception));
                 emitter.completeWithError(exception.getCause());
             } catch (RuntimeException exception) {
                 // 如果之前已收到 timeout/disconnect，则最终结果为取消；
                 // 否则这是普通执行异常，最终结果为失败。
-                finishAfterStreamException(context);
+                finishAfterStreamException(context, exception);
                 log.error(
-                        "Agent 流式执行失败，runId={}",
+                        "Agent 流式执行失败，runId={}，category={}",
                         context.runId(),
-                        exception
-                );
-                emitter.completeWithError(exception);
+                        failureCategory(exception));
+                // 尝试发送一次固定分类；发送本身失败时不能递归重试。
+                try {
+                    sendStreamResult(context, emitter, "Error: " + failureCategory(exception));
+                } catch (RuntimeException sendFailure) {
+                    /* 通道不可用，仍需执行 finally。 */
+                }
+                emitter.completeWithError(new IllegalStateException(failureCategory(exception)));
             } finally {
                 // 只有工作线程负责最终清理和真实终止信号。
                 finalizeRun(context);
@@ -191,7 +200,7 @@ public abstract class BaseAgent {
         } catch (RuntimeException exception) {
             // 如果任务提交失败，工作线程不会启动，因此由提交线程完成失败收尾。
             streamTask.cancel(false);
-            finishAsFailure(context);
+            finishAsFailure(context, AgentRuntimeError.of(AgentRuntimeError.Category.EXECUTOR_REJECTED));
             finalizeRun(context);
             emitter.completeWithError(exception);
             throw exception;
@@ -219,8 +228,7 @@ public abstract class BaseAgent {
      */
     private void executeSteps(
             AgentRunContext context,
-            Consumer<String> resultConsumer
-    ) {
+            Consumer<String> resultConsumer) {
         for (int index = 0; index < maxSteps; index++) {
             // STOP_REQUESTED 或最终状态出现后，不允许开始新的模型/工具步骤。
             if (context.isStopRequested() || context.state().isTerminal()) {
@@ -234,14 +242,12 @@ public abstract class BaseAgent {
                     name,
                     stepNumber,
                     maxSteps,
-                    context.runId()
-            );
+                    context.runId());
 
             // context 通过参数显式传入，子类只能操作当前运行的数据。
             String stepResult = step(context);
             resultConsumer.accept(
-                    "Step " + stepNumber + ": " + stepResult
-            );
+                    "Step " + stepNumber + ": " + stepResult);
         }
 
         finishAfterLoop(context, resultConsumer);
@@ -252,17 +258,19 @@ public abstract class BaseAgent {
      */
     private void finishAfterLoop(
             AgentRunContext context,
-            Consumer<String> resultConsumer
-    ) {
+            Consumer<String> resultConsumer) {
         if (context.isStopRequested()) {
             // timeout、断连和用户停止属于取消；SSE error/send 失败属于故障。
             // 不能把所有停止请求都压成 CANCELLED，否则监控和调用方无法区分
             // “用户不再需要结果”和“传输链路执行失败”。
-            AgentRunState finalState =
-                    context.stopReason() == AgentStopReason.SEND_FAILURE
-                            ? AgentRunState.FAILED
-                            : AgentRunState.CANCELLED;
-            context.finish(finalState);
+            AgentRunState finalState = context.stopReason() == AgentStopReason.SEND_FAILURE
+                    ? AgentRunState.FAILED
+                    : AgentRunState.CANCELLED;
+            if (finalState == AgentRunState.FAILED)
+                context.finish(finalState, EndReason.ERROR,
+                        AgentRuntimeError.of(AgentRuntimeError.Category.SEND_FAILURE));
+            else
+                context.finish(finalState, EndReason.STOPPED, null);
             return;
         }
 
@@ -273,11 +281,13 @@ public abstract class BaseAgent {
 
         if (context.currentStep() >= maxSteps) {
             resultConsumer.accept(
-                    "Terminated: Reached max steps (" + maxSteps + ")"
-            );
+                    "Terminated: Reached max steps (" + maxSteps + ")");
         }
 
-        context.finish(AgentRunState.SUCCEEDED);
+        // 消耗完步骤只证明本次执行结束，不能证明用户请求已完成。
+        if (!context.finish(AgentRunState.INCOMPLETE, EndReason.STEP_LIMIT, null) && context.isStopRequested()) {
+            context.finish(AgentRunState.CANCELLED);
+        }
     }
 
     /**
@@ -288,8 +298,7 @@ public abstract class BaseAgent {
      */
     private void registerEmitterCallbacks(
             AgentRunContext context,
-            SseEmitter emitter
-    ) {
+            SseEmitter emitter) {
         emitter.onTimeout(() -> {
             context.requestStop(AgentStopReason.SSE_TIMEOUT);
             log.warn("SSE 连接超时，runId={}", context.runId());
@@ -297,7 +306,7 @@ public abstract class BaseAgent {
 
         emitter.onError(error -> {
             context.requestStop(AgentStopReason.SEND_FAILURE);
-            log.warn("SSE 连接发生错误，runId={}", context.runId(), error);
+            log.warn("SSE 连接发生错误，runId={}，category=SEND_FAILURE", context.runId());
         });
 
         emitter.onCompletion(() -> {
@@ -314,8 +323,7 @@ public abstract class BaseAgent {
     private void sendStreamResult(
             AgentRunContext context,
             SseEmitter emitter,
-            String result
-    ) {
+            String result) {
         try {
             emitter.send(result);
         } catch (IOException exception) {
@@ -329,7 +337,7 @@ public abstract class BaseAgent {
      * 创建并启动一次全新的运行上下文。
      */
     private AgentRunContext createRunningContext(String userPrompt) {
-        AgentRunContext context = AgentRunContext.create(userPrompt);
+        AgentRunContext context = AgentRunContext.create(userPrompt, this::onRunEvent, observationDispatcher());
 
         if (!context.start()) {
             // 新创建的 context 理论上必须能从 CREATED 进入 RUNNING。
@@ -342,16 +350,16 @@ public abstract class BaseAgent {
     /**
      * 把普通执行异常映射为 FAILED。
      */
-    private void finishAsFailure(AgentRunContext context) {
+    private void finishAsFailure(AgentRunContext context, AgentRuntimeError error) {
         if (!context.state().isTerminal()) {
-            context.finish(AgentRunState.FAILED);
+            context.finish(AgentRunState.FAILED, EndReason.ERROR, error);
         }
     }
 
     /**
      * 根据流式异常发生前是否已收到停止请求，选择 CANCELLED 或 FAILED。
      */
-    private void finishAfterStreamException(AgentRunContext context) {
+    private void finishAfterStreamException(AgentRunContext context, RuntimeException exception) {
         if (context.state().isTerminal()) {
             return;
         }
@@ -362,7 +370,11 @@ public abstract class BaseAgent {
             return;
         }
 
-        context.finish(AgentRunState.FAILED);
+        AgentRuntimeError error = exception instanceof AgentExecutionFailure failure ? failure.runtimeError()
+                : AgentRuntimeError.of(context.stopReason() == AgentStopReason.SEND_FAILURE
+                        ? AgentRuntimeError.Category.SEND_FAILURE
+                        : AgentRuntimeError.Category.EXECUTION_FAILURE);
+        context.finish(AgentRunState.FAILED, EndReason.ERROR, error);
     }
 
     /**
@@ -378,8 +390,19 @@ public abstract class BaseAgent {
             }
         }
 
-        context.cleanupOnce(() -> cleanup(context));
-        context.signalTermination();
+        try {
+            context.cleanupOnce(() -> cleanup(context));
+        } catch (RuntimeException exception) {
+            throw new AgentExecutionFailure(AgentExecutionFailure.Category.CLEANUP_FAILURE);
+        } finally {
+            // 清理失败仍须通知等待方；context 已将成功降级为失败且记录清理分类。
+            context.signalTermination();
+            context.publishTermination();
+        }
+    }
+
+    private static String failureCategory(RuntimeException exception) {
+        return exception instanceof AgentExecutionFailure failure ? failure.category().name() : "EXECUTION_FAILURE";
     }
 
     /**
@@ -388,8 +411,7 @@ public abstract class BaseAgent {
     private static void validateUserPrompt(String userPrompt) {
         if (StrUtil.isBlank(userPrompt)) {
             throw new IllegalArgumentException(
-                    "Cannot run agent with empty user prompt"
-            );
+                    "Cannot run agent with empty user prompt");
         }
     }
 
@@ -408,6 +430,15 @@ public abstract class BaseAgent {
      */
     protected void cleanup(AgentRunContext context) {
         // 子类可以按需重写，但不能清理其他运行。
+    }
+
+    /** 宿主借用资源；测试可显式拥有，不能在构造阶段调用可覆写接线方法。 */
+    protected AgentRunObservationDispatcher observationDispatcher() {
+        return AgentRunObservationDispatcher.processDefault();
+    }
+
+    /** 异步、尽力交付；不能通过回调顺序推断业务结果尚未发布。 */
+    protected void onRunEvent(AgentRunEvent event) {
     }
 }
 
@@ -429,10 +460,6 @@ public abstract class BaseAgent {
     step → think → act → 工具结果写入 messageList → 下一次 step
     这就是 ReAct 的“思考—行动—观察—再思考”循环。
 */
-
-
-
-
 
 /*
     问题：当前 BaseAgent 同时承担了“可复用的 Agent 定义”和“一次执行的运行上下文”，所以复用、流式和并发都会变复杂。

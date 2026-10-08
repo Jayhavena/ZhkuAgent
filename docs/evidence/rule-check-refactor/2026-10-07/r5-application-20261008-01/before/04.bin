@@ -1,0 +1,189 @@
+package com.zhku.knowledge.retrieval;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
+/**
+ * pgvector 向量候选检索：在指定 profile 的索引条目上按余弦距离排序。
+ *
+ * <p>查询向量维度必须与 profile 声明一致——维度不符直接判定该路不可用
+ * （降级），而不是让数据库返回难以解释的距离排序。</p>
+ */
+public final class JdbcVectorCandidateRetriever implements ChunkCandidateRetriever {
+
+    private final DataSource dataSource;
+    private final RetrievalEligibilityFilter eligibilityFilter;
+    private final String profileId;
+    private final String requiredScope;
+    private final EmbeddingClient embeddingClient;
+    private final boolean offlineEvaluation;
+
+    public JdbcVectorCandidateRetriever(
+            DataSource dataSource,
+            RetrievalEligibilityFilter eligibilityFilter,
+            String profileId,
+            String requiredScope,
+            EmbeddingClient embeddingClient
+    ) {
+        this(dataSource, eligibilityFilter, profileId, requiredScope, embeddingClient, false);
+    }
+
+    private JdbcVectorCandidateRetriever(DataSource dataSource, RetrievalEligibilityFilter eligibilityFilter,
+            String profileId, String requiredScope, EmbeddingClient embeddingClient, boolean offlineEvaluation) {
+        this.dataSource = Objects.requireNonNull(dataSource, "数据源不能为空");
+        this.eligibilityFilter = Objects.requireNonNull(eligibilityFilter, "资格过滤器不能为空");
+        this.profileId = Objects.requireNonNull(profileId, "profile 标识不能为空");
+        this.requiredScope = requiredScope;
+        this.embeddingClient = Objects.requireNonNull(embeddingClient, "embedding 客户端不能为空");
+        this.offlineEvaluation = offlineEvaluation;
+    }
+
+    /** 仅离线评测允许读取BUILDING；评测在激活前执行，不能为其提前放宽线上入口。资料资格仍完整检查。 */
+    public static JdbcVectorCandidateRetriever forOfflineEvaluation(DataSource dataSource,
+            RetrievalEligibilityFilter eligibilityFilter, String profileId, String requiredScope, EmbeddingClient embeddingClient) {
+        return new JdbcVectorCandidateRetriever(dataSource, eligibilityFilter, profileId, requiredScope, embeddingClient, true);
+    }
+
+    @Override
+    public List<RetrievedChunk> retrieve(String query, int limit) {
+        if (limit <= 0) {
+            return List.of();
+        }
+        int declaredDimensions = profileDimensions();
+        if (embeddingClient.dimensions() != declaredDimensions) {
+            throw new RetrieverUnavailableException(
+                    "embedding 维度与 profile 不符：profile " + declaredDimensions
+                            + "，客户端 " + embeddingClient.dimensions());
+        }
+        float[] queryVector = embeddingClient.embed(query);
+        if (queryVector.length != declaredDimensions) {
+            throw new RetrieverUnavailableException(
+                    "查询向量长度与 profile 不符：profile " + declaredDimensions
+                            + "，实际 " + queryVector.length);
+        }
+
+        List<RetrievedChunk> candidates = new ArrayList<>();
+        for (CandidateRow row : loadRows(toVectorLiteral(queryVector), limit)) {
+            if (!eligibilityFilter.evaluate(row.source(), requiredScope).eligible()) {
+                continue;
+            }
+            candidates.add(row.chunk());
+            if (candidates.size() == limit) {
+                break;
+            }
+        }
+        return List.copyOf(candidates);
+    }
+
+    private int profileDimensions() {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "SELECT dimensions, status FROM embedding_profile WHERE profile_id = ?")) {
+            statement.setString(1, profileId);
+            try (ResultSet result = statement.executeQuery()) {
+                if (!result.next()) {
+                    throw new RetrieverUnavailableException("profile 未在册：" + profileId);
+                }
+                String status = result.getString("status");
+                // 状态检查必须早于embedding外发；维度匹配不等于这个profile已经上线。
+                if (!"ACTIVE".equals(status) && !(offlineEvaluation && "BUILDING".equals(status))) {
+                    throw new RetrieverUnavailableException("profile 不允许当前读取模式：" + status);
+                }
+                return result.getInt("dimensions");
+            }
+        } catch (SQLException exception) {
+            throw new RetrieverUnavailableException("无法读取 profile 维度", exception);
+        }
+    }
+
+    private List<CandidateRow> loadRows(String vectorLiteral, int limit) {
+        // 所有已知资格先在SQL过滤，再精确排序/LIMIT，避免物化全库或被不合格近邻挤占。
+        // 查询时再检查profile，防止embedding期间退役后仍输出候选；完整时效映射仍待后续实现。
+        String sql = """
+                SELECT entry.chunk_id, chunk.content, chunk.source_locator, chunk.page_number,
+                       chunk.content_checksum, source.id AS source_id, source.title AS source_title,
+                       source.source_version, source.publication_status, source.visibility_scope,
+                       source.sharing_rights_confirmed, source.knowledge_scope
+                FROM retrieval_index_entry entry
+                JOIN knowledge_chunk chunk ON chunk.id = entry.chunk_id
+                JOIN knowledge_source source ON source.id = chunk.source_id
+                JOIN embedding_profile profile ON profile.profile_id = entry.profile_id
+                JOIN retrieval_index_run index_run ON index_run.id = entry.run_id
+                WHERE entry.profile_id = ?
+                  AND (profile.status = 'ACTIVE' OR (? AND profile.status = 'BUILDING'))
+                  AND index_run.status = 'COMPLETED'
+                  AND index_run.profile_id = entry.profile_id
+                  AND index_run.chunking_version = entry.chunking_version
+                  AND source.publication_status = 'PUBLISHED'
+                  AND source.visibility_scope = 'STUDENT_VISIBLE'
+                  AND source.sharing_rights_confirmed = TRUE
+                  AND (CAST(? AS VARCHAR) IS NULL OR source.knowledge_scope = ?)
+                  AND entry.source_version = source.source_version
+                  AND entry.content_checksum = chunk.content_checksum
+                  AND entry.embedding IS NOT NULL
+                ORDER BY entry.embedding <=> CAST(? AS vector), entry.chunk_id
+                LIMIT ?
+                """;
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, profileId);
+            statement.setBoolean(2, offlineEvaluation);
+            statement.setString(3, requiredScope);
+            statement.setString(4, requiredScope);
+            statement.setString(5, vectorLiteral);
+            statement.setInt(6, limit);
+            try (ResultSet result = statement.executeQuery()) {
+                List<CandidateRow> rows = new ArrayList<>();
+                while (result.next()) {
+                    UUID sourceId = result.getObject("source_id", UUID.class);
+                    rows.add(new CandidateRow(
+                            new RetrievedChunk(
+                                    result.getObject("chunk_id", UUID.class),
+                                    result.getString("content"),
+                                    result.getString("source_title"),
+                                    result.getString("source_locator"),
+                                    (Integer) result.getObject("page_number"),
+                                    result.getString("source_version"),
+                                    result.getString("content_checksum"),
+                                    sourceId
+                            ),
+                            new SourceEligibilitySnapshot(
+                                    sourceId,
+                                    result.getString("publication_status"),
+                                    result.getString("visibility_scope"),
+                                    result.getBoolean("sharing_rights_confirmed"),
+                                    false,
+                                    result.getString("knowledge_scope"),
+                                    null,
+                                    null
+                            )
+                    ));
+                }
+                return rows;
+            }
+        } catch (SQLException exception) {
+            throw new RetrieverUnavailableException("无法执行向量候选检索", exception);
+        }
+    }
+
+    private static String toVectorLiteral(float[] vector) {
+        StringBuilder builder = new StringBuilder("[");
+        for (int i = 0; i < vector.length; i++) {
+            if (i > 0) {
+                builder.append(',');
+            }
+            builder.append(vector[i]);
+        }
+        return builder.append(']').toString();
+    }
+
+    private record CandidateRow(RetrievedChunk chunk, SourceEligibilitySnapshot source) {
+    }
+}

@@ -99,7 +99,9 @@ class CourseCreditModelCallServiceTest {
 
     @Test
     void modelFailureDoesNotInventCredits() {
-        var result = service(prompt -> { throw new IllegalStateException("private provider text"); }).run("汇总");
+        var result = service(prompt -> {
+            throw new IllegalStateException("private provider text");
+        }).run("汇总");
         assertThat(result.status()).isEqualTo(ModelCallStatus.MODEL_FAILURE);
         assertThat(result.resultJson()).isNull();
         assertThat(result.boundaryMessage()).doesNotContain("private provider text");

@@ -22,14 +22,52 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CampusCreditAgentManagerTest {
     @Test
+    void completedRecordsDoNotPermanentlyBlockAdmissionAfter128Runs() {
+        var service = new CampusCreditAgentService(prompt -> new ChatResponse(List.of(
+                new Generation(new AssistantMessage("补充课程")))),
+                new CampusToolRegistry(List.of(new CourseCreditSummaryTool())),
+                question -> {
+                    throw new AssertionError("不查询政策");
+                }, 3);
+        try (var timer = Executors.newSingleThreadScheduledExecutor()) {
+            var manager = new CampusCreditAgentManager(service, Runnable::run, timer, Duration.ofSeconds(5));
+            var first = manager.start(new CampusCreditAgentService.Request("公选课学分", List.of()));
+            var ids = new java.util.ArrayList<java.util.UUID>();
+            ids.add(first.runId());
+            for (int i = 0; i < 255; i++) {
+                var snapshot = manager.start(new CampusCreditAgentService.Request("公选课学分", List.of()));
+                ids.add(snapshot.runId());
+                assertThat(snapshot.terminated()).isTrue();
+                assertThat(snapshot.status()).isNotNull();
+                assertThat(snapshot.failureCategory()).isNotNull();
+            }
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> manager.find(first.runId()))
+                    .isInstanceOf(IllegalArgumentException.class);
+            int retained = 0;
+            for (var id : ids) {
+                try {
+                    manager.find(id);
+                    retained++;
+                } catch (IllegalArgumentException expected) {
+                    /* 容量压力回收沿用不存在语义。 */
+                }
+            }
+            assertThat(retained).isEqualTo(128);
+        }
+    }
+
+    @Test
     void cancellationIsNotTerminationUntilWorkerLeavesAndCleansUp() throws Exception {
         CountDownLatch entered = new CountDownLatch(1);
         CountDownLatch release = new CountDownLatch(1);
         var service = new CampusCreditAgentService(prompt -> {
             entered.countDown();
             while (release.getCount() > 0) {
-                try { release.await(10, TimeUnit.MILLISECONDS); }
-                catch (InterruptedException ignored) { /* 模拟不响应中断的供应商调用。 */ }
+                try {
+                    release.await(10, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException ignored) {
+                    /* 模拟不响应中断的供应商调用。 */
+                }
             }
             return new ChatResponse(List.of(new Generation(new AssistantMessage("", java.util.Map.of(), List.of()))));
         }, new CampusToolRegistry(List.of(new CourseCreditSummaryTool())),
@@ -37,8 +75,10 @@ class CampusCreditAgentManagerTest {
                         ElectiveRetakeReplyType.ANSWER, "规则", new LocalPreviewConversationFacade.ConversationAnswer(
                                 "每学期公共选修课最高不得超过 4 学分。", "依据", java.util.UUID.randomUUID(),
                                 "学生手册", "2025", "第 10 条", "本科生"),
-                        AnswerRoute.HIGH_RISK_RULE, false, List.of(), List.of()), 3);
-        try (var worker = Executors.newSingleThreadExecutor(); var timer = Executors.newSingleThreadScheduledExecutor()) {
+                        AnswerRoute.HIGH_RISK_RULE, false, List.of(), List.of()),
+                3);
+        try (var worker = Executors.newSingleThreadExecutor();
+                var timer = Executors.newSingleThreadScheduledExecutor()) {
             var manager = new CampusCreditAgentManager(service, worker, timer, Duration.ofSeconds(5));
             var started = manager.start(new CampusCreditAgentService.Request("公选课本学期学分上限？", List.of()));
             assertThat(entered.await(2, TimeUnit.SECONDS)).isTrue();
@@ -49,7 +89,8 @@ class CampusCreditAgentManagerTest {
             CampusCreditAgentManager.Snapshot ended = null;
             for (int i = 0; i < 100; i++) {
                 ended = manager.find(started.runId());
-                if (ended.terminated()) break;
+                if (ended.terminated())
+                    break;
                 Thread.sleep(10);
             }
             assertThat(ended.state()).isEqualTo(AgentRunState.CANCELLED);
@@ -62,12 +103,18 @@ class CampusCreditAgentManagerTest {
 
     @Test
     void executorRejectionHasFailedTerminalState() {
-        var service = new CampusCreditAgentService(prompt -> { throw new AssertionError("不应调用模型"); },
+        var service = new CampusCreditAgentService(prompt -> {
+            throw new AssertionError("不应调用模型");
+        },
                 new CampusToolRegistry(List.of(new CourseCreditSummaryTool())),
-                question -> { throw new AssertionError("不应查询政策"); }, 3);
+                question -> {
+                    throw new AssertionError("不应查询政策");
+                }, 3);
         try (var timer = Executors.newSingleThreadScheduledExecutor()) {
             var manager = new CampusCreditAgentManager(service,
-                    task -> { throw new java.util.concurrent.RejectedExecutionException(); },
+                    task -> {
+                        throw new java.util.concurrent.RejectedExecutionException();
+                    },
                     timer, Duration.ofSeconds(1));
             var snapshot = manager.start(new CampusCreditAgentService.Request("公选课学分", List.of()));
             assertThat(snapshot.state()).isEqualTo(AgentRunState.FAILED);
@@ -83,8 +130,11 @@ class CampusCreditAgentManagerTest {
         var service = new CampusCreditAgentService(prompt -> {
             entered.countDown();
             while (release.getCount() > 0) {
-                try { release.await(10, TimeUnit.MILLISECONDS); }
-                catch (InterruptedException ignored) { /* 供应商阻塞调用可能忽略中断。 */ }
+                try {
+                    release.await(10, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException ignored) {
+                    /* 供应商阻塞调用可能忽略中断。 */
+                }
             }
             return new ChatResponse(List.of(new Generation(new AssistantMessage("", java.util.Map.of(), List.of()))));
         }, new CampusToolRegistry(List.of(new CourseCreditSummaryTool())),
@@ -92,15 +142,18 @@ class CampusCreditAgentManagerTest {
                         ElectiveRetakeReplyType.ANSWER, "规则", new LocalPreviewConversationFacade.ConversationAnswer(
                                 "每学期公共选修课最高不得超过 4 学分。", "依据", java.util.UUID.randomUUID(),
                                 "学生手册", "2025", "第 10 条", "本科生"),
-                        AnswerRoute.HIGH_RISK_RULE, false, List.of(), List.of()), 3);
-        try (var worker = Executors.newSingleThreadExecutor(); var timer = Executors.newSingleThreadScheduledExecutor()) {
+                        AnswerRoute.HIGH_RISK_RULE, false, List.of(), List.of()),
+                3);
+        try (var worker = Executors.newSingleThreadExecutor();
+                var timer = Executors.newSingleThreadScheduledExecutor()) {
             var manager = new CampusCreditAgentManager(service, worker, timer, Duration.ofMillis(30));
             var started = manager.start(new CampusCreditAgentService.Request("公选课本学期学分上限？", List.of()));
             assertThat(entered.await(2, TimeUnit.SECONDS)).isTrue();
             CampusCreditAgentManager.Snapshot stopping = null;
             for (int i = 0; i < 100; i++) {
                 stopping = manager.find(started.runId());
-                if (stopping.state() == AgentRunState.STOP_REQUESTED) break;
+                if (stopping.state() == AgentRunState.STOP_REQUESTED)
+                    break;
                 Thread.sleep(10);
             }
             assertThat(stopping.state()).isEqualTo(AgentRunState.STOP_REQUESTED);
@@ -109,7 +162,8 @@ class CampusCreditAgentManagerTest {
             CampusCreditAgentManager.Snapshot ended = null;
             for (int i = 0; i < 100; i++) {
                 ended = manager.find(started.runId());
-                if (ended.terminated()) break;
+                if (ended.terminated())
+                    break;
                 Thread.sleep(10);
             }
             assertThat(ended.state()).isEqualTo(AgentRunState.CANCELLED);
@@ -126,15 +180,19 @@ class CampusCreditAgentManagerTest {
         CountDownLatch release = new CountDownLatch(1);
         var service = new CampusCreditAgentService(prompt -> {
             entered.countDown();
-            try { release.await(2, TimeUnit.SECONDS); }
-            catch (InterruptedException exception) { Thread.currentThread().interrupt(); }
+            try {
+                release.await(2, TimeUnit.SECONDS);
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+            }
             return new ChatResponse(List.of(new Generation(new AssistantMessage("", java.util.Map.of(), List.of()))));
         }, new CampusToolRegistry(List.of(new CourseCreditSummaryTool())),
                 question -> new LocalPreviewConversationFacade.ConversationReply(
                         ElectiveRetakeReplyType.ANSWER, "规则", new LocalPreviewConversationFacade.ConversationAnswer(
                                 "每学期公共选修课最高不得超过 4 学分。", "依据", java.util.UUID.randomUUID(),
                                 "学生手册", "2025", "第 10 条", "本科生"),
-                        AnswerRoute.HIGH_RISK_RULE, false, List.of(), List.of()), 3);
+                        AnswerRoute.HIGH_RISK_RULE, false, List.of(), List.of()),
+                3);
         try (var worker = Executors.newFixedThreadPool(2); var timer = Executors.newSingleThreadScheduledExecutor()) {
             var manager = new CampusCreditAgentManager(service, worker, timer, Duration.ofSeconds(5));
             var a = manager.start(new CampusCreditAgentService.Request("公选课甲本学期学分上限？", List.of()));
@@ -143,7 +201,8 @@ class CampusCreditAgentManagerTest {
             assertThat(entered.await(2, TimeUnit.SECONDS)).isTrue();
             release.countDown();
             for (int i = 0; i < 100 && (!manager.find(a.runId()).terminated()
-                    || !manager.find(b.runId()).terminated()); i++) Thread.sleep(10);
+                    || !manager.find(b.runId()).terminated()); i++)
+                Thread.sleep(10);
             assertThat(manager.find(a.runId()).status()).isEqualTo(CampusCreditAgentService.Status.NEED_CLARIFICATION);
             assertThat(manager.find(b.runId()).status()).isEqualTo(CampusCreditAgentService.Status.NEED_CLARIFICATION);
         } finally {

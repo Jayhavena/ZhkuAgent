@@ -8,7 +8,7 @@ import com.zhku.knowledge.tools.CourseCreditSummaryTool;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.PropertySource;
@@ -40,22 +40,24 @@ public final class CourseCreditModelCallCli {
             logContext.getLogger("org.springframework.ai").setLevel(Level.OFF);
             RagProviderProfile profile = configuredProfile();
             // 在读取问题前验证配置和密钥，失败时不让原始问题进入任何模型对象。
-            OpenAiChatModel model = CourseCreditChatModelFactory.create(
-                    profile, ApiKeyResolver.systemEnvironment());
-            System.out.println("请输入一行课程学分问题，然后按回车：");
-            String question = new BufferedReader(
-                    new InputStreamReader(System.in, StandardCharsets.UTF_8)).readLine();
-            var service = new CourseCreditModelCallService(
-                    model,
-                    new CampusToolRegistry(List.of(new CourseCreditSummaryTool())),
-                    profile.timeout());
-            ModelCallResult result = service.run(question);
-            System.out.println("tool=" + (result.toolName() == null ? "-" : result.toolName()));
-            System.out.println("status=" + result.status());
-            if (result.resultJson() != null) {
-                System.out.println("result=" + result.resultJson());
+            try (var transport = CourseCreditChatModelFactory.open(
+                    profile, ApiKeyResolver.systemEnvironment())) {
+                ChatModel model = transport.model();
+                System.out.println("请输入一行课程学分问题，然后按回车：");
+                String question = new BufferedReader(
+                        new InputStreamReader(System.in, StandardCharsets.UTF_8)).readLine();
+                var service = new CourseCreditModelCallService(
+                        model,
+                        new CampusToolRegistry(List.of(new CourseCreditSummaryTool())),
+                        profile.timeout());
+                ModelCallResult result = service.run(question);
+                System.out.println("tool=" + (result.toolName() == null ? "-" : result.toolName()));
+                System.out.println("status=" + result.status());
+                if (result.resultJson() != null) {
+                    System.out.println("result=" + result.resultJson());
+                }
+                System.out.println("boundary=" + result.boundaryMessage());
             }
-            System.out.println("boundary=" + result.boundaryMessage());
         } catch (IllegalStateException exception) {
             System.out.println("status=CONFIG_UNAVAILABLE");
             System.out.println("boundary=仅按输入汇总，不能确认课程资格；本次未取得工具计算结果。");

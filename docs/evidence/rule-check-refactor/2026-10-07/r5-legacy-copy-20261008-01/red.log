@@ -1,0 +1,88 @@
+TAP version 13
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# Subtest: same submission key with different content explains conflict and deliberate new task
+not ok 1 - same submission key with different content explains conflict and deliberate new task
+  ---
+  duration_ms: 1.7124
+  type: 'test'
+  location: 'D:\\alldesk\\Projects\\ZhkuAgent\\agent\\frontend\\tests\\controlled-copy.test.mjs:19:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /内容|课程或问题/. Input:
+    
+    '暂时无法确认操作结果，请先刷新查看，不要重复提交。'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '暂时无法确认操作结果，请先刷新查看，不要重复提交。'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/controlled-copy.test.mjs:21:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.start (node:internal/test_runner/test:1242:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: completed live and finalized archived tasks never claim still confirming submission
+not ok 2 - completed live and finalized archived tasks never claim still confirming submission
+  ---
+  duration_ms: 11.4014
+  type: 'test'
+  location: 'D:\\alldesk\\Projects\\ZhkuAgent\\agent\\frontend\\tests\\controlled-copy.test.mjs:25:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input was expected to not match the regular expression /正在确认这次提交/. Input:
+    
+    '<!--[--><header class="page-heading"><h1>学分任务</h1><p>填写课程，查看有出处的学分结果。</p></header><div class="task-columns"><section class="input-area"><div class="section-heading"><h2>当前任务</h2><!----></div><p class="empty-state">正在确认这次提交。刷新不会恢复原课程，暂未找到记录也不代表从未受理。</p><p class="form-feedback" role="status" aria-live="polite"></p><p class="muted" role="status"></p><div class="run-status"><strong>已完成</strong></div><div class="inline-actions"><button type="button" class="button secondary" disabled>刷新进度</button><!----><!----><a href="/campus/history?runId=22222222-2222-4222-8222-222222222222" class="text-button">查看我的历史</a><button type="button" class="text-button">新建另一任务</button></div></section><section class="result-area"><div class="section-heading"><h2>结果与出处</h2></div><p class="empty-state">当前参考资料已不可查看，因此暂不展示答案。你可以向教务部门核实。</p><!----><!----></section></div><!--]-->'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '<!--[--><header class="page-heading"><h1>学分任务</h1><p>填写课程，查看有出处的学分结果。</p></header><div class="task-columns"><section class="input-area"><div class="section-heading"><h2>当前任务</h2><!----></div><p class="empty-state">正在确认这次提交。刷新不会恢复原课程，暂未找到记录也不代表从未受理。</p><p class="form-feedback" role="status" aria-live="polite"></p><p class="muted" role="status"></p><div class="run-status"><strong>已完成</strong></div><div class="inline-actions"><button type="button" class="button secondary" disabled>刷新进度</button><!----><!----><a href="/campus/history?runId=22222222-2222-4222-8222-222222222222" class="text-button">查看我的历史</a><button type="button" class="text-button">新建另一任务</button></div></section><section class="result-area"><div class="section-heading"><h2>结果与出处</h2></div><p class="empty-state">当前参考资料已不可查看，因此暂不展示答案。你可以向教务部门核实。</p><!----><!----></section></div><!--]-->'
+  operator: 'doesNotMatch'
+  stack: |-
+    TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/controlled-copy.test.mjs:29:43)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: missing or unconfirmed record retains uncertainty without asserting never accepted
+ok 3 - missing or unconfirmed record retains uncertainty without asserting never accepted
+  ---
+  duration_ms: 2.6915
+  type: 'test'
+  ...
+# Subtest: known running task is found but not called completed
+not ok 4 - known running task is found but not called completed
+  ---
+  duration_ms: 1.2487
+  type: 'test'
+  location: 'D:\\alldesk\\Projects\\ZhkuAgent\\agent\\frontend\\tests\\controlled-copy.test.mjs:37:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /已找到本次任务记录/. Input:
+    
+    '<!--[--><header class="page-heading"><h1>学分任务</h1><p>填写课程，查看有出处的学分结果。</p></header><div class="task-columns"><section class="input-area"><div class="section-heading"><h2>当前任务</h2><!----></div><p class="empty-state">正在确认这次提交。刷新不会恢复原课程，暂未找到记录也不代表从未受理。</p><p class="form-feedback" role="status" aria-live="polite"></p><p class="muted" role="status"></p><div class="run-status"><strong>正在核对</strong></div><div class="inline-actions"><button type="button" class="button secondary" disabled>刷新进度</button><!----><button type="button" class="button secondary" disabled>取消任务</button><a href="/campus/history?runId=22222222-2222-4222-8222-222222222222" class="text-button">查看我的历史</a><button type="button" class="text-button">新建另一任务</button></div></section><section class="result-area"><div class="section-heading"><h2>结果与出处</h2></div><p class="empty-state">核对完成后，答案和参考依据会显示在这里。</p><!----><!----></section></div><!--]-->'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '<!--[--><header class="page-heading"><h1>学分任务</h1><p>填写课程，查看有出处的学分结果。</p></header><div class="task-columns"><section class="input-area"><div class="section-heading"><h2>当前任务</h2><!----></div><p class="empty-state">正在确认这次提交。刷新不会恢复原课程，暂未找到记录也不代表从未受理。</p><p class="form-feedback" role="status" aria-live="polite"></p><p class="muted" role="status"></p><div class="run-status"><strong>正在核对</strong></div><div class="inline-actions"><button type="button" class="button secondary" disabled>刷新进度</button><!----><button type="button" class="button secondary" disabled>取消任务</button><a href="/campus/history?runId=22222222-2222-4222-8222-222222222222" class="text-button">查看我的历史</a><button type="button" class="text-button">新建另一任务</button></div></section><section class="result-area"><div class="section-heading"><h2>结果与出处</h2></div><p class="empty-state">核对完成后，答案和参考依据会显示在这里。</p><!----><!----></section></div><!--]-->'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/controlled-copy.test.mjs:39:10)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 1
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 813.3132

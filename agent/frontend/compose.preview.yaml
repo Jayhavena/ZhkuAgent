@@ -1,0 +1,22 @@
+services:
+  web:
+    # 固定本轮验证镜像，避免latest随后漂移；Nginx 1.29.8。
+    image: nginx@sha256:6e23479198b998e5e25921dff8455837c7636a67111a04a635cf1bb363d199dc
+    ports:
+      - "127.0.0.1:${ZHKU_WEB_PORT:-8080}:80"
+    environment:
+      ZHKU_CONTROLLED_BACKEND_PORT: "${ZHKU_CONTROLLED_BACKEND_PORT:?Specify the loopback backend port}"
+      NGINX_ENVSUBST_FILTER: "^ZHKU_CONTROLLED_BACKEND_PORT$$"
+    volumes:
+      - type: bind
+        source: ./dist
+        target: /usr/share/nginx/html
+        read_only: true
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/templates/default.conf.template
+        read_only: true
+    init: true
+    mem_limit: 128m
+    cpus: 1.0
+    restart: "no"

@@ -1,0 +1,186 @@
+package com.zhku.knowledge.rulecheck.web;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.zhku.knowledge.rulecheck.RuleCheckApplicationService;
+import com.zhku.knowledge.rulecheck.RuleCheckRuntimeSettings;
+import com.zhku.knowledge.rulecheck.RuleCheckDecision;
+import com.zhku.knowledge.rulecheck.RuleCheckVerifiedExcerpt;
+import com.zhku.knowledge.rulecheck.RuleCheckScopedResult;
+import com.zhku.knowledge.rulecheck.RuleCheckOriginalEvidenceService;
+import com.zhku.knowledge.security.PreviewIdentityRepository;
+import com.zhku.knowledge.security.PreviewPrincipal;
+import com.zhku.knowledge.security.TrustedActor;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import java.util.*;
+import java.util.Map;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+
+/** 仅接受显式声明；身份和资料资格由安全链/应用服务决定，不由请求字段自证。 */
+@RestController
+@RequestMapping("/zhku/controlled-preview/v2/rule-check")
+public final class RuleCheckController {
+    private final RuleCheckApplicationService service;
+    private final RuleCheckRuntimeSettings settings;
+    private final RuleCheckClarificationStore store;
+    private final RuleCheckCitationStore citations;
+    private final RuleCheckOriginalEvidenceService originals;
+    private final PreviewIdentityRepository identities;
+    public RuleCheckController(RuleCheckApplicationService service,RuleCheckRuntimeSettings settings,RuleCheckClarificationStore store,
+            RuleCheckCitationStore citations,RuleCheckOriginalEvidenceService originals,PreviewIdentityRepository identities) {
+        this.service=service;this.settings=settings;this.store=store;
+        this.citations=citations;this.originals=originals;this.identities=identities;
+    }
+    @PostMapping public ResponseEntity<?> check(@RequestBody JsonNode payload,
+            @AuthenticationPrincipal PreviewPrincipal principal,HttpServletRequest request) {
+        var input=request(payload);
+        if(principal==null||principal.actor().role()!=TrustedActor.Role.USER)
+            return error(401,"AUTHENTICATION_REQUIRED","请先以学生查证身份登录");
+        var actor=principal.actor();var session=request.getSession(false);String generation=null,citationGeneration=null;
+        try {
+            Map<String,String> conditions=input.confirmedConditions();RuleCheckScopedResult result;
+            if(input.clarificationToken()==null) {
+                if(session==null)throw new RuleCheckClarificationStore.Failure();
+                synchronized(session) {
+                    // 入口认证之后仍可能换账号；开始前核对，避免旧请求先覆盖新身份已完成的slot。
+                    requireSessionActor(session,actor);
+                    generation=store.begin(session,actor);citationGeneration=citations.begin(session,actor);
+                }
+                result=service.checkWithContext(input.question(),conditions);
+            } else {
+                // token只定位本Session的服务端上下文；请求不能自带规则、旧声明或可信证据。
+                if(session==null)throw new RuleCheckClarificationStore.Failure();
+                RuleCheckClarificationStore.Ticket ticket;
+                synchronized(session) {
+                    requireSessionActor(session,actor);
+                    ticket=store.consumeAndBegin(session,actor,input.clarificationToken(),input.question(),conditions);
+                    generation=ticket.generation();citationGeneration=citations.begin(session,actor);
+                }
+                var merged=new LinkedHashMap<>(ticket.context().confirmedConditions());
+                merged.putAll(conditions);conditions=Map.copyOf(merged);
+                result=service.resume(ticket.context(),input.confirmedConditions());
+            }
+            var decision=result.decision();
+            if(!settings.referenceRevision().equals(decision.referenceRevision()))throw new IllegalStateException("引用版本不一致");
+            if(!service.isCurrent(result)) {
+                discardOwnGeneration(session,actor,generation,citationGeneration);
+                return error(409,"RULE_CHECK_CHANGED","规则或资料已变化，请重新查证");
+            }
+            // SQL放在Session锁外；锁内再核对完整身份和两个轮次，旧请求不能发布给新登录。
+            identities.requireCurrent(actor);
+            var quotes=new ArrayList<RuleCheckVerifiedExcerpt>();
+            decision.confirmedFacts().forEach(f->quotes.addAll(f.evidence()));
+            decision.conflicts().forEach(c->c.sides().forEach(f->quotes.addAll(f.evidence())));
+            Reply reply;
+            synchronized(session) {
+                requireSessionActor(session,actor);
+                var handles=citations.publish(session,actor,citationGeneration,quotes);
+                String token=store.finish(session,actor,generation,result.continuation());
+                reply=new Reply(decision.status(),decision.referenceRevision(),settings.requiredScope(),"USER_DECLARED",
+                conditions,decision.confirmedFacts().stream().map(f->fact(f,result.scope(),handles)).toList(),
+                decision.clarificationQuestions(),decision.unknownItems(),
+                decision.conflicts().stream().map(c->new ConflictReply(c.issue(),c.sides().stream().map(f->fact(f,null,handles)).toList())).toList(),
+                result.scope(),token);
+            }
+            return ResponseEntity.ok().header("Cache-Control","no-store").body(reply);
+        } catch(PreviewIdentityRepository.Failure identity) {
+            discardOwnGeneration(session,actor,generation,citationGeneration);return identityError(identity);
+        } catch(RuleCheckClarificationStore.Failure|RuleCheckCitationStore.Failure expiredOrChanged) {
+            discardOwnGeneration(session,actor,generation,citationGeneration);
+            return error(409,"CLARIFICATION_EXPIRED_OR_CHANGED","澄清已过期、被替代或身份已变化，请重新查证");
+        } catch(IllegalArgumentException invalidInput) {
+            discardOwnGeneration(session,actor,generation,citationGeneration);throw invalidInput;
+        } catch(RuntimeException unavailable) {
+            // 应用或映射异常不回显cause；不能把接口故障包装成有依据的政策结论。
+            discardOwnGeneration(session,actor,generation,citationGeneration);
+            return error(503,"RULE_CHECK_UNAVAILABLE","查证服务暂不可用");
+        }
+    }
+    @GetMapping("/originals/{handle}") public ResponseEntity<?> original(@PathVariable String handle,
+            @AuthenticationPrincipal PreviewPrincipal principal,HttpServletRequest request) {
+        if(!request.getParameterMap().isEmpty())return invalidRequest();
+        if(principal==null||principal.actor().role()!=TrustedActor.Role.USER)return error(401,"AUTHENTICATION_REQUIRED","请先以学生查证身份登录");
+        var actor=principal.actor();var session=request.getSession(false);
+        RuleCheckCitationStore.Ticket ticket;
+        try {ticket=citations.resolve(session,actor,handle);}
+        catch(RuleCheckCitationStore.Failure unknown) {return error(404,"ORIGINAL_NOT_FOUND","引用凭据已失效，请重新查证");}
+        try {
+            if(!service.isReferenceApproved(ticket.excerpt()))return originalChanged();
+            var first=originals.locate(ticket.excerpt());
+            if(first.code()!=RuleCheckOriginalEvidenceService.Code.FOUND)return originalChanged();
+            // 完整View再读比较；元数据、资格、正文任何变化都不回送之前读到的原文。
+            var current=originals.locate(ticket.excerpt());
+            if(!first.equals(current)||!service.isReferenceApproved(ticket.excerpt()))return originalChanged();
+            identities.requireCurrent(actor);
+            synchronized(session) {
+                requireSessionActor(session,actor);citations.requireCurrent(session,actor,ticket);
+                return ResponseEntity.ok().header("Cache-Control","no-store").body(current.original());
+            }
+        } catch(PreviewIdentityRepository.Failure identity) {return identityError(identity);}
+        catch(RuleCheckCitationStore.Failure|RuleCheckClarificationStore.Failure|IllegalStateException changed) {return originalChanged();}
+        catch(RuntimeException unavailable) {return error(503,"ORIGINAL_UNAVAILABLE","原文服务暂不可用");}
+    }
+    private static ResponseEntity<ErrorReply> originalChanged() {return error(409,"ORIGINAL_CHANGED","引用或资料已变化，请重新查证");}
+    private static ResponseEntity<ErrorReply> identityError(PreviewIdentityRepository.Failure failure) {
+        // 迟到的旧身份失败不能注销并发新登录；入口安全链负责正常撤销Cookie。
+        return failure.code()==PreviewIdentityRepository.Code.IDENTITY_UNAVAILABLE
+            ?error(503,"IDENTITY_UNAVAILABLE","身份核验暂不可用"):error(401,"AUTH_REVOKED","身份已变化，请重新登录");
+    }
+    private static void requireSessionActor(jakarta.servlet.http.HttpSession session,TrustedActor actor) {
+        Object saved=session.getAttribute(org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+        if(!(saved instanceof org.springframework.security.core.context.SecurityContext context)
+                ||context.getAuthentication()==null||!context.getAuthentication().isAuthenticated()
+                ||!(context.getAuthentication().getPrincipal() instanceof PreviewPrincipal current)||!actor.equals(current.actor()))
+            throw new RuleCheckClarificationStore.Failure();
+    }
+    private void discardOwnGeneration(jakarta.servlet.http.HttpSession session,TrustedActor actor,String generation,String citationGeneration) {
+        store.clearOwn(session,actor,generation);citations.clearOwn(session,actor,citationGeneration);
+    }
+    private static ResponseEntity<ErrorReply> error(int status,String code,String message) {
+        return ResponseEntity.status(status).header("Cache-Control","no-store").body(new ErrorReply(code,message));
+    }
+    @ExceptionHandler({HttpMessageNotReadableException.class,IllegalArgumentException.class})
+    public ResponseEntity<ErrorReply> invalidRequest() {
+        return ResponseEntity.badRequest().header("Cache-Control","no-store").body(new ErrorReply("INVALID_RULE_CHECK_REQUEST","问题或条件格式不符合要求"));
+    }
+    private static Request request(JsonNode payload) {
+        if(payload==null||!payload.isObject()||!payload.has("question")||!payload.has("confirmedConditions")
+                ||payload.size()!=(payload.has("clarificationToken")?3:2))throw invalid();
+        String token=null;
+        if(payload.has("clarificationToken")) {
+            var value=payload.get("clarificationToken");
+            if(!value.isTextual()||value.textValue().length()!=36)throw invalid();
+            token=value.textValue();if(!UUID.fromString(token).toString().equals(token))throw invalid();
+        }
+        var question=payload.get("question");var conditions=payload.get("confirmedConditions");
+        // 明确检查JSON类型，不允许数字/布尔/数组被Jackson默默转换为条件字符串。
+        if(!question.isTextual()||question.textValue().isBlank()||question.textValue().length()>2048
+                ||!conditions.isObject()||conditions.size()>16)throw invalid();
+        var values=new LinkedHashMap<String,String>();
+        conditions.fields().forEachRemaining(entry->{
+            String key=entry.getKey();var value=entry.getValue();
+            if(key.isBlank()||key.length()>64||!value.isTextual()||value.textValue().length()>128)throw invalid();
+            values.put(key,value.textValue());
+        });
+        return new Request(question.textValue(),Map.copyOf(values),token);
+    }
+    private static IllegalArgumentException invalid() {return new IllegalArgumentException("无效查证输入");}
+    private static FactReply fact(RuleCheckDecision.SupportedFact fact,RuleCheckScopedResult.Scope scope,Map<RuleCheckVerifiedExcerpt,String> handles) {
+        return new FactReply(fact.id(),fact.text(),scope==null?Map.of():scope.factPreconditions().getOrDefault(fact.id(),Map.of()),
+            fact.evidence().stream().map(q->citation(q,handles)).toList());
+    }
+    private static CitationReply citation(RuleCheckVerifiedExcerpt quote,Map<RuleCheckVerifiedExcerpt,String> handles) {
+        String handle=handles.get(quote);if(handle==null)throw new IllegalStateException("引用未登记");
+        return new CitationReply(quote.citationId(),quote.sourceId(),quote.chunkId(),quote.revision(),quote.startInclusive(),quote.endExclusive(),quote.text(),handle);
+    }
+    private record Request(String question,Map<String,String> confirmedConditions,String clarificationToken) {}
+    public record Reply(RuleCheckDecision.Status status,String referenceRevision,String knowledgeScope,String conditionSource,
+        Map<String,String> confirmedConditions,List<FactReply> confirmedFacts,List<RuleCheckDecision.Clarification> clarificationQuestions,
+        List<String> unknownItems,List<ConflictReply> conflicts,RuleCheckScopedResult.Scope scope,String clarificationToken) {}
+    public record FactReply(String id,String text,Map<String,String> when,List<CitationReply> citations) {}
+    public record CitationReply(String citationId,UUID sourceId,UUID chunkId,String revision,int startInclusive,int endExclusive,String text,String originalToken) {}
+    public record ConflictReply(String issue,List<FactReply> sides) {}
+    public record ErrorReply(String code,String message) {}
+}

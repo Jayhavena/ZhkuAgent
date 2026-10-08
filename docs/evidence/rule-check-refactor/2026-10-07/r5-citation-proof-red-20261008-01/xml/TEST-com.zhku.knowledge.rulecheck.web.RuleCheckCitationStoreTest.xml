@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.264" tests="18" errors="1" skipped="0" failures="17"><testcase name="readsDoNotSlideExpiryAndExactFiveMinuteBoundaryRejects" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.141"><failure message="&#xA;Expecting actual not to be null" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual not to be null
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.readsDoNotSlideExpiryAndExactFiveMinuteBoundaryRejects(RuleCheckCitationStoreTest.java:81)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="missingSessionOrNonStudentCannotStartOrPublish" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.004"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.fails(RuleCheckCitationStoreTest.java:18)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.missingSessionOrNonStudentCannotStartOrPublish(RuleCheckCitationStoreTest.java:76)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="inputCountIncludesDuplicatesBeforeDeduplication" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.001"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.inputCountIncludesDuplicatesBeforeDeduplication(RuleCheckCitationStoreTest.java:39)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="exactCountAndTextBudgetBoundariesRemainUsable" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.013"><failure message="&#xA;Expected size: 4 but was: 0 in:&#xA;{}" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expected size: 4 but was: 0 in:
+{}
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.exactCountAndTextBudgetBoundariesRemainUsable(RuleCheckCitationStoreTest.java:52)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="postIoRecheckRejectsGenerationExpiryAndForgedTicket" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.005"><failure message="&#xA;Expecting actual throwable to be an instance of:&#xA;  com.zhku.knowledge.rulecheck.web.RuleCheckCitationStore.Failure&#xA;but was:&#xA;  java.lang.NullPointerException: Cannot invoke &quot;com.zhku.knowledge.rulecheck.web.RuleCheckCitationStore$Ticket.generation()&quot; because &quot;ticket&quot; is null&#xA; at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.lambda$postIoRecheckRejectsGenerationExpiryAndForgedTicket$20(RuleCheckCitationStoreTest.java:99)&#xA; at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)&#xA; at org.assertj.core.api.AssertionsForClassTypes.catchThrowable(AssertionsForClassTypes.java:904)&#xA; ...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  com.zhku.knowledge.rulecheck.web.RuleCheckCitationStore.Failure
+but was:
+  java.lang.NullPointerException: Cannot invoke "com.zhku.knowledge.rulecheck.web.RuleCheckCitationStore$Ticket.generation()" because "ticket" is null
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.lambda$postIoRecheckRejectsGenerationExpiryAndForgedTicket$20(RuleCheckCitationStoreTest.java:99)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	at org.assertj.core.api.AssertionsForClassTypes.catchThrowable(AssertionsForClassTypes.java:904)
+	...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.fails(RuleCheckCitationStoreTest.java:18)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.postIoRecheckRejectsGenerationExpiryAndForgedTicket(RuleCheckCitationStoreTest.java:99)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="newQuestionInvalidatesOldHandlesAndLatePublicationCannotOverwriteNewRound" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.002"><error message="Cannot invoke &quot;com.zhku.knowledge.rulecheck.web.RuleCheckCitationStore$Ticket.generation()&quot; because the return value of &quot;com.zhku.knowledge.rulecheck.web.RuleCheckCitationStore.resolve(jakarta.servlet.http.HttpSession, com.zhku.knowledge.security.TrustedActor, String)&quot; is null" type="java.lang.NullPointerException"><![CDATA[java.lang.NullPointerException: Cannot invoke "com.zhku.knowledge.rulecheck.web.RuleCheckCitationStore$Ticket.generation()" because the return value of "com.zhku.knowledge.rulecheck.web.RuleCheckCitationStore.resolve(jakarta.servlet.http.HttpSession, com.zhku.knowledge.security.TrustedActor, String)" is null
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.newQuestionInvalidatesOldHandlesAndLatePublicationCannotOverwriteNewRound(RuleCheckCitationStoreTest.java:88)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></error></testcase><testcase name="individualUtf16AndUtf8QuoteBudgetsAreBothEnforced" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.002"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.individualUtf16AndUtf8QuoteBudgetsAreBothEnforced(RuleCheckCitationStoreTest.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="conflictingSameAliasCannotPublishAnyReference" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.001"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.conflictingSameAliasCannotPublishAnyReference(RuleCheckCitationStoreTest.java:34)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="lateClearOnlyClearsOwnGeneration" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.001"><failure message="&#xA;Expecting actual not to be null" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual not to be null
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.lateClearOnlyClearsOwnGeneration(RuleCheckCitationStoreTest.java:94)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="aggregateQuoteBytesCannotGrowWithoutBound" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.002"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.aggregateQuoteBytesCannotGrowWithoutBound(RuleCheckCitationStoreTest.java:48)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="fullActorIdentityAndRevisionMustMatchWithoutClearingNewOwnersRound" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.002"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.fails(RuleCheckCitationStoreTest.java:18)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.fullActorIdentityAndRevisionMustMatchWithoutClearingNewOwnersRound(RuleCheckCitationStoreTest.java:72)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="slowPublishExpiresFromRoundStartRatherThanPublicationTime" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.002"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.fails(RuleCheckCitationStoreTest.java:18)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.slowPublishExpiresFromRoundStartRatherThanPublicationTime(RuleCheckCitationStoreTest.java:85)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="malformedReferenceFieldsAndUnicodeCannotEnterStore" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.001"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.malformedReferenceFieldsAndUnicodeCannotEnterStore(RuleCheckCitationStoreTest.java:63)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="invalidatedSessionCannotPublishResolveOrRestoreReferences" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.001"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.fails(RuleCheckCitationStoreTest.java:18)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.invalidatedSessionCannotPublishResolveOrRestoreReferences(RuleCheckCitationStoreTest.java:105)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="publishesOpaqueHandleAndOnlyOneSessionSlot" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.004"><failure message="&#xA;Expecting actual not to be null" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual not to be null
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.publishesOpaqueHandleAndOnlyOneSessionSlot(RuleCheckCitationStoreTest.java:20)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="emptyCompletedRoundCannotBePublishedAgain" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.002"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.fails(RuleCheckCitationStoreTest.java:18)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.emptyCompletedRoundCannotBePublishedAgain(RuleCheckCitationStoreTest.java:26)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="anotherSessionAndMalformedOrUnknownHandlesCannotReadOrEraseCurrentReference" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.002"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.fails(RuleCheckCitationStoreTest.java:18)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.anotherSessionAndMalformedOrUnknownHandlesCannotReadOrEraseCurrentReference(RuleCheckCitationStoreTest.java:66)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="exactDuplicateReferencesShareOneHandleAndImmutableOutput" classname="com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest" time="0.001"><failure message="&#xA;Expected size: 1 but was: 0 in:&#xA;{}" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expected size: 1 but was: 0 in:
+{}
+	at com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest.exactDuplicateReferencesShareOneHandleAndImmutableOutput(RuleCheckCitationStoreTest.java:29)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase></testsuite>

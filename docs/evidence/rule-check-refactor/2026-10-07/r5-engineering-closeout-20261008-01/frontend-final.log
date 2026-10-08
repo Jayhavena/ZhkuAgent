@@ -1,0 +1,556 @@
+TAP version 13
+# Subtest: login uses form protocol then renews CSRF and confirms current actor
+ok 1 - login uses form protocol then renews CSRF and confirms current actor
+  ---
+  duration_ms: 55.311
+  type: 'test'
+  ...
+# Subtest: 503 accepted preserves runId without repeating POST
+ok 2 - 503 accepted preserves runId without repeating POST
+  ---
+  duration_ms: 1.4144
+  type: 'test'
+  ...
+# Subtest: lost POST response is unknown and is never retried
+ok 3 - lost POST response is unknown and is never retried
+  ---
+  duration_ms: 1.0576
+  type: 'test'
+  ...
+# Subtest: 401 clears identity whereas 403 preserves it
+ok 4 - 401 clears identity whereas 403 preserves it
+  ---
+  duration_ms: 1.5979
+  type: 'test'
+  ...
+# Subtest: late old identity response cannot overwrite new actor even when transport ignores abort
+ok 5 - late old identity response cannot overwrite new actor even when transport ignores abort
+  ---
+  duration_ms: 0.9878
+  type: 'test'
+  ...
+# Subtest: deadline during anonymous CSRF is network failure, not identity change
+ok 6 - deadline during anonymous CSRF is network failure, not identity change
+  ---
+  duration_ms: 6.9175
+  type: 'test'
+  ...
+# Subtest: malformed successful POST is unknown and malformed GET hides result
+ok 7 - malformed successful POST is unknown and malformed GET hides result
+  ---
+  duration_ms: 1.4825
+  type: 'test'
+  ...
+# Subtest: late 401 from previous identity cannot clear new identity
+ok 8 - late 401 from previous identity cannot clear new identity
+  ---
+  duration_ms: 0.7518
+  type: 'test'
+  ...
+# Subtest: late logout completion cannot erase a newly logged identity
+ok 9 - late logout completion cannot erase a newly logged identity
+  ---
+  duration_ms: 0.8148
+  type: 'test'
+  ...
+# Subtest: login cannot overlap pending logout and race server Cookie changes
+ok 10 - login cannot overlap pending logout and race server Cookie changes
+  ---
+  duration_ms: 0.6046
+  type: 'test'
+  ...
+# Subtest: conversation four APIs send only actual fields with CSRF and explicit revision
+ok 11 - conversation four APIs send only actual fields with CSRF and explicit revision
+  ---
+  duration_ms: 48.3435
+  type: 'test'
+  ...
+# Subtest: unknown create and write are distinct and never automatically POST again
+ok 12 - unknown create and write are distinct and never automatically POST again
+  ---
+  duration_ms: 1.1584
+  type: 'test'
+  ...
+# Subtest: restore only exact control snapshot; malformed revisions and pending pairs rejected
+ok 13 - restore only exact control snapshot; malformed revisions and pending pairs rejected
+  ---
+  duration_ms: 0.6159
+  type: 'test'
+  ...
+# Subtest: evidence unavailable and non-answer types never project a supplied stale answer
+ok 14 - evidence unavailable and non-answer types never project a supplied stale answer
+  ---
+  duration_ms: 0.3832
+  type: 'test'
+  ...
+# Subtest: message confirms new revision with GET before publishing current exchange
+ok 15 - message confirms new revision with GET before publishing current exchange
+  ---
+  duration_ms: 1.6892
+  type: 'test'
+  ...
+# Subtest: conflict needs explicit read and confirmation, never automatic resubmission
+ok 16 - conflict needs explicit read and confirmation, never automatic resubmission
+  ---
+  duration_ms: 0.8671
+  type: 'test'
+  ...
+# Subtest: confirmed POST but follow-up GET failure shows no answer and locks writes
+ok 17 - confirmed POST but follow-up GET failure shows no answer and locks writes
+  ---
+  duration_ms: 0.6311
+  type: 'test'
+  ...
+# Subtest: expired or cancelled control state cannot be revived by send
+ok 18 - expired or cancelled control state cannot be revived by send
+  ---
+  duration_ms: 0.4198
+  type: 'test'
+  ...
+# Subtest: cancel clears current body and preserves returned revision and expiry
+ok 19 - cancel clears current body and preserves returned revision and expiry
+  ---
+  duration_ms: 0.4325
+  type: 'test'
+  ...
+# Subtest: unknown creation stays locked until explicit acknowledgement, no fabricated ID
+ok 20 - unknown creation stays locked until explicit acknowledgement, no fabricated ID
+  ---
+  duration_ms: 0.4452
+  type: 'test'
+  ...
+# Subtest: dispose and route change discard late reply even if transport ignores abort
+ok 21 - dispose and route change discard late reply even if transport ignores abort
+  ---
+  duration_ms: 0.6123
+  type: 'test'
+  ...
+# Subtest: explicit refresh clears old exchange and restores pending without chat history
+ok 22 - explicit refresh clears old exchange and restores pending without chat history
+  ---
+  duration_ms: 0.3627
+  type: 'test'
+  ...
+# Subtest: recovery GET failure cannot remove the explicit confirmation gate
+ok 23 - recovery GET failure cannot remove the explicit confirmation gate
+  ---
+  duration_ms: 0.4062
+  type: 'test'
+  ...
+# Subtest: late conversation GET after identity invalidation is discarded by real client
+ok 24 - late conversation GET after identity invalidation is discarded by real client
+  ---
+  duration_ms: 0.8287
+  type: 'test'
+  ...
+# Subtest: withdrawn evidence replaces prior answer without preserving source
+ok 25 - withdrawn evidence replaces prior answer without preserving source
+  ---
+  duration_ms: 0.2984
+  type: 'test'
+  ...
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# Subtest: same submission key with different content explains conflict and deliberate new task
+ok 26 - same submission key with different content explains conflict and deliberate new task
+  ---
+  duration_ms: 1.5869
+  type: 'test'
+  ...
+# Subtest: completed live and finalized archived tasks never claim still confirming submission
+ok 27 - completed live and finalized archived tasks never claim still confirming submission
+  ---
+  duration_ms: 18.8161
+  type: 'test'
+  ...
+# Subtest: missing or unconfirmed record retains uncertainty without asserting never accepted
+ok 28 - missing or unconfirmed record retains uncertainty without asserting never accepted
+  ---
+  duration_ms: 3.6144
+  type: 'test'
+  ...
+# Subtest: known running task is found but not called completed
+ok 29 - known running task is found but not called completed
+  ---
+  duration_ms: 1.3759
+  type: 'test'
+  ...
+# Subtest: submission projection matches actual live/archived contract and hides unconfirmed cached body
+ok 30 - submission projection matches actual live/archived contract and hides unconfirmed cached body
+  ---
+  duration_ms: 1.4931
+  type: 'test'
+  ...
+# Subtest: interrupted and admitted archive facts do not invent Runtime termination or running state
+ok 31 - interrupted and admitted archive facts do not invent Runtime termination or running state
+  ---
+  duration_ms: 0.4418
+  type: 'test'
+  ...
+# Subtest: online hidden or unconfirmed never renders cached body despite SUCCEEDED
+ok 32 - online hidden or unconfirmed never renders cached body despite SUCCEEDED
+  ---
+  duration_ms: 0.2839
+  type: 'test'
+  ...
+# Subtest: cancelled response with terminated false is not finished cleanup
+ok 33 - cancelled response with terminated false is not finished cleanup
+  ---
+  duration_ms: 0.1873
+  type: 'test'
+  ...
+# Subtest: history requires confirmed final archive and current visible permission
+ok 34 - history requires confirmed final archive and current visible permission
+  ---
+  duration_ms: 0.1829
+  type: 'test'
+  ...
+# Subtest: visible real response is text plus response source, without fabricated total
+ok 35 - visible real response is text plus response source, without fabricated total
+  ---
+  duration_ms: 0.4547
+  type: 'test'
+  ...
+# Subtest: return route permits only internal campus pages
+ok 36 - return route permits only internal campus pages
+  ---
+  duration_ms: 0.7104
+  type: 'test'
+  ...
+# Subtest: cancel and timeout labels wait for termination instead of promising completion
+ok 37 - cancel and timeout labels wait for termination instead of promising completion
+  ---
+  duration_ms: 0.2683
+  type: 'test'
+  ...
+# Subtest: generated online result and finalized history do not invent the same cleanup signal
+ok 38 - generated online result and finalized history do not invent the same cleanup signal
+  ---
+  duration_ms: 0.2959
+  type: 'test'
+  ...
+# Subtest: hidden and unconfirmed results explain access without calling execution a failure
+ok 39 - hidden and unconfirmed results explain access without calling execution a failure
+  ---
+  duration_ms: 0.281
+  type: 'test'
+  ...
+# Subtest: cancelled and incomplete tasks offer relevant next actions rather than waiting for an answer
+ok 40 - cancelled and incomplete tasks offer relevant next actions rather than waiting for an answer
+  ---
+  duration_ms: 0.1779
+  type: 'test'
+  ...
+# Subtest: identity invalidation clears actor and token and advances generation
+ok 41 - identity invalidation clears actor and token and advances generation
+  ---
+  duration_ms: 1.2467
+  type: 'test'
+  ...
+# Subtest: clear aborts registered readers and invalidates delivery ticket
+ok 42 - clear aborts registered readers and invalidates delivery ticket
+  ---
+  duration_ms: 0.4617
+  type: 'test'
+  ...
+# Subtest: freeze original request, manual resend retains key and body, refresh persists metadata only
+ok 43 - freeze original request, manual resend retains key and body, refresh persists metadata only
+  ---
+  duration_ms: 2.142
+  type: 'test'
+  ...
+# Subtest: at most five hints, new task new key, logout and switch erase old identity hints
+ok 44 - at most five hints, new task new key, logout and switch erase old identity hints
+  ---
+  duration_ms: 1.1106
+  type: 'test'
+  ...
+# Subtest: confirmed expiry and runId survive refresh, stale owner cannot attach reply
+ok 45 - confirmed expiry and runId survive refresh, stale owner cannot attach reply
+  ---
+  duration_ms: 1.426
+  type: 'test'
+  ...
+# Subtest: no insecure UUID fallback; corrupt storage cannot restore request or results
+ok 46 - no insecure UUID fallback; corrupt storage cannot restore request or results
+  ---
+  duration_ms: 0.5438
+  type: 'test'
+  ...
+# Subtest: one POST with original key, loss followed by GET confirmation never automatic resend
+ok 47 - one POST with original key, loss followed by GET confirmation never automatic resend
+  ---
+  duration_ms: 33.5455
+  type: 'test'
+  ...
+# Subtest: invalid/missing key performs zero HTTP; late confirmation cannot affect new identity
+ok 48 - invalid/missing key performs zero HTTP; late confirmation cannot affect new identity
+  ---
+  duration_ms: 1.1959
+  type: 'test'
+  ...
+# Subtest: explicit retry uses frozen original and the same header, not edited form content
+ok 49 - explicit retry uses frozen original and the same header, not edited form content
+  ---
+  duration_ms: 0.721
+  type: 'test'
+  ...
+# Subtest: 401 keeps confirmation metadata for same-user reauthentication; explicit logout removes it
+ok 50 - 401 keeps confirmation metadata for same-user reauthentication; explicit logout removes it
+  ---
+  duration_ms: 1.9867
+  type: 'test'
+  ...
+# Subtest: actual Java HTTP answer accepts declaredConditions and normalizes UI conditions
+ok 51 - actual Java HTTP answer accepts declaredConditions and normalizes UI conditions
+  ---
+  duration_ms: 41.9135
+  type: 'test'
+  ...
+# Subtest: v2 login renews CSRF and reads independent actor without v1 calls
+ok 52 - v2 login renews CSRF and reads independent actor without v1 calls
+  ---
+  duration_ms: 1.794
+  type: 'test'
+  ...
+# Subtest: check sends only explicit conditions and server continuation token
+ok 53 - check sends only explicit conditions and server continuation token
+  ---
+  duration_ms: 0.5967
+  type: 'test'
+  ...
+# Subtest: new question discards late successful answer even when abort ignored
+ok 54 - new question discards late successful answer even when abort ignored
+  ---
+  duration_ms: 2.4416
+  type: 'test'
+  ...
+# Subtest: late old epoch 401 cannot clear new logged in actor
+ok 55 - late old epoch 401 cannot clear new logged in actor
+  ---
+  duration_ms: 1.0401
+  type: 'test'
+  ...
+# Subtest: all five statuses pass contract but contradictory fact shapes are refused
+ok 56 - all five statuses pass contract but contradictory fact shapes are refused
+  ---
+  duration_ms: 3.0257
+  type: 'test'
+  ...
+# Subtest: original rejects invalid context spans and unsafe links without showing old text
+ok 57 - original rejects invalid context spans and unsafe links without showing old text
+  ---
+  duration_ms: 1.4102
+  type: 'test'
+  ...
+# Subtest: invalid request or original handle never invokes transport
+ok 58 - invalid request or original handle never invokes transport
+  ---
+  duration_ms: 0.3727
+  type: 'test'
+  ...
+# Subtest: network loss does not retry and does not claim not accepted
+ok 59 - network loss does not retry and does not claim not accepted
+  ---
+  duration_ms: 0.2944
+  type: 'test'
+  ...
+# Subtest: new question discards original response from earlier round
+ok 60 - new question discards original response from earlier round
+  ---
+  duration_ms: 1.5248
+  type: 'test'
+  ...
+# Subtest: identity changes are serialized and me detects changed auth revision
+ok 61 - identity changes are serialized and me detects changed auth revision
+  ---
+  duration_ms: 1.9581
+  type: 'test'
+  ...
+# Subtest: current 401 clears its own identity but preserves actionable auth error
+ok 62 - current 401 clears its own identity but preserves actionable auth error
+  ---
+  duration_ms: 0.4258
+  type: 'test'
+  ...
+# Subtest: half surrogate quote and context boundary are rejected
+ok 63 - half surrogate quote and context boundary are rejected
+  ---
+  duration_ms: 0.5316
+  type: 'test'
+  ...
+# Subtest: current empty or HTML 401 clears identity independently of error body parsing
+ok 64 - current empty or HTML 401 clears identity independently of error body parsing
+  ---
+  duration_ms: 0.3253
+  type: 'test'
+  ...
+# Subtest: old epoch non JSON 401 never clears new current actor
+ok 65 - old epoch non JSON 401 never clears new current actor
+  ---
+  duration_ms: 0.8031
+  type: 'test'
+  ...
+# Subtest: public me during logout cannot refill actor with late success
+ok 66 - public me during logout cannot refill actor with late success
+  ---
+  duration_ms: 0.6347
+  type: 'test'
+  ...
+# Subtest: old question CSRF preflight 401 cannot erase new successful question
+ok 67 - old question CSRF preflight 401 cannot erase new successful question
+  ---
+  duration_ms: 0.8738
+  type: 'test'
+  ...
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# Subtest: student page has independent login and explicit first reference boundary
+ok 68 - student page has independent login and explicit first reference boundary
+  ---
+  duration_ms: 14.4363
+  type: 'test'
+  ...
+# Subtest: all five decisions have distinct visible outcomes
+ok 69 - all five decisions have distinct visible outcomes
+  ---
+  duration_ms: 7.5786
+  type: 'test'
+  ...
+# Subtest: confirmed facts disclose declared conditions and original action
+ok 70 - confirmed facts disclose declared conditions and original action
+  ---
+  duration_ms: 1.2501
+  type: 'test'
+  ...
+# Subtest: necessary clarification displays only allowed choices and no invented fact
+ok 71 - necessary clarification displays only allowed choices and no invented fact
+  ---
+  duration_ms: 1.3099
+  type: 'test'
+  ...
+# Subtest: original highlight uses relative span and recorded page mapping remains unknown
+ok 72 - original highlight uses relative span and recorded page mapping remains unknown
+  ---
+  duration_ms: 1.8524
+  type: 'test'
+  ...
+# Subtest: policy and original are escaped text and javascript links are never emitted
+ok 73 - policy and original are escaped text and javascript links are never emitted
+  ---
+  duration_ms: 2.2534
+  type: 'test'
+  ...
+# Subtest: pending, missing evidence, unconfirmed outcome and logout uncertainty stay distinct
+ok 74 - pending, missing evidence, unconfirmed outcome and logout uncertainty stay distinct
+  ---
+  duration_ms: 3.0016
+  type: 'test'
+  ...
+# Subtest: maintainer cannot use student question form
+ok 75 - maintainer cannot use student question form
+  ---
+  duration_ms: 2.1421
+  type: 'test'
+  ...
+# Subtest: unconfirmed login requires identity read before another login attempt
+ok 76 - unconfirmed login requires identity read before another login attempt
+  ---
+  duration_ms: 1.9453
+  type: 'test'
+  ...
+# Subtest: login pending then unmount and return preserves uncertainty until identity read
+ok 77 - login pending then unmount and return preserves uncertainty until identity read
+  ---
+  duration_ms: 4.3656
+  type: 'test'
+  ...
+# Subtest: unmounted login failure cannot mark a later identity uncertain
+ok 78 - unmounted login failure cannot mark a later identity uncertain
+  ---
+  duration_ms: 0.6885
+  type: 'test'
+  ...
+# Subtest: busy execution is separate from business decision and no retry on unknown outcome
+ok 79 - busy execution is separate from business decision and no retry on unknown outcome
+  ---
+  duration_ms: 3.0227
+  type: 'test'
+  ...
+# Subtest: clarification sends only current allowed delta and never guesses unknown conditions
+ok 80 - clarification sends only current allowed delta and never guesses unknown conditions
+  ---
+  duration_ms: 1.0499
+  type: 'test'
+  ...
+# Subtest: new question clears previous answer and original before pending query completes
+ok 81 - new question clears previous answer and original before pending query completes
+  ---
+  duration_ms: 0.3642
+  type: 'test'
+  ...
+# Subtest: identity epoch change immediately clears displayed content and old async response
+ok 82 - identity epoch change immediately clears displayed content and old async response
+  ---
+  duration_ms: 0.5734
+  type: 'test'
+  ...
+# Subtest: reset and disposal reject late original response even if transport resolves
+ok 83 - reset and disposal reject late original response even if transport resolves
+  ---
+  duration_ms: 0.2638
+  type: 'test'
+  ...
+# Subtest: failed original retrieval clears old original and outcome remains explicit
+ok 84 - failed original retrieval clears old original and outcome remains explicit
+  ---
+  duration_ms: 1.3974
+  type: 'test'
+  ...
+# Subtest: connection loss records unconfirmed result and never automatically resubmits
+ok 85 - connection loss records unconfirmed result and never automatically resubmits
+  ---
+  duration_ms: 0.8123
+  type: 'test'
+  ...
+1..85
+# tests 85
+# suites 0
+# pass 85
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1865.4604

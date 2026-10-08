@@ -123,8 +123,7 @@ class ProviderProfileContractTest {
         ModelResponse response = client.call(new ModelRequest(
                 "系统约束",
                 "每学期最多修多少学分？",
-                List.of(new ApprovedEvidence("cit-1", "第一条 最高修读 4 学分。", "学生手册"))
-        ));
+                List.of(new ApprovedEvidence("cit-1", "第一条 最高修读 4 学分。", "学生手册"))));
 
         assertThat(response.answer()).isEqualTo("最高 4 学分。");
         assertThat(response.citationIds()).containsExactly("cit-1");

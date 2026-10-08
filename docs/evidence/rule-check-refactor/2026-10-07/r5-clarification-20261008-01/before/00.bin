@@ -1,0 +1,92 @@
+package com.zhku.knowledge.rulecheck;
+
+import com.zhku.knowledge.retrieval.*;
+import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.Objects;
+import java.util.function.Supplier;
+
+/** 内部编排接口，尚未暴露HTTP；审核目录必须由服务端维护。 */
+public final class RuleCheckApplicationService {
+    private final RuleCheckRuntimeSettings settings;
+    private final Supplier<List<CatalogEntry>> catalogue;
+    private final RuleSelector selector;
+    private final HybridRetrievalService retrieval;
+    private final ChunkCandidateRetriever lexical, vector;
+    private final RuleCheckEvidenceCapture capture;
+    private final RuleCheckDecisionService decisions;
+    public RuleCheckApplicationService(RuleCheckRuntimeSettings settings, Supplier<List<CatalogEntry>> catalogue,
+            RuleSelector selector, HybridRetrievalService retrieval, ChunkCandidateRetriever lexical,
+            ChunkCandidateRetriever vector, RuleCheckEvidenceCapture capture, RuleCheckDecisionService decisions) {
+        this.settings=Objects.requireNonNull(settings);
+        this.catalogue=Objects.requireNonNull(catalogue);
+        this.selector=Objects.requireNonNull(selector);
+        this.retrieval=Objects.requireNonNull(retrieval);
+        this.lexical=Objects.requireNonNull(lexical);this.vector=Objects.requireNonNull(vector);
+        this.capture=Objects.requireNonNull(capture);this.decisions=Objects.requireNonNull(decisions);
+    }
+    public RuleCheckDecision check(String question, Map<String,String> confirmedConditions) {
+        var values=validatedConditions(question,confirmedConditions);
+        try {
+            var approved=approvedCatalogue();
+            if (approved.isEmpty()) return refused("当前引用版本没有可用的已审核规则");
+            var options=approved.values().stream().map(e->new RuleOption(e.template().ruleId(),e.questionScope())).toList();
+            // 选择器只能选目录ID，不能回传规则正文、引用资格或猜测学生个人条件。
+            String id=selector.select(question,options);
+            var entry=approved.get(id);
+            if (entry==null) return refused("尚不能确定该问题对应的已审核规则");
+            var declared=entry.template().conditions().stream().map(RuleCheckRuleTemplate.Condition::key).toList();
+            if (!declared.containsAll(values.keySet())) return refused("输入包含本规则未声明的条件");
+            var outcome=retrieval.retrieve(question,settings.candidateLimit(),settings.resultLimit(),lexical,vector);
+            if (outcome.fullyDegraded()) return refused("检索暂不可用，尚不能取得可靠依据");
+            if (outcome.chunks().isEmpty()) return refused("当前检索没有取得可核验依据");
+            var captured=capture.capture(outcome.chunks());
+            if (!captured.accepted()) return refused("本轮证据捕获或审计未通过");
+            // 捕获可能耗时；审核目录变化时不能用旧模板回答。资料资格另由决策reader再读。
+            // 这仍是顺序复核，不代表目录、数据库与最终HTTP外发的原子提交。
+            if (!entry.equals(approvedCatalogue().get(id))) return refused("规则在处理过程中发生变化，请重新查证");
+            return decisions.decide(entry.template(),values,captured.snapshots());
+        } catch (RuntimeException unavailable) {
+            // 供应商或目录异常文本可能含敏感内容，不能作为学生回答正文返回。
+            return refused("查证链路暂不可用，尚不能确认结论");
+        }
+    }
+    private Map<String,CatalogEntry> approvedCatalogue() {
+        var entries=List.copyOf(catalogue.get());
+        var approved=new LinkedHashMap<String,CatalogEntry>();
+        for (var entry : entries) {
+            var rule=entry.template();
+            if (rule.reviewState()!=RuleCheckRuleTemplate.ReviewState.APPROVED
+                    || !settings.referenceRevision().equals(rule.referenceRevision())) continue;
+            if (rule.ruleId().length()>128 || approved.putIfAbsent(rule.ruleId(),entry)!=null || approved.size()>64)
+                throw new IllegalStateException("审核目录不满足受控选择约束");
+        }
+        return approved;
+    }
+    private static Map<String,String> validatedConditions(String question,Map<String,String> values) {
+        if (question==null || question.isBlank() || question.length()>2048 || values==null || values.size()>16)
+            throw new IllegalArgumentException("问题或条件超出受控输入范围");
+        for (var entry:values.entrySet())
+            if (entry.getKey()==null || entry.getKey().isBlank() || entry.getKey().length()>64
+                    || entry.getValue()==null || entry.getValue().length()>128)
+                throw new IllegalArgumentException("条件字段无效或过长");
+        return Map.copyOf(values);
+    }
+    private RuleCheckDecision refused(String reason) {
+        return new RuleCheckDecision(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE,settings.referenceRevision(),
+                List.of(),List.of(),List.of(reason),List.of());
+    }
+    /** 问题范围须与模板一起审核；目录ID在范围内并不自动证明问题语义匹配。 */
+    public record CatalogEntry(RuleCheckRuleTemplate template, String questionScope) {
+        public CatalogEntry {
+            Objects.requireNonNull(template);
+            if (questionScope==null || questionScope.isBlank() || questionScope.length()>2048)
+                throw new IllegalArgumentException("规则选择范围必须明确且有界");
+        }
+    }
+    public record RuleOption(String ruleId, String questionScope) {}
+    @FunctionalInterface public interface RuleSelector {
+        String select(String question, List<RuleOption> approvedOptions);
+    }
+}

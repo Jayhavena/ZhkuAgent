@@ -1,0 +1,310 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] ZhkuAgent                                                          [pom]
+[INFO] ZhkuAgent Shared Runtime                                           [jar]
+[INFO] ZhkuAgent Knowledge                                                [jar]
+[INFO] 
+[INFO] ------------------------< com.zhku:zhku-agent >-------------------------
+[INFO] Building ZhkuAgent 0.0.1-SNAPSHOT                                  [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] -----------------------< com.zhku:agent-runtime >-----------------------
+[INFO] Building ZhkuAgent Shared Runtime 0.0.1-SNAPSHOT                   [2/3]
+[INFO]   from agent-runtime\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ agent-runtime ---
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.0.1-SNAPSHOT                        [3/3]
+[INFO]   from knowledge\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 5 resources from src\main\resources to target\classes
+[INFO] Copying 21 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 296 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 2 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 213 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[WARNING] file.encoding cannot be set as system property, use <argLine>-Dfile.encoding=...</argLine> instead
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest
+[ERROR] Tests run: 17, Failures: 17, Errors: 0, Skipped: 0, Time elapsed: 2.177 s <<< FAILURE! -- in com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.simultaneousRequestIsRejectedWithoutWaitingOrCallingProvider -- Time elapsed: 1.077 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.simultaneousRequestIsRejectedWithoutWaitingOrCallingProvider(BoundedRuleSelectorTest.java:101)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.emptyCatalogueDoesNotCallTransport -- Time elapsed: 0.005 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: EMPTY_CATALOGUE
+ but was: MODEL_FAILURE
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.emptyCatalogueDoesNotCallTransport(BoundedRuleSelectorTest.java:37)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.providerExceptionsAreNotRetriedOrReturnedAsStudentText -- Time elapsed: 0.022 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting AtomicInteger(0) to have value:
+  1
+but did not.
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.providerExceptionsAreNotRetriedOrReturnedAsStudentText(BoundedRuleSelectorTest.java:87)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.responseBudgetCountsUtf8BytesBeforeParsing -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: INVALID_RESPONSE
+ but was: MODEL_FAILURE
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.responseBudgetCountsUtf8BytesBeforeParsing(BoundedRuleSelectorTest.java:77)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.extraFactsToolsWrongTypesDuplicatesAndTrailingJsonAreRejected -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{}] 
+expected: INVALID_RESPONSE
+ but was: MODEL_FAILURE
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.extraFactsToolsWrongTypesDuplicatesAndTrailingJsonAreRejected(BoundedRuleSelectorTest.java:69)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.closeInterruptsInFlightAndRejectsFurtherCalls -- Time elapsed: 1.014 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.closeInterruptsInFlightAndRejectsFurtherCalls(BoundedRuleSelectorTest.java:120)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.invalidConfigurationFailsBeforeWorkerCreation -- Time elapsed: 0.002 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.invalidConfigurationFailsBeforeWorkerCreation(BoundedRuleSelectorTest.java:126)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.invalidQuestionNeverConsumesExternalAttempt -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: INVALID_INPUT
+ but was: MODEL_FAILURE
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.invalidQuestionNeverConsumesExternalAttempt(BoundedRuleSelectorTest.java:42)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.transportReceivesSeparatedConstraintsAndStructuredUntrustedQuestion -- Time elapsed: 0.002 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual not to be null
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.transportReceivesSeparatedConstraintsAndStructuredUntrustedQuestion(BoundedRuleSelectorTest.java:30)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.duplicateOversizedAndMalformedCatalogueNeverCallsTransport -- Time elapsed: 0.004 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: INVALID_CATALOGUE
+ but was: MODEL_FAILURE
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.duplicateOversizedAndMalformedCatalogueNeverCallsTransport(BoundedRuleSelectorTest.java:52)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.unknownOrInjectionChosenIdsDoNotPassWhitelist -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: UNKNOWN_RULE
+ but was: MODEL_FAILURE
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.unknownOrInjectionChosenIdsDoNotPassWhitelist(BoundedRuleSelectorTest.java:73)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.exactApprovedIdIsSelectedWithoutGeneratingFacts -- Time elapsed: 0.005 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: Outcome[code=SELECTED, ruleId=r-b]
+ but was: Outcome[code=MODEL_FAILURE, ruleId=null]
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.exactApprovedIdIsSelectedWithoutGeneratingFacts(BoundedRuleSelectorTest.java:19)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.explicitNullIsAbstentionRatherThanFirstOptionFallback -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: ABSTAINED
+ but was: MODEL_FAILURE
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.explicitNullIsAbstentionRatherThanFirstOptionFallback(BoundedRuleSelectorTest.java:24)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.lifetimeAttemptBudgetCountsMalformedResponsesAndNoAutomaticRetry -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: INVALID_RESPONSE
+ but was: MODEL_FAILURE
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.lifetimeAttemptBudgetCountsMalformedResponsesAndNoAutomaticRetry(BoundedRuleSelectorTest.java:92)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.timeoutWithNonCooperativeTransportKeepsOneSlotUntilActualExit -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 0.3S
+ but was: MODEL_FAILURE
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.timeoutWithNonCooperativeTransportKeepsOneSlotUntilActualExit(BoundedRuleSelectorTest.java:110)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.requestBudgetCountsUtf8BytesBeforeAnyExternalCall -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: REQUEST_BUDGET_EXCEEDED
+ but was: MODEL_FAILURE
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.requestBudgetCountsUtf8BytesBeforeAnyExternalCall(BoundedRuleSelectorTest.java:62)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.nullEmptyAndInvalidUnicodeResponsesAreRejected -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: INVALID_RESPONSE
+ but was: MODEL_FAILURE
+	at com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest.nullEmptyAndInvalidUnicodeResponsesAreRejected(BoundedRuleSelectorTest.java:81)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   BoundedRuleSelectorTest.closeInterruptsInFlightAndRejectsFurtherCalls:120 
+Expecting value to be true but was false
+[ERROR]   BoundedRuleSelectorTest.duplicateOversizedAndMalformedCatalogueNeverCallsTransport:52 
+expected: INVALID_CATALOGUE
+ but was: MODEL_FAILURE
+[ERROR]   BoundedRuleSelectorTest.emptyCatalogueDoesNotCallTransport:37 
+expected: EMPTY_CATALOGUE
+ but was: MODEL_FAILURE
+[ERROR]   BoundedRuleSelectorTest.exactApprovedIdIsSelectedWithoutGeneratingFacts:19 
+expected: Outcome[code=SELECTED, ruleId=r-b]
+ but was: Outcome[code=MODEL_FAILURE, ruleId=null]
+[ERROR]   BoundedRuleSelectorTest.explicitNullIsAbstentionRatherThanFirstOptionFallback:24 
+expected: ABSTAINED
+ but was: MODEL_FAILURE
+[ERROR]   BoundedRuleSelectorTest.extraFactsToolsWrongTypesDuplicatesAndTrailingJsonAreRejected:69 [{}] 
+expected: INVALID_RESPONSE
+ but was: MODEL_FAILURE
+[ERROR]   BoundedRuleSelectorTest.invalidConfigurationFailsBeforeWorkerCreation:126 
+Expecting code to raise a throwable.
+[ERROR]   BoundedRuleSelectorTest.invalidQuestionNeverConsumesExternalAttempt:42 
+expected: INVALID_INPUT
+ but was: MODEL_FAILURE
+[ERROR]   BoundedRuleSelectorTest.lifetimeAttemptBudgetCountsMalformedResponsesAndNoAutomaticRetry:92 
+expected: INVALID_RESPONSE
+ but was: MODEL_FAILURE
+[ERROR]   BoundedRuleSelectorTest.nullEmptyAndInvalidUnicodeResponsesAreRejected:81 
+expected: INVALID_RESPONSE
+ but was: MODEL_FAILURE
+[ERROR]   BoundedRuleSelectorTest.providerExceptionsAreNotRetriedOrReturnedAsStudentText:87 
+Expecting AtomicInteger(0) to have value:
+  1
+but did not.
+[ERROR]   BoundedRuleSelectorTest.requestBudgetCountsUtf8BytesBeforeAnyExternalCall:62 
+expected: REQUEST_BUDGET_EXCEEDED
+ but was: MODEL_FAILURE
+[ERROR]   BoundedRuleSelectorTest.responseBudgetCountsUtf8BytesBeforeParsing:77 
+expected: INVALID_RESPONSE
+ but was: MODEL_FAILURE
+[ERROR]   BoundedRuleSelectorTest.simultaneousRequestIsRejectedWithoutWaitingOrCallingProvider:101 
+Expecting value to be true but was false
+[ERROR]   BoundedRuleSelectorTest.timeoutWithNonCooperativeTransportKeepsOneSlotUntilActualExit:110 
+expected: 0.3S
+ but was: MODEL_FAILURE
+[ERROR]   BoundedRuleSelectorTest.transportReceivesSeparatedConstraintsAndStructuredUntrustedQuestion:30 
+Expecting actual not to be null
+[ERROR]   BoundedRuleSelectorTest.unknownOrInjectionChosenIdsDoNotPassWhitelist:73 
+expected: UNKNOWN_RULE
+ but was: MODEL_FAILURE
+[INFO] 
+[ERROR] Tests run: 17, Failures: 17, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ZhkuAgent 0.0.1-SNAPSHOT:
+[INFO] 
+[INFO] ZhkuAgent .......................................... SUCCESS [  0.003 s]
+[INFO] ZhkuAgent Shared Runtime ........................... SUCCESS [  1.608 s]
+[INFO] ZhkuAgent Knowledge ................................ FAILURE [ 17.779 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  19.931 s
+[INFO] Finished at: 2026-10-08T15:51:28+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: There are test failures.
+[ERROR] 
+[ERROR] See D:\alldesk\Projects\ZhkuAgent\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :knowledge

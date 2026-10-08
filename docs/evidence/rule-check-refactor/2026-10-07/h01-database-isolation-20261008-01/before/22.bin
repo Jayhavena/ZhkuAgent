@@ -1,0 +1,157 @@
+package com.zhku.knowledge.rag;
+
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
+
+import com.zhku.knowledge.ZhkuDatabaseTestConfig;
+import com.zhku.knowledge.retrieval.EmbeddingProfile;
+import com.zhku.knowledge.retrieval.IndexableChunk;
+import com.zhku.knowledge.retrieval.JdbcRetrievalIndexRepository;
+import com.zhku.knowledge.retrieval.ProfileStatus;
+import com.zhku.knowledge.retrieval.SourceEligibilitySnapshot;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Instant;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * 引用审计写入集成测试：审计行必须能反查到具体索引条目。
+ *
+ * <p>这是"引用可反查"的落库证据：学生端看到的引用标识若能在此表中找到，
+ * 即证明它由服务端为该片段下发，而非模型自造。</p>
+ */
+class JdbcCitationAuditRepositoryTest {
+
+    private static final String DATABASE_URL = System.getProperty(
+            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+    );
+    private static final String DATABASE_USER = System.getProperty(
+            "zhku.db.user", "zhkuagent"
+    );
+    private static final String DATABASE_PASSWORD =
+            ZhkuDatabaseTestConfig.databasePassword();
+
+    private static final UUID SOURCE = UUID.fromString("7c111111-1111-4111-8111-111111111111");
+    private static final UUID CHUNK = UUID.fromString("7cc11111-1111-4111-8111-111111111111");
+    private static final String PROFILE = "test-audit-profile";
+
+    private DataSource dataSource;
+
+    @BeforeEach
+    void setUp() throws SQLException {
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+        dataSource = new DriverManagerDataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+        deleteFixtures();
+        insertSource();
+        insertChunk();
+        JdbcRetrievalIndexRepository indexRepository = new JdbcRetrievalIndexRepository(dataSource);
+        indexRepository.registerProfile(new EmbeddingProfile(
+                PROFILE, "test-provider", "test-model", 3, ProfileStatus.BUILDING));
+        UUID runId = indexRepository.startRun(PROFILE, "fact-aware-v1");
+        indexRepository.appendEntry(runId, PROFILE, new IndexableChunk(
+                CHUNK, "第一条 每学期公共选修课最高修读 4 学分。", "a".repeat(64), "学生手册 2026 版",
+                new SourceEligibilitySnapshot(SOURCE, "PUBLISHED", "STUDENT_VISIBLE",
+                        true, false, "PUBLIC_ELECTIVE", null, null)),
+                "fact-aware-v1", new float[]{1f, 0f, 0f});
+        indexRepository.completeRun(runId, 1);
+    }
+
+    @AfterEach
+    void tearDown() throws SQLException {
+        deleteFixtures();
+    }
+
+    @Test
+    void shouldPersistCitationAuditResolvedToIndexEntry() throws SQLException {
+        JdbcCitationAuditRepository repository = new JdbcCitationAuditRepository(dataSource);
+
+        repository.record(new CitationAuditRecord(
+                "cit-live-1", CHUNK, "RETRIEVAL_AUGMENTED",
+                Instant.parse("2026-09-17T00:00:00Z")));
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT audit.index_entry_id, audit.route, entry.chunk_id
+                     FROM citation_audit audit
+                     JOIN retrieval_index_entry entry ON entry.id = audit.index_entry_id
+                     WHERE audit.citation_id = 'cit-live-1'
+                     """)) {
+            try (ResultSet result = statement.executeQuery()) {
+                assertThat(result.next()).isTrue();
+                assertThat(result.getObject("chunk_id", UUID.class)).isEqualTo(CHUNK);
+                assertThat(result.getString("route")).isEqualTo("RETRIEVAL_AUGMENTED");
+            }
+        }
+    }
+
+    @Test
+    void shouldFailLoudlyWhenChunkHasNoIndexEntry() {
+        JdbcCitationAuditRepository repository = new JdbcCitationAuditRepository(dataSource);
+
+        // 无索引条目可反查时不得静默写入：审计缺失会让"引用是否伪造"无法判定。
+        assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> repository.record(
+                new CitationAuditRecord("cit-orphan", UUID.randomUUID(), "RETRIEVAL_AUGMENTED",
+                        Instant.parse("2026-09-17T00:00:00Z")))))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    private void insertSource() throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     INSERT INTO knowledge_source (
+                         id, title, source_type, source_version, publication_status,
+                         published_at, content_checksum, visibility_scope, publication_scope,
+                         review_notice, sharing_rights_confirmed, document_family, knowledge_scope
+                     ) VALUES (?, '测试来源', 'STUDENT_HANDBOOK', '学生手册 2026 版', 'PUBLISHED',
+                         CURRENT_TIMESTAMP, ?, 'STUDENT_VISIBLE', '本地验证', '测试资料', TRUE,
+                         'STUDENT_HANDBOOK', 'PUBLIC_ELECTIVE')
+                     """)) {
+            statement.setObject(1, SOURCE);
+            statement.setString(2, "a".repeat(64));
+            statement.executeUpdate();
+        }
+    }
+
+    private void insertChunk() throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     INSERT INTO knowledge_chunk (
+                         id, source_id, chunk_index, section_title, source_locator,
+                         page_number, content, content_checksum
+                     ) VALUES (?, ?, 0, '第一条', '第 1 页', 1, '第一条 每学期公共选修课最高修读 4 学分。', ?)
+                     """)) {
+            statement.setObject(1, CHUNK);
+            statement.setObject(2, SOURCE);
+            statement.setString(3, "a".repeat(64));
+            statement.executeUpdate();
+        }
+    }
+
+    private void deleteFixtures() throws SQLException {
+        try (Connection connection = DriverManager.getConnection(
+                DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
+            connection.createStatement().executeUpdate(
+                    "DELETE FROM citation_audit WHERE citation_id LIKE 'cit-live-%' OR citation_id LIKE 'cit-orphan%'");
+            connection.createStatement().executeUpdate(
+                    "DELETE FROM retrieval_index_entry WHERE profile_id = '" + PROFILE + "'");
+            connection.createStatement().executeUpdate(
+                    "DELETE FROM retrieval_index_run WHERE profile_id = '" + PROFILE + "'");
+            connection.createStatement().executeUpdate(
+                    "DELETE FROM embedding_profile WHERE profile_id = '" + PROFILE + "'");
+            connection.createStatement().executeUpdate(
+                    "DELETE FROM knowledge_chunk WHERE source_id = '" + SOURCE + "'");
+            connection.createStatement().executeUpdate(
+                    "DELETE FROM knowledge_source WHERE id = '" + SOURCE + "'");
+        }
+    }
+}

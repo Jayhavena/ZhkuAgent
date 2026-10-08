@@ -29,10 +29,7 @@ class JdbcConversationStoreContractTest {
 
     private static final Instant START = Instant.parse("2026-09-14T00:00:00Z");
     private static final Duration SESSION_TTL = Duration.ofMinutes(10);
-    private static final String DATABASE_URL = System.getProperty(
-            "zhku.db.url",
-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
-    );
+    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
     private static final String DATABASE_USER = System.getProperty("zhku.db.user", "zhkuagent");
     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
     private static final DataSource DATA_SOURCE = new DriverManagerDataSource(
@@ -307,6 +304,39 @@ class JdbcConversationStoreContractTest {
                         ConversationState::revision
                 )
                 .containsExactly(null, null, 1L);
+    }
+
+    @Test
+    void shouldKeepAllAnonymousOperationsAndCollisionDiagnosticsAwayFromOwnedRows() throws Exception {
+        UUID owner = UUID.randomUUID(), privateId = UUID.randomUUID(), expiredPrivate = UUID.randomUUID();
+        try (var connection = DATA_SOURCE.getConnection()) {
+            OwnedConversationSessionSchemaTest.identity(connection, owner);
+            OwnedConversationSessionSchemaTest.insertSession(connection, privateId, owner);
+            OwnedConversationSessionSchemaTest.insertSession(connection, expiredPrivate, owner);
+            OwnedConversationSessionSchemaTest.execute(connection,
+                    "UPDATE conversation_session SET expires_at=? WHERE session_id=?", java.sql.Timestamp.from(START), expiredPrivate);
+            try {
+                assertThat(store.find(privateId, clockAt(START))).isEqualTo(new StoreResult(StoreResult.Outcome.NOT_FOUND, null));
+                assertThat(store.create(ConversationState.active(privateId, START.plus(SESSION_TTL))))
+                        .isEqualTo(new StoreResult(StoreResult.Outcome.ALREADY_EXISTS, null));
+                assertThat(store.savePending(privateId, 0, PendingIntent.ELECTIVE_RETAKE_AFTER_FAILURE,
+                        PendingField.COURSE_TYPE, START.plus(SESSION_TTL), clockAt(START)))
+                        .isEqualTo(new StoreResult(StoreResult.Outcome.NOT_FOUND, null));
+                assertThat(store.clearPending(privateId, 0, START.plus(SESSION_TTL), clockAt(START)))
+                        .isEqualTo(new StoreResult(StoreResult.Outcome.NOT_FOUND, null));
+                assertThat(store.cancel(privateId, 0, clockAt(START)))
+                        .isEqualTo(new StoreResult(StoreResult.Outcome.NOT_FOUND, null));
+                store.clearExpired(clockAt(Instant.parse("2099-01-01T00:00:00Z")));
+                try (var statement = connection.prepareStatement("SELECT count(*),min(revision) FROM conversation_session WHERE owner_user_id=?")) {
+                    statement.setObject(1, owner);
+                    try (var rows = statement.executeQuery()) { rows.next(); assertThat(rows.getInt(1)).isEqualTo(2); assertThat(rows.getLong(2)).isZero(); }
+                }
+            } finally {
+                for (UUID id : java.util.List.of(privateId, expiredPrivate))
+                    OwnedConversationSessionSchemaTest.execute(connection, "DELETE FROM conversation_session WHERE session_id=?", id);
+                OwnedConversationSessionSchemaTest.execute(connection, "DELETE FROM preview_identity WHERE user_id=?", owner);
+            }
+        }
     }
 
     private static ConversationStore newStore() {

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="11.829" tests="22" errors="0" skipped="0" failures="11"><testcase name="ineligibleNearestMustNotDisplaceEligibleResultAndJdbcReadIsBounded" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="2.747"><failure message="&#xA;Expecting AtomicInteger(3) to have value:&#xA;  1&#xA;but did not." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting AtomicInteger(3) to have value:
+  1
+but did not.
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.ineligibleNearestMustNotDisplaceEligibleResultAndJdbcReadIsBounded(JdbcCandidateRetrieverTest.java:299)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="retirementDuringEmbeddingMustPreventCandidateRead" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.51"><failure message="&#xA;Expecting empty but was: [RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=第二条 公共选修课不办理缓考，不及格者应重修。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 2 页, pageNumber=2, sourceVersion=学生手册 2026 版, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting empty but was: [RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=第二条 公共选修课不办理缓考，不及格者应重修。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 2 页, pageNumber=2, sourceVersion=学生手册 2026 版, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.retirementDuringEmbeddingMustPreventCandidateRead(JdbcCandidateRetrieverTest.java:263)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="retiredProfileMustNotServeOnlineOrCallEmbedding" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.485"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertOnlineUnavailableWithoutEmbedding(JdbcCandidateRetrieverTest.java:337)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.retiredProfileMustNotServeOnlineOrCallEmbedding(JdbcCandidateRetrieverTest.java:164)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="unconfirmedSharingMustBeExcludedOnBothPaths" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.553"></testcase><testcase name="missingProfileMustNotCallEmbedding" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.425"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertOnlineUnavailableWithoutEmbedding(JdbcCandidateRetrieverTest.java:339)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.missingProfileMustNotCallEmbedding(JdbcCandidateRetrieverTest.java:169)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="actualVectorLengthMismatchMustFailThisPath" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.472"></testcase><testcase name="indexChecksumDriftMustExcludeOnlyStaleChunk" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.531"><failure message="&#xA;Expecting actual:&#xA;  [6bc11111-1111-4111-8111-111111111111, 6bc22222-2222-4222-8222-222222222222]&#xA;to contain exactly (and in same order):&#xA;  [6bc22222-2222-4222-8222-222222222222]&#xA;but some elements were not expected:&#xA;  [6bc11111-1111-4111-8111-111111111111]&#xA;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  [6bc11111-1111-4111-8111-111111111111, 6bc22222-2222-4222-8222-222222222222]
+to contain exactly (and in same order):
+  [6bc22222-2222-4222-8222-222222222222]
+but some elements were not expected:
+  [6bc11111-1111-4111-8111-111111111111]
+
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertOnlyBOnBothPaths(JdbcCandidateRetrieverTest.java:329)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.indexChecksumDriftMustExcludeOnlyStaleChunk(JdbcCandidateRetrieverTest.java:241)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="equalCosineDistanceKeepsStableChunkOrder" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.476"></testcase><testcase name="unfinishedFailedOrRolledBackRunMustBeExcluded" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.421"><failure message="&#xA;Expecting empty but was: [RetrievedChunk[chunkId=6bc11111-1111-4111-8111-111111111111, content=第一条 每学期公共选修课最高修读 4 学分。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 1 页, pageNumber=1, sourceVersion=学生手册 2026 版, contentChecksum=4d2e485a2783fcf19f5cf66234e6370f05025388c0a089fbb304840d50dcd82a],&#xA;    RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=第二条 公共选修课不办理缓考，不及格者应重修。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 2 页, pageNumber=2, sourceVersion=学生手册 2026 版, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting empty but was: [RetrievedChunk[chunkId=6bc11111-1111-4111-8111-111111111111, content=第一条 每学期公共选修课最高修读 4 学分。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 1 页, pageNumber=1, sourceVersion=学生手册 2026 版, contentChecksum=4d2e485a2783fcf19f5cf66234e6370f05025388c0a089fbb304840d50dcd82a],
+    RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=第二条 公共选修课不办理缓考，不及格者应重修。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 2 页, pageNumber=2, sourceVersion=学生手册 2026 版, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertBothEmpty(JdbcCandidateRetrieverTest.java:323)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.unfinishedFailedOrRolledBackRunMustBeExcluded(JdbcCandidateRetrieverTest.java:271)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="shouldRespectLimitOnBothPaths" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.42"></testcase><testcase name="chunkingVersionDriftMustExcludeOnlyStaleChunk" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.402"><failure message="&#xA;Expecting actual:&#xA;  [6bc11111-1111-4111-8111-111111111111, 6bc22222-2222-4222-8222-222222222222]&#xA;to contain exactly (and in same order):&#xA;  [6bc22222-2222-4222-8222-222222222222]&#xA;but some elements were not expected:&#xA;  [6bc11111-1111-4111-8111-111111111111]&#xA;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  [6bc11111-1111-4111-8111-111111111111, 6bc22222-2222-4222-8222-222222222222]
+to contain exactly (and in same order):
+  [6bc22222-2222-4222-8222-222222222222]
+but some elements were not expected:
+  [6bc11111-1111-4111-8111-111111111111]
+
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertOnlyBOnBothPaths(JdbcCandidateRetrieverTest.java:329)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.chunkingVersionDriftMustExcludeOnlyStaleChunk(JdbcCandidateRetrieverTest.java:248)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="sourceVersionDriftMustExcludeStaleEntries" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.404"><failure message="&#xA;Expecting empty but was: [RetrievedChunk[chunkId=6bc11111-1111-4111-8111-111111111111, content=第一条 每学期公共选修课最高修读 4 学分。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 1 页, pageNumber=1, sourceVersion=changed-version, contentChecksum=4d2e485a2783fcf19f5cf66234e6370f05025388c0a089fbb304840d50dcd82a],&#xA;    RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=第二条 公共选修课不办理缓考，不及格者应重修。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 2 页, pageNumber=2, sourceVersion=changed-version, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting empty but was: [RetrievedChunk[chunkId=6bc11111-1111-4111-8111-111111111111, content=第一条 每学期公共选修课最高修读 4 学分。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 1 页, pageNumber=1, sourceVersion=changed-version, contentChecksum=4d2e485a2783fcf19f5cf66234e6370f05025388c0a089fbb304840d50dcd82a],
+    RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=第二条 公共选修课不办理缓考，不及格者应重修。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 2 页, pageNumber=2, sourceVersion=changed-version, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertBothEmpty(JdbcCandidateRetrieverTest.java:323)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.sourceVersionDriftMustExcludeStaleEntries(JdbcCandidateRetrieverTest.java:227)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="shouldRankLexicalCandidatesByMatchedTermsAndExcludeIneligible" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.375"></testcase><testcase name="shouldRankVectorCandidatesByCosineDistanceAndExcludeIneligible" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.393"></testcase><testcase name="buildingProfileMustNotServeOnlineOrCallEmbedding" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.406"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertOnlineUnavailableWithoutEmbedding(JdbcCandidateRetrieverTest.java:337)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.buildingProfileMustNotServeOnlineOrCallEmbedding(JdbcCandidateRetrieverTest.java:157)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="clientDimensionMismatchMustNotCallEmbedding" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.37"></testcase><testcase name="draftSourceMustBeExcludedOnBothPaths" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.421"></testcase><testcase name="chunkChecksumDriftMustExcludeOnlyStaleChunk" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.395"><failure message="&#xA;Expecting actual:&#xA;  [6bc11111-1111-4111-8111-111111111111, 6bc22222-2222-4222-8222-222222222222]&#xA;to contain exactly (and in same order):&#xA;  [6bc22222-2222-4222-8222-222222222222]&#xA;but some elements were not expected:&#xA;  [6bc11111-1111-4111-8111-111111111111]&#xA;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  [6bc11111-1111-4111-8111-111111111111, 6bc22222-2222-4222-8222-222222222222]
+to contain exactly (and in same order):
+  [6bc22222-2222-4222-8222-222222222222]
+but some elements were not expected:
+  [6bc11111-1111-4111-8111-111111111111]
+
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertOnlyBOnBothPaths(JdbcCandidateRetrieverTest.java:329)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.chunkChecksumDriftMustExcludeOnlyStaleChunk(JdbcCandidateRetrieverTest.java:234)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="internalSourceMustBeExcludedOnBothPaths" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.434"></testcase><testcase name="shouldReturnNoLexicalCandidateWhenQueryHasNoUsableTerm" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.35"></testcase><testcase name="runProfileMismatchMustNotMakeEntriesReadable" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.42"><failure message="&#xA;Expecting empty but was: [RetrievedChunk[chunkId=6bc11111-1111-4111-8111-111111111111, content=第一条 每学期公共选修课最高修读 4 学分。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 1 页, pageNumber=1, sourceVersion=学生手册 2026 版, contentChecksum=4d2e485a2783fcf19f5cf66234e6370f05025388c0a089fbb304840d50dcd82a],&#xA;    RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=第二条 公共选修课不办理缓考，不及格者应重修。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 2 页, pageNumber=2, sourceVersion=学生手册 2026 版, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting empty but was: [RetrievedChunk[chunkId=6bc11111-1111-4111-8111-111111111111, content=第一条 每学期公共选修课最高修读 4 学分。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 1 页, pageNumber=1, sourceVersion=学生手册 2026 版, contentChecksum=4d2e485a2783fcf19f5cf66234e6370f05025388c0a089fbb304840d50dcd82a],
+    RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=第二条 公共选修课不办理缓考，不及格者应重修。, sourceTitle=测试来源 6b111111-1111-4111-8111-111111111111, sourceLocator=第 2 页, pageNumber=2, sourceVersion=学生手册 2026 版, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertBothEmpty(JdbcCandidateRetrieverTest.java:323)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.runProfileMismatchMustNotMakeEntriesReadable(JdbcCandidateRetrieverTest.java:281)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="scopeMismatchMustBeExcludedButNullScopeIsSupported" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.371"></testcase></testsuite>

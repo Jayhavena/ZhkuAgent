@@ -59,8 +59,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class GracefulDegradationTest {
 
-    private static final String DATABASE_URL = System.getProperty(
-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
+    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
     private static final String DATABASE_USER = System.getProperty("zhku.db.user", "zhkuagent");
     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
     private static final LocalDate TEST_DATE = LocalDate.of(1993, 3, 3);

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.retrieval.RuleCheckBrowserHttpTest" time="14.167" tests="1" errors="1" skipped="0" failures="0"><testcase name="actualAnswerOriginalAndOptionalBoundedBrowserLease" classname="com.zhku.knowledge.retrieval.RuleCheckBrowserHttpTest" time="14.141"><error message="ERROR: 身份变更必须递增版本且不可溢出&#xA;  在位置：PL/pgSQL function preview_identity_update_guard() line 9 at RAISE" type="org.postgresql.util.PSQLException"><![CDATA[org.postgresql.util.PSQLException: 
+ERROR: 身份变更必须递增版本且不可溢出
+  在位置：PL/pgSQL function preview_identity_update_guard() line 9 at RAISE
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2733)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2420)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:372)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:517)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:434)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:194)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:155)
+	at com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest$OriginalFixture.update(RuleCheckOriginalHttpTest.java:195)
+	at com.zhku.knowledge.retrieval.RuleCheckBrowserHttpTest.lambda$actualAnswerOriginalAndOptionalBoundedBrowserLease$1(RuleCheckBrowserHttpTest.java:29)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.withApp(RuleCheckPreviewHttpTest.java:226)
+	at com.zhku.knowledge.retrieval.RuleCheckBrowserHttpTest.actualAnswerOriginalAndOptionalBoundedBrowserLease(RuleCheckBrowserHttpTest.java:17)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></error></testcase></testsuite>

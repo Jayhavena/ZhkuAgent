@@ -1,0 +1,1428 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] ZhkuAgent                                                          [pom]
+[INFO] ZhkuAgent Shared Runtime                                           [jar]
+[INFO] ZhkuAgent Knowledge                                                [jar]
+[INFO] 
+[INFO] ------------------------< com.zhku:zhku-agent >-------------------------
+[INFO] Building ZhkuAgent 0.0.1-SNAPSHOT                                  [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] -----------------------< com.zhku:agent-runtime >-----------------------
+[INFO] Building ZhkuAgent Shared Runtime 0.0.1-SNAPSHOT                   [2/3]
+[INFO]   from agent-runtime\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ agent-runtime ---
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.0.1-SNAPSHOT                        [3/3]
+[INFO]   from knowledge\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 5 resources from src\main\resources to target\classes
+[INFO] Copying 21 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 299 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 2 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 218 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[WARNING] file.encoding cannot be set as system property, use <argLine>-Dfile.encoding=...</argLine> instead
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.controlled.ControlledPreviewConfigurationTest
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+19:18:29.443 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: java.lang.IllegalArgumentException: �ܿ�ģ�����û򻷾�ƾ��δͨ����������
+19:18:29.521 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'controlledPreviewEarlyGuard' defined in com.zhku.knowledge.controlled.ControlledPreviewConfiguration: Failed to instantiate [org.springframework.beans.factory.config.BeanFactoryPostProcessor]: Factory method 'controlledPreviewEarlyGuard' threw exception with message: ����Ԥ��Ҫ�� server.address ��ʽ����Ϊ�ػ���ַ���Ǳ�������������ɶ�����������Ȩ������
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.214 s -- in com.zhku.knowledge.controlled.ControlledPreviewConfigurationTest
+[INFO] Running com.zhku.knowledge.feedback.JdbcFeedbackRepositoryTest
+19:18:30.182 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:30.261 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Schema history table "public"."flyway_schema_history" does not exist yet
+19:18:30.266 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.043s)
+19:18:30.287 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "public"."flyway_schema_history" ...
+19:18:30.390 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": << Empty Schema >>
+19:18:30.390 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:30.414 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "1 - create zhku knowledge schema"
+19:18:30.541 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "2 - add knowledge source visibility governance"
+19:18:30.594 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "3 - create zhku knowledge governance staging"
+19:18:30.721 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "4 - add zhku knowledge source version scope"
+19:18:30.764 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "5 - allow archived knowledge submission reimport"
+19:18:30.812 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "6 - add official notice lifecycle"
+19:18:30.905 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "7 - allow superseded notice audit visibility"
+19:18:30.933 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "8 - support reviewed internal official notice material"
+19:18:30.972 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "9 - add retrieval catalog and index audit"
+19:18:31.110 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "12 - create conversation session store"
+19:18:31.153 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "15 - create service guides"
+19:18:31.326 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "16 - create anonymous feedback"
+19:18:31.380 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "17 - create anonymous telemetry"
+19:18:31.440 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "18 - create campus agent run archive"
+19:18:31.518 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "19 - create preview identity and run ownership"
+19:18:31.575 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "20 - add conversation session ownership"
+19:18:31.610 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "21 - create campus run submission"
+19:18:31.650 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "22 - allow rule check capture audit"
+19:18:31.672 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 18 migrations to schema "public", now at version v22 (execution time 00:00.827s)
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.235 s -- in com.zhku.knowledge.feedback.JdbcFeedbackRepositoryTest
+[INFO] Running com.zhku.knowledge.governance.CandidateReviewServiceTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in com.zhku.knowledge.governance.CandidateReviewServiceTest
+[INFO] Running com.zhku.knowledge.governance.JdbcKnowledgeGovernanceRepositoryTest
+19:18:32.037 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:32.079 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.022s)
+19:18:32.109 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:32.109 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:32.110 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:32.282 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:32.306 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.014s)
+19:18:32.328 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:32.329 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:32.330 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:32.501 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:32.525 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.014s)
+19:18:32.545 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:32.545 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:32.546 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.709 s -- in com.zhku.knowledge.governance.JdbcKnowledgeGovernanceRepositoryTest
+[INFO] Running com.zhku.knowledge.governance.KnowledgeGovernancePublisherTest
+19:18:32.716 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:32.739 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.015s)
+19:18:32.761 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:32.761 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:32.763 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:32.941 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:32.961 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.012s)
+19:18:32.982 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:32.982 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:32.983 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:33.238 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:33.258 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+19:18:33.278 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:33.278 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:33.278 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:33.465 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:33.486 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.012s)
+19:18:33.506 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:33.507 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:33.508 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.031 s -- in com.zhku.knowledge.governance.KnowledgeGovernancePublisherTest
+[INFO] Running com.zhku.knowledge.governance.KnowledgeGovernanceSchemaTest
+19:18:33.746 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:33.769 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.015s)
+19:18:33.791 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:33.791 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:33.793 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.097 s -- in com.zhku.knowledge.governance.KnowledgeGovernanceSchemaTest
+[INFO] Running com.zhku.knowledge.governance.web.CandidateResponseMappingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in com.zhku.knowledge.governance.web.CandidateResponseMappingTest
+[INFO] Running com.zhku.knowledge.governance.web.ZhkuLocalAdminControllerTest
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build what is described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (C:\Users\nangua\.m2\repository\net\bytebuddy\byte-buddy-agent\1.15.11\byte-buddy-agent-1.15.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+19:18:35.569 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:35.569 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:35.572 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 3 ms
+19:18:35.838 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:35.838 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:35.838 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+19:18:35.917 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:35.917 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:35.917 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+19:18:35.993 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:35.993 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:35.994 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 1 ms
+19:18:36.049 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:36.049 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:36.049 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+19:18:36.071 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:36.071 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:36.071 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+19:18:36.242 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:36.242 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:36.243 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+19:18:36.307 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:36.307 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:36.308 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 1 ms
+19:18:36.341 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:36.341 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:36.342 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 1 ms
+19:18:36.374 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:36.375 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:36.375 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+19:18:36.419 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:36.419 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:36.419 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+19:18:36.472 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:36.472 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:36.473 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+19:18:36.489 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+19:18:36.489 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+19:18:36.490 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 1 ms
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.669 s -- in com.zhku.knowledge.governance.web.ZhkuLocalAdminControllerTest
+[INFO] Running com.zhku.knowledge.governance.web.ZhkuLocalAdminPageResourceTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.zhku.knowledge.governance.web.ZhkuLocalAdminPageResourceTest
+[INFO] Running com.zhku.knowledge.KnowledgeSchemaTest
+19:18:36.661 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:36.722 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.034s)
+19:18:36.797 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:36.798 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:36.801 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.376 s -- in com.zhku.knowledge.KnowledgeSchemaTest
+[INFO] Running com.zhku.knowledge.publication.ReviewedKnowledgePublisherTest
+19:18:36.928 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:36.968 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.026s)
+19:18:37.019 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:37.019 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:37.032 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:37.146 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:37.203 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.033s)
+19:18:37.240 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:37.240 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:37.242 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:37.385 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:37.414 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.017s)
+19:18:37.439 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:37.440 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:37.441 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:37.579 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:37.603 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.014s)
+19:18:37.627 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:37.627 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:37.628 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:37.748 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:37.785 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.022s)
+19:18:37.821 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:37.821 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:37.824 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:37.977 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:38.010 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.016s)
+19:18:38.047 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:38.048 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:38.048 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:38.168 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:38.191 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.014s)
+19:18:38.214 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:38.214 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:38.214 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:38.309 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:38.329 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+19:18:38.348 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:38.348 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:38.349 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.570 s -- in com.zhku.knowledge.publication.ReviewedKnowledgePublisherTest
+[INFO] Running com.zhku.knowledge.rag.AnswerEvidenceGuardTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.zhku.knowledge.rag.AnswerEvidenceGuardTest
+[INFO] Running com.zhku.knowledge.rag.GroundedAnswerComposerTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.051 s -- in com.zhku.knowledge.rag.GroundedAnswerComposerTest
+[INFO] Running com.zhku.knowledge.rag.JdbcCitationAuditRepositoryTest
+19:18:38.567 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:38.586 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+19:18:38.609 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:38.610 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:38.611 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:38.843 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:38.863 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+19:18:38.884 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:38.884 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:38.884 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.529 s -- in com.zhku.knowledge.rag.JdbcCitationAuditRepositoryTest
+[INFO] Running com.zhku.knowledge.rag.ModelOutputParserTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.zhku.knowledge.rag.ModelOutputParserTest
+[INFO] Running com.zhku.knowledge.rag.RetrievalAugmentedAnswerServiceTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.066 s -- in com.zhku.knowledge.rag.RetrievalAugmentedAnswerServiceTest
+[INFO] Running com.zhku.knowledge.rag.SpringAiAdapterContractTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.780 s -- in com.zhku.knowledge.rag.SpringAiAdapterContractTest
+[INFO] Running com.zhku.knowledge.retrieval.HybridCandidateFusionTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.zhku.knowledge.retrieval.HybridCandidateFusionTest
+[INFO] Running com.zhku.knowledge.retrieval.HybridRetrievalServiceTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in com.zhku.knowledge.retrieval.HybridRetrievalServiceTest
+[INFO] Running com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest
+19:18:40.012 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:40.035 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.013s)
+19:18:40.059 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:40.059 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:40.060 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:40.546 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:40.567 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.012s)
+19:18:40.591 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:40.592 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:40.593 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:40.946 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:40.964 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+19:18:40.983 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:40.983 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:40.984 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:41.377 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:41.396 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+19:18:41.413 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:41.413 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:41.414 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:41.797 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:41.813 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+19:18:41.833 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:41.833 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:41.834 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:42.146 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:42.163 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+19:18:42.181 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:42.181 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:42.182 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:42.449 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:42.468 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+19:18:42.492 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:42.492 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:42.492 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:42.951 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:42.970 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+19:18:42.997 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:42.997 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:42.999 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:43.353 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:43.371 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+19:18:43.391 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:43.391 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:43.392 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:43.745 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:43.767 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+19:18:43.788 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:43.788 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:43.789 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:44.144 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:44.165 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+19:18:44.185 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:44.185 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:44.186 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:44.654 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:44.671 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+19:18:44.686 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:44.686 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:44.688 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:45.004 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:45.021 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+19:18:45.039 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:45.039 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:45.039 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:45.386 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:45.403 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+19:18:45.437 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:45.437 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:45.438 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:45.796 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:45.813 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+19:18:45.831 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:45.831 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:45.832 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:46.169 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:46.197 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.016s)
+19:18:46.219 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:46.219 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:46.220 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:46.588 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:46.606 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+19:18:46.625 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:46.625 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:46.626 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:46.885 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:46.902 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+19:18:46.922 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:46.923 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:46.923 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:47.222 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:47.241 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+19:18:47.260 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:47.260 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:47.261 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:47.572 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:47.598 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.015s)
+19:18:47.633 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:47.633 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:47.634 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:48.008 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:48.027 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+19:18:48.046 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:48.046 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:48.047 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:48.405 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:48.422 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+19:18:48.448 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:48.448 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:48.448 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:48.817 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:48.840 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+19:18:48.864 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:48.864 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:48.865 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:49.250 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:49.273 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.012s)
+19:18:49.293 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:49.293 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:49.294 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:49.578 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:49.598 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.012s)
+19:18:49.620 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:49.620 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:49.622 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:50.058 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:50.082 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.013s)
+19:18:50.105 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:50.105 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:50.106 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[INFO] Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.51 s -- in com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest
+[INFO] Running com.zhku.knowledge.retrieval.JdbcEmbeddingProfileStoreTest
+19:18:50.517 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:50.543 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.012s)
+19:18:50.563 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:50.563 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:50.564 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:50.940 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:50.959 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+19:18:50.980 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:50.980 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:50.981 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:51.169 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:51.194 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.015s)
+19:18:51.217 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:51.217 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:51.218 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:51.476 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:51.496 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+19:18:51.518 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:51.518 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:51.519 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:51.701 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:51.724 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.013s)
+19:18:51.748 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:51.748 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:51.749 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:52.077 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:52.100 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.013s)
+19:18:52.128 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:52.128 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:52.129 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:52.462 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:52.480 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+19:18:52.498 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:52.499 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:52.500 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.126 s -- in com.zhku.knowledge.retrieval.JdbcEmbeddingProfileStoreTest
+[INFO] Running com.zhku.knowledge.retrieval.JdbcRetrievalIndexingTest
+19:18:52.645 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:52.663 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+19:18:52.684 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:52.684 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:52.685 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:52.951 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:52.971 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.013s)
+19:18:52.992 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:52.992 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:52.993 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:53.269 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:53.285 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+19:18:53.304 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:53.304 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:53.304 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.578 s -- in com.zhku.knowledge.retrieval.JdbcRetrievalIndexingTest
+[INFO] Running com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.119 s -- in com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest
+[INFO] Running com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTest
+19:18:54.468 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:54.534 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.042s)
+19:18:54.568 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:54.568 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:54.569 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:54.991 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:55.043 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.036s)
+19:18:55.078 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:55.078 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:55.079 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:55.429 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:55.469 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.027s)
+19:18:55.501 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:55.501 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:55.502 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:55.800 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:55.843 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.028s)
+19:18:55.876 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:55.876 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:55.877 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:56.899 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:56.947 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.032s)
+19:18:56.988 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:56.988 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:56.989 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:57.575 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:57.615 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.025s)
+19:18:57.644 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:57.644 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:57.645 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:58.068 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:58.106 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.025s)
+19:18:58.135 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:58.136 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:58.137 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:58.689 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:58.724 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.023s)
+19:18:58.754 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:58.754 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:58.755 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:59.079 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:59.122 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.024s)
+19:18:59.158 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:59.158 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:59.160 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:18:59.576 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:18:59.622 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.031s)
+19:18:59.664 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:18:59.664 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:18:59.666 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:00.227 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:00.369 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.108s)
+19:19:00.450 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:00.450 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:00.454 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:01.514 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:01.565 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.037s)
+19:19:01.611 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:01.611 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:01.613 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:01.948 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:01.987 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.024s)
+19:19:02.043 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:02.043 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:02.044 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:02.714 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:02.748 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.023s)
+19:19:02.776 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:02.776 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:02.777 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:03.087 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:03.121 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.022s)
+19:19:03.148 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:03.148 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:03.149 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:03.487 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:03.537 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.035s)
+19:19:03.585 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:03.585 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:03.588 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:03.979 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:04.031 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.033s)
+19:19:04.074 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:04.075 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:04.077 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:04.508 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:04.549 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.027s)
+19:19:04.582 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:04.582 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:04.584 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:05.066 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:05.114 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.028s)
+19:19:05.147 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:05.147 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:05.149 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:05.714 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:05.755 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.027s)
+19:19:05.784 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:05.784 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:05.786 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:06.441 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:06.584 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.092s)
+19:19:06.670 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:06.670 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:06.678 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:07.133 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:07.167 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.023s)
+19:19:07.194 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:07.194 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:07.195 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:07.533 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:07.587 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.037s)
+19:19:07.625 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:07.625 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:07.627 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:08.279 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:08.340 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.042s)
+19:19:08.392 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:08.392 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:08.396 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:09.197 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:09.250 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.040s)
+19:19:09.325 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:09.325 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:09.327 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:09.722 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:09.760 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.026s)
+19:19:09.793 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:09.793 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:09.794 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:10.087 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:10.121 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.021s)
+19:19:10.149 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:10.149 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:10.151 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[INFO] Tests run: 27, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.11 s -- in com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTest
+[INFO] Running com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTargetTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTargetTest
+[INFO] Running com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest
+19:19:10.507 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:10.548 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.026s)
+19:19:10.578 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:10.578 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:10.579 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:10.892 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:10.928 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.024s)
+19:19:10.957 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:10.957 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:10.959 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:11.277 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:11.320 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.027s)
+19:19:11.350 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:11.350 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:11.352 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:11.899 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:11.937 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.026s)
+19:19:11.966 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:11.966 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:11.967 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:12.260 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:12.303 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.029s)
+19:19:12.339 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:12.339 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:12.341 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:12.788 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:12.852 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.043s)
+19:19:12.887 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:12.887 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:12.889 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:14.144 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:14.725 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.345s)
+19:19:14.997 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:14.997 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:15.011 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:17.060 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:17.312 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.136s)
+19:19:17.487 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:17.487 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:17.494 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:19.442 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:20.104 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.332s)
+19:19:20.508 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:20.509 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:20.524 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:22.112 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:22.398 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.202s)
+19:19:22.683 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:22.683 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:22.720 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:25.673 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:25.985 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.214s)
+19:19:26.216 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:26.216 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:26.225 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:27.817 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:28.475 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.484s)
+19:19:28.922 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:28.923 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:28.942 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:31.268 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:31.523 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.159s)
+19:19:31.674 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:31.676 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:31.688 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:33.424 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:33.898 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.331s)
+19:19:34.078 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:34.078 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:34.085 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:36.300 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:36.575 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.189s)
+19:19:36.756 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:36.757 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:36.767 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:38.822 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:39.044 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.152s)
+19:19:39.200 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:39.200 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:39.207 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:40.501 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:40.758 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.184s)
+19:19:40.934 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:40.934 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:40.942 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:42.091 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:42.141 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.033s)
+19:19:42.178 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:42.178 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:42.179 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+19:19:42.429 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:42.460 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.019s)
+19:19:42.488 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:42.488 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+19:19:42.489 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 32.26 s -- in com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest
+[INFO] Running com.zhku.knowledge.retrieval.RetrievalEligibilityFilterTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.zhku.knowledge.retrieval.RetrievalEligibilityFilterTest
+[INFO] Running com.zhku.knowledge.retrieval.RetrievalIndexingRepeatTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.035 s -- in com.zhku.knowledge.retrieval.RetrievalIndexingRepeatTest
+[INFO] Running com.zhku.knowledge.retrieval.RuleCheckDatabaseTestTargetTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.zhku.knowledge.retrieval.RuleCheckDatabaseTestTargetTest
+[INFO] Running com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest
+19:19:42.827 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55470/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+19:19:42.857 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.018s)
+19:19:42.884 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+19:19:42.885 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+[ERROR] Tests run: 10, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 24.86 s <<< FAILURE! -- in com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest
+[ERROR] com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest.delayedEntryRevocationCannotInvalidateNewLoginOrDeleteItsCookie -- Time elapsed: 1.572 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code not to raise a throwable but caught
+  "org.opentest4j.AssertionFailedError: 
+expected: 200
+ but was: 401
+	at com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest.lambda$delayedEntryRevocationCannotInvalidateNewLoginOrDeleteItsCookie$24(RuleCheckOriginalHttpTest.java:160)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.withApp(RuleCheckPreviewHttpTest.java:226)
+	at com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest.lambda$run$0(RuleCheckOriginalHttpTest.java:21)
+	at com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest.run(RuleCheckOriginalHttpTest.java:21)
+	at com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest.delayedEntryRevocationCannotInvalidateNewLoginOrDeleteItsCookie(RuleCheckOriginalHttpTest.java:149)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.SameThreadTimeoutInvocation.proceed(SameThreadTimeoutInvocation.java:45)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+"
+	at com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest.run(RuleCheckOriginalHttpTest.java:21)
+	at com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest.delayedEntryRevocationCannotInvalidateNewLoginOrDeleteItsCookie(RuleCheckOriginalHttpTest.java:149)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+[ERROR] Tests run: 12, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 14.31 s <<< FAILURE! -- in com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest
+[ERROR] com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.actualCurrentIdentityRevisionRejectsOldActorAndAccountSwitchUsesNewActor -- Time elapsed: 1.168 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code not to raise a throwable but caught
+  "org.opentest4j.AssertionFailedError: 
+expected: 401
+ but was: 403
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.lambda$actualCurrentIdentityRevisionRejectsOldActorAndAccountSwitchUsesNewActor$2(RuleCheckPreviewHttpTest.java:62)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.withApp(RuleCheckPreviewHttpTest.java:226)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.withApp(RuleCheckPreviewHttpTest.java:198)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.withApp(RuleCheckPreviewHttpTest.java:196)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.lambda$actualCurrentIdentityRevisionRejectsOldActorAndAccountSwitchUsesNewActor$3(RuleCheckPreviewHttpTest.java:53)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.actualCurrentIdentityRevisionRejectsOldActorAndAccountSwitchUsesNewActor(RuleCheckPreviewHttpTest.java:53)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.SameThreadTimeoutInvocation.proceed(SameThreadTimeoutInvocation.java:45)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+"
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.actualCurrentIdentityRevisionRejectsOldActorAndAccountSwitchUsesNewActor(RuleCheckPreviewHttpTest.java:66)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.zhku.knowledge.RetrievalSchemaTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.159 s -- in com.zhku.knowledge.RetrievalSchemaTest
+[INFO] Running com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.193 s -- in com.zhku.knowledge.rulecheck.BoundedRuleSelectorTest
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckApplicationServiceTest
+[INFO] Tests run: 27, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.056 s -- in com.zhku.knowledge.rulecheck.RuleCheckApplicationServiceTest
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest
+[INFO] Tests run: 32, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.035 s -- in com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.028 s -- in com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckOriginalEvidenceServiceTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.034 s -- in com.zhku.knowledge.rulecheck.RuleCheckOriginalEvidenceServiceTest
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckReleaseGuardTest
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.049 s -- in com.zhku.knowledge.rulecheck.RuleCheckReleaseGuardTest
+[INFO] Running com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.042 s -- in com.zhku.knowledge.rulecheck.web.RuleCheckCitationStoreTest
+[INFO] Running com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest
+[INFO] Running com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest
+[INFO] Tests run: 24, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.520 s -- in com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest
+[INFO] Running com.zhku.knowledge.rulecheck.web.RuleCheckPreviewConfigurationTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in com.zhku.knowledge.rulecheck.web.RuleCheckPreviewConfigurationTest
+[INFO] Running com.zhku.knowledge.security.PreviewSecurityConfigurationTest
+2026-10-08T19:20:23.620+08:00 ERROR 69848 --- [zhku-knowledge] [           main] w.a.UsernamePasswordAuthenticationFilter : An internal error occurred while trying to authenticate the user.
+
+org.springframework.security.authentication.InternalAuthenticationServiceException: LOGIN_RATE_LIMIT
+	at com.zhku.knowledge.security.PreviewSecurityConfiguration$Provider.authenticate(PreviewSecurityConfiguration.java:132) ~[classes/:na]
+	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182) ~[spring-security-core-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.attemptAuthentication(UsernamePasswordAuthenticationFilter.java:85) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:231) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:221) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at com.zhku.knowledge.security.PreviewSecurityConfiguration$CurrentIdentityFilter.doFilterInternal(PreviewSecurityConfiguration.java:188) ~[classes/:na]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.csrf.CsrfFilter.doFilterInternal(CsrfFilter.java:131) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:243) ~[spring-webmvc-6.2.5.jar:6.2.5]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:238) ~[spring-security-config-6.4.4.jar:6.4.4]
+	at org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurer$DelegateFilter.doFilter(SecurityMockMvcConfigurer.java:132) ~[spring-security-test-6.4.4.jar:6.4.4]
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132) ~[spring-test-6.2.5.jar:6.2.5]
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201) ~[spring-test-6.2.5.jar:6.2.5]
+	at com.zhku.knowledge.security.PreviewSecurityConfigurationTest.lambda$oneHttpLoginConsumesExactlyOneAttempt$7(PreviewSecurityConfigurationTest.java:111) ~[test-classes/:na]
+	at com.zhku.knowledge.security.PreviewSecurityConfigurationTest.lambda$run$11(PreviewSecurityConfigurationTest.java:148) ~[test-classes/:na]
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.accept(AbstractApplicationContextRunner.java:469) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.consumeAssertableContext(AbstractApplicationContextRunner.java:385) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.lambda$run$0(AbstractApplicationContextRunner.java:363) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.util.TestPropertyValues.lambda$applyToSystemProperties$1(TestPropertyValues.java:174) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.util.TestPropertyValues.applyToSystemProperties(TestPropertyValues.java:188) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.util.TestPropertyValues.applyToSystemProperties(TestPropertyValues.java:173) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.lambda$run$1(AbstractApplicationContextRunner.java:363) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.withContextClassLoader(AbstractApplicationContextRunner.java:391) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.run(AbstractApplicationContextRunner.java:362) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at com.zhku.knowledge.security.PreviewSecurityConfigurationTest.run(PreviewSecurityConfigurationTest.java:145) ~[test-classes/:na]
+	at com.zhku.knowledge.security.PreviewSecurityConfigurationTest.oneHttpLoginConsumesExactlyOneAttempt(PreviewSecurityConfigurationTest.java:105) ~[test-classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767) ~[junit-platform-commons-1.11.4.jar:1.11.4]
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596) ~[na:na]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596) ~[na:na]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56) ~[surefire-junit-platform-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184) ~[surefire-junit-platform-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148) ~[surefire-junit-platform-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122) ~[surefire-junit-platform-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385) ~[surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162) ~[surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507) ~[surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) ~[surefire-booter-3.5.2.jar:3.5.2]
+
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.527 s -- in com.zhku.knowledge.security.PreviewSecurityConfigurationTest
+[INFO] Running com.zhku.knowledge.security.RuleCheckPreviewSecurityConfigurationTest
+2026-10-08T19:20:23.776+08:00 ERROR 69848 --- [zhku-knowledge] [           main] w.a.UsernamePasswordAuthenticationFilter : An internal error occurred while trying to authenticate the user.
+
+org.springframework.security.authentication.InternalAuthenticationServiceException: LOGIN_RATE_LIMIT
+	at com.zhku.knowledge.security.PreviewSecurityConfiguration$Provider.authenticate(PreviewSecurityConfiguration.java:132) ~[classes/:na]
+	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182) ~[spring-security-core-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.attemptAuthentication(UsernamePasswordAuthenticationFilter.java:85) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:231) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:221) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at com.zhku.knowledge.security.PreviewSecurityConfiguration$CurrentIdentityFilter.doFilterInternal(PreviewSecurityConfiguration.java:188) ~[classes/:na]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.csrf.CsrfFilter.doFilterInternal(CsrfFilter.java:131) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:243) ~[spring-webmvc-6.2.5.jar:6.2.5]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:238) ~[spring-security-config-6.4.4.jar:6.4.4]
+	at org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurer$DelegateFilter.doFilter(SecurityMockMvcConfigurer.java:132) ~[spring-security-test-6.4.4.jar:6.4.4]
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132) ~[spring-test-6.2.5.jar:6.2.5]
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201) ~[spring-test-6.2.5.jar:6.2.5]
+	at com.zhku.knowledge.security.RuleCheckPreviewSecurityConfigurationTest.lambda$loginFailureIsBoundedAndConsumesOneAttempt$6(RuleCheckPreviewSecurityConfigurationTest.java:86) ~[test-classes/:na]
+	at com.zhku.knowledge.security.RuleCheckPreviewSecurityConfigurationTest.lambda$run$14(RuleCheckPreviewSecurityConfigurationTest.java:161) ~[test-classes/:na]
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.accept(AbstractApplicationContextRunner.java:469) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.consumeAssertableContext(AbstractApplicationContextRunner.java:385) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.lambda$run$0(AbstractApplicationContextRunner.java:363) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.util.TestPropertyValues.lambda$applyToSystemProperties$1(TestPropertyValues.java:174) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.util.TestPropertyValues.applyToSystemProperties(TestPropertyValues.java:188) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.util.TestPropertyValues.applyToSystemProperties(TestPropertyValues.java:173) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.lambda$run$1(AbstractApplicationContextRunner.java:363) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.withContextClassLoader(AbstractApplicationContextRunner.java:391) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.run(AbstractApplicationContextRunner.java:362) ~[spring-boot-test-3.4.4.jar:3.4.4]
+	at com.zhku.knowledge.security.RuleCheckPreviewSecurityConfigurationTest.run(RuleCheckPreviewSecurityConfigurationTest.java:161) ~[test-classes/:na]
+	at com.zhku.knowledge.security.RuleCheckPreviewSecurityConfigurationTest.loginFailureIsBoundedAndConsumesOneAttempt(RuleCheckPreviewSecurityConfigurationTest.java:83) ~[test-classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767) ~[junit-platform-commons-1.11.4.jar:1.11.4]
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596) ~[na:na]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596) ~[na:na]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56) ~[surefire-junit-platform-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184) ~[surefire-junit-platform-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148) ~[surefire-junit-platform-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122) ~[surefire-junit-platform-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385) ~[surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162) ~[surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507) ~[surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) ~[surefire-booter-3.5.2.jar:3.5.2]
+
+[ERROR] Tests run: 15, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.624 s <<< FAILURE! -- in com.zhku.knowledge.security.RuleCheckPreviewSecurityConfigurationTest
+[ERROR] com.zhku.knowledge.security.RuleCheckPreviewSecurityConfigurationTest.revokedRevisionRejectsEveryRequestWithoutLateCookieOrSessionDeletion -- Time elapsed: 0.072 s <<< FAILURE!
+org.mockito.exceptions.verification.TooManyActualInvocations: 
+
+previewIdentityRepository.requireCurrent(
+    TrustedActor[userId=8a2465f4-3e9c-43d5-9c06-9f41afb53b01, role=USER, authRevision=0]
+);
+Wanted 2 times:
+-> at com.zhku.knowledge.security.PreviewIdentityRepository.requireCurrent(PreviewIdentityRepository.java:106)
+But was 3 times:
+-> at com.zhku.knowledge.security.PreviewSecurityConfiguration$Provider.authenticate(PreviewSecurityConfiguration.java:139)
+-> at com.zhku.knowledge.security.PreviewSecurityConfiguration$CurrentIdentityFilter.doFilterInternal(PreviewSecurityConfiguration.java:177)
+-> at com.zhku.knowledge.security.PreviewSecurityConfiguration$CurrentIdentityFilter.doFilterInternal(PreviewSecurityConfiguration.java:177)
+
+
+	at com.zhku.knowledge.security.PreviewIdentityRepository.requireCurrent(PreviewIdentityRepository.java:106)
+	at com.zhku.knowledge.security.RuleCheckPreviewSecurityConfigurationTest.lambda$revokedRevisionRejectsEveryRequestWithoutLateCookieOrSessionDeletion$4(RuleCheckPreviewSecurityConfigurationTest.java:73)
+	at com.zhku.knowledge.security.RuleCheckPreviewSecurityConfigurationTest.lambda$run$14(RuleCheckPreviewSecurityConfigurationTest.java:161)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.accept(AbstractApplicationContextRunner.java:469)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.consumeAssertableContext(AbstractApplicationContextRunner.java:385)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.lambda$run$0(AbstractApplicationContextRunner.java:363)
+	at org.springframework.boot.test.util.TestPropertyValues.lambda$applyToSystemProperties$1(TestPropertyValues.java:174)
+	at org.springframework.boot.test.util.TestPropertyValues.applyToSystemProperties(TestPropertyValues.java:188)
+	at org.springframework.boot.test.util.TestPropertyValues.applyToSystemProperties(TestPropertyValues.java:173)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.lambda$run$1(AbstractApplicationContextRunner.java:363)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.withContextClassLoader(AbstractApplicationContextRunner.java:391)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.run(AbstractApplicationContextRunner.java:362)
+	at com.zhku.knowledge.security.RuleCheckPreviewSecurityConfigurationTest.run(RuleCheckPreviewSecurityConfigurationTest.java:161)
+	at com.zhku.knowledge.security.RuleCheckPreviewSecurityConfigurationTest.revokedRevisionRejectsEveryRequestWithoutLateCookieOrSessionDeletion(RuleCheckPreviewSecurityConfigurationTest.java:65)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.zhku.knowledge.telemetry.JdbcAnonymousTelemetryRepositoryTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.698 s -- in com.zhku.knowledge.telemetry.JdbcAnonymousTelemetryRepositoryTest
+[INFO] Running com.zhku.knowledge.ZhkuDatabaseTestTargetTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.072 s -- in com.zhku.knowledge.ZhkuDatabaseTestTargetTest
+[INFO] Running com.zhku.knowledge.ZhkuFlywayTestSupportTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.704 s -- in com.zhku.knowledge.ZhkuFlywayTestSupportTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   RuleCheckOriginalHttpTest.delayedEntryRevocationCannotInvalidateNewLoginOrDeleteItsCookie:149->run:21 
+Expecting code not to raise a throwable but caught
+  "org.opentest4j.AssertionFailedError: 
+expected: 200
+ but was: 401
+	at com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest.lambda$delayedEntryRevocationCannotInvalidateNewLoginOrDeleteItsCookie$24(RuleCheckOriginalHttpTest.java:160)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.withApp(RuleCheckPreviewHttpTest.java:226)
+	at com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest.lambda$run$0(RuleCheckOriginalHttpTest.java:21)
+	at com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest.run(RuleCheckOriginalHttpTest.java:21)
+	at com.zhku.knowledge.retrieval.RuleCheckOriginalHttpTest.delayedEntryRevocationCannotInvalidateNewLoginOrDeleteItsCookie(RuleCheckOriginalHttpTest.java:149)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.SameThreadTimeoutInvocation.proceed(SameThreadTimeoutInvocation.java:45)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+"
+[ERROR]   RuleCheckPreviewHttpTest.actualCurrentIdentityRevisionRejectsOldActorAndAccountSwitchUsesNewActor:66 
+Expecting code not to raise a throwable but caught
+  "org.opentest4j.AssertionFailedError: 
+expected: 401
+ but was: 403
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.lambda$actualCurrentIdentityRevisionRejectsOldActorAndAccountSwitchUsesNewActor$2(RuleCheckPreviewHttpTest.java:62)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.withApp(RuleCheckPreviewHttpTest.java:226)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.withApp(RuleCheckPreviewHttpTest.java:198)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.withApp(RuleCheckPreviewHttpTest.java:196)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.lambda$actualCurrentIdentityRevisionRejectsOldActorAndAccountSwitchUsesNewActor$3(RuleCheckPreviewHttpTest.java:53)
+	at com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.actualCurrentIdentityRevisionRejectsOldActorAndAccountSwitchUsesNewActor(RuleCheckPreviewHttpTest.java:53)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.SameThreadTimeoutInvocation.proceed(SameThreadTimeoutInvocation.java:45)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+"
+[ERROR]   RuleCheckPreviewSecurityConfigurationTest.revokedRevisionRejectsEveryRequestWithoutLateCookieOrSessionDeletion:65->run:161->lambda$run$14:161->lambda$revokedRevisionRejectsEveryRequestWithoutLateCookieOrSessionDeletion$4:73 
+previewIdentityRepository.requireCurrent(
+    TrustedActor[userId=8a2465f4-3e9c-43d5-9c06-9f41afb53b01, role=USER, authRevision=0]
+);
+Wanted 2 times:
+-> at com.zhku.knowledge.security.PreviewIdentityRepository.requireCurrent(PreviewIdentityRepository.java:106)
+But was 3 times:
+-> at com.zhku.knowledge.security.PreviewSecurityConfiguration$Provider.authenticate(PreviewSecurityConfiguration.java:139)
+-> at com.zhku.knowledge.security.PreviewSecurityConfiguration$CurrentIdentityFilter.doFilterInternal(PreviewSecurityConfiguration.java:177)
+-> at com.zhku.knowledge.security.PreviewSecurityConfiguration$CurrentIdentityFilter.doFilterInternal(PreviewSecurityConfiguration.java:177)
+
+
+[INFO] 
+[ERROR] Tests run: 502, Failures: 3, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ZhkuAgent 0.0.1-SNAPSHOT:
+[INFO] 
+[INFO] ZhkuAgent .......................................... SUCCESS [  0.003 s]
+[INFO] ZhkuAgent Shared Runtime ........................... SUCCESS [  2.250 s]
+[INFO] ZhkuAgent Knowledge ................................ FAILURE [02:49 min]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  02:51 min
+[INFO] Finished at: 2026-10-08T19:20:25+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: There are test failures.
+[ERROR] 
+[ERROR] See D:\alldesk\Projects\ZhkuAgent\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :knowledge

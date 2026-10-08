@@ -57,16 +57,16 @@ class ZhkuLocalPreviewConversationControllerTest {
         String sessionId = createSession(mockMvc);
 
         mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"message\":\"选修课没及格，还能重修吗？\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"message\":\"选修课没及格，还能重修吗？\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.type").value("NEED_CLARIFICATION"))
                 .andExpect(jsonPath("$.message").value("你说的是公共选修课，还是专业选修课？"))
                 .andExpect(jsonPath("$.answer").doesNotExist());
 
         mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"message\":\"公选课\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"message\":\"公选课\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.type").value("ANSWER"))
                 .andExpect(jsonPath("$.answer.conclusion").value("公共选修课成绩不合格，不安排重修。"))
@@ -83,8 +83,8 @@ class ZhkuLocalPreviewConversationControllerTest {
         MockMvc mockMvc = mockMvc(new MutableClock(START));
 
         mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", UUID.randomUUID())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"message\":\"选修课没及格，还能重修吗？\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"message\":\"选修课没及格，还能重修吗？\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.type").value("SESSION_INVALID"));
     }
@@ -108,8 +108,8 @@ class ZhkuLocalPreviewConversationControllerTest {
         String sessionId = createSession(mockMvc);
 
         mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"message\":\"   \"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"message\":\"   \"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("INVALID_MESSAGE"));
     }
@@ -120,9 +120,9 @@ class ZhkuLocalPreviewConversationControllerTest {
         String sessionId = createSession(mockMvc);
 
         mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
-                        .accept(MediaType.TEXT_EVENT_STREAM)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"message\":\"公共选修课每学期最多可以选多少学分？\"}"))
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"message\":\"公共选修课每学期最多可以选多少学分？\"}"))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.code").value("KNOWLEDGE_SERVICE_UNAVAILABLE"));
     }
@@ -133,9 +133,9 @@ class ZhkuLocalPreviewConversationControllerTest {
         String sessionId = createSession(mockMvc);
 
         MvcResult result = mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
-                        .accept(MediaType.TEXT_EVENT_STREAM)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"message\":\"公共选修课每学期最多可以选多少学分？\"}"))
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"message\":\"公共选修课每学期最多可以选多少学分？\"}"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -150,9 +150,9 @@ class ZhkuLocalPreviewConversationControllerTest {
         String sessionId = createSession(mockMvc);
 
         mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"message\":\"公共选修课每学期最多可以选多少学分？\"}"))
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"message\":\"公共选修课每学期最多可以选多少学分？\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.type").value("ANSWER"));
     }
@@ -163,9 +163,9 @@ class ZhkuLocalPreviewConversationControllerTest {
         String sessionId = createSession(mockMvc);
 
         MvcResult result = mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
-                        .accept(MediaType.TEXT_EVENT_STREAM)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"message\":\"公共选修课选课调整怎么办理\"}"))
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"message\":\"公共选修课选课调整怎么办理\"}"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -187,8 +187,8 @@ class ZhkuLocalPreviewConversationControllerTest {
         clock.advance(SESSION_TTL);
 
         mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"message\":\"公选课\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"message\":\"公选课\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.type").value("SESSION_EXPIRED"));
     }
@@ -199,8 +199,8 @@ class ZhkuLocalPreviewConversationControllerTest {
         String sessionId = createSession(mockMvc);
 
         mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"message\":\"公共选修课每学期最多可以选多少学分？\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"message\":\"公共选修课每学期最多可以选多少学分？\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.type").value("ANSWER"))
                 .andExpect(jsonPath("$.answer.conclusion").value("每学期公共选修课最高不得超过 4 学分。"))
@@ -217,8 +217,8 @@ class ZhkuLocalPreviewConversationControllerTest {
         String sessionId = createSession(mockMvc);
 
         mockMvc.perform(post("/zhku/local-preview/conversations/{sessionId}/messages", sessionId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"message\":\"网络公共选修课学分上限是多少？\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"message\":\"网络公共选修课学分上限是多少？\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.type").value("OUT_OF_SCOPE"))
                 .andExpect(jsonPath("$.answer").doesNotExist());
@@ -244,34 +244,29 @@ class ZhkuLocalPreviewConversationControllerTest {
                 store,
                 evidenceFinder(),
                 clock,
-                SESSION_TTL
-        );
+                SESSION_TTL);
         PublicElectiveConversationRouter router = new PublicElectiveConversationRouter(
                 store,
                 service,
                 new PublicElectiveCreditLimitService(creditLimitEvidenceFinder()),
-                clock
-        );
+                clock);
         // 装配改为回答链路（五级顺序）：澄清/规则复用既有路由，通知级与检索级此处缺省。
         LocalPreviewAnswerChain chain = new LocalPreviewAnswerChain(
                 store,
                 router,
                 null,
                 null,
-                clock
-        );
+                clock);
         LocalPreviewConversationFacade facade = new LocalPreviewConversationFacade(
                 store,
                 chain,
                 clock,
-                SESSION_TTL
-        );
+                SESSION_TTL);
         com.zhku.knowledge.web.streaming.SseConversationStreamer streamer = sseEnabled
                 ? new com.zhku.knowledge.web.streaming.SseConversationStreamer(
-                new com.zhku.knowledge.web.streaming.ConversationStreamProcessor(facade, store, clock),
-                Runnable::run,
-                5_000L
-        )
+                        new com.zhku.knowledge.web.streaming.ConversationStreamProcessor(facade, store, clock),
+                        Runnable::run,
+                        5_000L)
                 : null;
         return MockMvcBuilders.standaloneSetup(
                 new ZhkuLocalPreviewConversationController(facade, new ObjectProvider<>() {
@@ -284,8 +279,7 @@ class ZhkuLocalPreviewConversationControllerTest {
                     public com.zhku.knowledge.web.streaming.SseConversationStreamer getObject(Object... arguments) {
                         return streamer;
                     }
-                })
-        ).build();
+                })).build();
     }
 
     private static MockMvc guideCardStreamingMockMvc(MutableClock clock) {
@@ -306,27 +300,22 @@ class ZhkuLocalPreviewConversationControllerTest {
                 new PublicElectiveCreditLimitService(Optional::empty),
                 null,
                 adjustmentService,
-                clock
-        );
+                clock);
         ServiceGuideCardProvider guideCards = new ServiceGuideCardProvider(
                 ServiceGuideBindings.firstBatch(),
-                new ServiceGuideResolver((identifier, version) -> Optional.of(guide(clock)), clock)
-        );
+                new ServiceGuideResolver((identifier, version) -> Optional.of(guide(clock)), clock));
         LocalPreviewConversationFacade facade = new LocalPreviewConversationFacade(
                 store,
                 new LocalPreviewAnswerChain(store, router, null, null, clock),
                 clock,
                 SESSION_TTL,
                 guideCards,
-                ServiceGuideBindings.ELECTIVE_ADJUST
-        );
-        com.zhku.knowledge.web.streaming.SseConversationStreamer streamer =
-                new com.zhku.knowledge.web.streaming.SseConversationStreamer(
-                        new com.zhku.knowledge.web.streaming.ConversationStreamProcessor(
-                                facade, store, clock),
-                        Runnable::run,
-                        5_000L
-                );
+                ServiceGuideBindings.ELECTIVE_ADJUST);
+        com.zhku.knowledge.web.streaming.SseConversationStreamer streamer = new com.zhku.knowledge.web.streaming.SseConversationStreamer(
+                new com.zhku.knowledge.web.streaming.ConversationStreamProcessor(
+                        facade, store, clock),
+                Runnable::run,
+                5_000L);
         return MockMvcBuilders.standaloneSetup(
                 new ZhkuLocalPreviewConversationController(facade, new ObjectProvider<>() {
                     @Override
@@ -338,14 +327,12 @@ class ZhkuLocalPreviewConversationControllerTest {
                     public com.zhku.knowledge.web.streaming.SseConversationStreamer getObject(Object... arguments) {
                         return streamer;
                     }
-                })
-        ).build();
+                })).build();
     }
 
     private static JsonNode replyFrame(MvcResult result) throws Exception {
         Matcher matcher = Pattern.compile(
-                "event:reply\\Rdata:(\\{[\\s\\S]*?})\\R\\R"
-        ).matcher(result.getResponse().getContentAsString());
+                "event:reply\\Rdata:(\\{[\\s\\S]*?})\\R\\R").matcher(result.getResponse().getContentAsString());
         assertThat(matcher.find()).as("SSE reply 帧").isTrue();
         return OBJECT_MAPPER.readTree(matcher.group(1));
     }
@@ -364,16 +351,14 @@ class ZhkuLocalPreviewConversationControllerTest {
                         "【演示占位】教务处学籍科",
                         "【演示占位】教务处办公室",
                         "演示占位：无审核资料依据",
-                        clock.instant()
-                )),
+                        clock.instant())),
                 List.of(new ServiceGuide.RiskNotice(1, "以当学期《课程选课工作通知》为准。")),
                 "PUBLIC_ELECTIVE_RULE#2025版",
                 "COURSE_NOTICE#2026-2027-1",
                 "审核说明",
                 true,
                 clock.instant(),
-                null
-        );
+                null);
     }
 
     private static ElectiveRetakeEvidenceFinder evidenceFinder() {
@@ -384,16 +369,14 @@ class ZhkuLocalPreviewConversationControllerTest {
                 "2025版",
                 "PDF 第 77 页，第 18 条",
                 "全日制普通本科生的公共选修课",
-                "公共选修课不办理缓考，成绩不合格者不安排重修。"
-        ));
+                "公共选修课不办理缓考，成绩不合格者不安排重修。"));
         evidence.put(CourseType.PROFESSIONAL_ELECTIVE, new ElectiveRetakeEvidence(
                 UUID.fromString("72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14"),
                 "本科生学生手册（2025版）",
                 "2025版",
                 "PDF 第 77 页，第 18 条",
                 "全日制普通本科生的专业选修课",
-                "专业选修课成绩不合格者可申请重修学习。"
-        ));
+                "专业选修课成绩不合格者可申请重修学习。"));
         return courseType -> Optional.ofNullable(evidence.get(courseType));
     }
 
@@ -404,8 +387,7 @@ class ZhkuLocalPreviewConversationControllerTest {
                 "2025版",
                 "PDF 第 76—77 页，第 8、10 条",
                 "办理公共选修课程选课的本科生；个人培养方案与当期通知仍需核对",
-                "学生应以人才培养方案为选课依据，在规定学习年限内修读并取得规定学分；每学期公共选修课最高不得超过 4 学分。"
-        );
+                "学生应以人才培养方案为选课依据，在规定学习年限内修读并取得规定学分；每学期公共选修课最高不得超过 4 学分。");
         return () -> Optional.of(evidence);
     }
 

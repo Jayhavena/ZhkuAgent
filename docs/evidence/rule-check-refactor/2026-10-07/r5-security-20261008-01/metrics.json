@@ -1,0 +1,71 @@
+{
+  "stage": "AUTH_FILTER_CHAIN_VERIFIED_NOT_APPLICATION_ASSEMBLED",
+  "phase": "r5-security-acceptance-20261008-01",
+  "tests": 298.0,
+  "classes": 26,
+  "counts": {
+    "unit": 223,
+    "database": 63,
+    "credentialConfiguration": 12
+  },
+  "suiteClasses": {
+    "unit": 22,
+    "database": 3,
+    "credentialConfiguration": 1
+  },
+  "runnerContractChecks": 29,
+  "sourceFiles": 549,
+  "sourceDrift": 0,
+  "xmlHashesVerified": true,
+  "unchanged": {
+    "docs/product/rule-check-2025-rule-template-draft.json": "53d517d8629de6aa835818f82a33009ea81cd3c83b4b3de65e8594bfb53daa61",
+    "docs/product/rule-check-2025-human-reference-development.json": "c01505d9114274d8b379ca98b0f47739c689f199e699f8a460e53bf9b367efc9",
+    "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/quality-cases-draft.json": "6215cc2313ae5bdc8e649bbc325d1ce87180af791b01de3a4f3fc975f536e31f",
+    "knowledge/src/main/resources/application-zhku-controlled-preview.yml": "0be335118841c8c581b84cebe469c9c99ff259bae6fc6639d2134d5310ee73c8",
+    "knowledge/src/main/java/com/zhku/knowledge/controlled/ControlledPreviewConfiguration.java": "a463c244cfba34cc85448dc406e6d449fa4e80872a0775de517dabd14872a029",
+    "knowledge/src/main/resources/db/migration/V12__create_conversation_session_store.sql": "ddf2447d8766a95665df84aae002d3a1d2552a3e36111178928ff4f391fa45ce",
+    "knowledge/src/main/resources/db/migration/V15__create_service_guides.sql": "52c3e7d2db21d313baaed196d005ec00560e812099adf433e45e28107117ce69",
+    "knowledge/src/main/resources/db/migration/V16__create_anonymous_feedback.sql": "719438d7096e89517224be2cd2ca0e10f8e27134640ac370687d5eebc834ad2f",
+    "knowledge/src/main/resources/db/migration/V17__create_anonymous_telemetry.sql": "e639854d7adc1f30d5c7a5f5b2b664a7bf3885e0128f44f7b428b9f3908abec9",
+    "knowledge/src/main/resources/db/migration/V18__create_campus_agent_run_archive.sql": "74a1700ee09b575e641044308d00c0ba2e15040e19578f72f4098020ed760121",
+    "knowledge/src/main/resources/db/migration/V19__create_preview_identity_and_run_ownership.sql": "1058cc7b1cd1a3697c3b2867e5b6c0d073cf08cce9418c439bbe33bb2b976800",
+    "knowledge/src/main/resources/db/migration/V1__create_zhku_knowledge_schema.sql": "817ef3e632d6116fa6202d430c5948c3d776ea9df22515a94020cb2ec85e99c6",
+    "knowledge/src/main/resources/db/migration/V20__add_conversation_session_ownership.sql": "2db8712b59b1ed6e430e49a2df717adc9195d989e7377ec740a8a289d2e390e5",
+    "knowledge/src/main/resources/db/migration/V21__create_campus_run_submission.sql": "74be9be2e51031de9b216566d9ab210f864993fd0ae18682b8cb3b7f55bf6968",
+    "knowledge/src/main/resources/db/migration/V22__allow_rule_check_capture_audit.sql": "f9e48075110bebded9c815d9d0f4e42b7653903f0ea17e1a6ffd57be1a264054",
+    "knowledge/src/main/resources/db/migration/V2__add_knowledge_source_visibility_governance.sql": "e86af12698fc60535752d172fe78e0341a306f47219748fb8248a4b4348bd153",
+    "knowledge/src/main/resources/db/migration/V3__create_zhku_knowledge_governance_staging.sql": "9d8c109385a1e286b429ac68f00439099432eb5f8a7fbab770258dbbdf25a04a",
+    "knowledge/src/main/resources/db/migration/V4__add_zhku_knowledge_source_version_scope.sql": "d15a75ba5fc175143a3ef3a58d39cc2467482ea639b67f45e667fb9cf6a4aea8",
+    "knowledge/src/main/resources/db/migration/V5__allow_archived_knowledge_submission_reimport.sql": "c3f1fc08bd5de22ee2638cdedfc0bead307f4ff818e9d73a5fcb6e7df0238585",
+    "knowledge/src/main/resources/db/migration/V6__add_official_notice_lifecycle.sql": "a250e06f2d5c7adfe3a6ae592c7a89179298532016b4beea866c9077b643b1c1",
+    "knowledge/src/main/resources/db/migration/V7__allow_superseded_notice_audit_visibility.sql": "83d089e66f16e23447cbf6bc45f1b7ce0d0cd91da3f10e6b7ecfdc88359c41a9",
+    "knowledge/src/main/resources/db/migration/V8__support_reviewed_internal_official_notice_material.sql": "367f59f90d170f1890c8f1015d2a7e7535d3cefc55d54b62f2c2a63334b2ec56",
+    "knowledge/src/main/resources/db/migration/V9__add_retrieval_catalog_and_index_audit.sql": "c88a5b36268efa8eecc98c92b06f085ba6967dd956d26fa7e0d42e75c4ba8cab"
+  },
+  "database": {
+    "target": "jdbc:postgresql://127.0.0.1:55461/zhkuagent_rulecheck_e2e",
+    "container": "zhku-rulecheck-e015c1b01331",
+    "synthetic": true,
+    "migration": "22",
+    "expectedMigration": 22.0,
+    "connectionsAfterTests": 0,
+    "verified": true
+  },
+  "containerExited": true,
+  "studentVisible": false,
+  "qualityGatePassed": false,
+  "realProviderEvaluated": false,
+  "userBenefitEvaluated": false,
+  "review": {
+    "criticalRemaining": 0,
+    "importantRemaining": 0,
+    "rulings": [
+      "实际HTTP、cookie创建、数据库认证和跨应用隔离不由A01框架结果裁定 — 保持阶段标签并在A02验证 — 代价：尚不能交付可登录学生应用。",
+      "换账号浏览器、业务接口和限长/页面另属A03/A08/A10 — 本批sentinel仅证明过滤链授权 — 代价：未验证最终学生交互。",
+      "真实2025许可/规则语义/模型/用户收益、历史dirty与H01不由本批裁定；298分层计数 — 保持B-01/B-02及旧风险OPEN — 代价：工程通过不能证明产品收益或全仓安全。"
+    ],
+    "deferredMinors": [
+      "M1：仅跑凭据相关ControlledPreviewConfigurationTest时未迁移，新临时库收尾查询会误判失败；本批26类包含实际DB迁移并通过。需要在runner后续隔离改进中区分凭据与迁移需求。"
+    ]
+  }
+}

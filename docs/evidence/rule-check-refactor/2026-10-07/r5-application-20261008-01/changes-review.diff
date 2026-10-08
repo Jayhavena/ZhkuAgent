@@ -1,0 +1,506 @@
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckRuntimeSettings.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckRuntimeSettings.java
+@@ -0,0 +1,13 @@
++package com.zhku.knowledge.rulecheck;
++
++/** 服务端统一配置；不能从学生请求覆盖检索、核验或审计的资料边界。 */
++public record RuleCheckRuntimeSettings(String profileId, String chunkingVersion, String requiredScope,
++                                       String referenceRevision, int candidateLimit, int resultLimit) {
++    public RuleCheckRuntimeSettings {
++        for (String boundary : new String[]{profileId,chunkingVersion,requiredScope,referenceRevision})
++            if (boundary == null || boundary.isBlank()) throw new IllegalArgumentException("运行边界必须显式配置");
++        // 这是工程预算保护，不是已验证的最优检索参数；候选深度仍须业务eval。
++        if (resultLimit < 1 || resultLimit > 50 || candidateLimit < resultLimit || candidateLimit > 200)
++            throw new IllegalArgumentException("检索预算超出受控范围");
++    }
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckApplicationService.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckApplicationService.java
+@@ -0,0 +1,92 @@
++package com.zhku.knowledge.rulecheck;
++
++import com.zhku.knowledge.retrieval.*;
++import java.util.List;
++import java.util.Map;
++import java.util.LinkedHashMap;
++import java.util.Objects;
++import java.util.function.Supplier;
++
++/** 内部编排接口，尚未暴露HTTP；审核目录必须由服务端维护。 */
++public final class RuleCheckApplicationService {
++    private final RuleCheckRuntimeSettings settings;
++    private final Supplier<List<CatalogEntry>> catalogue;
++    private final RuleSelector selector;
++    private final HybridRetrievalService retrieval;
++    private final ChunkCandidateRetriever lexical, vector;
++    private final RuleCheckEvidenceCapture capture;
++    private final RuleCheckDecisionService decisions;
++    public RuleCheckApplicationService(RuleCheckRuntimeSettings settings, Supplier<List<CatalogEntry>> catalogue,
++            RuleSelector selector, HybridRetrievalService retrieval, ChunkCandidateRetriever lexical,
++            ChunkCandidateRetriever vector, RuleCheckEvidenceCapture capture, RuleCheckDecisionService decisions) {
++        this.settings=Objects.requireNonNull(settings);
++        this.catalogue=Objects.requireNonNull(catalogue);
++        this.selector=Objects.requireNonNull(selector);
++        this.retrieval=Objects.requireNonNull(retrieval);
++        this.lexical=Objects.requireNonNull(lexical);this.vector=Objects.requireNonNull(vector);
++        this.capture=Objects.requireNonNull(capture);this.decisions=Objects.requireNonNull(decisions);
++    }
++    public RuleCheckDecision check(String question, Map<String,String> confirmedConditions) {
++        var values=validatedConditions(question,confirmedConditions);
++        try {
++            var approved=approvedCatalogue();
++            if (approved.isEmpty()) return refused("当前引用版本没有可用的已审核规则");
++            var options=approved.values().stream().map(e->new RuleOption(e.template().ruleId(),e.questionScope())).toList();
++            // 选择器只能选目录ID，不能回传规则正文、引用资格或猜测学生个人条件。
++            String id=selector.select(question,options);
++            var entry=approved.get(id);
++            if (entry==null) return refused("尚不能确定该问题对应的已审核规则");
++            var declared=entry.template().conditions().stream().map(RuleCheckRuleTemplate.Condition::key).toList();
++            if (!declared.containsAll(values.keySet())) return refused("输入包含本规则未声明的条件");
++            var outcome=retrieval.retrieve(question,settings.candidateLimit(),settings.resultLimit(),lexical,vector);
++            if (outcome.fullyDegraded()) return refused("检索暂不可用，尚不能取得可靠依据");
++            if (outcome.chunks().isEmpty()) return refused("当前检索没有取得可核验依据");
++            var captured=capture.capture(outcome.chunks());
++            if (!captured.accepted()) return refused("本轮证据捕获或审计未通过");
++            // 捕获可能耗时；审核目录变化时不能用旧模板回答。资料资格另由决策reader再读。
++            // 这仍是顺序复核，不代表目录、数据库与最终HTTP外发的原子提交。
++            if (!entry.equals(approvedCatalogue().get(id))) return refused("规则在处理过程中发生变化，请重新查证");
++            return decisions.decide(entry.template(),values,captured.snapshots());
++        } catch (RuntimeException unavailable) {
++            // 供应商或目录异常文本可能含敏感内容，不能作为学生回答正文返回。
++            return refused("查证链路暂不可用，尚不能确认结论");
++        }
++    }
++    private Map<String,CatalogEntry> approvedCatalogue() {
++        var entries=List.copyOf(catalogue.get());
++        var approved=new LinkedHashMap<String,CatalogEntry>();
++        for (var entry : entries) {
++            var rule=entry.template();
++            if (rule.reviewState()!=RuleCheckRuleTemplate.ReviewState.APPROVED
++                    || !settings.referenceRevision().equals(rule.referenceRevision())) continue;
++            if (rule.ruleId().length()>128 || approved.putIfAbsent(rule.ruleId(),entry)!=null || approved.size()>64)
++                throw new IllegalStateException("审核目录不满足受控选择约束");
++        }
++        return approved;
++    }
++    private static Map<String,String> validatedConditions(String question,Map<String,String> values) {
++        if (question==null || question.isBlank() || question.length()>2048 || values==null || values.size()>16)
++            throw new IllegalArgumentException("问题或条件超出受控输入范围");
++        for (var entry:values.entrySet())
++            if (entry.getKey()==null || entry.getKey().isBlank() || entry.getKey().length()>64
++                    || entry.getValue()==null || entry.getValue().length()>128)
++                throw new IllegalArgumentException("条件字段无效或过长");
++        return Map.copyOf(values);
++    }
++    private RuleCheckDecision refused(String reason) {
++        return new RuleCheckDecision(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE,settings.referenceRevision(),
++                List.of(),List.of(),List.of(reason),List.of());
++    }
++    /** 问题范围须与模板一起审核；目录ID在范围内并不自动证明问题语义匹配。 */
++    public record CatalogEntry(RuleCheckRuleTemplate template, String questionScope) {
++        public CatalogEntry {
++            Objects.requireNonNull(template);
++            if (questionScope==null || questionScope.isBlank() || questionScope.length()>2048)
++                throw new IllegalArgumentException("规则选择范围必须明确且有界");
++        }
++    }
++    public record RuleOption(String ruleId, String questionScope) {}
++    @FunctionalInterface public interface RuleSelector {
++        String select(String question, List<RuleOption> approvedOptions);
++    }
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckRuntimeFactory.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckRuntimeFactory.java
+@@ -0,0 +1,26 @@
++package com.zhku.knowledge.rulecheck;
++
++import com.zhku.knowledge.rag.CitationIdFactory;
++import com.zhku.knowledge.retrieval.*;
++import javax.sql.DataSource;
++import java.time.Clock;
++import java.util.List;
++import java.util.function.Supplier;
++
++/** 内部装配入口；构造不启动外部调用，也不授权任何真实资料。 */
++public final class RuleCheckRuntimeFactory {
++    private RuleCheckRuntimeFactory() {}
++    public static RuleCheckApplicationService create(DataSource dataSource, RuleCheckRuntimeSettings settings,
++            Supplier<List<RuleCheckApplicationService.CatalogEntry>> catalogue,
++            RuleCheckApplicationService.RuleSelector selector, EmbeddingClient embedding,
++            CitationIdFactory citationIds, Clock clock) {
++        var filter=new RetrievalEligibilityFilter(clock);
++        var verifier=new RuleCheckEvidenceVerifier(new JdbcRuleCheckEvidenceReader(dataSource,settings.profileId(),settings.chunkingVersion(),settings.requiredScope()));
++        var capture=new RuleCheckEvidenceCapture(verifier,citationIds,
++                new JdbcRuleCheckCitationAuditRepository(dataSource,settings.profileId(),settings.chunkingVersion(),settings.requiredScope()),clock);
++        return new RuleCheckApplicationService(settings,catalogue,selector,new HybridRetrievalService(new HybridCandidateFuser()),
++                new JdbcLexicalCandidateRetriever(dataSource,filter,settings.profileId(),settings.requiredScope(),settings.chunkingVersion()),
++                new JdbcVectorCandidateRetriever(dataSource,filter,settings.profileId(),settings.requiredScope(),settings.chunkingVersion(),embedding),
++                capture,new RuleCheckDecisionService(verifier));
++    }
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcLexicalCandidateRetriever.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcLexicalCandidateRetriever.java
+@@ -24,6 +24,13 @@
+     private final String profileId;
+     private final String requiredScope;
+     private final boolean offlineEvaluation;
++    private final String chunkingVersion;
++
++    public JdbcLexicalCandidateRetriever(DataSource dataSource, RetrievalEligibilityFilter eligibilityFilter,
++            String profileId, String requiredScope, String chunkingVersion) {
++        this(dataSource, eligibilityFilter, profileId, requiredScope, false, Objects.requireNonNull(chunkingVersion));
++        if (chunkingVersion.isBlank()) throw new IllegalArgumentException("固定切片版本不能为空");
++    }
+ 
+     public JdbcLexicalCandidateRetriever(
+             DataSource dataSource,
+@@ -31,22 +38,23 @@
+             String profileId,
+             String requiredScope
+     ) {
+-        this(dataSource, eligibilityFilter, profileId, requiredScope, false);
++        this(dataSource, eligibilityFilter, profileId, requiredScope, false, null);
+     }
+ 
+     private JdbcLexicalCandidateRetriever(DataSource dataSource, RetrievalEligibilityFilter eligibilityFilter,
+-            String profileId, String requiredScope, boolean offlineEvaluation) {
++            String profileId, String requiredScope, boolean offlineEvaluation, String chunkingVersion) {
+         this.dataSource = Objects.requireNonNull(dataSource, "数据源不能为空");
+         this.eligibilityFilter = Objects.requireNonNull(eligibilityFilter, "资格过滤器不能为空");
+         this.profileId = Objects.requireNonNull(profileId, "profile 标识不能为空");
+         this.requiredScope = requiredScope;
+         this.offlineEvaluation = offlineEvaluation;
++        this.chunkingVersion = chunkingVersion;
+     }
+ 
+     /** 评测必须在激活前完成；此显式入口允许BUILDING，但不放宽资料资格或允许RETIRED。 */
+     public static JdbcLexicalCandidateRetriever forOfflineEvaluation(DataSource dataSource,
+             RetrievalEligibilityFilter eligibilityFilter, String profileId, String requiredScope) {
+-        return new JdbcLexicalCandidateRetriever(dataSource, eligibilityFilter, profileId, requiredScope, true);
++        return new JdbcLexicalCandidateRetriever(dataSource, eligibilityFilter, profileId, requiredScope, true, null);
+     }
+ 
+     @Override
+@@ -100,6 +108,7 @@
+                   AND source.visibility_scope = 'STUDENT_VISIBLE'
+                   AND source.sharing_rights_confirmed = TRUE
+                   AND (CAST(? AS VARCHAR) IS NULL OR source.knowledge_scope = ?)
++                  AND (CAST(? AS VARCHAR) IS NULL OR entry.chunking_version = ?)
+                   AND entry.source_version = source.source_version
+                   AND entry.content_checksum = chunk.content_checksum
+                 ORDER BY entry.chunk_id
+@@ -110,6 +119,9 @@
+             statement.setBoolean(2, offlineEvaluation);
+             statement.setString(3, requiredScope);
+             statement.setString(4, requiredScope);
++            // 新应用固定切片，旧入口保留null行为；过滤必须早于评分及截断。
++            statement.setString(5, chunkingVersion);
++            statement.setString(6, chunkingVersion);
+             try (ResultSet result = statement.executeQuery()) {
+                 List<CandidateRow> rows = new ArrayList<>();
+                 while (result.next()) {
+--- before/knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcVectorCandidateRetriever.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcVectorCandidateRetriever.java
+@@ -24,6 +24,13 @@
+     private final String requiredScope;
+     private final EmbeddingClient embeddingClient;
+     private final boolean offlineEvaluation;
++    private final String chunkingVersion;
++
++    public JdbcVectorCandidateRetriever(DataSource dataSource, RetrievalEligibilityFilter eligibilityFilter,
++            String profileId, String requiredScope, String chunkingVersion, EmbeddingClient embeddingClient) {
++        this(dataSource, eligibilityFilter, profileId, requiredScope, embeddingClient, false, Objects.requireNonNull(chunkingVersion));
++        if (chunkingVersion.isBlank()) throw new IllegalArgumentException("固定切片版本不能为空");
++    }
+ 
+     public JdbcVectorCandidateRetriever(
+             DataSource dataSource,
+@@ -32,23 +39,24 @@
+             String requiredScope,
+             EmbeddingClient embeddingClient
+     ) {
+-        this(dataSource, eligibilityFilter, profileId, requiredScope, embeddingClient, false);
++        this(dataSource, eligibilityFilter, profileId, requiredScope, embeddingClient, false, null);
+     }
+ 
+     private JdbcVectorCandidateRetriever(DataSource dataSource, RetrievalEligibilityFilter eligibilityFilter,
+-            String profileId, String requiredScope, EmbeddingClient embeddingClient, boolean offlineEvaluation) {
++            String profileId, String requiredScope, EmbeddingClient embeddingClient, boolean offlineEvaluation, String chunkingVersion) {
+         this.dataSource = Objects.requireNonNull(dataSource, "数据源不能为空");
+         this.eligibilityFilter = Objects.requireNonNull(eligibilityFilter, "资格过滤器不能为空");
+         this.profileId = Objects.requireNonNull(profileId, "profile 标识不能为空");
+         this.requiredScope = requiredScope;
+         this.embeddingClient = Objects.requireNonNull(embeddingClient, "embedding 客户端不能为空");
+         this.offlineEvaluation = offlineEvaluation;
++        this.chunkingVersion = chunkingVersion;
+     }
+ 
+     /** 仅离线评测允许读取BUILDING；评测在激活前执行，不能为其提前放宽线上入口。资料资格仍完整检查。 */
+     public static JdbcVectorCandidateRetriever forOfflineEvaluation(DataSource dataSource,
+             RetrievalEligibilityFilter eligibilityFilter, String profileId, String requiredScope, EmbeddingClient embeddingClient) {
+-        return new JdbcVectorCandidateRetriever(dataSource, eligibilityFilter, profileId, requiredScope, embeddingClient, true);
++        return new JdbcVectorCandidateRetriever(dataSource, eligibilityFilter, profileId, requiredScope, embeddingClient, true, null);
+     }
+ 
+     @Override
+@@ -125,6 +133,7 @@
+                   AND source.visibility_scope = 'STUDENT_VISIBLE'
+                   AND source.sharing_rights_confirmed = TRUE
+                   AND (CAST(? AS VARCHAR) IS NULL OR source.knowledge_scope = ?)
++                  AND (CAST(? AS VARCHAR) IS NULL OR entry.chunking_version = ?)
+                   AND entry.source_version = source.source_version
+                   AND entry.content_checksum = chunk.content_checksum
+                   AND entry.embedding IS NOT NULL
+@@ -137,8 +146,11 @@
+             statement.setBoolean(2, offlineEvaluation);
+             statement.setString(3, requiredScope);
+             statement.setString(4, requiredScope);
+-            statement.setString(5, vectorLiteral);
+-            statement.setInt(6, limit);
++            // 固定切片过滤先于距离排序/LIMIT，避免其他版本挤占候选预算。
++            statement.setString(5, chunkingVersion);
++            statement.setString(6, chunkingVersion);
++            statement.setString(7, vectorLiteral);
++            statement.setInt(8, limit);
+             try (ResultSet result = statement.executeQuery()) {
+                 List<CandidateRow> rows = new ArrayList<>();
+                 while (result.next()) {
+--- before/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckApplicationServiceTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckApplicationServiceTest.java
+@@ -0,0 +1,159 @@
++package com.zhku.knowledge.rulecheck;
++
++import com.zhku.knowledge.rag.*;
++import com.zhku.knowledge.retrieval.*;
++import org.junit.jupiter.api.Test;
++import java.nio.charset.StandardCharsets;
++import java.security.MessageDigest;
++import java.time.*;
++import java.util.*;
++import java.util.concurrent.atomic.*;
++import static com.zhku.knowledge.rulecheck.RuleCheckDecision.Status.*;
++import static com.zhku.knowledge.rulecheck.RuleCheckRuleTemplate.*;
++import static org.assertj.core.api.Assertions.*;
++
++class RuleCheckApplicationServiceTest {
++    // 合成资料与审核身份仅用于工程合同；不装载真实2025规则、不访问模型或数据库。
++    private final UUID source=UUID.randomUUID(), chunk=UUID.randomUUID();
++    private final String text="合成条款：上限4。";
++    private final String hash=sha(text);
++    private final RuleCheckRuntimeSettings settings=new RuleCheckRuntimeSettings("fixture","cut-v1","SCOPE","v1",20,5);
++    private final AtomicInteger selected=new AtomicInteger(), retrieved=new AtomicInteger(), audited=new AtomicInteger(), reads=new AtomicInteger();
++    private final AtomicReference<List<RuleCheckApplicationService.CatalogEntry>> catalogue=new AtomicReference<>();
++    private final AtomicBoolean eligible=new AtomicBoolean(true);
++    private Runnable duringAudit=()->{};
++    private RuleCheckApplicationService.RuleSelector selector=(q,options)->{
++        selected.incrementAndGet(); assertThat(q).isEqualTo("合成条款");
++        assertThat(options).containsExactly(new RuleCheckApplicationService.RuleOption("test-only","合成规则查询范围"));
++        return "test-only";
++    };
++    private ChunkCandidateRetriever lexical=(q,limit)->{
++        retrieved.incrementAndGet(); assertThat(limit).isEqualTo(20);
++        return List.of(new RetrievedChunk(chunk,text,"合成", "合成页",1,"v1",hash,source));
++    };
++    private ChunkCandidateRetriever vector=(q,limit)->List.of();
++    private EvidenceBinding binding(){return new EvidenceBinding(source,chunk,"v1",hash,0,text.length(),text);}
++    private Fact fact(String id,boolean independent,Map<String,String> when){
++        return new Fact(id,"审核的合成事实"+id,independent,when,List.of(binding()));
++    }
++    private RuleCheckRuleTemplate rule(ReviewState state,List<Fact> facts,List<Condition> conditions,List<String> gaps,List<Conflict> conflicts){
++        return new RuleCheckRuleTemplate("test-only","v1",state,state==ReviewState.APPROVED?"合成责任":null,
++                state==ReviewState.APPROVED?LocalDate.of(2026,10,8):null,facts,conditions,gaps,conflicts);
++    }
++    private RuleCheckRuleTemplate ordinary(){return rule(ReviewState.APPROVED,List.of(fact("limit",true,Map.of())),List.of(),List.of(),List.of());}
++    private RuleCheckApplicationService app(RuleCheckRuleTemplate rule){
++        catalogue.set(List.of(new RuleCheckApplicationService.CatalogEntry(rule,"合成规则查询范围")));
++        var verifier=new RuleCheckEvidenceVerifier((s,c)->{
++            reads.incrementAndGet();
++            return Optional.of(new RuleCheckEvidenceSnapshot("current",source,chunk,"v1",hash,text,eligible.get()));
++        });
++        var capture=new RuleCheckEvidenceCapture(verifier,()->"citation-"+UUID.randomUUID(),row->{
++            audited.incrementAndGet();duringAudit.run();
++        },Clock.fixed(Instant.EPOCH,ZoneOffset.UTC));
++        return new RuleCheckApplicationService(settings,catalogue::get,selector,
++                new HybridRetrievalService(new HybridCandidateFuser()),lexical,vector,capture,new RuleCheckDecisionService(verifier));
++    }
++    @Test void answersOnlyWithRetrievedAuditedAndRevalidatedEvidence(){
++        var result=app(ordinary()).check("合成条款",Map.of());
++        assertThat(result.status()).isEqualTo(ANSWERED);
++        assertThat(result.confirmedFacts().getFirst().evidence().getFirst().text()).isEqualTo(text);
++        assertThat(selected.get()).isEqualTo(1);assertThat(retrieved.get()).isEqualTo(1);assertThat(audited.get()).isEqualTo(1);
++        assertThat(reads.get()).isEqualTo(2);
++    }
++    @Test void independentFactsRemainPartialWhenReviewedGapExists(){
++        var rule=rule(ReviewState.APPROVED,List.of(fact("limit",true,Map.of())),List.of(),List.of("缺少公告"),List.of());
++        var result=app(rule).check("合成条款",Map.of());
++        assertThat(result.status()).isEqualTo(PARTIALLY_ANSWERED);assertThat(result.unknownItems()).contains("缺少公告");
++    }
++    @Test void asksForDecisiveConditionInsteadOfGuessingIt(){
++        var rule=rule(ReviewState.APPROVED,List.of(fact("limit",false,Map.of("type","ordinary"))),
++                List.of(new Condition("type","请选择类型",List.of("ordinary","other"))),List.of(),List.of());
++        var service=app(rule);
++        var missing=service.check("合成条款",Map.of());
++        assertThat(missing.status()).isEqualTo(NEED_CLARIFICATION);assertThat(missing.confirmedFacts()).isEmpty();
++        assertThat(service.check("合成条款",Map.of("type","ordinary")).status()).isEqualTo(ANSWERED);
++    }
++    @Test void verifiedConflictingSidesRemainConflict(){
++        var rule=rule(ReviewState.APPROVED,List.of(),List.of(),List.of(),
++                List.of(new Conflict("未解决冲突",List.of(fact("a",true,Map.of()),fact("b",true,Map.of())))));
++        var result=app(rule).check("合成条款",Map.of());
++        assertThat(result.status()).isEqualTo(CONFLICTING_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();
++    }
++    @Test void draftCatalogueDoesNotSelectRetrieveOrAudit(){
++        var service=app(rule(ReviewState.DRAFT,List.of(fact("limit",true,Map.of())),List.of(),List.of(),List.of()));
++        assertThat(service.check("合成条款",Map.of()).status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(selected.get()+retrieved.get()+audited.get()+reads.get()).isZero();
++    }
++    @Test void emptyCatalogueAndOtherRevisionNeverReachSelector(){
++        var service=app(ordinary());catalogue.set(List.of());
++        assertThat(service.check("合成条款",Map.of()).status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        var r=ordinary();var other=new RuleCheckRuleTemplate(r.ruleId(),"v2",r.reviewState(),r.reviewer(),r.reviewedAt(),r.facts(),r.conditions(),r.evidenceGaps(),r.conflicts());
++        catalogue.set(List.of(new RuleCheckApplicationService.CatalogEntry(other,"other")));
++        assertThat(service.check("合成条款",Map.of()).status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(selected.get()+retrieved.get()).isZero();
++    }
++    @Test void selectorCannotInjectUnknownRuleOrExposeExceptionBody(){
++        selector=(q,o)->"model invented";var service=app(ordinary());
++        assertThat(service.check("合成条款",Map.of()).status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(retrieved.get()).isZero();
++        selector=(q,o)->{throw new IllegalStateException("secret model body");};service=app(ordinary());
++        assertThat(service.check("合成条款",Map.of()).unknownItems()).doesNotContain("secret model body");
++        assertThat(retrieved.get()).isZero();
++    }
++    @Test void duplicateApprovedRuleIdsAreNotResolvedByListOrder(){
++        var service=app(ordinary());var entry=catalogue.get().getFirst();catalogue.set(List.of(entry,entry));
++        assertThat(service.check("合成条款",Map.of()).status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(selected.get()+retrieved.get()).isZero();
++    }
++    @Test void unknownConditionKeysAreRefusedBeforeRetrieval(){
++        var service=app(ordinary());var result=service.check("合成条款",Map.of("studentVisible","true"));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(retrieved.get()).isZero();
++    }
++    @Test void retiredRuleDuringAuditCannotProduceFacts(){
++        var service=app(ordinary());duringAudit=()->catalogue.set(List.of());
++        var result=service.check("合成条款",Map.of());
++        assertThat(audited.get()).isEqualTo(1);assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(result.confirmedFacts()).isEmpty();assertThat(reads.get()).isEqualTo(1);
++    }
++    @Test void changedApprovedTemplateDuringAuditIsAlsoRefused(){
++        var service=app(ordinary());duringAudit=()->catalogue.set(List.of(new RuleCheckApplicationService.CatalogEntry(
++                rule(ReviewState.APPROVED,List.of(fact("changed",true,Map.of())),List.of(),List.of(),List.of()),"合成规则查询范围")));
++        assertThat(service.check("合成条款",Map.of()).status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(audited.get()).isEqualTo(1);
++    }
++    @Test void sourceWithdrawalAfterAuditIsRecheckedByDecision(){
++        var service=app(ordinary());duringAudit=()->eligible.set(false);
++        assertThat(service.check("合成条款",Map.of()).status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(reads.get()).isEqualTo(2);assertThat(audited.get()).isEqualTo(1);
++    }
++    @Test void bothRetrievalPathsUnavailableCannotAnswer(){
++        lexical=(q,l)->{throw new RetrieverUnavailableException("internal",new IllegalStateException());};vector=lexical;
++        assertThat(app(ordinary()).check("合成条款",Map.of()).status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(audited.get()).isZero();
++    }
++    @Test void healthyLexicalPathCanAnswerWhenVectorUnavailable(){
++        vector=(q,l)->{throw new RetrieverUnavailableException("internal",new IllegalStateException());};
++        assertThat(app(ordinary()).check("合成条款",Map.of()).status()).isEqualTo(ANSWERED);
++        assertThat(audited.get()).isEqualTo(1);
++    }
++    @Test void currentReaderMismatchCannotReachAudit(){
++        eligible.set(false);var result=app(ordinary()).check("合成条款",Map.of());
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(reads.get()).isEqualTo(1);assertThat(audited.get()).isZero();
++    }
++    @Test void invalidOrOversizedRequestIsRejectedBeforeDependencies(){
++        var service=app(ordinary());
++        for(String question:new String[]{"", " ", "a".repeat(2049)})
++            assertThatThrownBy(()->service.check(question,Map.of())).isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(()->service.check(null,Map.of())).isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(()->service.check("合成条款",null)).isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(()->service.check("合成条款",Map.of("key","a".repeat(129)))).isInstanceOf(IllegalArgumentException.class);
++        assertThat(selected.get()+retrieved.get()).isZero();
++    }
++    @Test void runtimeSettingsRejectMissingBoundariesAndUnboundedBudgets(){
++        assertThatThrownBy(()->new RuleCheckRuntimeSettings("fixture"," ","SCOPE","v1",20,5)).isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(()->new RuleCheckRuntimeSettings("fixture","cut","SCOPE","v1",4,5)).isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(()->new RuleCheckRuntimeSettings("fixture","cut","SCOPE","v1",201,5)).isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(()->new RuleCheckRuntimeSettings("fixture","cut","SCOPE","v1",20,0)).isInstanceOf(IllegalArgumentException.class);
++    }
++    private static String sha(String text){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));}catch(Exception e){throw new AssertionError(e);}}
++}
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRuleCheckCitationAuditTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRuleCheckCitationAuditTest.java
+@@ -158,6 +158,63 @@
+     private void update(String sql,Object...values) throws SQLException {
+         try(var c=dataSource.getConnection();var s=c.prepareStatement(sql)){for(int i=0;i<values.length;i++)s.setObject(i+1,values[i]);s.executeUpdate();}
+     }
++    private EmbeddingClient fixedEmbedding() {
++        return new EmbeddingClient() {
++            public float[] embed(String query) {return new float[]{1,0,0};}
++            public int dimensions() {return 3;}
++        };
++    }
++    private RuleCheckRuleTemplate syntheticRule() {
++        var binding=new RuleCheckRuleTemplate.EvidenceBinding(source,chunk,"v1",sha(TEXT),0,TEXT.length(),TEXT);
++        return new RuleCheckRuleTemplate("synthetic-only","v1",RuleCheckRuleTemplate.ReviewState.APPROVED,
++                "合成测试责任",java.time.LocalDate.of(2026,10,8),
++                List.of(new RuleCheckRuleTemplate.Fact("limit","合成上限4",true,Map.of(),List.of(binding))),List.of(),List.of(),List.of());
++    }
++    @Test void bothRetrieversFilterFixedChunkingBeforeReturningCandidates() throws SQLException {
++        addEntry(UUID.randomUUID(),UUID.randomUUID(),profile,"span-v2");
++        update("UPDATE retrieval_index_entry SET embedding='[1,0,0]'::vector WHERE chunk_id=?",chunk);
++        var filter=new RetrievalEligibilityFilter(Clock.fixed(now,ZoneOffset.UTC));
++        var lexical=new JdbcLexicalCandidateRetriever(dataSource,filter,profile,"PUBLIC_ELECTIVE","span-v1");
++        var vector=new JdbcVectorCandidateRetriever(dataSource,filter,profile,"PUBLIC_ELECTIVE","span-v1",fixedEmbedding());
++        assertThat(lexical.retrieve("合成条款",20)).hasSize(1);
++        assertThat(vector.retrieve("合成条款",20)).hasSize(1);
++        assertThat(new JdbcLexicalCandidateRetriever(dataSource,filter,profile,"PUBLIC_ELECTIVE","missing-cut").retrieve("合成条款",20)).isEmpty();
++        assertThat(new JdbcVectorCandidateRetriever(dataSource,filter,profile,"PUBLIC_ELECTIVE","missing-cut",fixedEmbedding()).retrieve("合成条款",20)).isEmpty();
++    }
++    @Test void factoryConnectsActualSqlRetrievalCaptureAuditAndDecision() throws SQLException {
++        addEntry(UUID.randomUUID(),UUID.randomUUID(),profile,"span-v2");
++        update("UPDATE retrieval_index_entry SET embedding='[1,0,0]'::vector WHERE chunk_id=?",chunk);
++        var catalogue=List.of(new RuleCheckApplicationService.CatalogEntry(syntheticRule(),"合成上限查询"));
++        String citation="factory-"+UUID.randomUUID();
++        var settings=new RuleCheckRuntimeSettings(profile,"span-v1","PUBLIC_ELECTIVE","v1",20,5);
++        var service=RuleCheckRuntimeFactory.create(dataSource,settings,()->catalogue,(q,o)->"synthetic-only",
++                fixedEmbedding(),()->citation,Clock.fixed(now,ZoneOffset.UTC));
++        var result=service.check("合成条款",Map.of());
++        assertThat(result.status()).isEqualTo(RuleCheckDecision.Status.ANSWERED);
++        assertThat(result.confirmedFacts().getFirst().evidence().getFirst().citationId()).isEqualTo(citation);
++        persisted(new CitationAuditRecord(citation,chunk,"RULE_CHECK_CAPTURE",now),entry);
++        var wrongSettings=new RuleCheckRuntimeSettings(profile,"missing-cut","PUBLIC_ELECTIVE","v1",20,5);
++        var wrong=RuleCheckRuntimeFactory.create(dataSource,wrongSettings,()->catalogue,(q,o)->"synthetic-only",
++                fixedEmbedding(),()->"unused",Clock.fixed(now,ZoneOffset.UTC));
++        assertThat(wrong.check("合成条款",Map.of()).status()).isEqualTo(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE);
++    }
++    @Test void factoryRefusesSourceWithdrawnBetweenAuditAndDecision() throws SQLException {
++        var catalogue=List.of(new RuleCheckApplicationService.CatalogEntry(syntheticRule(),"合成上限查询"));
++        var loads=new AtomicInteger();
++        java.util.function.Supplier<List<RuleCheckApplicationService.CatalogEntry>> dynamic=()->{
++            if(loads.incrementAndGet()==2) {
++                try {update("UPDATE knowledge_source SET publication_status='ARCHIVED',visibility_scope='INTERNAL_ONLY' WHERE id=?",source);}
++                catch(SQLException e) {throw new IllegalStateException(e);}
++            }
++            return catalogue;
++        };
++        String citation="withdraw-"+UUID.randomUUID();
++        var service=RuleCheckRuntimeFactory.create(dataSource,new RuleCheckRuntimeSettings(profile,"span-v1","PUBLIC_ELECTIVE","v1",20,5),
++                dynamic,(q,o)->"synthetic-only",fixedEmbedding(),()->citation,Clock.fixed(now,ZoneOffset.UTC));
++        assertThat(service.check("合成条款",Map.of()).status()).isEqualTo(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE);
++        assertThat(loads.get()).isEqualTo(2);
++        persisted(new CitationAuditRecord(citation,chunk,"RULE_CHECK_CAPTURE",now),entry);
++    }
+     private static String sha(String text) {
+         try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));}
+         catch(Exception e){throw new AssertionError(e);}
+--- before/knowledge/scripts/verify-rule-check-refactor.ps1
++++ after/knowledge/scripts/verify-rule-check-refactor.ps1
+@@ -23,7 +23,7 @@
+         'ZhkuLocalAdminPageResourceTest','ModelOutputParserTest','AnswerEvidenceGuardTest','CandidateResponseMappingTest',
+         'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest',
+         'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest','RuleCheckDecisionServiceTest',
+-        'RuleCheckEvidenceCaptureTest','JdbcRuleCheckCitationAuditTargetTest')
++        'RuleCheckEvidenceCaptureTest','JdbcRuleCheckCitationAuditTargetTest','RuleCheckApplicationServiceTest')
+     $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+         'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
+         'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest')

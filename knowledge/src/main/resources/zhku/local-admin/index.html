@@ -5,76 +5,369 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>仲园 Agent｜本机资料治理</title>
     <style>
-        :root { color: #193a30; background: #f5f3eb; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
-        * { box-sizing: border-box; }
-        body { margin: 0; }
-        .shell { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 64px; }
-        .hero, .card, .flow { border: 1px solid #d7dfd2; border-radius: 18px; background: #fffef9; box-shadow: 0 12px 34px rgba(25, 58, 48, .07); }
-        .hero { padding: 28px 30px; border-top: 4px solid #2d6a4f; }
-        .brand-row, .section-heading, .submission-row, .flow-copy { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .brand { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: .02em; }
-        .badge, .stage-badge, .status-badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 10px; color: #286044; background: #e8f1e8; font-size: 13px; font-weight: 700; }
-        h1 { margin: 22px 0 8px; font-size: clamp(30px, 5vw, 44px); letter-spacing: -.03em; }
-        h2 { margin: 0; font-size: 20px; }
-        h3 { margin: 0; font-size: 16px; }
-        .notice, .hint, .status, .candidate-meta, .stage-note { color: #5b675e; line-height: 1.7; }
-        .notice { max-width: 720px; margin: 0; }
-        .flow { margin-top: 20px; padding: 18px 20px; }
-        .flow-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 0; padding: 0; list-style: none; }
-        .flow-step { min-height: 68px; padding: 10px; border-radius: 12px; color: #6b746c; background: #f2f3ef; }
-        .flow-step[data-state="current"] { color: #193a30; background: #e8f1e8; box-shadow: inset 0 0 0 1px #9fc1a5; }
-        .flow-step[data-state="complete"] { color: #286044; background: #f0f6ef; }
-        .step-number { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 800; }
-        .step-name { font-size: 14px; font-weight: 700; }
-        .flow-copy { margin-top: 16px; padding-top: 14px; border-top: 1px solid #e2e8de; }
-        .flow-copy p { margin: 0; }
-        .card { margin-top: 20px; padding: 24px; }
-        .card[data-locked="true"] { opacity: .68; }
-        .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
-        .wide { grid-column: 1 / -1; }
-        label { display: grid; gap: 7px; font-weight: 700; }
-        input, textarea, select { width: 100%; padding: 10px 11px; border: 1px solid #b8c8b7; border-radius: 10px; color: #193a30; background: #fffef9; font: inherit; }
-        textarea { min-height: 92px; resize: vertical; line-height: 1.6; }
-        input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, .link-button:focus-visible { outline: 3px solid #b9d4bd; outline-offset: 2px; }
-        .checkbox { display: flex; align-items: center; gap: 8px; font-weight: 400; }
-        .checkbox input { width: auto; }
-        .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-        button, .link-button { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 10px; padding: 10px 14px; color: #fff; background: #1f5941; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
-        button:hover:not(:disabled), .link-button:hover { background: #2d7655; }
-        button.secondary { color: #193a30; background: #e8f1e8; }
-        button.danger { background: #8b2f2f; }
-        button:disabled { cursor: not-allowed; opacity: .58; }
-        .message { margin: 16px 0 0; padding: 12px 14px; border-radius: 11px; line-height: 1.6; }
-        .error { color: #8b2f2f; background: #fbedeb; }
-        .success { color: #286044; background: #e8f1e8; }
-        .list, .candidate-list { display: grid; gap: 12px; margin-top: 16px; }
-        .submission, .candidate { border: 1px solid #dce4d8; border-radius: 12px; padding: 16px; background: #fff; }
-        .submission p, .candidate p { margin: 6px 0 0; }
-        .submission-row { align-items: flex-start; }
-        .candidate form { display: grid; gap: 12px; margin-top: 14px; }
-        .candidate-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-        .candidate-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-        .empty { margin: 14px 0 0; color: #5b675e; }
+        :root {
+            color: #193a30;
+            background: #f5f3eb;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+        }
+        .shell {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 64px;
+        }
+        .hero, .card, .flow {
+            border: 1px solid #d7dfd2;
+            border-radius: 18px;
+            background: #fffef9;
+            box-shadow: 0 12px 34px rgba(25, 58, 48, .07);
+        }
+        .hero {
+            padding: 28px 30px;
+            border-top: 4px solid #2d6a4f;
+        }
+        .brand-row, .section-heading, .submission-row, .flow-copy {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .brand {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: .02em;
+        }
+        .badge, .stage-badge, .status-badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 5px 10px;
+            color: #286044;
+            background: #e8f1e8;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        h1 {
+            margin: 22px 0 8px;
+            font-size: clamp(30px, 5vw, 44px);
+            letter-spacing: -.03em;
+        }
+        h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+        h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+        .notice, .hint, .status, .candidate-meta, .stage-note {
+            color: #5b675e;
+            line-height: 1.7;
+        }
+        .notice {
+            max-width: 720px;
+            margin: 0;
+        }
+        .flow {
+            margin-top: 20px;
+            padding: 18px 20px;
+        }
+        .flow-list {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .flow-step {
+            min-height: 68px;
+            padding: 10px;
+            border-radius: 12px;
+            color: #6b746c;
+            background: #f2f3ef;
+        }
+        .flow-step[data-state="current"] {
+            color: #193a30;
+            background: #e8f1e8;
+            box-shadow: inset 0 0 0 1px #9fc1a5;
+        }
+        .flow-step[data-state="complete"] {
+            color: #286044;
+            background: #f0f6ef;
+        }
+        .step-number {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+        .step-name {
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .flow-copy {
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid #e2e8de;
+        }
+        .flow-copy p {
+            margin: 0;
+        }
+        .card {
+            margin-top: 20px;
+            padding: 24px;
+        }
+        .card[data-locked="true"] {
+            opacity: .68;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+        .wide {
+            grid-column: 1 / -1;
+        }
+        label {
+            display: grid;
+            gap: 7px;
+            font-weight: 700;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 11px;
+            border: 1px solid #b8c8b7;
+            border-radius: 10px;
+            color: #193a30;
+            background: #fffef9;
+            font: inherit;
+        }
+        textarea {
+            min-height: 92px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+        input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, .link-button:focus-visible {
+            outline: 3px solid #b9d4bd;
+            outline-offset: 2px;
+        }
+        .checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 400;
+        }
+        .checkbox input {
+            width: auto;
+        }
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        button, .link-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #fff;
+            background: #1f5941;
+            font: inherit;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        button:hover:not(:disabled), .link-button:hover {
+            background: #2d7655;
+        }
+        button.secondary {
+            color: #193a30;
+            background: #e8f1e8;
+        }
+        button.danger {
+            background: #8b2f2f;
+        }
+        button:disabled {
+            cursor: not-allowed;
+            opacity: .58;
+        }
+        .message {
+            margin: 16px 0 0;
+            padding: 12px 14px;
+            border-radius: 11px;
+            line-height: 1.6;
+        }
+        .error {
+            color: #8b2f2f;
+            background: #fbedeb;
+        }
+        .success {
+            color: #286044;
+            background: #e8f1e8;
+        }
+        .list, .candidate-list {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .submission, .candidate {
+            border: 1px solid #dce4d8;
+            border-radius: 12px;
+            padding: 16px;
+            background: #fff;
+        }
+        .submission p, .candidate p {
+            margin: 6px 0 0;
+        }
+        .submission-row {
+            align-items: flex-start;
+        }
+        .candidate form {
+            display: grid;
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .candidate-texts {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .candidate-original {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            max-height: 24rem;
+            overflow: auto;
+            margin: 8px 0 0;
+            padding: 12px;
+            background: #f4f6f2;
+            font-family: inherit;
+        }
+        @media (max-width: 700px) {
+            .candidate-texts { grid-template-columns: 1fr; }
+        }
+        .candidate-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .empty {
+            margin: 14px 0 0;
+            color: #5b675e;
+        }
         /* 反馈聚合是"按天已合并"的最小维度：逐条事件、匿名散列与去重键不下发，
            因此这里只需要一张平表，不需要详情展开或逐条链接。 */
-        .sub-section { margin-top: 22px; }
-        .config-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
-        .config-item { padding: 12px 14px; border: 1px solid #dce4d8; border-radius: 12px; background: #fff; }
-        .config-label { display: block; color: #5b675e; font-size: 13px; font-weight: 700; }
-        .config-value { display: block; margin-top: 6px; font-weight: 700; overflow-wrap: anywhere; }
-        .table-scroll { overflow-x: auto; }
-        .aggregate-table { width: 100%; margin-top: 14px; border-collapse: collapse; font-size: 14px; }
-        .aggregate-table th, .aggregate-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8de; text-align: left; }
-        .aggregate-table th { color: #5b675e; background: #f2f3ef; font-size: 13px; font-weight: 700; white-space: nowrap; }
-        .aggregate-table caption { margin-top: 10px; color: #5b675e; text-align: left; caption-side: bottom; }
-        .aggregate-table td { overflow-wrap: anywhere; }
-        .aggregate-table td.numeric { text-align: right; font-variant-numeric: tabular-nums; }
-        dialog { width: min(460px, calc(100% - 32px)); border: 1px solid #d7dfd2; border-radius: 16px; padding: 0; color: #193a30; background: #fffef9; box-shadow: 0 20px 60px rgba(25, 58, 48, .2); }
-        dialog::backdrop { background: rgba(25, 58, 48, .32); }
-        .dialog-body { padding: 24px; }
-        .dialog-body p { color: #5b675e; line-height: 1.7; }
-        [hidden] { display: none !important; }
-        @media (max-width: 760px) { .shell { width: min(100% - 24px, 1120px); padding-top: 16px; } .hero, .card { padding: 20px; } .flow-list { grid-template-columns: 1fr; } .grid, .candidate-grid, .config-grid { grid-template-columns: 1fr; } .brand-row, .section-heading, .submission-row, .flow-copy { align-items: flex-start; flex-direction: column; } }
+        .sub-section {
+            margin-top: 22px;
+        }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .config-item {
+            padding: 12px 14px;
+            border: 1px solid #dce4d8;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .config-label {
+            display: block;
+            color: #5b675e;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .config-value {
+            display: block;
+            margin-top: 6px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+        .table-scroll {
+            overflow-x: auto;
+        }
+        .aggregate-table {
+            width: 100%;
+            margin-top: 14px;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .aggregate-table th, .aggregate-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e2e8de;
+            text-align: left;
+        }
+        .aggregate-table th {
+            color: #5b675e;
+            background: #f2f3ef;
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .aggregate-table caption {
+            margin-top: 10px;
+            color: #5b675e;
+            text-align: left;
+            caption-side: bottom;
+        }
+        .aggregate-table td {
+            overflow-wrap: anywhere;
+        }
+        .aggregate-table td.numeric {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        dialog {
+            width: min(460px, calc(100% - 32px));
+            border: 1px solid #d7dfd2;
+            border-radius: 16px;
+            padding: 0;
+            color: #193a30;
+            background: #fffef9;
+            box-shadow: 0 20px 60px rgba(25, 58, 48, .2);
+        }
+        dialog::backdrop {
+            background: rgba(25, 58, 48, .32);
+        }
+        .dialog-body {
+            padding: 24px;
+        }
+        .dialog-body p {
+            color: #5b675e;
+            line-height: 1.7;
+        }
+        [hidden] {
+            display: none !important;
+        }
+        @media (max-width: 760px) { .shell {
+            width: min(100% - 24px, 1120px);
+            padding-top: 16px;
+        } .hero, .card {
+            padding: 20px;
+        } .flow-list {
+            grid-template-columns: 1fr;
+        } .grid, .candidate-grid, .config-grid {
+            grid-template-columns: 1fr;
+        } .brand-row, .section-heading, .submission-row, .flow-copy {
+            align-items: flex-start;
+            flex-direction: column;
+        } }
     </style>
 </head>
 <body>
@@ -129,6 +422,13 @@
     <section class="card" id="review-stage" aria-labelledby="review-title" hidden>
         <div class="section-heading"><h2 id="review-title">3. 审核候选片段</h2><span id="review-stage-status" class="status">请逐条给出处理结论</span></div>
         <p id="candidate-summary" class="hint"></p>
+        <div class="candidate-actions">
+            <label>审核状态<select id="candidate-filter"><option value="ALL">全部片段</option><option value="PENDING_REVIEW">待审核</option><option value="APPROVED">已通过</option><option value="DISCARDED">已丢弃</option></select></label>
+            <button id="candidate-previous" class="secondary" type="button">上一页</button>
+            <span id="candidate-page-info" class="hint" role="status"></span>
+            <button id="candidate-next" class="secondary" type="button">下一页</button>
+        </div>
+        <p class="hint">每页最多20条。编辑区中的草稿仅保留在当前页面，切页或筛选不会提交；刷新浏览器会丢失未保存草稿。请先保存，再通过审核。</p>
         <div id="candidate-list" class="candidate-list"></div>
     </section>
 
@@ -213,6 +513,17 @@
     const submissionsEndpoint = "/api/zhku/local-admin/submissions";
     const uploadForm = document.querySelector("#upload-form"); const refreshButton = document.querySelector("#refresh-submissions"); const submissionList = document.querySelector("#submission-list"); const submissionEmpty = document.querySelector("#submission-empty"); const reviewStage = document.querySelector("#review-stage"); const candidateSummary = document.querySelector("#candidate-summary"); const candidateList = document.querySelector("#candidate-list"); const publishStage = document.querySelector("#publish-stage"); const publishButton = document.querySelector("#publish-button"); const publishStatus = document.querySelector("#publish-status"); const noticePublicationFields = document.querySelector("#notice-publication-fields"); const verifyStage = document.querySelector("#verify-stage"); const pageError = document.querySelector("#page-error"); const pageSuccess = document.querySelector("#page-success"); const currentStage = document.querySelector("#current-stage"); const stageNote = document.querySelector("#stage-note"); const confirmationDialog = document.querySelector("#confirmation-dialog"); const confirmationTitle = document.querySelector("#confirmation-title"); const confirmationMessage = document.querySelector("#confirmation-message"); const confirmationAccept = document.querySelector("#confirmation-accept");
     let selectedSubmission = null; let pendingConfirmation = null;
+    const candidatePageSize = 20;
+    const candidateFilter = document.querySelector("#candidate-filter");
+    const candidatePrevious = document.querySelector("#candidate-previous");
+    const candidateNext = document.querySelector("#candidate-next");
+    const candidatePageInfo = document.querySelector("#candidate-page-info");
+    let candidatePage = 0;
+    // 草稿与服务端审核状态分开：翻页不能悄悄保存或批准，也不能丢失当前输入。
+    const candidateDrafts = new Map();
+    candidateFilter.addEventListener("change", () => { candidatePage = 0; if (selectedSubmission) renderCandidates(selectedSubmission); });
+    candidatePrevious.addEventListener("click", () => { candidatePage--; renderCandidates(selectedSubmission); });
+    candidateNext.addEventListener("click", () => { candidatePage++; renderCandidates(selectedSubmission); });
     const feedbackEndpoint = "/api/zhku/local-admin/feedback";
     const feedbackConfigGrid = document.querySelector("#feedback-config"); const feedbackTable = document.querySelector("#feedback-table"); const feedbackRows = document.querySelector("#feedback-rows"); const feedbackEmpty = document.querySelector("#feedback-empty"); const feedbackSummary = document.querySelector("#feedback-summary"); const refreshFeedbackButton = document.querySelector("#refresh-feedback"); const retentionButton = document.querySelector("#retention-button");
     // 原因枚举的中文标签；未登记的取值原样显示，避免后端新增枚举时被前端静默吞掉。
@@ -233,20 +544,71 @@
     function requestConfirmation(title, message, label, action) { confirmationTitle.textContent = title; confirmationMessage.textContent = message; confirmationAccept.textContent = label; pendingConfirmation = action; if (typeof confirmationDialog.showModal === "function") { confirmationDialog.showModal(); } else if (window.confirm(message)) { const accepted = pendingConfirmation; pendingConfirmation = null; accepted(); } }
     async function loadSubmissions(selectId) { clearMessage(); try { const response = await fetch(submissionsEndpoint); const submissions = await readJson(response); if (!response.ok) { showError(submissions.message || "无法读取资料列表。"); return; } renderSubmissions(submissions); const targetId = selectId || selectedSubmission?.id; if (targetId) { await loadSubmission(targetId); } } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
     function renderSubmissions(submissions) { submissionList.replaceChildren(); submissionEmpty.hidden = submissions.length > 0; submissions.forEach(submission => { const item = document.createElement("article"); item.className = "submission"; const row = document.createElement("div"); row.className = "submission-row"; const detail = document.createElement("div"); const heading = document.createElement("h3"); const meta = document.createElement("p"); const badge = document.createElement("span"); badge.className = "status-badge"; heading.textContent = `${submission.title}｜${submission.sourceVersion}`; meta.className = "candidate-meta"; meta.textContent = `知识范围：${submission.knowledgeScope}｜当前状态：${submissionStatusLabel(submission.status)}`; badge.textContent = submissionStatusLabel(submission.status); detail.append(heading, meta); row.append(detail, badge); item.append(row, actionButton("查看并继续", "secondary", () => loadSubmission(submission.id))); submissionList.append(item); }); }
-    async function loadSubmission(submissionId) { clearMessage(); try { const response = await fetch(`${submissionsEndpoint}/${submissionId}`); const submission = await readJson(response); if (!response.ok) { showError(submission.message || "无法读取资料详情。"); return; } selectedSubmission = submission; reviewStage.hidden = false; renderCandidates(submission); refreshPublishCheck(); if (submission.candidates.length === 0) { activateStage("EXTRACT"); } else if (submission.candidates.some(candidate => candidate.reviewStatus === "PENDING_REVIEW")) { activateStage("REVIEW"); } else { activateStage("PUBLISH"); } } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
-    function renderCandidates(submission) { candidateList.replaceChildren(); const pendingCount = submission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length; candidateSummary.textContent = `共 ${submission.candidates.length} 条候选片段；待处理 ${pendingCount} 条。所有候选片段必须通过或丢弃后才能发布。`; if (submission.candidates.length === 0) { candidateList.append(actionButton("提取候选片段", "", extractCandidates)); return; } submission.candidates.forEach(candidate => candidateList.append(createCandidateCard(candidate))); }
-    function createCandidateCard(candidate) { const card = document.createElement("article"); card.className = "candidate"; const heading = document.createElement("h3"); const meta = document.createElement("p"); heading.textContent = `PDF 第 ${candidate.startPageNumber}—${candidate.endPageNumber} 页｜${candidateStatusLabel(candidate.reviewStatus)}`; meta.className = "candidate-meta"; meta.textContent = candidate.reviewNote || candidate.discardReason || "请填写审核说明后作出结论。"; const form = document.createElement("form"); const title = createInput("片段标题", candidate.sectionTitle || ""); const locator = createInput("资料定位", candidate.sourceLocator || `PDF 第 ${candidate.startPageNumber} 页`); const text = createTextarea("编辑后正文", candidate.editedText || ""); const note = createTextarea("审核说明或丢弃原因", candidate.reviewNote || candidate.discardReason || ""); const pageRange = document.createElement("div"); pageRange.className = "candidate-grid"; const startPage = createNumberInput("起始页", candidate.startPageNumber); const endPage = createNumberInput("结束页", candidate.endPageNumber); pageRange.append(startPage.label, endPage.label); const actions = document.createElement("div"); actions.className = "candidate-actions"; actions.append(actionButton("保存编辑", "secondary", () => updateCandidate(candidate.id, { startPageNumber: Number(startPage.input.value), endPageNumber: Number(endPage.input.value), editedText: text.input.value, sectionTitle: title.input.value, sourceLocator: locator.input.value }))); if (candidate.reviewStatus === "PENDING_REVIEW") { actions.append(actionButton("通过", "", () => reviewCandidate(candidate.id, "APPROVE", note.input.value)), actionButton("丢弃", "danger", () => requestConfirmation("丢弃前请确认", "丢弃后该候选片段不会进入发布版本。确认丢弃吗？", "确认丢弃", () => reviewCandidate(candidate.id, "DISCARD", note.input.value))), actionButton("按正文两段拆分", "secondary", () => splitCandidate(candidate.id, text.input.value))); } form.append(title.label, locator.label, text.label, note.label, pageRange, actions); card.append(heading, meta, form); return card; }
+    async function loadSubmission(submissionId) { clearMessage(); try { const response = await fetch(`${submissionsEndpoint}/${submissionId}`); const submission = await readJson(response); if (!response.ok) { showError(submission.message || "无法读取资料详情。"); return; } if (selectedSubmission?.id !== submission.id) { candidatePage = 0; candidateFilter.value = "ALL"; } selectedSubmission = submission; reviewStage.hidden = false; renderCandidates(submission); refreshPublishCheck(); if (submission.candidates.length === 0) { activateStage("EXTRACT"); } else if (submission.candidates.some(candidate => candidate.reviewStatus === "PENDING_REVIEW")) { activateStage("REVIEW"); } else { activateStage("PUBLISH"); } } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
+    function renderCandidates(submission) {
+        candidateList.replaceChildren();
+        const pendingCount = submission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length;
+        candidateSummary.textContent = `共 ${submission.candidates.length} 条候选片段；待处理 ${pendingCount} 条。所有候选片段必须通过或丢弃后才能发布。`;
+        // 本批只控制DOM数量；服务端仍返回完整候选，不能把页面切片当后端分页。
+        const filtered = submission.candidates.filter(candidate => candidateFilter.value === "ALL" || candidate.reviewStatus === candidateFilter.value);
+        const pageCount = Math.max(1, Math.ceil(filtered.length / candidatePageSize));
+        candidatePage = Math.max(0, Math.min(candidatePage, pageCount - 1));
+        candidatePrevious.disabled = candidatePage === 0;
+        candidateNext.disabled = candidatePage >= pageCount - 1;
+        candidatePageInfo.textContent = `第 ${candidatePage + 1} / ${pageCount} 页；筛选结果 ${filtered.length} 条`;
+        if (submission.candidates.length === 0) { candidateList.append(actionButton("提取候选片段", "", extractCandidates)); return; }
+        if (filtered.length === 0) { const empty = document.createElement("p"); empty.textContent = "当前筛选没有候选片段。"; candidateList.append(empty); return; }
+        filtered.slice(candidatePage * candidatePageSize, (candidatePage + 1) * candidatePageSize).forEach(candidate => candidateList.append(createCandidateCard(candidate)));
+    }
+    function createCandidateCard(candidate) {
+        const card = document.createElement("article"); card.className = "candidate"; card.dataset.candidateId = candidate.id;
+        const heading = document.createElement("h3"); const meta = document.createElement("p");
+        heading.textContent = `PDF 第 ${candidate.startPageNumber}—${candidate.endPageNumber} 页｜${candidateStatusLabel(candidate.reviewStatus)}`;
+        meta.className = "candidate-meta"; meta.textContent = candidate.reviewNote || candidate.discardReason || "请填写审核说明后作出结论。";
+        const editable = candidate.reviewStatus === "PENDING_REVIEW" && ["EXTRACTED", "IN_REVIEW"].includes(selectedSubmission.status);
+        // 已结束审核的片段以服务端保存内容为准，不展示可能残留的待审草稿。
+        const draft = editable ? candidateDrafts.get(candidate.id) : undefined;
+        const form = document.createElement("form");
+        const title = createInput("片段标题", draft?.sectionTitle ?? candidate.sectionTitle ?? "");
+        const locator = createInput("资料定位", draft?.sourceLocator ?? candidate.sourceLocator ?? `PDF 第 ${candidate.startPageNumber} 页`);
+        const originalPanel = document.createElement("div"); const originalLabel = document.createElement("p"); const original = document.createElement("pre");
+        originalLabel.textContent = "PDF提取原文（只读）"; original.className = "candidate-original";
+        // 资料内容是不可信文本，不能作为HTML插入，保留换行便于核对。
+        original.textContent = candidate.rawText ?? ""; originalPanel.append(originalLabel, original);
+        if (!candidate.rawText?.trim()) { const warning = document.createElement("p"); warning.className = "hint"; warning.textContent = "未提取到可读原文，请人工核对PDF；扫描页需先识别文字，不能直接视为无规则。"; originalPanel.append(warning); }
+        const text = createTextarea("编辑后正文", draft?.editedText ?? candidate.editedText ?? candidate.rawText ?? "");
+        const texts = document.createElement("div"); texts.className = "candidate-texts"; texts.append(originalPanel, text.label);
+        const note = createTextarea("审核说明或丢弃原因", draft?.note ?? candidate.reviewNote ?? candidate.discardReason ?? "");
+        const pageRange = document.createElement("div"); pageRange.className = "candidate-grid";
+        const startPage = createNumberInput("起始页", draft?.startPageNumber ?? candidate.startPageNumber);
+        const endPage = createNumberInput("结束页", draft?.endPageNumber ?? candidate.endPageNumber); pageRange.append(startPage.label, endPage.label);
+        const content = () => ({ startPageNumber: Number(startPage.input.value), endPageNumber: Number(endPage.input.value), editedText: text.input.value, sectionTitle: title.input.value, sourceLocator: locator.input.value });
+        const actions = document.createElement("div"); actions.className = "candidate-actions";
+        if (editable) {
+            const approve = actionButton("通过", "", () => reviewCandidate(candidate.id, "APPROVE", note.input.value));
+            // 通过针对已保存正文；不能让审核者以为未提交的草稿已被批准。
+            const refreshApproval = () => { const values = content(); approve.disabled = !candidate.editedText || !candidate.sectionTitle || !candidate.sourceLocator || Object.entries(values).some(([key, value]) => value !== candidate[key]); };
+            form.addEventListener("input", () => { candidateDrafts.set(candidate.id, { ...content(), note: note.input.value }); refreshApproval(); });
+            refreshApproval();
+            actions.append(actionButton("保存编辑", "secondary", () => updateCandidate(candidate.id, content())), approve,
+                actionButton("丢弃", "danger", () => requestConfirmation("丢弃前请确认", "丢弃后该候选片段不会进入发布版本。确认丢弃吗？", "确认丢弃", () => reviewCandidate(candidate.id, "DISCARD", note.input.value))),
+                actionButton("按正文两段拆分", "secondary", () => splitCandidate(candidate.id, text.input.value)));
+        }
+        form.append(title.label, locator.label, texts, note.label, pageRange, actions);
+        if (!editable) form.querySelectorAll("input, textarea").forEach(control => { control.disabled = true; });
+        card.append(heading, meta, form); return card;
+    }
     function createInput(labelText, value) { const label = document.createElement("label"); label.textContent = labelText; const input = document.createElement("input"); input.value = value; label.append(input); return { label, input }; } function createNumberInput(labelText, value) { const field = createInput(labelText, value); field.input.type = "number"; field.input.min = "1"; return field; } function createTextarea(labelText, value) { const label = document.createElement("label"); label.textContent = labelText; const textarea = document.createElement("textarea"); textarea.value = value; label.append(textarea); return { label, input: textarea }; } function actionButton(label, className, handler) { const button = document.createElement("button"); button.type = "button"; button.textContent = label; if (className) { button.className = className; } button.addEventListener("click", handler); return button; }
-    async function extractCandidates() { await requestAndReload(`${submissionsEndpoint}/${selectedSubmission.id}/extract`, { method: "POST" }, "候选片段已提取，请逐条审核。", "REVIEW"); } async function updateCandidate(candidateId, body) { await requestAndReload(`${apiBase}/candidates/${candidateId}`, { method: "PATCH", headers: jsonHeaders(), body: JSON.stringify(body) }, "候选片段已更新。", "REVIEW"); } async function reviewCandidate(candidateId, decision, note) { await requestAndReload(`${apiBase}/candidates/${candidateId}/review`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ decision, note }) }, decision === "APPROVE" ? "候选片段已通过。" : "候选片段已丢弃。", "REVIEW"); }
-    async function splitCandidate(candidateId, editedText) { const separator = "\n---\n"; if (!editedText.includes(separator)) { showError("请在“编辑后正文”中用单独一行 --- 分隔两段，再执行拆分。"); return; } const [firstEditedText, secondEditedText] = editedText.split(separator, 2); await requestAndReload(`${apiBase}/candidates/${candidateId}/split`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ firstEditedText, secondEditedText }) }, "候选片段已拆分，请分别审核两段内容。", "REVIEW"); }
-    async function requestAndReload(url, options, successMessage, nextStage) { clearMessage(); try { const response = await fetch(url, options); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "操作未完成，请检查当前资料状态。"); return false; } showSuccess(successMessage); activateStage(nextStage); await loadSubmissions(selectedSubmission.id); return true; } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); return false; } }
+    async function extractCandidates() { await requestAndReload(`${submissionsEndpoint}/${selectedSubmission.id}/extract`, { method: "POST" }, "候选片段已提取，请逐条审核。", "REVIEW"); } async function updateCandidate(candidateId, body) { await requestAndReload(`${apiBase}/candidates/${candidateId}`, { method: "PATCH", headers: jsonHeaders(), body: JSON.stringify(body) }, "候选片段已更新。", "REVIEW", () => { const draft = candidateDrafts.get(candidateId); candidateDrafts.set(candidateId, { note: draft?.note ?? "" }); }); } async function reviewCandidate(candidateId, decision, note) { await requestAndReload(`${apiBase}/candidates/${candidateId}/review`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ decision, note }) }, decision === "APPROVE" ? "候选片段已通过。" : "候选片段已丢弃。", "REVIEW", () => candidateDrafts.delete(candidateId)); }
+    async function splitCandidate(candidateId, editedText) { const separator = "\n---\n"; if (!editedText.includes(separator)) { showError("请在“编辑后正文”中用单独一行 --- 分隔两段，再执行拆分。"); return; } const [firstEditedText, secondEditedText] = editedText.split(separator, 2); await requestAndReload(`${apiBase}/candidates/${candidateId}/split`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ firstEditedText, secondEditedText }) }, "候选片段已拆分，请分别审核两段内容。", "REVIEW", () => candidateDrafts.delete(candidateId)); }
+    async function requestAndReload(url, options, successMessage, nextStage, onAccepted) { clearMessage(); try { const response = await fetch(url, options); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "操作未完成，请检查当前资料状态。"); return false; } onAccepted?.(); showSuccess(successMessage); activateStage(nextStage); await loadSubmissions(selectedSubmission.id); return true; } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); return false; } }
     function refreshPublishCheck() { if (!selectedSubmission) { publishButton.disabled = true; return; } const isOfficialNotice = selectedSubmission.documentFamily === "OFFICIAL_NOTICE"; noticePublicationFields.hidden = !isOfficialNotice; publishButton.textContent = isOfficialNotice ? "发布当前选课通知" : "发布已审核资料"; const pending = selectedSubmission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length; const approved = selectedSubmission.candidates.filter(candidate => candidate.reviewStatus === "APPROVED").length; const canPublish = selectedSubmission.status === "IN_REVIEW" && pending === 0 && approved > 0; publishButton.disabled = !canPublish; publishStage.dataset.locked = String(!canPublish); publishStatus.textContent = pending > 0 ? `还有 ${pending} 条候选片段待处理` : (approved === 0 ? "至少需要一条通过片段" : (isOfficialNotice ? "候选片段已审核；请填写通知时态事实后发布。" : "已满足发布条件，请确认后发布")); }
     function toBeijingInstant(value) { if (!value) { return null; } return new Date(`${value}:00+08:00`).toISOString(); }
     function refreshEvidenceFields() { const internal = document.querySelector("#notice-evidence-channel").value === "INTERNAL_OFFICIAL"; document.querySelector("#notice-public-url-label").hidden = internal; document.querySelector("#notice-issuing-unit-label").hidden = !internal; document.querySelector("#notice-delivery-channel-label").hidden = !internal; document.querySelector("#notice-material-reference-label").hidden = !internal; }
     document.querySelector("#notice-evidence-channel").addEventListener("change", refreshEvidenceFields);
     function noticePublicationPayload() { const channel = document.querySelector("#notice-evidence-channel").value; const payload = { academicTerm: document.querySelector("#notice-academic-term").value, validFrom: toBeijingInstant(document.querySelector("#notice-valid-from").value), validTo: toBeijingInstant(document.querySelector("#notice-valid-to").value), officialUrl: channel === "PUBLIC_WEB" ? document.querySelector("#notice-official-url").value : null, evidenceChannel: channel, issuingUnit: document.querySelector("#notice-issuing-unit").value, deliveryChannel: document.querySelector("#notice-delivery-channel").value, materialReference: document.querySelector("#notice-material-reference").value, facts: [{ type: document.querySelector("#notice-fact-type").value, startsAt: toBeijingInstant(document.querySelector("#notice-fact-start").value), endsAt: toBeijingInstant(document.querySelector("#notice-fact-end").value), officialEntryUrl: document.querySelector("#notice-entry-url").value, startsAtConfirmed: true, endsAtConfirmed: true }] }; if (!payload.validFrom || !payload.validTo || !payload.facts[0].startsAt || !payload.facts[0].endsAt || !payload.facts[0].officialEntryUrl || (channel === "PUBLIC_WEB" && !payload.officialUrl) || (channel === "INTERNAL_OFFICIAL" && (!payload.issuingUnit || !payload.deliveryChannel || !payload.materialReference))) { throw new Error("请完整填写通知有效期、办理时间及对应来源依据后再发布。"); } return payload; }
     async function publishSelectedSubmission() { try { const isOfficialNotice = selectedSubmission.documentFamily === "OFFICIAL_NOTICE"; const url = isOfficialNotice ? `${submissionsEndpoint}/${selectedSubmission.id}/publish-course-selection-notice` : `${submissionsEndpoint}/${selectedSubmission.id}/publish`; const options = isOfficialNotice ? { method: "POST", headers: jsonHeaders(), body: JSON.stringify(noticePublicationPayload()) } : { method: "POST" }; const message = isOfficialNotice ? "当前选课通知已事务发布。请在问答页确认只返回当前有效通知。" : "资料已事务发布。现在可以打开问答验证页确认引用与页码。"; const published = await requestAndReload(url, options, message, "VERIFY"); if (published) { verifyStage.dataset.locked = "false"; } } catch (error) { showError(error.message || "通知发布信息不完整。"); } }
-    function submissionStatusLabel(status) { return ({ DRAFT: "审核草稿", IN_REVIEW: "审核中", PUBLISHED: "已发布", ARCHIVED: "已归档" })[status] || "状态待确认"; } function candidateStatusLabel(status) { return ({ PENDING_REVIEW: "待审核", APPROVED: "已通过", DISCARDED: "已丢弃" })[status] || "状态待确认"; }
+    function submissionStatusLabel(status) { return ({ DRAFT: "审核草稿", EXTRACTED: "已提取", IN_REVIEW: "审核中", PUBLISHED: "已发布", ARCHIVED: "已归档" })[status] || "状态待确认"; } function candidateStatusLabel(status) { return ({ PENDING_REVIEW: "待审核", APPROVED: "已通过", DISCARDED: "已丢弃" })[status] || "状态待确认"; }
     function jsonHeaders() { return { "Content-Type": "application/json; charset=UTF-8" }; } async function readJson(response) { try { return await response.json(); } catch (error) { return {}; } } function clearMessage() { pageError.hidden = true; pageSuccess.hidden = true; pageError.textContent = ""; pageSuccess.textContent = ""; } function showError(message) { pageError.textContent = message; pageError.hidden = false; } function showSuccess(message) { pageSuccess.textContent = message; pageSuccess.hidden = false; } function setBusy(form, busy) { form.querySelectorAll("button, input, textarea").forEach(control => { control.disabled = busy; }); }
     // 配置回显与聚合是两个独立只读接口：任一失败都不该掩盖另一个的结果，故分开处理。
     async function loadFeedback() { clearMessage(); await loadFeedbackData(); }

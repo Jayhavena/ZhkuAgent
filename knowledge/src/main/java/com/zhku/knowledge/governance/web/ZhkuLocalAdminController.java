@@ -374,6 +374,7 @@ public class ZhkuLocalAdminController {
             UUID id,
             int startPageNumber,
             int endPageNumber,
+            String rawText,
             String editedText,
             String sectionTitle,
             String sourceLocator,
@@ -386,6 +387,8 @@ public class ZhkuLocalAdminController {
                     candidate.id(),
                     candidate.startPageNumber(),
                     candidate.endPageNumber(),
+                    // 原文只交给本机审核响应；不能把暂存候选加入学生回答协议。
+                    candidate.rawText(),
                     candidate.editedText(),
                     candidate.sectionTitle(),
                     candidate.sourceLocator(),

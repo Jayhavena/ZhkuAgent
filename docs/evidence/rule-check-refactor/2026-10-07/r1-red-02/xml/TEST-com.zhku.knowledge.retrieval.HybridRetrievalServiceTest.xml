@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.retrieval.HybridRetrievalServiceTest" time="0.146" tests="6" errors="0" skipped="0" failures="1"><testcase name="shouldFuseBothPathsAndMarkBothAvailable" classname="com.zhku.knowledge.retrieval.HybridRetrievalServiceTest" time="0.089" /><testcase name="shouldReturnEmptyOutcomeWhenBothPathsUnavailable" classname="com.zhku.knowledge.retrieval.HybridRetrievalServiceTest" time="0.002" /><testcase name="shouldDegradeToSurvivingPathWhenOneUnavailable" classname="com.zhku.knowledge.retrieval.HybridRetrievalServiceTest" time="0.003" /><testcase name="shouldReturnEmptyWhenNoPathYieldsCandidate" classname="com.zhku.knowledge.retrieval.HybridRetrievalServiceTest" time="0.001" /><testcase name="sharedSecondRankMustSurviveBeforeFinalTruncation" classname="com.zhku.knowledge.retrieval.HybridRetrievalServiceTest" time="0.015"><failure message="&#xA;Expecting actual:&#xA;  [&quot;chunk-a&quot;]&#xA;to contain exactly (and in same order):&#xA;  [&quot;chunk-c&quot;]&#xA;but some elements were not found:&#xA;  [&quot;chunk-c&quot;]&#xA;and others were not expected:&#xA;  [&quot;chunk-a&quot;]&#xA;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  ["chunk-a"]
+to contain exactly (and in same order):
+  ["chunk-c"]
+but some elements were not found:
+  ["chunk-c"]
+and others were not expected:
+  ["chunk-a"]
+
+	at com.zhku.knowledge.retrieval.HybridRetrievalServiceTest.sharedSecondRankMustSurviveBeforeFinalTruncation(HybridRetrievalServiceTest.java:37)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="shouldRespectLimitAfterFusion" classname="com.zhku.knowledge.retrieval.HybridRetrievalServiceTest" time="0.001" /></testsuite>

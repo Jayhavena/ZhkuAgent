@@ -217,7 +217,7 @@ class ZhkuLocalAdminControllerTest {
     }
 
     @Test
-    void shouldUpdateCandidateWithoutReturningRawText() throws Exception {
+    void shouldUpdateCandidateWithAdminOriginalTextButWithoutStorageKey() throws Exception {
         when(reviewService.update(any(), any())).thenReturn(candidate());
 
         mockMvc.perform(patch("/zhku/local-admin/candidates/{id}", CANDIDATE_ID)
@@ -232,7 +232,7 @@ class ZhkuLocalAdminControllerTest {
                 .andExpect(jsonPath("$.id").value(CANDIDATE_ID.toString()))
                 .andExpect(jsonPath("$.editedText")
                         .value("公共选修课最高不得超过 4 学分。"))
-                .andExpect(jsonPath("$.rawText").doesNotExist())
+                .andExpect(jsonPath("$.rawText").value("原始文本"))
                 .andExpect(jsonPath("$.storageKey").doesNotExist());
     }
 
@@ -279,7 +279,7 @@ class ZhkuLocalAdminControllerTest {
         mockMvc.perform(get("/zhku/local-admin/submissions/{id}", SUBMISSION_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("测试学生手册"))
-                .andExpect(jsonPath("$.candidates[0].rawText").doesNotExist())
+                .andExpect(jsonPath("$.candidates[0].rawText").value("原始文本"))
                 .andExpect(jsonPath("$.storageKey").doesNotExist());
     }
 
@@ -332,7 +332,7 @@ class ZhkuLocalAdminControllerTest {
 
     private static KnowledgeCandidate candidateWithId(UUID id) {
         return new KnowledgeCandidate(
-                id, SUBMISSION_ID, 77, 77, "不应从接口返回的原始文本",
+                id, SUBMISSION_ID, 77, 77, "原始文本",
                 "公共选修课最高不得超过 4 学分。", "公共选修课程学分上限",
                 "PDF 第 77 页，第 10 条", CandidateReviewStatus.PENDING_REVIEW,
                 null, null, Instant.parse("2026-09-12T00:00:00Z"),

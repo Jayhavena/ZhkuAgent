@@ -19,6 +19,7 @@ $originalDbPassword = [Environment]::GetEnvironmentVariable('ZHKU_DB_PASSWORD', 
 $originalDbUrl = [Environment]::GetEnvironmentVariable('ZHKU_DB_URL', 'Process')
 $originalDbUser = [Environment]::GetEnvironmentVariable('ZHKU_DB_USER', 'Process')
 $originalApiKey = [Environment]::GetEnvironmentVariable('DASHSCOPE_API_KEY', 'Process')
+$originalPostgresPassword = [Environment]::GetEnvironmentVariable('POSTGRES_PASSWORD', 'Process')
 
 try {
     if ($RunLiveProvider) {
@@ -26,9 +27,16 @@ try {
         & (Join-Path $repoRoot 'scripts/Import-ZhkuCredentials.ps1') -RequireDashScope
     }
     # 每次创建无卷、自动删除的独立库；不能沿用演示库或把随机密码写入仓库。
+    # Docker 按名称继承进程环境，避免随机口令出现在命令参数；不能因此宣称容器环境已加密。
+    $env:POSTGRES_PASSWORD = $databaseSecret
     docker run --rm -d --name $containerName --publish "127.0.0.1:${Port}:5432" `
-        --env "POSTGRES_PASSWORD=$databaseSecret" --env 'POSTGRES_USER=zhkuagent' `
+        --env 'POSTGRES_PASSWORD' --env 'POSTGRES_USER=zhkuagent' `
         --env 'POSTGRES_DB=zhkuagent_e2e' 'pgvector/pgvector:0.8.6-pg16-bookworm' | Out-Null
+    if ($null -eq $originalPostgresPassword) {
+        Remove-Item Env:POSTGRES_PASSWORD -ErrorAction SilentlyContinue
+    } else {
+        [Environment]::SetEnvironmentVariable('POSTGRES_PASSWORD', $originalPostgresPassword, 'Process')
+    }
     if ($LASTEXITCODE -ne 0) { throw '无法启动专用临时 PostgreSQL 容器。' }
     $containerStarted = $true
 
@@ -64,6 +72,12 @@ try {
         Write-Output '真实供应商校园 Agent 端到端测试完成；请核对 Surefire 实际运行与跳过数量。'
     }
 } finally {
+    # 创建容器抛错时也恢复调用方环境，避免口令遗留或覆盖已有值。
+    if ($null -eq $originalPostgresPassword) {
+        Remove-Item Env:POSTGRES_PASSWORD -ErrorAction SilentlyContinue
+    } else {
+        [Environment]::SetEnvironmentVariable('POSTGRES_PASSWORD', $originalPostgresPassword, 'Process')
+    }
     if ($containerStarted) { docker stop $containerName | Out-Null }
     [Environment]::SetEnvironmentVariable('ZHKU_DB_PASSWORD', $originalDbPassword, 'Process')
     [Environment]::SetEnvironmentVariable('ZHKU_DB_URL', $originalDbUrl, 'Process')

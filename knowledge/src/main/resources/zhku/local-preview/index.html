@@ -43,63 +43,286 @@
                 --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, .5);
             }
         }
-        * { box-sizing: border-box; }
-        body { margin: 0; color: var(--text-primary); background: var(--page-bg); font-family: var(--font-sans); line-height: 1.6; }
-        .page-shell { width: min(880px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 64px; }
-        .muted { color: var(--text-secondary); }
-        .card { padding: 24px; border: 1px solid var(--border-subtle); border-radius: var(--radius-card); background: var(--surface); box-shadow: var(--shadow-card); }
-        .card + .card, .stack > * + * { margin-top: 20px; }
-        .brand-row, .row-between { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-        .brand { margin: 0; font-size: 15px; font-weight: 500; letter-spacing: .02em; }
-        .badge { margin: 0; padding: 4px 10px; border-radius: 999px; color: var(--brand); background: var(--citation-bg); font-size: 12px; font-weight: 500; }
-        h1 { margin: 18px 0 8px; font-size: 2rem; font-weight: 500; letter-spacing: -.01em; }
-        h2 { margin: 0; font-size: 1.05rem; font-weight: 500; }
-        .intro { max-width: 60ch; margin: 0; color: var(--text-secondary); }
-        .topic-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
-        .topic-list li { padding: 4px 10px; border: 1px solid var(--border-subtle); border-radius: 999px; color: var(--text-secondary); font-size: 13px; }
-        label { display: block; margin-bottom: 10px; font-weight: 500; }
-        textarea { width: 100%; min-height: 112px; resize: vertical; padding: 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-inner); color: var(--text-primary); background: var(--surface); font: inherit; line-height: 1.65; }
-        textarea::placeholder { color: var(--text-secondary); }
-        textarea:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-        .field-hint { margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; }
-        .example-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-        .example-question { border: 1px solid var(--border-subtle); border-radius: 999px; padding: 6px 12px; color: var(--text-secondary); background: var(--surface); font: inherit; font-size: 13px; cursor: pointer; transition: border-color var(--duration), color var(--duration); }
-        .example-question:hover { border-color: var(--brand); color: var(--brand); }
-        button { border: 0; border-radius: var(--radius-inner); padding: 10px 18px; color: var(--on-brand); background: var(--brand); font: inherit; font-weight: 500; cursor: pointer; transition: opacity var(--duration); }
-        button:hover:not(:disabled) { opacity: .88; }
-        button:disabled { cursor: wait; opacity: .6; }
-        button.ghost { color: var(--text-secondary); background: transparent; border: 1px solid var(--border-subtle); }
-        button.ghost:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
-        .message { margin: 16px 0 0; padding: 12px 14px; border-radius: var(--radius-inner); }
-        .question-error, .service-error { color: var(--warning); background: var(--warning-bg); }
-        .answer-status { margin: 0; padding: 5px 10px; border-radius: 999px; color: var(--brand); background: var(--citation-bg); font-size: 13px; font-weight: 500; }
-        .answer-content { margin: 16px 0 0; line-height: 1.9; white-space: pre-wrap; }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            color: var(--text-primary);
+            background: var(--page-bg);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+        }
+        .page-shell {
+            width: min(880px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 40px 0 64px;
+        }
+        .muted {
+            color: var(--text-secondary);
+        }
+        .card {
+            padding: 24px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-card);
+            background: var(--surface);
+            box-shadow: var(--shadow-card);
+        }
+        .card + .card, .stack > * + * {
+            margin-top: 20px;
+        }
+        .brand-row, .row-between {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .brand {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: .02em;
+        }
+        .badge {
+            margin: 0;
+            padding: 4px 10px;
+            border-radius: 999px;
+            color: var(--brand);
+            background: var(--citation-bg);
+            font-size: 12px;
+            font-weight: 500;
+        }
+        h1 {
+            margin: 18px 0 8px;
+            font-size: 2rem;
+            font-weight: 500;
+            letter-spacing: -.01em;
+        }
+        h2 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+        .intro {
+            max-width: 60ch;
+            margin: 0;
+            color: var(--text-secondary);
+        }
+        .topic-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 16px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+        .topic-list li {
+            padding: 4px 10px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 999px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        textarea {
+            width: 100%;
+            min-height: 112px;
+            resize: vertical;
+            padding: 14px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-inner);
+            color: var(--text-primary);
+            background: var(--surface);
+            font: inherit;
+            line-height: 1.65;
+        }
+        textarea::placeholder {
+            color: var(--text-secondary);
+        }
+        textarea:focus-visible, button:focus-visible {
+            outline: 2px solid var(--brand);
+            outline-offset: 2px;
+        }
+        .field-hint {
+            margin: 10px 0 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .example-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .example-question {
+            border: 1px solid var(--border-subtle);
+            border-radius: 999px;
+            padding: 6px 12px;
+            color: var(--text-secondary);
+            background: var(--surface);
+            font: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            transition: border-color var(--duration), color var(--duration);
+        }
+        .example-question:hover {
+            border-color: var(--brand);
+            color: var(--brand);
+        }
+        button {
+            border: 0;
+            border-radius: var(--radius-inner);
+            padding: 10px 18px;
+            color: var(--on-brand);
+            background: var(--brand);
+            font: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity var(--duration);
+        }
+        button:hover:not(:disabled) {
+            opacity: .88;
+        }
+        button:disabled {
+            cursor: wait;
+            opacity: .6;
+        }
+        button.ghost {
+            color: var(--text-secondary);
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+        }
+        button.ghost:hover:not(:disabled) {
+            border-color: var(--brand);
+            color: var(--brand);
+        }
+        .message {
+            margin: 16px 0 0;
+            padding: 12px 14px;
+            border-radius: var(--radius-inner);
+        }
+        .question-error, .service-error {
+            color: var(--warning);
+            background: var(--warning-bg);
+        }
+        .answer-status {
+            margin: 0;
+            padding: 5px 10px;
+            border-radius: 999px;
+            color: var(--brand);
+            background: var(--citation-bg);
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .answer-content {
+            margin: 16px 0 0;
+            line-height: 1.9;
+            white-space: pre-wrap;
+        }
         /* 引用卡：不放整段资料正文，只给"标题 + 定位 + 页码"，学生按定位自行核对原文。
            编号与 citationIds 顺序恒等，故用序号做锚点、原样透传不透明 ID。 */
-        .citation-panel { margin-top: 20px; padding: 16px; border: 1px solid var(--border-subtle); border-radius: var(--radius-inner); background: var(--citation-bg); }
-        .citation-heading { margin: 0; color: var(--text-primary); font-size: 14px; font-weight: 500; }
-        .citation-list { display: grid; gap: 10px; margin: 12px 0 0; padding: 0; list-style: none; }
-        .citation-item { display: flex; gap: 10px; align-items: baseline; }
-        .citation-index { flex: none; color: var(--brand); font-size: 13px; font-weight: 500; }
-        .citation-title { font-weight: 500; }
-        .citation-locator { color: var(--text-secondary); font-size: 13px; }
+        .citation-panel {
+            margin-top: 20px;
+            padding: 16px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-inner);
+            background: var(--citation-bg);
+        }
+        .citation-heading {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .citation-list {
+            display: grid;
+            gap: 10px;
+            margin: 12px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+        .citation-item {
+            display: flex;
+            gap: 10px;
+            align-items: baseline;
+        }
+        .citation-index {
+            flex: none;
+            color: var(--brand);
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .citation-title {
+            font-weight: 500;
+        }
+        .citation-locator {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
         /* 转人工提示只在后端确实要求 handoff 时出现（数据驱动），不做常驻免责声明 */
-        .handoff { margin: 16px 0 0; padding: 12px 14px; border-left: 3px solid var(--warning); border-radius: 0 var(--radius-inner) var(--radius-inner) 0; color: var(--warning); background: var(--warning-bg); font-size: 14px; }
+        .handoff {
+            margin: 16px 0 0;
+            padding: 12px 14px;
+            border-left: 3px solid var(--warning);
+            border-radius: 0 var(--radius-inner) var(--radius-inner) 0;
+            color: var(--warning);
+            background: var(--warning-bg);
+            font-size: 14px;
+        }
         /* 反馈入口：只在服务端给出清单标识（guideCard）时出现——没有清单标识就无法提交一条
            指向明确的反馈，前端不会替学生臆造 identifier/version。四个枚举与后端 FeedbackReason 一一对应。 */
-        .feedback-panel { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border-subtle); }
-        .feedback-heading { margin: 0; font-size: 14px; font-weight: 500; }
-        .feedback-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-        .feedback-actions button { padding: 8px 12px; color: var(--text-secondary); background: transparent; border: 1px solid var(--border-subtle); font-size: 13px; }
-        .feedback-actions button:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+        .feedback-panel {
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border-subtle);
+        }
+        .feedback-heading {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .feedback-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .feedback-actions button {
+            padding: 8px 12px;
+            color: var(--text-secondary);
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            font-size: 13px;
+        }
+        .feedback-actions button:hover:not(:disabled) {
+            border-color: var(--brand);
+            color: var(--brand);
+        }
         /* 失败态用警告色：反馈没提交不能渲染成一条不显眼的灰字，否则学生只会反复点。 */
-        .field-hint.feedback-status-error { color: var(--warning); }
-        [hidden] { display: none !important; }
+        .field-hint.feedback-status-error {
+            color: var(--warning);
+        }
+        [hidden] {
+            display: none !important;
+        }
         @media (max-width: 560px) {
-            .page-shell { width: min(100% - 24px, 880px); padding-top: 20px; }
-            .card { padding: 18px; }
-            h1 { font-size: 1.6rem; }
-            button[type="submit"] { width: 100%; }
+            .page-shell {
+            width: min(100% - 24px, 880px);
+            padding-top: 20px;
+        }
+            .card {
+            padding: 18px;
+        }
+            h1 {
+            font-size: 1.6rem;
+        }
+            button[type="submit"] {
+            width: 100%;
+        }
         }
     </style>
 </head>

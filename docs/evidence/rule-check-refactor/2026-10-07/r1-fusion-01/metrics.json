@@ -1,0 +1,89 @@
+{
+  "phase": "R1",
+  "evidenceKind": "UNIT_TEST",
+  "caseSetId": "synthetic-rrf-shared-second-rank",
+  "caseSetHash": "3cabe1f49be6702a82f347c01c021944d30c961a0ccffc195a490ea46deb8b5a",
+  "sourceVersion": "SYNTHETIC_TEST_FIXTURES_NOT_OFFICIAL_2026_HANDBOOK",
+  "modelVersion": "NOT_USED",
+  "promptVersion": "NOT_USED",
+  "indexVersion": "IN_MEMORY_TEST_DOUBLE",
+  "sampleSize": 1,
+  "denominatorDefinition": "单个确定性排名反例，不是质量评估集或学生任务成功率",
+  "before": {
+    "requestedPerPathLimit": 1,
+    "resultLimit": 1,
+    "expected": [
+      "chunk-c"
+    ],
+    "actual": [
+      "chunk-a"
+    ],
+    "passed": false
+  },
+  "after": {
+    "legacyDefaultCandidateLimit": 20,
+    "explicitCandidateLimit": 2,
+    "resultLimit": 1,
+    "actual": [
+      "chunk-c"
+    ],
+    "passed": true
+  },
+  "failedCaseIdsBefore": [
+    "sharedSecondRankMustSurviveBeforeFinalTruncation"
+  ],
+  "uniqueMethodsInLatestRegression": 44,
+  "newTestMethods": 8,
+  "engineeringBatches": {
+    "r1-red-01": {
+      "passed": false,
+      "testCount": null,
+      "failures": null,
+      "errors": null,
+      "skipped": null,
+      "sourceDrift": 0,
+      "resourcesVerified": true
+    },
+    "r1-red-02": {
+      "passed": false,
+      "testCount": 6.0,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "sourceDrift": 0,
+      "resourcesVerified": true
+    },
+    "r1-green-01": {
+      "passed": true,
+      "testCount": 19.0,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sourceDrift": 0,
+      "resourcesVerified": true
+    },
+    "r1-regression-01": {
+      "passed": true,
+      "testCount": 44.0,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sourceDrift": 0,
+      "resourcesVerified": true
+    }
+  },
+  "candidateBudgets10_20_40": "NOT_RUN_HUMAN_REFERENCE_NOT_LOCKED",
+  "realRecallAtK": null,
+  "realMrr": null,
+  "realLatency": null,
+  "realUserTimeSaved": null,
+  "cost": {
+    "database": "NOT_USED",
+    "provider": "NOT_USED",
+    "realProductCost": "UNKNOWN"
+  },
+  "confidenceInterval": "NOT_ESTIMABLE_PRODUCT_EVAL_NOT_RUN",
+  "reportSetUsedForTuning": false,
+  "graderValidation": "NOT_USED",
+  "claim": "已知截断反例得到修复，不能推断整体质量提升或默认20最优"
+}

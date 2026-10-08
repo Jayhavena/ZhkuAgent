@@ -25,7 +25,7 @@ public class MultiQueryExpanderDemo {
                 .chatClientBuilder(chatClientBuilder)
                 .numberOfQueries(3)
                 .build();
-        List<Query> queries = queryExpander.expand(new Query("谁是程序员鱼皮啊？"));
+        List<Query> queries = queryExpander.expand(new Query("如何学习 Java 基础语法？"));
         return queries;
     }
 }

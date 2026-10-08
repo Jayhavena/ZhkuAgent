@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest" time="0.238" tests="6" errors="0" skipped="0" failures="5"><testcase name="databaseFailureCannotBecomeSuccessfulAudit" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest" time="0.115"><failure message="&#xA;Expecting AtomicInteger(0) to have value:&#xA;  1&#xA;but did not." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting AtomicInteger(0) to have value:
+  1
+but did not.
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.databaseFailureCannotBecomeSuccessfulAudit(JdbcRuleCheckCitationAuditTargetTest.java:66)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="legacyRepositoryCannotAcceptNewCaptureRoute" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest" time="0.005"><failure message="&#xA;Expecting actual throwable to be an instance of:&#xA;  java.lang.IllegalArgumentException&#xA;but was:&#xA;  java.lang.IllegalStateException: 无法写入引用审计&#xA; at com.zhku.knowledge.rag.JdbcCitationAuditRepository.record(JdbcCitationAuditRepository.java:50)&#xA; at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.lambda$legacyRepositoryCannotAcceptNewCaptureRoute$5(JdbcRuleCheckCitationAuditTargetTest.java:43)&#xA; at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)&#xA; ...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  java.lang.IllegalArgumentException
+but was:
+  java.lang.IllegalStateException: 无法写入引用审计
+	at com.zhku.knowledge.rag.JdbcCitationAuditRepository.record(JdbcCitationAuditRepository.java:50)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.lambda$legacyRepositoryCannotAcceptNewCaptureRoute$5(JdbcRuleCheckCitationAuditTargetTest.java:43)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.legacyRepositoryCannotAcceptNewCaptureRoute(JdbcRuleCheckCitationAuditTargetTest.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="legacyRecordWithoutCapturedBindingCannotConnect" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest" time="0.003"><failure message="&#xA;Expecting actual throwable to be an instance of:&#xA;  java.lang.IllegalArgumentException&#xA;but was:&#xA;  java.lang.IllegalStateException: 绑定审计尚未实现&#xA; at com.zhku.knowledge.rulecheck.JdbcRuleCheckCitationAuditRepository.record(JdbcRuleCheckCitationAuditRepository.java:12)&#xA; at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.lambda$legacyRecordWithoutCapturedBindingCannotConnect$6(JdbcRuleCheckCitationAuditTargetTest.java:48)&#xA; at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)&#xA; ...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  java.lang.IllegalArgumentException
+but was:
+  java.lang.IllegalStateException: 绑定审计尚未实现
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckCitationAuditRepository.record(JdbcRuleCheckCitationAuditRepository.java:12)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.lambda$legacyRecordWithoutCapturedBindingCannotConnect$6(JdbcRuleCheckCitationAuditTargetTest.java:48)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.legacyRecordWithoutCapturedBindingCannotConnect(JdbcRuleCheckCitationAuditTargetTest.java:49)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="rejectedDatabaseSetupCannotReconnectDuringCleanup" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest" time="0.007" /><testcase name="wrongRouteAndMalformedBindingCannotConnect" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest" time="0.001"><failure message="&#xA;Expecting actual throwable to be an instance of:&#xA;  java.lang.IllegalArgumentException&#xA;but was:&#xA;  java.lang.IllegalStateException: 绑定审计尚未实现&#xA; at com.zhku.knowledge.rulecheck.JdbcRuleCheckCitationAuditRepository.record(JdbcRuleCheckCitationAuditRepository.java:12)&#xA; at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.lambda$wrongRouteAndMalformedBindingCannotConnect$7(JdbcRuleCheckCitationAuditTargetTest.java:55)&#xA; at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)&#xA; ...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  java.lang.IllegalArgumentException
+but was:
+  java.lang.IllegalStateException: 绑定审计尚未实现
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckCitationAuditRepository.record(JdbcRuleCheckCitationAuditRepository.java:12)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.lambda$wrongRouteAndMalformedBindingCannotConnect$7(JdbcRuleCheckCitationAuditTargetTest.java:55)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.wrongRouteAndMalformedBindingCannotConnect(JdbcRuleCheckCitationAuditTargetTest.java:56)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="missingFixedScopeConfigCannotConnect" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest" time="0.015"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.missingFixedScopeConfigCannotConnect(JdbcRuleCheckCitationAuditTargetTest.java:36)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase></testsuite>

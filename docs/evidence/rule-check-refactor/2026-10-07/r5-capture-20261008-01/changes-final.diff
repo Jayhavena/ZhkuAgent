@@ -1,0 +1,433 @@
+--- before/knowledge/src/main/java/com/zhku/knowledge/retrieval/RetrievedChunk.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/retrieval/RetrievedChunk.java
+@@ -16,8 +16,15 @@
+         String sourceLocator,
+         Integer pageNumber,
+         String sourceVersion,
+-        String contentChecksum
++        String contentChecksum,
++        UUID sourceId
+ ) {
++
++    // 旧链路及离线夹具保持兼容；null身份不能进入新查证核验，不能以chunkId推造来源。
++    public RetrievedChunk(UUID chunkId, String content, String sourceTitle, String sourceLocator,
++                          Integer pageNumber, String sourceVersion, String contentChecksum) {
++        this(chunkId, content, sourceTitle, sourceLocator, pageNumber, sourceVersion, contentChecksum, null);
++    }
+ 
+     public RetrievedChunk {
+         Objects.requireNonNull(chunkId, "片段标识不能为空");
+--- before/knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcLexicalCandidateRetriever.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcLexicalCandidateRetriever.java
+@@ -122,7 +122,8 @@
+                                     result.getString("source_locator"),
+                                     (Integer) result.getObject("page_number"),
+                                     result.getString("source_version"),
+-                                    result.getString("content_checksum")
++                                    result.getString("content_checksum"),
++                                    sourceId
+                             ),
+                             new SourceEligibilitySnapshot(
+                                     sourceId,
+--- before/knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcVectorCandidateRetriever.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcVectorCandidateRetriever.java
+@@ -151,7 +151,8 @@
+                                     result.getString("source_locator"),
+                                     (Integer) result.getObject("page_number"),
+                                     result.getString("source_version"),
+-                                    result.getString("content_checksum")
++                                    result.getString("content_checksum"),
++                                    sourceId
+                             ),
+                             new SourceEligibilitySnapshot(
+                                     sourceId,
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceCapture.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceCapture.java
+@@ -0,0 +1,88 @@
++package com.zhku.knowledge.rulecheck;
++
++import com.zhku.knowledge.rag.CitationAuditRepository;
++import com.zhku.knowledge.rag.CitationAuditRecord;
++import com.zhku.knowledge.rag.CitationIdFactory;
++import com.zhku.knowledge.retrieval.RetrievedChunk;
++import java.time.Clock;
++import java.util.ArrayList;
++import java.util.HashSet;
++import java.util.List;
++import java.util.Objects;
++import java.util.UUID;
++
++/** 服务端检索结果到当前核验的连接；不接收客户端自证的资料资格。 */
++public final class RuleCheckEvidenceCapture {
++    private final RuleCheckEvidenceVerifier verifier;
++    private final CitationIdFactory ids;
++    private final CitationAuditRepository audit;
++    private final Clock clock;
++
++    public RuleCheckEvidenceCapture(RuleCheckEvidenceVerifier verifier, CitationIdFactory ids,
++                                    CitationAuditRepository audit, Clock clock) {
++        this.verifier = Objects.requireNonNull(verifier);
++        this.ids = Objects.requireNonNull(ids);
++        this.audit = Objects.requireNonNull(audit);
++        this.clock = Objects.requireNonNull(clock);
++    }
++
++    public CaptureResult capture(List<RetrievedChunk> chunks) {
++        List<RetrievedChunk> candidates;
++        try { candidates = List.copyOf(chunks); }
++        catch (NullPointerException invalid) { return rejected(RejectionReason.INVALID_CANDIDATES); }
++        if (candidates.isEmpty()) return rejected(RejectionReason.INVALID_CANDIDATES);
++        var chunkIds = new HashSet<UUID>();
++        for (var chunk : candidates) {
++            // 同chunk的多重别名会令必要证据绑定有歧义，不能取第一条或伪造来源UUID。
++            if (chunk.sourceId() == null || !chunkIds.add(chunk.chunkId()))
++                return rejected(RejectionReason.INVALID_CANDIDATES);
++        }
++
++        var snapshots = new ArrayList<RuleCheckEvidenceSnapshot>();
++        var aliases = new HashSet<String>();
++        try {
++            for (var chunk : candidates) {
++                String alias = ids.next();
++                if (alias == null || alias.isBlank() || !aliases.add(alias))
++                    return rejected(RejectionReason.CITATION_ALLOCATION_FAILED);
++                // true只是内部待核验标记；整批通过current reader前绝不交给调用方。
++                snapshots.add(new RuleCheckEvidenceSnapshot(alias, chunk.sourceId(), chunk.chunkId(),
++                        chunk.sourceVersion(), chunk.contentChecksum(), chunk.content(), true));
++            }
++        } catch (RuntimeException unavailable) {
++            return rejected(RejectionReason.CITATION_ALLOCATION_FAILED);
++        }
++        for (var snapshot : snapshots) {
++            // 复用完整原文核验，不复制hash/UTF-16/资格逻辑；捕获后决策输出仍必须重读。
++            var proposal = new RuleCheckEvidenceSpan(snapshot.citationId(), 0, snapshot.text().length(), snapshot.text());
++            if (!verifier.verify(proposal, snapshots).accepted())
++                return rejected(RejectionReason.UNVERIFIED_EVIDENCE);
++        }
++        try {
++            var issuedAt = clock.instant();
++            // 仓储只有逐条接口；失败可留下部分尝试记录，但不会交出可消费证据。
++            // CAPTURE路由表示取得证据，不证明学生已经看到回答，也不声称事务原子性。
++            for (var snapshot : snapshots)
++                audit.record(new CitationAuditRecord(snapshot.citationId(), snapshot.chunkId(), "RULE_CHECK_CAPTURE", issuedAt));
++        } catch (RuntimeException unavailable) {
++            return rejected(RejectionReason.AUDIT_UNAVAILABLE);
++        }
++        return new CaptureResult(snapshots, null);
++    }
++
++    private static CaptureResult rejected(RejectionReason reason) {
++        return new CaptureResult(List.of(), reason);
++    }
++
++    public enum RejectionReason { INVALID_CANDIDATES, CITATION_ALLOCATION_FAILED,
++        UNVERIFIED_EVIDENCE, AUDIT_UNAVAILABLE }
++
++    public record CaptureResult(List<RuleCheckEvidenceSnapshot> snapshots, RejectionReason rejectionReason) {
++        public CaptureResult {
++            snapshots = List.copyOf(snapshots);
++            if ((rejectionReason == null) == snapshots.isEmpty())
++                throw new IllegalArgumentException("捕获结果只能是非空已核验快照或无快照的拒绝原因");
++        }
++        public boolean accepted() { return rejectionReason == null; }
++    }
++}
+--- before/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceCaptureTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceCaptureTest.java
+@@ -0,0 +1,128 @@
++package com.zhku.knowledge.rulecheck;
++
++import com.zhku.knowledge.rag.CitationAuditRecord;
++import com.zhku.knowledge.rag.CitationIdFactory;
++import com.zhku.knowledge.retrieval.RetrievedChunk;
++import org.junit.jupiter.api.Test;
++import java.nio.charset.StandardCharsets;
++import java.security.MessageDigest;
++import java.time.Clock;
++import java.time.Instant;
++import java.time.ZoneOffset;
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.HexFormat;
++import java.util.List;
++import java.util.Map;
++import java.util.Optional;
++import java.util.UUID;
++import java.util.concurrent.atomic.AtomicInteger;
++import static org.assertj.core.api.Assertions.*;
++
++class RuleCheckEvidenceCaptureTest {
++    private final UUID source = UUID.randomUUID();
++    private final Map<UUID, RuleCheckEvidenceSnapshot> current = new HashMap<>();
++    private final List<CitationAuditRecord> audit = new ArrayList<>();
++    private final AtomicInteger reads = new AtomicInteger();
++    private final AtomicInteger ids = new AtomicInteger();
++    private final Instant now = Instant.parse("2026-10-08T08:00:00Z");
++
++    private RuleCheckEvidenceCapture capture(CitationIdFactory factory) {
++        return new RuleCheckEvidenceCapture(new RuleCheckEvidenceVerifier((s,c)-> {
++            reads.incrementAndGet();
++            return Optional.ofNullable(current.get(c));
++        }), factory, audit::add, Clock.fixed(now, ZoneOffset.UTC));
++    }
++    private RuleCheckEvidenceCapture capture() { return capture(()->"alias-"+ids.incrementAndGet()); }
++    private RetrievedChunk chunk(String text) {
++        var c = new RetrievedChunk(UUID.randomUUID(), text, "合成来源", "合成定位", 1, "test-v1", hash(text), source);
++        current.put(c.chunkId(), new RuleCheckEvidenceSnapshot("latest-unrelated-alias", source, c.chunkId(),
++            c.sourceVersion(), c.contentChecksum(), c.content(), true));
++        return c;
++    }
++    private static String hash(String text) {
++        try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8))); }
++        catch (Exception e) { throw new AssertionError(e); }
++    }
++    private void rejected(RuleCheckEvidenceCapture.CaptureResult result, RuleCheckEvidenceCapture.RejectionReason reason) {
++        assertThat(result.accepted()).isFalse();
++        assertThat(result.snapshots()).isEmpty();
++        assertThat(result.rejectionReason()).isEqualTo(reason);
++    }
++
++    @Test void capturesPersistentIdentityWithServerAliasesAndAudit() {
++        var a = chunk("合成规则：上限4。"); var b = chunk("合成例外：另查计划。");
++        var result = capture().capture(List.of(a,b));
++        assertThat(result.accepted()).isTrue();
++        assertThat(result.snapshots()).extracting(RuleCheckEvidenceSnapshot::citationId).containsExactly("alias-1","alias-2");
++        assertThat(result.snapshots()).extracting(RuleCheckEvidenceSnapshot::sourceId).containsOnly(source);
++        assertThat(result.snapshots()).extracting(RuleCheckEvidenceSnapshot::text).containsExactly(a.content(),b.content());
++        assertThat(reads).hasValue(2);
++        assertThat(audit).extracting(CitationAuditRecord::chunkId).containsExactly(a.chunkId(),b.chunkId());
++        assertThat(audit).allSatisfy(row->{ assertThat(row.route()).isEqualTo("RULE_CHECK_CAPTURE"); assertThat(row.issuedAt()).isEqualTo(now); });
++        assertThatThrownBy(()->result.snapshots().clear()).isInstanceOf(UnsupportedOperationException.class);
++    }
++    @Test void rejectsLegacyChunkWithoutInventingSourceIdentity() {
++        var c=chunk("合成原文");
++        var legacy=new RetrievedChunk(c.chunkId(),c.content(),c.sourceTitle(),c.sourceLocator(),1,c.sourceVersion(),c.contentChecksum());
++        rejected(capture().capture(List.of(legacy)), RuleCheckEvidenceCapture.RejectionReason.INVALID_CANDIDATES);
++        assertThat(reads).hasValue(0); assertThat(audit).isEmpty();
++    }
++    @Test void duplicateChunkAliasesAreNotASecondEvidenceIdentity() {
++        var c=chunk("合成原文");
++        rejected(capture().capture(List.of(c,c)), RuleCheckEvidenceCapture.RejectionReason.INVALID_CANDIDATES);
++        assertThat(reads).hasValue(0); assertThat(audit).isEmpty();
++    }
++    @Test void duplicateServerAliasRejectsBatchBeforeAudit() {
++        rejected(capture(()->"same-alias").capture(List.of(chunk("甲"),chunk("乙"))),
++            RuleCheckEvidenceCapture.RejectionReason.CITATION_ALLOCATION_FAILED);
++        assertThat(audit).isEmpty();
++    }
++    @Test void factoryFailureCannotExposeFirstPreparedSnapshot() {
++        rejected(capture(()->{if(ids.incrementAndGet()==2) throw new IllegalStateException("opaque failure"); return "alias-1";})
++            .capture(List.of(chunk("甲"),chunk("乙"))), RuleCheckEvidenceCapture.RejectionReason.CITATION_ALLOCATION_FAILED);
++        assertThat(audit).isEmpty();
++    }
++    @Test void blankAliasFailsClosed() {
++        rejected(capture(()->" ").capture(List.of(chunk("甲"))), RuleCheckEvidenceCapture.RejectionReason.CITATION_ALLOCATION_FAILED);
++        assertThat(audit).isEmpty();
++    }
++    @Test void validIdWithTamperedFortyDoesNotBecomeEvidence() {
++        var c=chunk("合成上限4。");
++        var changed=new RetrievedChunk(c.chunkId(),"合成上限40。",c.sourceTitle(),c.sourceLocator(),1,c.sourceVersion(),c.contentChecksum(),source);
++        rejected(capture().capture(List.of(changed)), RuleCheckEvidenceCapture.RejectionReason.UNVERIFIED_EVIDENCE);
++        assertThat(audit).isEmpty();
++    }
++    @Test void withdrawnSecondChunkRejectsWholeBatch() {
++        var a=chunk("甲"); var b=chunk("乙"); current.remove(b.chunkId());
++        rejected(capture().capture(List.of(a,b)), RuleCheckEvidenceCapture.RejectionReason.UNVERIFIED_EVIDENCE);
++        assertThat(audit).isEmpty();
++    }
++    @Test void sameTextDifferentCurrentRevisionStillRejects() {
++        var c=chunk("甲"); current.put(c.chunkId(),new RuleCheckEvidenceSnapshot("other",source,c.chunkId(),"test-v2",c.contentChecksum(),c.content(),true));
++        rejected(capture().capture(List.of(c)), RuleCheckEvidenceCapture.RejectionReason.UNVERIFIED_EVIDENCE);
++        assertThat(audit).isEmpty();
++    }
++    @Test void unavailableReaderDoesNotReuseRetrievedText() {
++        var service=new RuleCheckEvidenceCapture(new RuleCheckEvidenceVerifier((s,c)->{throw new IllegalStateException("unavailable");}),
++            ()->"alias",audit::add,Clock.fixed(now,ZoneOffset.UTC));
++        rejected(service.capture(List.of(chunk("甲"))),RuleCheckEvidenceCapture.RejectionReason.UNVERIFIED_EVIDENCE);
++        assertThat(audit).isEmpty();
++    }
++    @Test void partialAuditFailureDoesNotReturnConsumableEvidence() {
++        var count=new AtomicInteger();
++        var service=new RuleCheckEvidenceCapture(new RuleCheckEvidenceVerifier((s,c)->Optional.ofNullable(current.get(c))),
++            ()->"alias-"+ids.incrementAndGet(), row->{if(count.incrementAndGet()==2) throw new IllegalStateException("audit unavailable");audit.add(row);},
++            Clock.fixed(now,ZoneOffset.UTC));
++        rejected(service.capture(List.of(chunk("甲"),chunk("乙"))),RuleCheckEvidenceCapture.RejectionReason.AUDIT_UNAVAILABLE);
++        assertThat(audit).hasSize(1);
++    }
++    @Test void emptyAndNullInputsDoNotReadOrAudit() {
++        var service=capture();
++        rejected(service.capture(List.of()),RuleCheckEvidenceCapture.RejectionReason.INVALID_CANDIDATES);
++        rejected(service.capture(null),RuleCheckEvidenceCapture.RejectionReason.INVALID_CANDIDATES);
++        var containingNull=new ArrayList<RetrievedChunk>(); containingNull.add(null);
++        rejected(service.capture(containingNull),RuleCheckEvidenceCapture.RejectionReason.INVALID_CANDIDATES);
++        assertThat(reads).hasValue(0); assertThat(audit).isEmpty();
++    }
++}
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcCandidateRetrieverTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcCandidateRetrieverTest.java
+@@ -128,6 +128,52 @@
+                 .containsExactly(ELIGIBLE_CHUNK_A, ELIGIBLE_CHUNK_B)
+                 .doesNotContain(INTERNAL_CHUNK);
+         assertThat(chunks.getFirst().content()).contains("最高修读 4 学分");
++        assertThat(chunks).extracting(RetrievedChunk::sourceId).containsOnly(ELIGIBLE_SOURCE);
++    }
++
++    @Test
++    void sharedHybridCandidatesCanBeCapturedAndReverifiedWithRealReader() {
++        activateProfile();
++        var lexical = new JdbcLexicalCandidateRetriever(dataSource, filter, PROFILE, "PUBLIC_ELECTIVE");
++        var vector = new JdbcVectorCandidateRetriever(dataSource, filter, PROFILE, "PUBLIC_ELECTIVE",
++                countingClient(new AtomicInteger(), 3, new float[]{0,1,0}));
++        var outcome = new HybridRetrievalService(new HybridCandidateFuser())
++                .retrieve("公共选修课", 10, 2, lexical, vector);
++        assertThat(lexical.retrieve("公共选修课", 2)).extracting(RetrievedChunk::sourceId).containsOnly(ELIGIBLE_SOURCE);
++        assertThat(vector.retrieve("公共选修课", 2)).extracting(RetrievedChunk::sourceId).containsOnly(ELIGIBLE_SOURCE);
++        var rows = new java.util.ArrayList<com.zhku.knowledge.rag.CitationAuditRecord>();
++        var aliases = new AtomicInteger();
++        var verifier = new com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifier(
++                new com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader(dataSource, PROFILE, CHUNKING_VERSION, "PUBLIC_ELECTIVE"));
++        var captured = new com.zhku.knowledge.rulecheck.RuleCheckEvidenceCapture(verifier,
++                ()->"test-capture-"+aliases.incrementAndGet(), rows::add, CLOCK).capture(outcome.chunks());
++        assertThat(captured.accepted()).isTrue();
++        assertThat(captured.snapshots()).hasSize(2);
++        assertThat(rows).hasSize(2);
++        var first = captured.snapshots().getFirst();
++        var proposal = new com.zhku.knowledge.rulecheck.RuleCheckEvidenceSpan(first.citationId(), 0, first.text().length(), first.text());
++        assertThat(verifier.verify(proposal, captured.snapshots()).accepted()).isTrue();
++    }
++
++    @Test
++    void capturedCandidatesAreRejectedAfterRealSourceWithdrawal() throws SQLException {
++        activateProfile();
++        var candidates = new JdbcLexicalCandidateRetriever(dataSource, filter, PROFILE, "PUBLIC_ELECTIVE")
++                .retrieve("公共选修课", 2);
++        try (var connection = dataSource.getConnection(); var statement = connection.prepareStatement(
++                "UPDATE knowledge_source SET visibility_scope='INTERNAL_ONLY' WHERE id=?")) {
++            statement.setObject(1, ELIGIBLE_SOURCE); statement.executeUpdate();
++        }
++        var rows = new java.util.ArrayList<com.zhku.knowledge.rag.CitationAuditRecord>();
++        var aliases = new AtomicInteger();
++        var verifier = new com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifier(
++                new com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader(dataSource, PROFILE, CHUNKING_VERSION, "PUBLIC_ELECTIVE"));
++        var captured = new com.zhku.knowledge.rulecheck.RuleCheckEvidenceCapture(verifier,
++                ()->"test-capture-"+aliases.incrementAndGet(), rows::add, CLOCK).capture(candidates);
++        assertThat(captured.accepted()).isFalse();
++        assertThat(captured.rejectionReason()).isEqualTo(
++                com.zhku.knowledge.rulecheck.RuleCheckEvidenceCapture.RejectionReason.UNVERIFIED_EVIDENCE);
++        assertThat(captured.snapshots()).isEmpty(); assertThat(rows).isEmpty();
+     }
+ 
+     @Test
+--- before/knowledge/scripts/verify-rule-check-refactor.ps1
++++ after/knowledge/scripts/verify-rule-check-refactor.ps1
+@@ -22,7 +22,8 @@
+         'RetrievalAugmentedAnswerServiceTest','RetrievalEligibilityFilterTest','ZhkuLocalAdminControllerTest',
+         'ZhkuLocalAdminPageResourceTest','ModelOutputParserTest','AnswerEvidenceGuardTest','CandidateResponseMappingTest',
+         'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest',
+-        'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest','RuleCheckDecisionServiceTest')
++        'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest','RuleCheckDecisionServiceTest',
++        'RuleCheckEvidenceCaptureTest')
+     $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+         'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
+         'JdbcRuleCheckEvidenceReaderTest')
+--- before/docs/product/rule-check-decision-contract.md
++++ after/docs/product/rule-check-decision-contract.md
+@@ -27,3 +27,9 @@
+ 5. 使用真实输出评价检索、事实支持及状态；组件合成测试不能当产品正确率。
+ 
+ 本组件只实现来源核验后的规则决策约束，旧自由RAG链的事实支持风险仍单独记录。
++
++## 共享检索证据捕获合同（Task2C）
++
++RuleCheckEvidenceCapture仅消费服务端两路检索结果；RetrievedChunk现在保留SQL中实际sourceId。旧七参构造器仍可用于旧链路，但新链拒绝缺来源身份、重复chunk或不唯一引用别名，不按标题/正文猜来源。捕获复用已有CitationIdFactory与CitationAuditRepository，按整段原文调用现有核验器检查hash/UTF-16/当前身份及字段资格。所有片段通过后再写审计，全部审计成功才返回不可变快照。
++
++RULE_CHECK_CAPTURE表示证据取得尝试，不是学生已看到回答。逐条仓储写入失败可保留部分审计，不返回快照、不承诺事务原子性；实际审计数据库持久化另行验收。捕获后规则决策仍须再次核验必要绑定，不能消除最终下发窗口。未添加客户端快照DTO、HTTP入口、自然语言规则选择或真实规则激活。临时库只验证合成SQL链路，不改变2025资料发布状态。
+--- before/docs/product/rule-check-blockers.md
++++ after/docs/product/rule-check-blockers.md
+@@ -81,3 +81,11 @@
+ 受控五状态决策组件通过本批最终17类165项纯单元回归和29项runner合同。真实草案整理20个确认参考profile/10条款，不伪造UUID或将参考确认改标为资料发布。B-03只推进规则组件，旧自由RAG/学生应用/真实质量仍OPEN。
+ 
+ 接续缺口：真实已审片段的source/chunk/revision/hash/跨度绑定、事实独立性及条件/例外的规则定义审核、资料展示资格；随后装配规则选择/提问条件、controlled身份与v2输出链。报告参考与补样仍按B-02推进。工程合同没有模型或数据库调用，不能冒充真实问答与收益。
++
++## 2026-10-08 R5 Task2C共享检索证据连接
++
++现有两路候选SQL已读sourceId但RetrievedChunk丢弃它。本批保留持久来源身份，复用引用ID工厂、当前核验器及审计仓储，整批通过才返回不可变快照。旧七参构造器保持兼容，缺来源身份只被新链路拒绝，不伪造UUID。
++
++实际：12项定向GREEN；最终18类177项相关纯单元、41项临时库测试、29项runner合同通过。数据库为无卷合成夹具，V21，结束连接0，容器退出；embedding及审计为替身，没有供应商成绩。详见[R5 Task2C验收](../evidence/rule-check-refactor/2026-10-07/r5-capture-20261008-01/acceptance.md)。
++
++工程状态RETRIEVAL_CAPTURE_VERIFIED_NOT_HTTP_INTEGRATED。B-03推进共享检索→当前核验连接；旧自由RAG风险仍OPEN。B-01真实2025资料/规则审核与展示资格、B-02报告补样/任务家族/rubric、HTTP账号/CSRF/最终下发及实际用户效果未完成。捕获及决策顺序重读不等于最终下发原子性；审计失败可能留部分CAPTURE记录，但不返回证据。
+--- before/docs/evidence/rule-check-refactor/2026-10-07/issues.json
++++ after/docs/evidence/rule-check-refactor/2026-10-07/issues.json
+@@ -197,9 +197,15 @@
+               "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-decision-20261008-01/acceptance.md",
+               "ruleDefinitionReviewStatus": "DRAFT",
+               "manualEvaluationStatus": "NOT_RUN"
++            },
++            {
++              "name": "RuleCheckEvidenceCapture",
++              "stage": "RETRIEVAL_CAPTURE_VERIFIED_NOT_HTTP_INTEGRATED",
++              "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-capture-20261008-01/acceptance.md",
++              "manualEvaluationStatus": "NOT_RUN"
+             }
+           ],
+-          "closureReminder": "已完成独立原文、现有字段真库重读和五状态决策组件；真实规则运行时绑定/资料资格、自然语言匹配、HTTP账号链与实际人工质量尚未通过，旧自由RAG风险仍OPEN"
++          "closureReminder": "共享检索已连接当前核验；真实2025资料与规则审核/展示资格、自然语言匹配、HTTP账号及最终下发、独立报告质量和用户收益仍未通过，旧自由RAG风险仍OPEN"
+         }
+       ],
+       "verificationStatus": "STRUCTURE_PASSED_SEMANTICS_OPEN",
+--- before/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
++++ after/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
+@@ -89,6 +89,19 @@
+ 
+ 卡点不解除时，不填虚构审核规则或把一般RAG自由回答接到新学生入口。可继续准备接口/验收设计和独立反例，但不宣称真实查证闭环完成。
+ 
++### Task2C：共享检索到当前核验的证据连接（2026-10-08）
++
++现有RetrievedChunk丢弃SQL已读到的sourceId，无法直接绑定Task1/2A要求的持久来源/片段身份。本批补齐连接，不添加第二套检索、不读取或写入原演示库、不启动HTTP。
++
++白名单：RetrievedChunk、两路Jdbc候选映射、同包新增RuleCheckEvidenceCapture及纯单元测试；JdbcCandidateRetrieverTest增加实际检索→捕获→核验反例；runner只登记新增测试。证据批次r5-capture-20261008-01。兼容旧七参数构造器保留null来源，新连接拒绝该对象，绝不以chunkId冒充sourceId；对外v1响应DTO保持原样。
++
++- [x] 基线与RED：正常多片段/别名、无来源身份、重复chunk、别名工厂故障、正文hash篡改、撤回/版本变更、审计异常；临时库验证两路携带实际来源身份。
++- [x] 最小GREEN：复用引用ID工厂、原文核验器、审计仓储；整批验证成功并审计成功才返回不可变快照。审计部分写入可能留痕，但不能返回可消费证据，不宣称事务原子性。
++- [x] 真库连接验收：现有两路SQL→共享混合检索→当前reader→核验器，合成临时资料；顺序撤回后旧候选捕获拒绝。不得用临时资料赋予2025手册展示资格。
++- [x] 相关回归、runner合同、一次独立审查及白名单增量/哈希/退出证据；状态为RETRIEVAL_CAPTURE_VERIFIED_NOT_HTTP_INTEGRATED。
++
++Expected：旧v1返回格式/行为兼容；没有真实资料/规则放行时不伪装学生问答闭环。捕获的qualified标记来自当前reader核验，不信任客户端DTO；后续决策仍重读，捕获不消除最终下发撤回窗口。
++
+ ## Task3：查证页面与真实链路（依赖Task2）
+ 
+ - [ ] 新查证首页、原文位置/版本、确认项/未知项与必要澄清；旧v1/学分URL保持独立兼容。
+--- before/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
++++ after/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
+@@ -211,3 +211,31 @@
+ Final: Ruling: 历史dirty、旧自由RAG与全仓默认测试不外推本批增量 — 保留旧风险 — 成本是RC-04与全仓风险仍OPEN。
+ 
+ 后续Task2/3/4保持未完成；资料绑定/审核、自然语言匹配、最终下发/身份链及实际质量仍需各自证据。
++
++Task2C: in_progress — 白名单与before已保存至r5-capture-20261008-01；复用既有检索/引用工厂/核验/审计。
++
++Task2C: Ruling: RetrievedChunk缺sourceId而核验要求source/chunk双身份 — 添加服务端来源身份；保留旧七参构造器但新捕获拒绝null来源，不凭chunk推造source — 成本是旧手工候选需补来源才可进入新链路。
++
++Task2C: Ruling: 整批成功才返回快照，审计仓储没有批事务接口 — 先全部核验再审计，任何审计故障不返回证据；可能留部分审计记录 — 成本是失败时需按捕获路由判读尝试留痕，不能称已向学生下发。
++
++Task2C: Ruling: 使用独立临时库合成夹具验证实际SQL连接，不修改原库或资料资格 — 自动化工程验收可继续，真实2025模板/展示资格仍待核对 — 成本是不能据此启用学生入口。
++
++Task2C: complete — 有效RED单元12/9失败、真库26/3失败→GREEN12及真库41；最终18类177单元、29合同。一次独立审查见r5-capture-20261008-01/review.md；结果及裁定见review-resolution.json。无commit/部署，源码增量按before字节留证。
++
++Final: Ruling: 真实规则语义、条件完整性、匹配和展示资格不由合成连接测试裁定 — 保留B-01/B-02及DRAFT — 成本是审核完成前不能激活真实规则或学生试点。
++
++Final: Ruling: 自然语言/HTTP身份与CSRF/模型选择/学生页面未装配 — 本批只连接共享检索与核验 — 成本是完整应用仍须分别实施和验收。
++
++Final: Ruling: 顺序当前读不证明最终下发、历史再展示撤回或跨片段原子一致性 — 无并发线性化证据 — 成本是后续仍要补下发与撤回竞态。
++
++Final: Ruling: 实际JDBC审计持久化、最新索引条目解析及核验profile绑定未认可 — 本批审计为内存替身且旧仓储按chunk找最新entry — 成本是装配时须验证/限定profile与切分版本，不能将本次通过外推真实审计正确性。
++
++Final: Ruling: 公开record只按可信服务端链消费，不暴露客户端自证对象 — 本批无HTTP反序列化路径 — 成本是未来客户端DTO必须独立设计，不能直接接收模板或快照。
++
++Final: Ruling: 完整生命周期/有效期/发布清单保留R6门禁 — reader只验证已有字段 — 成本是扩展前仍须补完整时效控制，不能提前宣称当前适用。
++
++Final: Ruling: 供应商表现、费用、报告质量与用户收益保持NOT_RUN — 没有真实执行/参与者证据 — 成本是工程成绩不能支持产品收益或金额结论。
++
++Final: Ruling: 历史dirty、旧自由RAG事实风险及默认全仓测试风险不由本批关闭 — 按before白名单审查 — 成本是局部通过不能外推全仓通过，RC-04-SEMANTICS保持OPEN。
++
++后续Task2/3/4及G0/G2保持未完成；工程连接不自动审核真实规则或资料，也不关闭旧RAG语义风险。

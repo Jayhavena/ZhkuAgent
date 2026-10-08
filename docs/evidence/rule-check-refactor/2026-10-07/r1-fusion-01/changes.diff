@@ -1,0 +1,419 @@
+--- a/knowledge/src/main/java/com/zhku/knowledge/retrieval/HybridRetrievalService.java
++++ b/knowledge/src/main/java/com/zhku/knowledge/retrieval/HybridRetrievalService.java
+@@ -34,16 +34,36 @@
+             ChunkCandidateRetriever lexical,
+             ChunkCandidateRetriever vector
+     ) {
++        // 20 只是待评估的候选预算起点；旧调用方仍只指定最终返回上限。
++        return retrieve(query, Math.max(limit, 20), limit, lexical, vector);
++    }
++
++    /**
++     * 分开每路候选预算与融合后返回上限，供评估时比较不同候选深度。
++     *
++     * @param candidateLimit 每路检索的候选上限，必须不小于返回上限
++     * @param resultLimit 融合后返回的候选上限
++     */
++    public RetrievalOutcome retrieve(
++            String query,
++            int candidateLimit,
++            int resultLimit,
++            ChunkCandidateRetriever lexical,
++            ChunkCandidateRetriever vector
++    ) {
+         Objects.requireNonNull(query, "查询不能为空");
+         Objects.requireNonNull(lexical, "词法检索器不能为空");
+         Objects.requireNonNull(vector, "向量检索器不能为空");
+-        if (limit <= 0) {
++        if (resultLimit <= 0) {
+             throw new IllegalArgumentException("返回上限必须为正数");
+         }
++        if (candidateLimit < resultLimit) {
++            throw new IllegalArgumentException("候选上限必须不小于返回上限");
++        }
+ 
+-        // 两路各自最多取 limit 条：融合后的前 limit 名不可能来自单路更靠后的位置。
+-        PathResult lexicalResult = invoke(lexical, query, limit);
+-        PathResult vectorResult = invoke(vector, query, limit);
++        // 双路都靠后的共同候选可能在 RRF 中胜出，必须融合后再按返回上限截断。
++        PathResult lexicalResult = invoke(lexical, query, candidateLimit);
++        PathResult vectorResult = invoke(vector, query, candidateLimit);
+ 
+         Map<String, RetrievedChunk> byChunkId = new LinkedHashMap<>();
+         lexicalResult.chunks().forEach(chunk -> byChunkId.put(chunk.chunkId().toString(), chunk));
+@@ -56,7 +76,7 @@
+             if (chunk != null) {
+                 chunks.add(chunk);
+             }
+-            if (chunks.size() == limit) {
++            if (chunks.size() == resultLimit) {
+                 break;
+             }
+         }
+--- a/knowledge/src/test/java/com/zhku/knowledge/retrieval/HybridRetrievalServiceTest.java
++++ b/knowledge/src/test/java/com/zhku/knowledge/retrieval/HybridRetrievalServiceTest.java
+@@ -4,8 +4,10 @@
+ 
+ import java.util.List;
+ import java.util.UUID;
++import java.util.ArrayList;
+ 
+ import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
+ 
+ /**
+  * 混合检索编排测试：双路融合、单路降级、双路不可用。
+@@ -27,6 +29,115 @@
+ 
+     private final HybridRetrievalService service = new HybridRetrievalService(
+             new HybridCandidateFuser());
++
++    @Test
++    void sharedSecondRankMustSurviveBeforeFinalTruncation() {
++        // 两路第二名共享证据的融合分高于单路第一名，不能先按最终 K 截掉它。
++        RetrievalOutcome outcome = service.retrieve(
++                "校园规则", 1, fakeRetriever(A, C), fakeRetriever(B, C));
++
++        assertThat(idsOf(outcome)).containsExactly("chunk-c");
++    }
++
++    @Test
++    void shouldFuseTwoCandidatesBeforeReturningOne() {
++        RetrievalOutcome outcome = service.retrieve(
++                "校园规则", 2, 1, fakeRetriever(A, C), fakeRetriever(B, C));
++
++        assertThat(idsOf(outcome)).containsExactly("chunk-c");
++        assertThat(outcome.lexicalAvailable()).isTrue();
++        assertThat(outcome.vectorAvailable()).isTrue();
++    }
++
++    @Test
++    void shouldForwardCandidateBudgetToBothPathsAndLimitFinalResults() {
++        List<Integer> requestedLimits = new ArrayList<>();
++        ChunkCandidateRetriever lexical = (query, limit) -> {
++            assertThat(query).isEqualTo("校园规则");
++            requestedLimits.add(limit);
++            return fakeRetriever(A, B, C).retrieve(query, limit);
++        };
++        ChunkCandidateRetriever vector = (query, limit) -> {
++            assertThat(query).isEqualTo("校园规则");
++            requestedLimits.add(limit);
++            return fakeRetriever(B, C).retrieve(query, limit);
++        };
++
++        RetrievalOutcome outcome = service.retrieve("校园规则", 3, 2, lexical, vector);
++
++        assertThat(requestedLimits).containsExactly(3, 3);
++        assertThat(idsOf(outcome)).containsExactly("chunk-b", "chunk-c");
++    }
++
++    @Test
++    void shouldKeepLegacyCandidateBudgetAtLeastAsLargeAsRequestedResults() {
++        List<Integer> requestedLimits = new ArrayList<>();
++        ChunkCandidateRetriever retriever = (query, limit) -> {
++            requestedLimits.add(limit);
++            return List.of();
++        };
++
++        service.retrieve("校园规则", 1, retriever, retriever);
++        service.retrieve("校园规则", 21, retriever, retriever);
++
++        // 小 K 有更深候选，大 K 不被默认预算反向压缩。
++        assertThat(requestedLimits).containsExactly(20, 20, 21, 21);
++    }
++
++    @Test
++    void shouldRejectInvalidBudgetsBeforeInvokingEitherPath() {
++        ChunkCandidateRetriever unexpected = (query, limit) -> {
++            throw new AssertionError("非法预算不应触发检索");
++        };
++        for (int[] budgets : List.of(
++                new int[]{0, 1}, new int[]{-1, 1}, new int[]{1, 0},
++                new int[]{1, -1}, new int[]{1, 2})) {
++            assertThatThrownBy(() -> service.retrieve(
++                    "校园规则", budgets[0], budgets[1], unexpected, unexpected))
++                    .isInstanceOf(IllegalArgumentException.class);
++        }
++        assertThatThrownBy(() -> service.retrieve("校园规则", 0, unexpected, unexpected))
++                .isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(() -> service.retrieve("校园规则", -1, unexpected, unexpected))
++                .isInstanceOf(IllegalArgumentException.class);
++    }
++
++    @Test
++    void shouldPreserveSurvivingPathOrderAndFinalLimitForEitherUnavailablePath() {
++        ChunkCandidateRetriever unavailable = (query, limit) -> {
++            throw new RetrieverUnavailableException("测试路不可用");
++        };
++        RetrievalOutcome lexicalOnly = service.retrieve(
++                "校园规则", 2, 1, fakeRetriever(C, B), unavailable);
++        RetrievalOutcome vectorOnly = service.retrieve(
++                "校园规则", 2, 1, unavailable, fakeRetriever(C, B));
++
++        assertThat(idsOf(lexicalOnly)).containsExactly("chunk-c");
++        assertThat(lexicalOnly.lexicalAvailable()).isTrue();
++        assertThat(lexicalOnly.vectorAvailable()).isFalse();
++        assertThat(idsOf(vectorOnly)).containsExactly("chunk-c");
++        assertThat(vectorOnly.lexicalAvailable()).isFalse();
++        assertThat(vectorOnly.vectorAvailable()).isTrue();
++    }
++
++    @Test
++    void shouldReturnSharedCandidateOnceAfterFusion() {
++        RetrievalOutcome outcome = service.retrieve(
++                "校园规则", 3, 3, fakeRetriever(A, C), fakeRetriever(B, C));
++
++        assertThat(idsOf(outcome)).containsExactly("chunk-c", "chunk-a", "chunk-b");
++    }
++
++    @Test
++    void shouldKeepTieOrderWhenPathsAreSwapped() {
++        RetrievalOutcome first = service.retrieve(
++                "校园规则", 2, 2, fakeRetriever(A, B), fakeRetriever(B, A));
++        RetrievalOutcome swapped = service.retrieve(
++                "校园规则", 2, 2, fakeRetriever(B, A), fakeRetriever(A, B));
++
++        assertThat(idsOf(first)).containsExactly("chunk-a", "chunk-b");
++        assertThat(idsOf(swapped)).containsExactly("chunk-a", "chunk-b");
++    }
+ 
+     @Test
+     void shouldFuseBothPathsAndMarkBothAvailable() {
+@@ -93,7 +204,8 @@
+     }
+ 
+     private static ChunkCandidateRetriever fakeRetriever(RetrievedChunk... chunks) {
+-        return (query, limit) -> List.of(chunks);
++        // 替身必须真的截断，否则融合前漏候选的问题会被测试掩盖。
++        return (query, limit) -> List.of(chunks).stream().limit(limit).toList();
+     }
+ 
+     private static List<String> idsOf(RetrievalOutcome outcome) {
+--- a/docs/superpowers/plans/2026-10-07-rule-check-p0-plan.md
++++ b/docs/superpowers/plans/2026-10-07-rule-check-p0-plan.md
+@@ -10,7 +10,7 @@
+ 
+ **Spec:** [产品范围约定](../../product/rule-check-scope.md)、[主路线图](2026-10-07-rule-check-refactor-roadmap.md) 与 [诊断报告](../../reviews/2026-10-07-refactor-design.md)。五种查证业务状态是后续目标，不修改本批ModelResponse四字段协议。
+ 
+-日期：2026-10-07；状态：用户已授权下一步R0，Task 1工程部分完成技术验证，资料/人工参考仍待确认，G0未通过。Task 2–6未开始；没有修改产品业务实现。实际执行见 [R0验收](../../evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md)。
++日期：2026-10-07；状态：Task 1工程部分完成技术验证，资料/人工参考仍待确认，G0未通过。用户再次授权下一步后独立推进Task 2，RC-02截断缺陷已修复并复验，预算调优仍待人工参考；Task 3–6未开始。实际执行见 [R0验收](../../evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md)、[R1验收](../../evidence/rule-check-refactor/2026-10-07/r1-fusion-01/acceptance.md)。此次局部修复不代替G0资料门禁，也不宣称产品收益。
+ 
+ 评估口径沿用 [Eval 协议](../../product/rule-check-eval-contract.md)：R0准备人工参考和原子rubric，P0以确定性回归为主，不要求先引入付费模型裁判或通用平台。质量、已知风险与裁判验证样本用途分开。
+ 
+@@ -56,7 +56,7 @@
+ 
+ 单元白名单起点：HybridRetrievalServiceTest、HybridCandidateFusionTest、GroundedAnswerComposerTest、RetrievalAugmentedAnswerServiceTest、RetrievalEligibilityFilterTest、ZhkuLocalAdminControllerTest、ZhkuLocalAdminPageResourceTest。新增 parser/guard/mapping 测试随任务加入。数据库起点：KnowledgeSchemaTest、JdbcCandidateRetrieverTest。其他必需类在声明真实来源与性质后加入；禁止通配符和供应商测试自动匹配。
+ 
+-未来创建入口后，执行形态如下。这些新入口命令本轮未执行；Task 1 必须在普通 Windows 终端验证后才能标记可用：
++入口的执行形态如下。Task 1已完成普通Windows终端验证，实际R0/R1选类、结果与退出情况以独立批次为准，不能把下面的示例命令当执行报告：
+ 
+ ```powershell
+ .\knowledge\scripts\verify-rule-check-refactor.cmd -Mode Unit -Phase r1-red -Tests HybridRetrievalServiceTest
+@@ -96,7 +96,7 @@
+ 
+ **Consumes：**Task1 Unit入口。**Produces：**兼容旧方法的新候选预算重载。问题：RC-02。
+ 
+-- [ ] **Step 1：在现有测试类增加真实截断的反例。** 使用该类已有A/B/C、service和idsOf：
++- [x] **Step 1：在现有测试类增加真实截断的反例。** 使用该类已有A/B/C、service和idsOf：
+ 
+ ```java
+ @Test
+@@ -110,8 +110,8 @@
+ }
+ ```
+ 
+-- [ ] **Step 2：运行 r1-red。** 预期为实际排名断言失败，不能拿新重载不存在导致编译失败代替该反例。保存旧源码哈希、请求limit和最终结果。
+-- [ ] **Step 3：最小实现。** 保留四参入口并委托五参重载；独立candidateLimit，先融合、最后截resultLimit。默认20只是首轮基线，显式重载约束candidateLimit≥resultLimit>0，修改错误注释。
++- [x] **Step 2：运行 r1-red。** r1-red-01为环境编译失败，保留但不算行为RED；r1-red-02实际6项、1排名断言失败：期望C实际A，无错误/跳过。保存旧源码哈希、请求limit和最终结果。
++- [x] **Step 3：最小实现。** 保留四参入口并委托五参重载；独立candidateLimit，先融合、最后截resultLimit。默认20只是首轮基线，显式重载约束candidateLimit≥resultLimit>0，修改错误注释。
+ 
+ ```java
+ public RetrievalOutcome retrieve(String query, int resultLimit,
+@@ -120,9 +120,9 @@
+ }
+ ```
+ 
+-- [ ] **Step 4：新增边界断言。** 显式候选2/结果1得到C；候选1/结果2及非正数拒绝；单路不可用、双路空、重复候选和稳定排序保持。既有fakeRetriever改为严格遵守limit。
+-- [ ] **Step 5：运行 r1-green 与相关检索单元。** 开发集比较10/20/40候选，记录召回/耗时/返回量，不调锁定留出。
+-- [ ] **Step 6：保存diff、RED/GREEN、指标与问题更新。** RC-02仅关闭截断缺陷，不宣称整体检索最优。
++- [x] **Step 4：新增边界断言。** 显式候选2/结果1得到C；候选1/结果2及非正数在调用检索前拒绝；任一路不可用、双路空/不可用、跨路重复候选和稳定排序保持。既有fakeRetriever改为严格遵守limit。
++- [ ] **Step 5：运行 r1-green 与相关检索单元，并做预算评估。** 工程部分已完成：r1-green-01两类19项、r1-regression-01五类44项通过，无失败/错误/跳过，源码无漂移、资源退出。开发集10/20/40召回/耗时/返回量比较未执行：人工参考未锁定，不用合成反例充当质量收益，也不调报告集。
++- [x] **Step 6：保存diff、RED/GREEN、指标与问题更新。** RC-02仅关闭截断缺陷，不宣称整体检索最优。Task 2为CODE_VERIFIED_CALIBRATION_PENDING，不整体标全部完成。
+ 
+ ## Task 3：候选原文与安全审核界面
+ 
+--- a/docs/evidence/rule-check-refactor/2026-10-07/issues.json
++++ b/docs/evidence/rule-check-refactor/2026-10-07/issues.json
+@@ -3,7 +3,7 @@
+   "program": "rule-check-refactor",
+   "createdDate": "2026-10-07",
+   "timezone": "Asia/Shanghai",
+-  "deliveryStage": "BASELINE_TECHNICAL_VALIDATION",
++  "deliveryStage": "LOCAL_DEFECT_TECHNICAL_VALIDATION",
+   "productScopePath": "docs/product/rule-check-scope.md",
+   "evalContractPath": "docs/product/rule-check-eval-contract.md",
+   "evaluationDesignStatus": "DOCUMENTED_NOT_EXECUTED",
+@@ -15,7 +15,7 @@
+     "INSUFFICIENT_EVIDENCE",
+     "CONFLICTING_EVIDENCE"
+   ],
+-  "businessImplementationStarted": false,
++  "businessImplementationStarted": true,
+   "testsExecutedInThisPlanningTurn": false,
+   "issues": [
+     {
+@@ -47,18 +47,37 @@
+       "tasks": [
+         "R1"
+       ],
+-      "status": "OPEN",
++      "status": "CLOSED",
+       "problem": "两路候选提前按最终K截断，现有替身不遵守limit",
+-      "evidenceKind": "STATIC_REVIEW",
++      "evidenceKind": "UNIT_TEST",
+       "sourcePaths": [
+         "knowledge/src/main/java/com/zhku/knowledge/retrieval/HybridRetrievalService.java",
+         "knowledge/src/test/java/com/zhku/knowledge/retrieval/HybridRetrievalServiceTest.java"
+       ],
+-      "verificationStatus": "NOT_RUN",
++      "verificationStatus": "PASSED",
+       "closeWhen": [
+         "A/C与B/C行为RED已保存",
+         "候选2结果1返回C",
+         "稳定排序和降级回归通过"
++      ],
++      "closedAt": "2026-10-07T22:22:43.206232+08:00",
++      "closureScope": "仅融合前按最终K截断缺陷；不代表真实召回率、最优预算或整体查证事实质量",
++      "budgetCalibrationStatus": "NOT_RUN",
++      "evidencePaths": [
++        "docs/evidence/rule-check-refactor/2026-10-07/r1-red-02/results.json",
++        "docs/evidence/rule-check-refactor/2026-10-07/r1-green-01/results.json",
++        "docs/evidence/rule-check-refactor/2026-10-07/r1-regression-01/results.json",
++        "docs/evidence/rule-check-refactor/2026-10-07/r1-fusion-01/integrity-check.json"
++      ],
++      "verifiedSourceHashes": [
++        {
++          "path": "knowledge/src/main/java/com/zhku/knowledge/retrieval/HybridRetrievalService.java",
++          "sha256": "5883d4dc59f4bbc9fcb1aaf735200c64fe4831ae487af643f6568005b49bbf4d"
++        },
++        {
++          "path": "knowledge/src/test/java/com/zhku/knowledge/retrieval/HybridRetrievalServiceTest.java",
++          "sha256": "2190bb0ed7d2b77c5b65aba32929e31ea275140483982f0aa5a569a4dbb1cc95"
++        }
+       ]
+     },
+     {
+@@ -377,13 +396,27 @@
+   ],
+   "verificationInfrastructureImplemented": true,
+   "latestExecution": {
+-    "stage": "R0_PARTIAL",
+-    "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md",
++    "stage": "R1_CODE_VERIFIED_CALIBRATION_PENDING",
++    "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r1-fusion-01/acceptance.md",
+     "testsExecuted": true,
+-    "businessCodeChanged": false,
++    "businessCodeChanged": true,
+     "productEvaluationRun": false,
+     "providerCalled": false,
++    "databaseOperationRun": false,
+     "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
++    "budgetCalibration": "NOT_RUN_HUMAN_REFERENCE_NOT_LOCKED",
+     "planningTurnFieldsAreHistorical": true
+-  }
++  },
++  "executionHistory": [
++    {
++      "stage": "R0_PARTIAL",
++      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md",
++      "testsExecuted": true,
++      "businessCodeChanged": false,
++      "productEvaluationRun": false,
++      "providerCalled": false,
++      "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
++      "planningTurnFieldsAreHistorical": true
++    }
++  ]
+ }
+--- a/docs/evidence/rule-check-refactor/2026-10-07/README.md
++++ b/docs/evidence/rule-check-refactor/2026-10-07/README.md
+@@ -1,6 +1,6 @@
+ # 校园规则查证重构：问题与开发证据
+ 
+-日期：2026-10-07。当前交付阶段：**R0工程基线技术验证，资料/评估准备部分完成**。本目录保留历史规划记录，追加 [R0验收](r0-baseline-01/acceptance.md)、隔离入口/单元与临时库结构证据；**没有产品业务修复、真实模型评估或用户收益数据**。
++日期：2026-10-07。当前交付阶段：**R1局部缺陷技术验证，R0资料/评估准备部分完成**。本目录保留历史规划记录，追加 [R0验收](r0-baseline-01/acceptance.md)、[R1验收](r1-fusion-01/acceptance.md)及每次执行的独立证据；**RC-02已修复复验，没有真实模型评估或用户收益数据**。
+ 
+ - [主路线图](../../../superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md)
+ - [P0任务级计划](../../../superpowers/plans/2026-10-07-rule-check-p0-plan.md)
+@@ -11,14 +11,14 @@
+ - `scope-alignment-manifest.json`：后续定位、五种回答状态与验收口径整理后的文档指纹；同样不代表业务已实现。
+ - `eval-alignment-manifest.json`：本次参照学习材料同步评估设计的文档指纹，保留前两份历史记录；不含项目评估成绩。
+ 
+-定位已由用户确定；R0隔离入口和工程基线已验证，当前资料、人工金标准与查证流程未完成，G0未通过。问题均未关闭：RC-09/10部分推进，其余仍OPEN。RC-04语义验证加入部分回答/关键例外边界，RC-09加入样本/评分可信度/配对比较；工程通过不能关闭产品价值问题。
++定位已由用户确定；R0隔离入口和工程基线已验证，当前资料、人工金标准与查证流程未完成，G0未通过。RC-02截断缺陷已CLOSED，RC-09/10部分推进，其余仍OPEN。R1候选预算调优尚未执行，默认20不表示最优。RC-04语义验证加入部分回答/关键例外边界，RC-09加入样本/评分可信度/配对比较；工程通过不能关闭产品价值问题。
+ 
+ ## 1. 初始问题索引
+ 
+ | 问题 | 对应任务 | 当前状态 | 关闭所需的新增证据 |
+ | --- | --- | --- | --- |
+ | RC-01 定位/入口错位 | R0/R5 | 静态确认，OPEN | 范围卡、真实查证流程、用户对照结果 |
+-| RC-02 融合前截断 | R1 | 静态确认，OPEN | 遵守limit的行为RED、C胜出的GREEN、降级/排序回归 |
++| RC-02 融合前截断 | R1 | CLOSED，UNIT_TEST | r1-red-02真实排名失败、r1-green-01及r1-regression-01通过；见R1验收 |
+ | RC-03 管理候选原文未展示 | R2 | 静态确认，OPEN | 当前JSON/网页复现、映射修复、真实原文/编辑对照 |
+ | RC-04 输出协议与事实支撑不足 | R3/R5 | 静态确认，OPEN | 结构和事实两个子项分开；严格字段/空证据，以及数字/对象/例外反例 |
+ | RC-05 激活/资格/时间约束不完整 | R4/R6 | 静态确认，OPEN | 临时库profile/版本/hash矩阵；完整时效/撤回/清单合同 |
+@@ -53,7 +53,7 @@
+ 
+ 纯单元不产生DB或浏览器材料，明确记N/A及原因，不创建假的database.json/screenshots。真库另存实际目标、schema和连接/容器退出；浏览器保存必要页面观察及服务端事件关联。真实供应商另存外发/usage元数据，不把替身记成真实供应商。
+ 
+-评估批次另按需要保存 `cases-manifest.json`、`outputs.jsonl`、`scores.jsonl`、`errors.jsonl`、`comparison.json`；使用裁判才有 `grader-validation.json`，独立重复才有 `trials.jsonl`。只保存经审核的公开/合成样本或获准脱敏输出，以及评分所需最小原文依据；不收集学生完整私密对话、密钥、Cookie或模型内部思维链。未保存可复核输出时不能声称语义评分可复现。本轮仅规划，不生成假评分或空PASS产物。
++评估批次另按需要保存 `cases-manifest.json`、`outputs.jsonl`、`scores.jsonl`、`errors.jsonl`、`comparison.json`；使用裁判才有 `grader-validation.json`，独立重复才有 `trials.jsonl`。只保存经审核的公开/合成样本或获准脱敏输出，以及评分所需最小原文依据；不收集学生完整私密对话、密钥、Cookie或模型内部思维链。未保存可复核输出时不能声称语义评分可复现。当前产品评分未执行，不生成假评分或空PASS产物。
+ 
+ 不复制整个仓库、依赖、数据卷或全部历史证据；必要原文件与diff/哈希足够支持本批恢复。日常证据索引链接原文件，不反复拷贝相同历史报告。
+ 
+--- a/docs/product/rule-check-scope.md
++++ b/docs/product/rule-check-scope.md
+@@ -1,6 +1,6 @@
+ # 校园规则查证助手：产品定位与范围约定
+ 
+-版本：1.1；日期：2026-10-07。用户已确定产品方向，本文件整理该方向及回答、验证和实施约定。**R0工程基线已技术验证；新查证流程、回答协议和预期收益尚未验收。**
++版本：1.2；日期：2026-10-07。用户已确定产品方向，本文件整理该方向及回答、验证和实施约定。**R0工程基线已技术验证；R1融合前截断缺陷已修复复验；新查证流程、回答协议和预期收益尚未验收。G0仍待资料及人工参考。**
+ 
+ 本文件作为后续产品定位、回答协议和验收口径的统一依据。开发步骤见 [路线图](../superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md)，首批细节见 [P0计划](../superpowers/plans/2026-10-07-rule-check-p0-plan.md)，实施证据见 [问题与证据目录](../evidence/rule-check-refactor/2026-10-07/README.md)。
+ 
+--- a/.superpowers/sdd/2026-10-07-rule-check-p0-plan/progress.md
++++ b/.superpowers/sdd/2026-10-07-rule-check-p0-plan/progress.md
+@@ -25,3 +25,13 @@
+ Task 1: PARTIAL — 技术入口/基线已验证；2026正文/当前有效性/学生发布资格及人工参考待确认，36质量候选与16风险草稿未锁定、未评分；G0未通过。停止在用户资料依赖，不进入Task 2。
+ 
+ Review: 本轮按R0范围自审入口、记录、资料和评分边界；未做完整P0/业务分支最终审查，不派生新任务或清理历史工作区。
++
++Task 2: Ruling: 用户再次授权“开始下一步”，R0显式单元入口已验证，融合截断缺陷可用独立合成排名验证 — 本轮仅推进R1，不等待新版资料完成；G0仍未通过，不启动真实质量评分或用户试点。代价是候选预算调优继续依赖人工参考，不能将局部工程修复写成收益验证。
++
++Task 2: in_progress; evidence: docs/evidence/rule-check-refactor/2026-10-07/r1-fusion-01/；保留四参调用兼容，不修改调用方、融合器、POM或数据库。
++
++Task 2: 首次r1-red-01受限会话testCompile访问本机依赖失败，6项尚未执行；按systematic-debugging调查，不算业务RED。依赖文件可由PowerShell读取，显式离线入口在获准本机权限下新批次r1-red-02完成测试：6项/1实际排名断言失败，期望C实际A。保留两个批次，不覆盖或误归因。
++
++Task 2: GREEN两类19项；相关回归五类44项，无错误/失败/跳过；源码无漂移、Java退出，未运行数据库或供应商。已恢复四参兼容和独立预算；RC-02闭环只针对融合前截断。
++
++Task 2: CODE_VERIFIED_CALIBRATION_PENDING — Steps1–4/6完成；Step5工程回归完成，真实开发集10/20/40预算比较NOT_RUN。G0未通过，R2–R4未开始。按本批增量与计划自审；不等于完整P0/分支的最终独立审查，不提交已有dirty。
+--- a/docs/superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md
++++ b/docs/superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md
+@@ -10,7 +10,7 @@
+ 
+ **Spec:** 产品定位、回答边界与成功标准以 [范围约定](../../product/rule-check-scope.md) 为统一依据；问题和架构论证见 [完整诊断与重构报告，尤其第 8 点](../../reviews/2026-10-07-refactor-design.md)。本路线图调整原计划的验证顺序：用户价值评测提前到单主题完成时，而不是扩展完成后才验证。
+ 
+-日期：2026-10-07；状态：**计划已制定，业务开发未开始，收益未实测**。执行说明见 [P0 实施计划](2026-10-07-rule-check-p0-plan.md)；问题与证据见 [证据目录](../../evidence/rule-check-refactor/2026-10-07/README.md)。
++日期：2026-10-07；状态：**R0工程基线通过，资料/人工参考仍待确认；R1融合前截断缺陷已修复复验，预算调优和产品收益未实测**。G0仍未通过；此次独立局部修复不放行学生试点或后续产品阶段。执行说明见 [P0 实施计划](2026-10-07-rule-check-p0-plan.md)；问题与证据见 [证据目录](../../evidence/rule-check-refactor/2026-10-07/README.md)。
+ 
+ **Eval 约定：**以 [评估协议](../../product/rule-check-eval-contract.md) 定义样本用途、原子评分、评分器验证与版本比较。评估从 R0 开始，首轮以人工为准；不先建设通用评估平台。下列数值是有限样本验收线，不能直接证明总体质量或统计提升。
+ 
+@@ -29,7 +29,7 @@
+ - 普通用户终端验证独立于 Codex PATH；复用启动器及工具解析；中文兼容覆盖 Windows PowerShell 5.1 的 UTF-8 会话边界，不改全局配置。
+ - 中文注释只解释业务边界、状态约束与风险，并随实现同步更新。
+ - 保留已有 dirty 工作区；只记录/修改本任务白名单。禁止 reset/clean、批量提交已有改动、覆写旧报告。
+-- 当前任务仅制定路线图和证据制度。未来执行按阶段门禁推进，不把本文件理解成自动批准部署、破坏性操作或所有 P2 扩张。
++- 路线图制定时仅规划；当前执行范围由用户授权与阶段实施计划限定。执行仍按阶段门禁推进，不把本文件理解成自动批准部署、破坏性操作或所有 P2 扩张。
+ 
+ ## Review Focus
+ 

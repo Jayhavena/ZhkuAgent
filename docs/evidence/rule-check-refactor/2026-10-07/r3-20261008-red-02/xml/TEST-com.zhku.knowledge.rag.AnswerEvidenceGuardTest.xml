@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.11" tests="12" errors="0" skipped="0" failures="5"><testcase name="rejectsBlankCitationEvenIfApprovedListContainsIt" classname="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.071"><failure message="&#xA;Expecting Optional to contain a value but it was empty." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting Optional to contain a value but it was empty.
+	at com.zhku.knowledge.rag.AnswerEvidenceGuardTest.rejectsBlankCitationEvenIfApprovedListContainsIt(AnswerEvidenceGuardTest.java:35)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="keepsExistingLowScoreDecline" classname="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.001" /><testcase name="injectionTextCannotSupportLegacyOutcomeAssertion" classname="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.001" /><testcase name="rejectsLegacyOutcomeAssertionWithoutSupport" classname="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.0" /><testcase name="substantiveAnswerCannotPassWithNoCitation" classname="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.001"><failure message="&#xA;Expecting Optional to contain a value but it was empty." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting Optional to contain a value but it was empty.
+	at com.zhku.knowledge.rag.AnswerEvidenceGuardTest.substantiveAnswerCannotPassWithNoCitation(AnswerEvidenceGuardTest.java:28)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="rejectsUnknownAndWhitespaceRewrittenCitations" classname="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.001" /><testcase name="rejectsNonFiniteScoresFromDirectConstruction" classname="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.002"><failure message="[非法分值 NaN] &#xA;Expecting Optional to contain a value but it was empty." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+[非法分值 NaN] 
+Expecting Optional to contain a value but it was empty.
+	at com.zhku.knowledge.rag.AnswerEvidenceGuardTest.rejectsNonFiniteScoresFromDirectConstruction(AnswerEvidenceGuardTest.java:42)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="rejectsScoresOutsideProtocolRange" classname="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.001"><failure message="&#xA;Expecting Optional to contain a value but it was empty." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting Optional to contain a value but it was empty.
+	at com.zhku.knowledge.rag.AnswerEvidenceGuardTest.rejectsScoresOutsideProtocolRange(AnswerEvidenceGuardTest.java:49)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="keepsExistingThresholdAndUpperBoundary" classname="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.001" /><testcase name="keepsExplicitHandoffDecline" classname="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.001" /><testcase name="rejectsBlankAnswers" classname="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.001"><failure message="&#xA;Expecting Optional to contain a value but it was empty." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting Optional to contain a value but it was empty.
+	at com.zhku.knowledge.rag.AnswerEvidenceGuardTest.rejectsBlankAnswers(AnswerEvidenceGuardTest.java:22)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="acceptsStructurallyValidCitedAnswer" classname="com.zhku.knowledge.rag.AnswerEvidenceGuardTest" time="0.0" /></testsuite>

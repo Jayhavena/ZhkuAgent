@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="22.096" tests="26" errors="0" skipped="0" failures="3"><testcase name="ineligibleNearestMustNotDisplaceEligibleResultAndJdbcReadIsBounded" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="4.781"></testcase><testcase name="retirementDuringEmbeddingMustPreventCandidateRead" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.629"></testcase><testcase name="retiredProfileMustNotServeOnlineOrCallEmbedding" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.654"></testcase><testcase name="unconfirmedSharingMustBeExcludedOnBothPaths" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="1.015"></testcase><testcase name="offlineEvaluationStillRejectsRetiredAndIneligibleSource" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="1.741"></testcase><testcase name="missingProfileMustNotCallEmbedding" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.739"></testcase><testcase name="sharedHybridCandidatesCanBeCapturedAndReverifiedWithRealReader" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.995"><failure message="&#xA;Expecting ArrayList:&#xA;  [null, null]&#xA;to contain only:&#xA;  [6b111111-1111-4111-8111-111111111111]&#xA;element(s) not found:&#xA;  [6b111111-1111-4111-8111-111111111111]&#xA;and element(s) not expected:&#xA;  [null, null]&#xA;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting ArrayList:
+  [null, null]
+to contain only:
+  [6b111111-1111-4111-8111-111111111111]
+element(s) not found:
+  [6b111111-1111-4111-8111-111111111111]
+and element(s) not expected:
+  [null, null]
+
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.sharedHybridCandidatesCanBeCapturedAndReverifiedWithRealReader(JdbcCandidateRetrieverTest.java:142)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="actualVectorLengthMismatchMustFailThisPath" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.974"></testcase><testcase name="indexChecksumDriftMustExcludeOnlyStaleChunk" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.661"></testcase><testcase name="equalCosineDistanceKeepsStableChunkOrder" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.565"></testcase><testcase name="unfinishedFailedOrRolledBackRunMustBeExcluded" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="1.104"></testcase><testcase name="shouldRespectLimitOnBothPaths" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.615"></testcase><testcase name="chunkingVersionDriftMustExcludeOnlyStaleChunk" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.541"></testcase><testcase name="sourceVersionDriftMustExcludeStaleEntries" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.535"></testcase><testcase name="shouldRankLexicalCandidatesByMatchedTermsAndExcludeIneligible" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.46"><failure message="&#xA;Expecting ArrayList:&#xA;  [null, null]&#xA;to contain only:&#xA;  [6b111111-1111-4111-8111-111111111111]&#xA;element(s) not found:&#xA;  [6b111111-1111-4111-8111-111111111111]&#xA;and element(s) not expected:&#xA;  [null, null]&#xA;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting ArrayList:
+  [null, null]
+to contain only:
+  [6b111111-1111-4111-8111-111111111111]
+element(s) not found:
+  [6b111111-1111-4111-8111-111111111111]
+and element(s) not expected:
+  [null, null]
+
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.shouldRankLexicalCandidatesByMatchedTermsAndExcludeIneligible(JdbcCandidateRetrieverTest.java:131)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="shouldRankVectorCandidatesByCosineDistanceAndExcludeIneligible" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.5"></testcase><testcase name="buildingProfileMustNotServeOnlineOrCallEmbedding" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.379"></testcase><testcase name="explicitOfflineEvaluationCanReadBuildingWithoutActivatingIt" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.483"></testcase><testcase name="clientDimensionMismatchMustNotCallEmbedding" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.495"></testcase><testcase name="capturedCandidatesAreRejectedAfterRealSourceWithdrawal" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.552"><failure message="&#xA;expected: UNVERIFIED_EVIDENCE&#xA; but was: INVALID_CANDIDATES" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: UNVERIFIED_EVIDENCE
+ but was: INVALID_CANDIDATES
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.capturedCandidatesAreRejectedAfterRealSourceWithdrawal(JdbcCandidateRetrieverTest.java:174)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="draftSourceMustBeExcludedOnBothPaths" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.556"></testcase><testcase name="chunkChecksumDriftMustExcludeOnlyStaleChunk" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.596"></testcase><testcase name="internalSourceMustBeExcludedOnBothPaths" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.55"></testcase><testcase name="shouldReturnNoLexicalCandidateWhenQueryHasNoUsableTerm" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.575"></testcase><testcase name="runProfileMismatchMustNotMakeEntriesReadable" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.747"></testcase><testcase name="scopeMismatchMustBeExcludedButNullScopeIsSupported" classname="com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest" time="0.58"></testcase></testsuite>

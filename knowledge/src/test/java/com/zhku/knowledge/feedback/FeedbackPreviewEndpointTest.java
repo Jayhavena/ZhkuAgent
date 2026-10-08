@@ -28,7 +28,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         },
         properties = {
                 "spring.profiles.active=zhku-local-preview",
-                "zhku.local-preview.enabled=true"
+                "zhku.local-preview.enabled=true",
+                "server.address=127.0.0.1",
+                "ZHKU_DB_PASSWORD=test-only"
         }
 )
 @AutoConfigureMockMvc

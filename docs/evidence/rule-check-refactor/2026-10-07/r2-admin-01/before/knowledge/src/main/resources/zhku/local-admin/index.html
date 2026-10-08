@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>仲园 Agent｜本机资料治理</title>
+    <style>
+        :root {
+            color: #193a30;
+            background: #f5f3eb;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+        }
+        .shell {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 64px;
+        }
+        .hero, .card, .flow {
+            border: 1px solid #d7dfd2;
+            border-radius: 18px;
+            background: #fffef9;
+            box-shadow: 0 12px 34px rgba(25, 58, 48, .07);
+        }
+        .hero {
+            padding: 28px 30px;
+            border-top: 4px solid #2d6a4f;
+        }
+        .brand-row, .section-heading, .submission-row, .flow-copy {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .brand {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: .02em;
+        }
+        .badge, .stage-badge, .status-badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 5px 10px;
+            color: #286044;
+            background: #e8f1e8;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        h1 {
+            margin: 22px 0 8px;
+            font-size: clamp(30px, 5vw, 44px);
+            letter-spacing: -.03em;
+        }
+        h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+        h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+        .notice, .hint, .status, .candidate-meta, .stage-note {
+            color: #5b675e;
+            line-height: 1.7;
+        }
+        .notice {
+            max-width: 720px;
+            margin: 0;
+        }
+        .flow {
+            margin-top: 20px;
+            padding: 18px 20px;
+        }
+        .flow-list {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .flow-step {
+            min-height: 68px;
+            padding: 10px;
+            border-radius: 12px;
+            color: #6b746c;
+            background: #f2f3ef;
+        }
+        .flow-step[data-state="current"] {
+            color: #193a30;
+            background: #e8f1e8;
+            box-shadow: inset 0 0 0 1px #9fc1a5;
+        }
+        .flow-step[data-state="complete"] {
+            color: #286044;
+            background: #f0f6ef;
+        }
+        .step-number {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+        .step-name {
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .flow-copy {
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid #e2e8de;
+        }
+        .flow-copy p {
+            margin: 0;
+        }
+        .card {
+            margin-top: 20px;
+            padding: 24px;
+        }
+        .card[data-locked="true"] {
+            opacity: .68;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+        .wide {
+            grid-column: 1 / -1;
+        }
+        label {
+            display: grid;
+            gap: 7px;
+            font-weight: 700;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 11px;
+            border: 1px solid #b8c8b7;
+            border-radius: 10px;
+            color: #193a30;
+            background: #fffef9;
+            font: inherit;
+        }
+        textarea {
+            min-height: 92px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+        input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, .link-button:focus-visible {
+            outline: 3px solid #b9d4bd;
+            outline-offset: 2px;
+        }
+        .checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 400;
+        }
+        .checkbox input {
+            width: auto;
+        }
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        button, .link-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #fff;
+            background: #1f5941;
+            font: inherit;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        button:hover:not(:disabled), .link-button:hover {
+            background: #2d7655;
+        }
+        button.secondary {
+            color: #193a30;
+            background: #e8f1e8;
+        }
+        button.danger {
+            background: #8b2f2f;
+        }
+        button:disabled {
+            cursor: not-allowed;
+            opacity: .58;
+        }
+        .message {
+            margin: 16px 0 0;
+            padding: 12px 14px;
+            border-radius: 11px;
+            line-height: 1.6;
+        }
+        .error {
+            color: #8b2f2f;
+            background: #fbedeb;
+        }
+        .success {
+            color: #286044;
+            background: #e8f1e8;
+        }
+        .list, .candidate-list {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .submission, .candidate {
+            border: 1px solid #dce4d8;
+            border-radius: 12px;
+            padding: 16px;
+            background: #fff;
+        }
+        .submission p, .candidate p {
+            margin: 6px 0 0;
+        }
+        .submission-row {
+            align-items: flex-start;
+        }
+        .candidate form {
+            display: grid;
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .candidate-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .empty {
+            margin: 14px 0 0;
+            color: #5b675e;
+        }
+        /* 反馈聚合是"按天已合并"的最小维度：逐条事件、匿名散列与去重键不下发，
+           因此这里只需要一张平表，不需要详情展开或逐条链接。 */
+        .sub-section {
+            margin-top: 22px;
+        }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .config-item {
+            padding: 12px 14px;
+            border: 1px solid #dce4d8;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .config-label {
+            display: block;
+            color: #5b675e;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .config-value {
+            display: block;
+            margin-top: 6px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+        .table-scroll {
+            overflow-x: auto;
+        }
+        .aggregate-table {
+            width: 100%;
+            margin-top: 14px;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .aggregate-table th, .aggregate-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e2e8de;
+            text-align: left;
+        }
+        .aggregate-table th {
+            color: #5b675e;
+            background: #f2f3ef;
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .aggregate-table caption {
+            margin-top: 10px;
+            color: #5b675e;
+            text-align: left;
+            caption-side: bottom;
+        }
+        .aggregate-table td {
+            overflow-wrap: anywhere;
+        }
+        .aggregate-table td.numeric {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        dialog {
+            width: min(460px, calc(100% - 32px));
+            border: 1px solid #d7dfd2;
+            border-radius: 16px;
+            padding: 0;
+            color: #193a30;
+            background: #fffef9;
+            box-shadow: 0 20px 60px rgba(25, 58, 48, .2);
+        }
+        dialog::backdrop {
+            background: rgba(25, 58, 48, .32);
+        }
+        .dialog-body {
+            padding: 24px;
+        }
+        .dialog-body p {
+            color: #5b675e;
+            line-height: 1.7;
+        }
+        [hidden] {
+            display: none !important;
+        }
+        @media (max-width: 760px) { .shell {
+            width: min(100% - 24px, 1120px);
+            padding-top: 16px;
+        } .hero, .card {
+            padding: 20px;
+        } .flow-list {
+            grid-template-columns: 1fr;
+        } .grid, .candidate-grid, .config-grid {
+            grid-template-columns: 1fr;
+        } .brand-row, .section-heading, .submission-row, .flow-copy {
+            align-items: flex-start;
+            flex-direction: column;
+        } }
+    </style>
+</head>
+<body>
+<main class="shell" aria-labelledby="page-title">
+    <header class="hero">
+        <div class="brand-row"><p class="brand">仲园 Agent</p><p class="badge">仅本机管理员可操作</p></div>
+        <h1 id="page-title">本机资料治理</h1>
+        <p class="notice">公开资料只有经过提取、审核和发布，才会进入校园资料问答。此页面用于本机开发验证，不代表学生端或正式校务系统。</p>
+    </header>
+
+    <section class="flow" aria-labelledby="flow-title">
+        <h2 id="flow-title">资料发布流程</h2>
+        <ol class="flow-list">
+            <li class="flow-step" data-step="SUBMIT" data-state="current"><span class="step-number">步骤 1</span><span class="step-name">提交资料</span></li>
+            <li class="flow-step" data-step="EXTRACT"><span class="step-number">步骤 2</span><span class="step-name">提取片段</span></li>
+            <li class="flow-step" data-step="REVIEW"><span class="step-number">步骤 3</span><span class="step-name">审核内容</span></li>
+            <li class="flow-step" data-step="PUBLISH"><span class="step-number">步骤 4</span><span class="step-name">发布版本</span></li>
+            <li class="flow-step" data-step="VERIFY"><span class="step-number">步骤 5</span><span class="step-name">验证问答</span></li>
+        </ol>
+        <div class="flow-copy"><span id="current-stage" class="stage-badge">当前：提交资料</span><p id="stage-note" class="stage-note">下一步：提交一份可读取的公开 PDF，保存为审核草稿。</p></div>
+    </section>
+
+    <section class="card" id="submit-stage" aria-labelledby="upload-title">
+        <div class="section-heading"><h2 id="upload-title">1. 提交资料</h2><span class="status">仅支持可读取的 PDF</span></div>
+        <form id="upload-form">
+            <div class="grid">
+                <label class="wide">PDF 文件<input name="file" type="file" accept="application/pdf,.pdf" required></label>
+                <label>资料标题<input name="title" value="本科生学生手册（2025版）" required></label>
+                <label>资料类型<select name="documentFamily"><option value="STUDENT_HANDBOOK">学生手册</option><option value="OFFICIAL_NOTICE">官方选课通知</option></select></label>
+                <label>资料版本<input name="sourceVersion" value="2025版" required></label>
+                <label>来源说明<input name="sourceDescription" value="仲恺农业工程学院公开学生手册" required></label>
+                <label>官网公开链接（校内正式材料可留空）<input name="sourceUrl" type="url" placeholder="https://..."></label>
+                <label>适用范围<input name="applicableScope" value="本科生；具体以学校正式通知为准" required></label>
+                <label>知识范围<input name="knowledgeScope" value="PUBLIC_ELECTIVE" pattern="[A-Z0-9_]+" required></label>
+                <label>发布日期（可选）<input name="publicationDate" type="date"></label>
+                <label class="checkbox"><input name="publicationDateConfirmed" type="checkbox">发布日期已由官方确认</label>
+                <label>生效日期（可选）<input name="effectiveDate" type="date"></label>
+                <label class="checkbox"><input name="effectiveDateConfirmed" type="checkbox">生效日期已由官方确认</label>
+                <label class="wide">审核提示<textarea name="reviewNotice" required>仅使用已核对的公开资料；答复必须保留来源与适用范围。</textarea></label>
+            </div>
+            <div class="actions"><button type="submit">保存为审核草稿</button></div>
+        </form>
+    </section>
+
+    <section class="card" id="extract-stage" aria-labelledby="submission-title">
+        <div class="section-heading"><h2 id="submission-title">2. 选择资料并提取片段</h2><button id="refresh-submissions" class="secondary" type="button">刷新资料列表</button></div>
+        <p class="hint">选择一份审核草稿后，系统会提取候选知识片段；未审核资料不会进入问答。</p>
+        <div id="submission-list" class="list"></div>
+        <p id="submission-empty" class="empty">尚未加载资料。</p>
+    </section>
+
+    <section class="card" id="review-stage" aria-labelledby="review-title" hidden>
+        <div class="section-heading"><h2 id="review-title">3. 审核候选片段</h2><span id="review-stage-status" class="status">请逐条给出处理结论</span></div>
+        <p id="candidate-summary" class="hint"></p>
+        <div id="candidate-list" class="candidate-list"></div>
+    </section>
+
+    <section class="card" id="publish-stage" aria-labelledby="publish-title" data-locked="true">
+        <div class="section-heading"><h2 id="publish-title">4. 发布版本</h2><span id="publish-status" class="status">请先选择资料</span></div>
+        <p class="hint">同一“资料族 + 知识范围”的旧版本会被归档；若事务失败，旧版本仍保持可用。</p>
+        <div id="notice-publication-fields" class="grid" hidden>
+            <p class="wide hint">官方通知还需明确填写学期、有效期和已核对的办理时间。页面只将这些人工确认事实提交给本机服务，不根据文档标题推测日期。</p>
+            <label>适用学期<input id="notice-academic-term" value="2026-2027-1" pattern="\d{4}-\d{4}-[123]" placeholder="2026-2027-1"></label>
+            <label>来源路径<select id="notice-evidence-channel"><option value="PUBLIC_WEB">学校官网公开通知</option><option value="INTERNAL_OFFICIAL">已审核校内正式材料</option></select></label>
+            <label id="notice-public-url-label">官方通知链接（须与投稿来源一致）<input id="notice-official-url" type="url" placeholder="https://..."></label>
+            <label id="notice-issuing-unit-label" hidden>签发单位<input id="notice-issuing-unit" placeholder="例如：教务部"></label>
+            <label id="notice-delivery-channel-label" hidden>接收渠道<input id="notice-delivery-channel" placeholder="例如：教务系统正式下发"></label>
+            <label id="notice-material-reference-label" hidden>材料标识<input id="notice-material-reference" placeholder="例如：2026-2027-1-选课通知"></label>
+            <label>通知有效期开始（北京时间）<input id="notice-valid-from" type="datetime-local"></label>
+            <label>通知有效期结束（北京时间）<input id="notice-valid-to" type="datetime-local"></label>
+            <label>办理事项<select id="notice-fact-type"><option value="COURSE_SELECTION">选课</option><option value="COURSE_WITHDRAWAL">退改选</option><option value="COURSE_SUPPLEMENT">补选</option><option value="COURSE_CHANGE">改选</option></select></label>
+            <label>官方办理入口<input id="notice-entry-url" type="url" placeholder="https://..."></label>
+            <label>办理开始（北京时间）<input id="notice-fact-start" type="datetime-local"></label>
+            <label>办理结束（北京时间）<input id="notice-fact-end" type="datetime-local"></label>
+        </div>
+        <div class="actions"><button id="publish-button" type="button" disabled>发布已审核资料</button></div>
+    </section>
+
+    <section class="card" id="verify-stage" aria-labelledby="verify-title" data-locked="true">
+        <div class="section-heading"><h2 id="verify-title">5. 验证问答</h2><span class="status">发布后可验证</span></div>
+        <p class="hint">发布成功后，打开问答页并确认回答展示资料标题、页码和适用范围。问答页运行在独立的本机端口。</p>
+        <div class="actions"><a class="link-button" href="http://127.0.0.1:8123/api/zhku/local-preview" target="_blank" rel="noopener">打开问答验证页</a></div>
+    </section>
+
+    <section class="card" id="feedback-stage" aria-labelledby="feedback-title">
+        <div class="section-heading"><h2 id="feedback-title">6. 匿名反馈审核</h2><button id="refresh-feedback" class="secondary" type="button">刷新反馈聚合</button></div>
+        <p class="hint">学生反馈只含枚举原因与清单标识，按"日期 + 清单 + 版本 + 原因"聚合后在此查看。逐条明细、匿名散列与去重键不会下发到本页；<strong>密钥、环境变量名与端点地址同样不在此展示</strong>——检索配置只回显启用状态。</p>
+        <div id="feedback-config" class="config-grid"></div>
+        <div class="section-heading sub-section"><h3>反馈聚合</h3><span id="feedback-summary" class="status">尚未加载反馈聚合</span></div>
+        <div class="table-scroll">
+            <table class="aggregate-table" id="feedback-table" hidden>
+                <caption>按反馈日期升序；「次数」为当日同清单/版本/原因的反馈条数。</caption>
+                <thead><tr><th scope="col">清单标识</th><th scope="col">版本</th><th scope="col">原因</th><th scope="col">日期</th><th scope="col" class="numeric">次数</th></tr></thead>
+                <tbody id="feedback-rows"></tbody>
+            </table>
+        </div>
+        <p id="feedback-empty" class="empty">尚未加载反馈聚合。</p>
+        <div class="actions"><button id="retention-button" class="secondary" type="button">执行 90 天保留清理</button></div>
+    </section>
+
+    <section class="card" id="telemetry-stage" aria-labelledby="telemetry-title">
+        <div class="section-heading"><h2 id="telemetry-title">7. 匿名质量遥测（只读）</h2><button id="refresh-telemetry" class="secondary" type="button">刷新遥测聚合</button></div>
+        <p class="hint">遥测只有匿名计数：没有逐条事件、自由文本、身份或密钥，本页也只展示「取值 / 次数 / 比例」。缺省窗口为近 30 天（含首尾）；比例保留 4 位小数、按次数降序，均由服务端给出。</p>
+        <div class="grid">
+            <label>聚合维度<select id="telemetry-dimension">
+                <option value="route">路由结论（route）</option>
+                <option value="failureCategory">失败类别（failureCategory）</option>
+                <option value="handoffRequired">是否转人工（handoffRequired）</option>
+                <option value="latencyBucket">耗时档（latencyBucket）</option>
+                <option value="eventDate">事件日期（eventDate）</option>
+            </select></label>
+            <div class="candidate-grid">
+                <label>起始日期（含）<input id="telemetry-from" type="date"></label>
+                <label>结束日期（含）<input id="telemetry-to" type="date"></label>
+            </div>
+        </div>
+        <p id="telemetry-validation" class="message error" role="alert" hidden></p>
+        <div class="section-heading sub-section"><h3>聚合结果</h3><span id="telemetry-summary" class="status">尚未加载</span></div>
+        <div class="table-scroll">
+            <table class="aggregate-table" id="telemetry-table" hidden>
+                <thead><tr><th scope="col" id="telemetry-value-heading">取值</th><th scope="col">次数</th><th scope="col" class="numeric">比例</th></tr></thead>
+                <tbody id="telemetry-rows"></tbody>
+            </table>
+        </div>
+        <p id="telemetry-empty" class="empty" hidden></p>
+    </section>
+    <p id="page-error" class="message error" role="alert" hidden></p><p id="page-success" class="message success" role="status" hidden></p>
+</main>
+
+<dialog id="confirmation-dialog" aria-labelledby="confirmation-title">
+    <div class="dialog-body"><h2 id="confirmation-title">发布前请确认</h2><p id="confirmation-message"></p><div class="actions"><button id="confirmation-cancel" class="secondary" type="button">返回检查</button><button id="confirmation-accept" type="button">确认继续</button></div></div>
+</dialog>
+
+<script>
+    const apiBase = "/api/zhku/local-admin";
+    const submissionsEndpoint = "/api/zhku/local-admin/submissions";
+    const uploadForm = document.querySelector("#upload-form"); const refreshButton = document.querySelector("#refresh-submissions"); const submissionList = document.querySelector("#submission-list"); const submissionEmpty = document.querySelector("#submission-empty"); const reviewStage = document.querySelector("#review-stage"); const candidateSummary = document.querySelector("#candidate-summary"); const candidateList = document.querySelector("#candidate-list"); const publishStage = document.querySelector("#publish-stage"); const publishButton = document.querySelector("#publish-button"); const publishStatus = document.querySelector("#publish-status"); const noticePublicationFields = document.querySelector("#notice-publication-fields"); const verifyStage = document.querySelector("#verify-stage"); const pageError = document.querySelector("#page-error"); const pageSuccess = document.querySelector("#page-success"); const currentStage = document.querySelector("#current-stage"); const stageNote = document.querySelector("#stage-note"); const confirmationDialog = document.querySelector("#confirmation-dialog"); const confirmationTitle = document.querySelector("#confirmation-title"); const confirmationMessage = document.querySelector("#confirmation-message"); const confirmationAccept = document.querySelector("#confirmation-accept");
+    let selectedSubmission = null; let pendingConfirmation = null;
+    const feedbackEndpoint = "/api/zhku/local-admin/feedback";
+    const feedbackConfigGrid = document.querySelector("#feedback-config"); const feedbackTable = document.querySelector("#feedback-table"); const feedbackRows = document.querySelector("#feedback-rows"); const feedbackEmpty = document.querySelector("#feedback-empty"); const feedbackSummary = document.querySelector("#feedback-summary"); const refreshFeedbackButton = document.querySelector("#refresh-feedback"); const retentionButton = document.querySelector("#retention-button");
+    // 原因枚举的中文标签；未登记的取值原样显示，避免后端新增枚举时被前端静默吞掉。
+    const feedbackReasonLabels = { NOT_HELPFUL: "没帮上忙", INCORRECT: "内容有误", OUTDATED: "已过期", MISSING_INFORMATION: "信息缺失" };
+    const telemetryEndpoint = "/api/zhku/local-admin/telemetry/aggregates";
+    const telemetryDimension = document.querySelector("#telemetry-dimension"); const telemetryFrom = document.querySelector("#telemetry-from"); const telemetryTo = document.querySelector("#telemetry-to"); const telemetryRows = document.querySelector("#telemetry-rows"); const telemetryTable = document.querySelector("#telemetry-table"); const telemetryEmpty = document.querySelector("#telemetry-empty"); const telemetrySummary = document.querySelector("#telemetry-summary"); const telemetryValueHeading = document.querySelector("#telemetry-value-heading"); const telemetryValidation = document.querySelector("#telemetry-validation"); const refreshTelemetryButton = document.querySelector("#refresh-telemetry");
+    // 维度只可能是服务端白名单里的五个；表头文案按维度切换，未知取值原样显示。
+    const telemetryDimensionLabels = { route: "路由结论", failureCategory: "失败类别", handoffRequired: "是否转人工", latencyBucket: "耗时档", eventDate: "事件日期" };
+    // 取值译名与 PrivacyBoundary.anonymousTelemetry 的白名单维度对齐；译不到的（如日期、新增枚举）原样显示。
+    const telemetryValueLabels = { NONE: "正常作答", RETRIEVAL_MISS: "检索未命中", MODEL_DEGRADED: "模型降级", LT_1S: "1 秒以内", S_1_3: "1–3 秒", S_3_10: "3–10 秒", GE_10S: "10 秒及以上" };
+    // 用统一阶段描述同步步骤条与“下一步”提示，避免页面状态分散维护。
+    const stageDescriptions = { SUBMIT: ["提交资料", "下一步：提交一份可读取的公开 PDF，保存为审核草稿。"], EXTRACT: ["提取片段", "下一步：选择资料并提取候选知识片段。"], REVIEW: ["审核内容", "下一步：逐条通过或丢弃候选片段，并记录审核说明。"], PUBLISH: ["发布版本", "下一步：确认所有候选片段均已处理后发布资料。"], VERIFY: ["验证问答", "下一步：在问答页确认回答带有资料依据与页码。"] };
+    uploadForm.addEventListener("submit", async event => { event.preventDefault(); clearMessage(); const formData = new FormData(uploadForm); setBusy(uploadForm, true); try { const response = await fetch(submissionsEndpoint, { method: "POST", body: formData }); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "资料提交失败，请检查表单和 PDF。"); return; } showSuccess("资料已保存为审核草稿。请选择该资料并提取候选片段。"); uploadForm.reset(); activateStage("EXTRACT"); await loadSubmissions(payload.id); } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } finally { setBusy(uploadForm, false); } });
+    refreshFeedbackButton.addEventListener("click", loadFeedback); retentionButton.addEventListener("click", () => requestConfirmation("保留清理前请确认", "满 90 天的匿名反馈明细会被合并进聚合后删除，逐条记录不可恢复。确认执行吗？", "确认清理", runFeedbackRetention));
+    refreshButton.addEventListener("click", () => loadSubmissions(selectedSubmission?.id)); publishButton.addEventListener("click", () => requestConfirmation("发布前请确认", "发布会归档同一资料族和知识范围的旧版本。确认已完成审核并继续发布吗？", "确认发布", publishSelectedSubmission)); document.querySelector("#confirmation-cancel").addEventListener("click", () => confirmationDialog.close()); confirmationAccept.addEventListener("click", () => { const action = pendingConfirmation; pendingConfirmation = null; confirmationDialog.close(); action?.(); });
+    function activateStage(stage) { const currentIndex = ["SUBMIT", "EXTRACT", "REVIEW", "PUBLISH", "VERIFY"].indexOf(stage); document.querySelectorAll(".flow-step").forEach((item, index) => { item.dataset.state = index < currentIndex ? "complete" : index === currentIndex ? "current" : "waiting"; }); const [name, note] = stageDescriptions[stage]; currentStage.textContent = `当前：${name}`; stageNote.textContent = note; }
+    // 丢弃与发布共用确认入口，避免高影响操作在一次点击后直接请求接口。
+    function requestConfirmation(title, message, label, action) { confirmationTitle.textContent = title; confirmationMessage.textContent = message; confirmationAccept.textContent = label; pendingConfirmation = action; if (typeof confirmationDialog.showModal === "function") { confirmationDialog.showModal(); } else if (window.confirm(message)) { const accepted = pendingConfirmation; pendingConfirmation = null; accepted(); } }
+    async function loadSubmissions(selectId) { clearMessage(); try { const response = await fetch(submissionsEndpoint); const submissions = await readJson(response); if (!response.ok) { showError(submissions.message || "无法读取资料列表。"); return; } renderSubmissions(submissions); const targetId = selectId || selectedSubmission?.id; if (targetId) { await loadSubmission(targetId); } } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
+    function renderSubmissions(submissions) { submissionList.replaceChildren(); submissionEmpty.hidden = submissions.length > 0; submissions.forEach(submission => { const item = document.createElement("article"); item.className = "submission"; const row = document.createElement("div"); row.className = "submission-row"; const detail = document.createElement("div"); const heading = document.createElement("h3"); const meta = document.createElement("p"); const badge = document.createElement("span"); badge.className = "status-badge"; heading.textContent = `${submission.title}｜${submission.sourceVersion}`; meta.className = "candidate-meta"; meta.textContent = `知识范围：${submission.knowledgeScope}｜当前状态：${submissionStatusLabel(submission.status)}`; badge.textContent = submissionStatusLabel(submission.status); detail.append(heading, meta); row.append(detail, badge); item.append(row, actionButton("查看并继续", "secondary", () => loadSubmission(submission.id))); submissionList.append(item); }); }
+    async function loadSubmission(submissionId) { clearMessage(); try { const response = await fetch(`${submissionsEndpoint}/${submissionId}`); const submission = await readJson(response); if (!response.ok) { showError(submission.message || "无法读取资料详情。"); return; } selectedSubmission = submission; reviewStage.hidden = false; renderCandidates(submission); refreshPublishCheck(); if (submission.candidates.length === 0) { activateStage("EXTRACT"); } else if (submission.candidates.some(candidate => candidate.reviewStatus === "PENDING_REVIEW")) { activateStage("REVIEW"); } else { activateStage("PUBLISH"); } } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
+    function renderCandidates(submission) { candidateList.replaceChildren(); const pendingCount = submission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length; candidateSummary.textContent = `共 ${submission.candidates.length} 条候选片段；待处理 ${pendingCount} 条。所有候选片段必须通过或丢弃后才能发布。`; if (submission.candidates.length === 0) { candidateList.append(actionButton("提取候选片段", "", extractCandidates)); return; } submission.candidates.forEach(candidate => candidateList.append(createCandidateCard(candidate))); }
+    function createCandidateCard(candidate) { const card = document.createElement("article"); card.className = "candidate"; const heading = document.createElement("h3"); const meta = document.createElement("p"); heading.textContent = `PDF 第 ${candidate.startPageNumber}—${candidate.endPageNumber} 页｜${candidateStatusLabel(candidate.reviewStatus)}`; meta.className = "candidate-meta"; meta.textContent = candidate.reviewNote || candidate.discardReason || "请填写审核说明后作出结论。"; const form = document.createElement("form"); const title = createInput("片段标题", candidate.sectionTitle || ""); const locator = createInput("资料定位", candidate.sourceLocator || `PDF 第 ${candidate.startPageNumber} 页`); const text = createTextarea("编辑后正文", candidate.editedText || ""); const note = createTextarea("审核说明或丢弃原因", candidate.reviewNote || candidate.discardReason || ""); const pageRange = document.createElement("div"); pageRange.className = "candidate-grid"; const startPage = createNumberInput("起始页", candidate.startPageNumber); const endPage = createNumberInput("结束页", candidate.endPageNumber); pageRange.append(startPage.label, endPage.label); const actions = document.createElement("div"); actions.className = "candidate-actions"; actions.append(actionButton("保存编辑", "secondary", () => updateCandidate(candidate.id, { startPageNumber: Number(startPage.input.value), endPageNumber: Number(endPage.input.value), editedText: text.input.value, sectionTitle: title.input.value, sourceLocator: locator.input.value }))); if (candidate.reviewStatus === "PENDING_REVIEW") { actions.append(actionButton("通过", "", () => reviewCandidate(candidate.id, "APPROVE", note.input.value)), actionButton("丢弃", "danger", () => requestConfirmation("丢弃前请确认", "丢弃后该候选片段不会进入发布版本。确认丢弃吗？", "确认丢弃", () => reviewCandidate(candidate.id, "DISCARD", note.input.value))), actionButton("按正文两段拆分", "secondary", () => splitCandidate(candidate.id, text.input.value))); } form.append(title.label, locator.label, text.label, note.label, pageRange, actions); card.append(heading, meta, form); return card; }
+    function createInput(labelText, value) { const label = document.createElement("label"); label.textContent = labelText; const input = document.createElement("input"); input.value = value; label.append(input); return { label, input }; } function createNumberInput(labelText, value) { const field = createInput(labelText, value); field.input.type = "number"; field.input.min = "1"; return field; } function createTextarea(labelText, value) { const label = document.createElement("label"); label.textContent = labelText; const textarea = document.createElement("textarea"); textarea.value = value; label.append(textarea); return { label, input: textarea }; } function actionButton(label, className, handler) { const button = document.createElement("button"); button.type = "button"; button.textContent = label; if (className) { button.className = className; } button.addEventListener("click", handler); return button; }
+    async function extractCandidates() { await requestAndReload(`${submissionsEndpoint}/${selectedSubmission.id}/extract`, { method: "POST" }, "候选片段已提取，请逐条审核。", "REVIEW"); } async function updateCandidate(candidateId, body) { await requestAndReload(`${apiBase}/candidates/${candidateId}`, { method: "PATCH", headers: jsonHeaders(), body: JSON.stringify(body) }, "候选片段已更新。", "REVIEW"); } async function reviewCandidate(candidateId, decision, note) { await requestAndReload(`${apiBase}/candidates/${candidateId}/review`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ decision, note }) }, decision === "APPROVE" ? "候选片段已通过。" : "候选片段已丢弃。", "REVIEW"); }
+    async function splitCandidate(candidateId, editedText) { const separator = "\n---\n"; if (!editedText.includes(separator)) { showError("请在“编辑后正文”中用单独一行 --- 分隔两段，再执行拆分。"); return; } const [firstEditedText, secondEditedText] = editedText.split(separator, 2); await requestAndReload(`${apiBase}/candidates/${candidateId}/split`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ firstEditedText, secondEditedText }) }, "候选片段已拆分，请分别审核两段内容。", "REVIEW"); }
+    async function requestAndReload(url, options, successMessage, nextStage) { clearMessage(); try { const response = await fetch(url, options); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "操作未完成，请检查当前资料状态。"); return false; } showSuccess(successMessage); activateStage(nextStage); await loadSubmissions(selectedSubmission.id); return true; } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); return false; } }
+    function refreshPublishCheck() { if (!selectedSubmission) { publishButton.disabled = true; return; } const isOfficialNotice = selectedSubmission.documentFamily === "OFFICIAL_NOTICE"; noticePublicationFields.hidden = !isOfficialNotice; publishButton.textContent = isOfficialNotice ? "发布当前选课通知" : "发布已审核资料"; const pending = selectedSubmission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length; const approved = selectedSubmission.candidates.filter(candidate => candidate.reviewStatus === "APPROVED").length; const canPublish = selectedSubmission.status === "IN_REVIEW" && pending === 0 && approved > 0; publishButton.disabled = !canPublish; publishStage.dataset.locked = String(!canPublish); publishStatus.textContent = pending > 0 ? `还有 ${pending} 条候选片段待处理` : (approved === 0 ? "至少需要一条通过片段" : (isOfficialNotice ? "候选片段已审核；请填写通知时态事实后发布。" : "已满足发布条件，请确认后发布")); }
+    function toBeijingInstant(value) { if (!value) { return null; } return new Date(`${value}:00+08:00`).toISOString(); }
+    function refreshEvidenceFields() { const internal = document.querySelector("#notice-evidence-channel").value === "INTERNAL_OFFICIAL"; document.querySelector("#notice-public-url-label").hidden = internal; document.querySelector("#notice-issuing-unit-label").hidden = !internal; document.querySelector("#notice-delivery-channel-label").hidden = !internal; document.querySelector("#notice-material-reference-label").hidden = !internal; }
+    document.querySelector("#notice-evidence-channel").addEventListener("change", refreshEvidenceFields);
+    function noticePublicationPayload() { const channel = document.querySelector("#notice-evidence-channel").value; const payload = { academicTerm: document.querySelector("#notice-academic-term").value, validFrom: toBeijingInstant(document.querySelector("#notice-valid-from").value), validTo: toBeijingInstant(document.querySelector("#notice-valid-to").value), officialUrl: channel === "PUBLIC_WEB" ? document.querySelector("#notice-official-url").value : null, evidenceChannel: channel, issuingUnit: document.querySelector("#notice-issuing-unit").value, deliveryChannel: document.querySelector("#notice-delivery-channel").value, materialReference: document.querySelector("#notice-material-reference").value, facts: [{ type: document.querySelector("#notice-fact-type").value, startsAt: toBeijingInstant(document.querySelector("#notice-fact-start").value), endsAt: toBeijingInstant(document.querySelector("#notice-fact-end").value), officialEntryUrl: document.querySelector("#notice-entry-url").value, startsAtConfirmed: true, endsAtConfirmed: true }] }; if (!payload.validFrom || !payload.validTo || !payload.facts[0].startsAt || !payload.facts[0].endsAt || !payload.facts[0].officialEntryUrl || (channel === "PUBLIC_WEB" && !payload.officialUrl) || (channel === "INTERNAL_OFFICIAL" && (!payload.issuingUnit || !payload.deliveryChannel || !payload.materialReference))) { throw new Error("请完整填写通知有效期、办理时间及对应来源依据后再发布。"); } return payload; }
+    async function publishSelectedSubmission() { try { const isOfficialNotice = selectedSubmission.documentFamily === "OFFICIAL_NOTICE"; const url = isOfficialNotice ? `${submissionsEndpoint}/${selectedSubmission.id}/publish-course-selection-notice` : `${submissionsEndpoint}/${selectedSubmission.id}/publish`; const options = isOfficialNotice ? { method: "POST", headers: jsonHeaders(), body: JSON.stringify(noticePublicationPayload()) } : { method: "POST" }; const message = isOfficialNotice ? "当前选课通知已事务发布。请在问答页确认只返回当前有效通知。" : "资料已事务发布。现在可以打开问答验证页确认引用与页码。"; const published = await requestAndReload(url, options, message, "VERIFY"); if (published) { verifyStage.dataset.locked = "false"; } } catch (error) { showError(error.message || "通知发布信息不完整。"); } }
+    function submissionStatusLabel(status) { return ({ DRAFT: "审核草稿", IN_REVIEW: "审核中", PUBLISHED: "已发布", ARCHIVED: "已归档" })[status] || "状态待确认"; } function candidateStatusLabel(status) { return ({ PENDING_REVIEW: "待审核", APPROVED: "已通过", DISCARDED: "已丢弃" })[status] || "状态待确认"; }
+    function jsonHeaders() { return { "Content-Type": "application/json; charset=UTF-8" }; } async function readJson(response) { try { return await response.json(); } catch (error) { return {}; } } function clearMessage() { pageError.hidden = true; pageSuccess.hidden = true; pageError.textContent = ""; pageSuccess.textContent = ""; } function showError(message) { pageError.textContent = message; pageError.hidden = false; } function showSuccess(message) { pageSuccess.textContent = message; pageSuccess.hidden = false; } function setBusy(form, busy) { form.querySelectorAll("button, input, textarea").forEach(control => { control.disabled = busy; }); }
+    // 配置回显与聚合是两个独立只读接口：任一失败都不该掩盖另一个的结果，故分开处理。
+    async function loadFeedback() { clearMessage(); await loadFeedbackData(); }
+    async function loadFeedbackData() { try { const [configurationResponse, aggregatesResponse] = await Promise.all([fetch(`${feedbackEndpoint}/configuration`), fetch(`${feedbackEndpoint}/aggregates`)]); renderFeedbackConfiguration(await readJson(configurationResponse)); const aggregates = await readJson(aggregatesResponse); if (!aggregatesResponse.ok) { showError(aggregates.message || "无法读取反馈聚合，请确认服务和数据库已启动。"); return false; } renderFeedbackAggregates(Array.isArray(aggregates) ? aggregates : []); return true; } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); return false; } }
+    // 只渲染服务端白名单里的四个字段（provider/model/profile/status）：密钥、环境变量名与端点地址
+    // 已被 PrivacyBoundary.configurationEcho 裁掉，前端不持有也就无从误展示。
+    function renderFeedbackConfiguration(configuration) { feedbackConfigGrid.replaceChildren(); const statusLabel = configuration.status === "ENABLED" ? "已启用" : configuration.status === "DISABLED" ? "未启用" : "未配置"; [["检索状态", statusLabel], ["供应商", configuration.provider], ["模型", configuration.model], ["配置档", configuration.profile]].forEach(([label, value]) => { const item = document.createElement("div"); item.className = "config-item"; const name = document.createElement("span"); name.className = "config-label"; name.textContent = label; const text = document.createElement("span"); text.className = "config-value"; text.textContent = value ?? "未配置"; item.append(name, text); feedbackConfigGrid.append(item); }); }
+    // 聚合行由服务端保证已合并（不含散列/去重键/创建时刻），前端只做展示与合计。
+    function renderFeedbackAggregates(aggregates) { feedbackRows.replaceChildren(); const total = aggregates.reduce((sum, aggregate) => sum + (Number(aggregate.count) || 0), 0); feedbackTable.hidden = aggregates.length === 0; feedbackEmpty.hidden = aggregates.length > 0; feedbackSummary.textContent = aggregates.length === 0 ? "暂无反馈" : `共 ${aggregates.length} 组聚合、${total} 条反馈`; aggregates.forEach(aggregate => { const row = document.createElement("tr"); [aggregate.guideIdentifier, aggregate.guideVersion, feedbackReasonLabels[aggregate.reason] || aggregate.reason, aggregate.feedbackDate, String(aggregate.count ?? 0)].forEach((value, index) => { const cell = document.createElement("td"); cell.textContent = value ?? "—"; if (index === 4) { cell.className = "numeric"; } row.append(cell); }); feedbackRows.append(row); }); }
+    // 保留清理会真实删除到期明细，所以走与其他高影响操作相同的确认弹窗，并显式回报合并条数。
+    async function runFeedbackRetention() { clearMessage(); try { const response = await fetch(`${feedbackEndpoint}/retention`, { method: "POST" }); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "保留清理未完成，请检查服务状态。"); return; } await loadFeedbackData(); showSuccess(`保留清理完成：本次合并并清理 ${payload.aggregatedEventCount ?? 0} 条到期明细。`); } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
+    // 遥测是只读观测面：任何失败（接口未上线/服务不可用）都降级为中性提示，不得报错或白屏。
+    function isoDate(date) { const pad = (n) => String(n).padStart(2, "0"); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`; }
+    // 缺省窗口与服务端一致（近 30 天含首尾）：显式填上，让管理员始终看得到当前窗口。
+    function setDefaultTelemetryWindow() { const today = new Date(); const start = new Date(today); start.setDate(start.getDate() - 29); telemetryFrom.value = isoDate(start); telemetryTo.value = isoDate(today); }
+    function clearTelemetryResult() { telemetryRows.replaceChildren(); telemetryTable.hidden = true; telemetryEmpty.hidden = false; telemetryEmpty.textContent = ""; }
+    refreshTelemetryButton.addEventListener("click", loadTelemetry);
+    telemetryDimension.addEventListener("change", loadTelemetry);
+    async function loadTelemetry() {
+        clearMessage();
+        const from = telemetryFrom.value; const to = telemetryTo.value;
+        if (from && to && from > to) {
+            // 客户端先拦日期窗口问题，避免把可预防的 400 当成服务故障展示。
+            telemetryValidation.textContent = "起始日期不能晚于结束日期。"; telemetryValidation.hidden = false;
+            clearTelemetryResult(); telemetrySummary.textContent = "日期窗口无效"; return;
+        }
+        telemetryValidation.hidden = true;
+        const params = new URLSearchParams({ dimension: telemetryDimension.value });
+        if (from) { params.set("from", from); }
+        if (to) { params.set("to", to); }
+        try {
+            const response = await fetch(`${telemetryEndpoint}?${params}`);
+            if (response.status === 404) { renderTelemetryUnavailable("观测面尚未启用：本机管理端还没有遥测聚合接口。"); return; }
+            if (!response.ok) { renderTelemetryUnavailable(response.status === 400 ? "请求参数未被接受，请检查日期窗口。" : "遥测聚合暂不可用，请稍后重试。"); return; }
+            const buckets = await readJson(response);
+            if (!Array.isArray(buckets)) { renderTelemetryUnavailable("遥测聚合返回了意外的格式，请稍后重试。"); return; }
+            renderTelemetryBuckets(buckets);
+        } catch (error) { renderTelemetryUnavailable("遥测聚合暂不可用，请确认管理端服务已启动。"); }
+    }
+    // 端点未上线/不可用时的优雅降级：中性文案 + 空态，不写全局错误横幅。
+    function renderTelemetryUnavailable(message) { clearTelemetryResult(); telemetryEmpty.textContent = message; telemetrySummary.textContent = "未启用"; }
+    function renderTelemetryBuckets(buckets) {
+        const dimension = telemetryDimension.value;
+        telemetryValueHeading.textContent = telemetryDimensionLabels[dimension] || "取值";
+        telemetryRows.replaceChildren();
+        telemetryTable.hidden = buckets.length === 0;
+        telemetryEmpty.hidden = buckets.length > 0;
+        telemetryEmpty.textContent = buckets.length === 0 ? "所选窗口内暂无遥测数据。" : "";
+        const total = buckets.reduce((sum, bucket) => sum + (Number(bucket.count) || 0), 0);
+        telemetrySummary.textContent = buckets.length === 0 ? "暂无数据" : `共 ${buckets.length} 个取值、${total} 条事件`;
+        buckets.forEach(bucket => {
+            const row = document.createElement("tr");
+            const value = bucket[dimension];
+            // ratio 服务端已给 4 位小数，但 JSON 数字会丢尾零，展示层补齐格式（不重算、不改序）。
+            const cells = [value === true ? "是" : value === false ? "否" : telemetryValueLabels[value] ?? String(value ?? "—"), String(bucket.count ?? 0), Number(bucket.ratio ?? 0).toFixed(4)];
+            cells.forEach((text, index) => { const cell = document.createElement("td"); cell.textContent = text; if (index === 2) { cell.className = "numeric"; } row.append(cell); });
+            telemetryRows.append(row);
+        });
+    }
+    setDefaultTelemetryWindow();
+    loadTelemetry();
+    loadSubmissions();
+    loadFeedback();
+</script>
+</body>
+</html>

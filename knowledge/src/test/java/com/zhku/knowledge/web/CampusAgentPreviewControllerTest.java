@@ -28,6 +28,89 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class CampusAgentPreviewControllerTest {
+    @Test
+    void evictedRunGetAndCancelRemain404() throws Exception {
+        var service = new CampusCreditAgentService(prompt -> response(),
+                new CampusToolRegistry(List.of(new CourseCreditSummaryTool())), question -> policy(), 3);
+        try (var timer = Executors.newSingleThreadScheduledExecutor()) {
+            var manager = new CampusCreditAgentManager(service, Runnable::run, timer, Duration.ofSeconds(2));
+            var first = manager.start(new CampusCreditAgentService.Request("公选课学分", List.of()));
+            for (int i = 0; i < 128; i++)
+                manager.start(new CampusCreditAgentService.Request("公选课学分", List.of()));
+            var mvc = MockMvcBuilders.standaloneSetup(new CampusAgentPreviewController(manager, new com.zhku.knowledge.campusagent.CampusAgentResultVisibility(candidate ->
+                new com.zhku.knowledge.campusagent.archive.CampusRunArchive.Visibility(
+                        com.zhku.knowledge.campusagent.archive.CampusRunArchive.VisibilityStatus.VISIBLE,
+                        com.zhku.knowledge.campusagent.archive.CampusRunArchive.Reason.NONE)))).build();
+            mvc.perform(get("/zhku/local-preview/campus-agent/v1/runs/" + first.runId()))
+                    .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("RUN_NOT_FOUND"));
+            mvc.perform(post("/zhku/local-preview/campus-agent/v1/runs/" + first.runId() + "/cancel"))
+                    .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("RUN_NOT_FOUND"));
+        }
+    }
+
+    @Test
+    void rejectedTaskReturns503RatherThanAccepted() throws Exception {
+        var service = new CampusCreditAgentService(prompt -> response(),
+                new CampusToolRegistry(List.of(new CourseCreditSummaryTool())), question -> policy(), 3);
+        try (var timer = Executors.newSingleThreadScheduledExecutor()) {
+            var manager = new CampusCreditAgentManager(service,
+                    task -> {
+                        throw new java.util.concurrent.RejectedExecutionException();
+                    }, timer, Duration.ofSeconds(2));
+            var mvc = MockMvcBuilders.standaloneSetup(new CampusAgentPreviewController(manager, new com.zhku.knowledge.campusagent.CampusAgentResultVisibility(candidate ->
+                new com.zhku.knowledge.campusagent.archive.CampusRunArchive.Visibility(
+                        com.zhku.knowledge.campusagent.archive.CampusRunArchive.VisibilityStatus.VISIBLE,
+                        com.zhku.knowledge.campusagent.archive.CampusRunArchive.Reason.NONE)))).build();
+            mvc.perform(post("/zhku/local-preview/campus-agent/v1/runs")
+                    .contentType(MediaType.APPLICATION_JSON).content(REQUEST))
+                    .andExpect(status().isServiceUnavailable())
+                    .andExpect(jsonPath("$.failureCategory").value("EXECUTOR_REJECTED"));
+        }
+    }
+
+    @Test
+    void queuedModelFailureIsAcceptedJustLikeFastFailure() throws Exception {
+        var queue = new java.util.ArrayList<Runnable>();
+        var service = new CampusCreditAgentService(prompt -> {
+            throw new IllegalStateException("供应商异常");
+        },
+                new CampusToolRegistry(List.of(new CourseCreditSummaryTool())), question -> policy(), 3);
+        try (var timer = Executors.newSingleThreadScheduledExecutor()) {
+            var manager = new CampusCreditAgentManager(service, queue::add, timer, Duration.ofSeconds(5));
+            var mvc = MockMvcBuilders.standaloneSetup(new CampusAgentPreviewController(manager, new com.zhku.knowledge.campusagent.CampusAgentResultVisibility(candidate ->
+                new com.zhku.knowledge.campusagent.archive.CampusRunArchive.Visibility(
+                        com.zhku.knowledge.campusagent.archive.CampusRunArchive.VisibilityStatus.VISIBLE,
+                        com.zhku.knowledge.campusagent.archive.CampusRunArchive.Reason.NONE)))).build();
+            String body = mvc.perform(post("/zhku/local-preview/campus-agent/v1/runs")
+                    .contentType(MediaType.APPLICATION_JSON).content(REQUEST))
+                    .andExpect(status().isAccepted()).andExpect(jsonPath("$.state").value("CREATED"))
+                    .andReturn().getResponse().getContentAsString();
+            queue.remove(0).run();
+            mvc.perform(get("/zhku/local-preview/campus-agent/v1/runs/"
+                    + new ObjectMapper().readTree(body).path("runId").asText()))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.state").value("FAILED"))
+                    .andExpect(jsonPath("$.failureCategory").value("MODEL_FAILURE"));
+        } finally {
+            queue.forEach(Runnable::run);
+        }
+    }
+
+    @Test
+    void acceptedFastModelFailureStillReturns202() throws Exception {
+        var service = new CampusCreditAgentService(prompt -> {
+            throw new IllegalStateException("供应商异常");
+        },
+                new CampusToolRegistry(List.of(new CourseCreditSummaryTool())), question -> policy(), 3);
+        try (var timer = Executors.newSingleThreadScheduledExecutor()) {
+            var mvc = MockMvcBuilders.standaloneSetup(new CampusAgentPreviewController(
+                    new CampusCreditAgentManager(service, Runnable::run, timer, Duration.ofSeconds(2)))).build();
+            mvc.perform(post("/zhku/local-preview/campus-agent/v1/runs")
+                    .contentType(MediaType.APPLICATION_JSON).content(REQUEST))
+                    .andExpect(status().isAccepted()).andExpect(jsonPath("$.state").value("FAILED"))
+                    .andExpect(jsonPath("$.failureCategory").value("MODEL_FAILURE"));
+        }
+    }
+
     private static final String REQUEST = """
             {"question":"这两门虚构公选课学分合计及每学期上限？","courses":[
               {"courseId":"ART01","category":"公共选修课","credits":1.5},
@@ -46,9 +129,12 @@ class CampusAgentPreviewControllerTest {
                 question -> policy(), 3);
         try (var timer = Executors.newSingleThreadScheduledExecutor()) {
             var manager = new CampusCreditAgentManager(service, Runnable::run, timer, Duration.ofSeconds(2));
-            var mvc = MockMvcBuilders.standaloneSetup(new CampusAgentPreviewController(manager)).build();
+            var mvc = MockMvcBuilders.standaloneSetup(new CampusAgentPreviewController(manager, new com.zhku.knowledge.campusagent.CampusAgentResultVisibility(candidate ->
+                new com.zhku.knowledge.campusagent.archive.CampusRunArchive.Visibility(
+                        com.zhku.knowledge.campusagent.archive.CampusRunArchive.VisibilityStatus.VISIBLE,
+                        com.zhku.knowledge.campusagent.archive.CampusRunArchive.Reason.NONE)))).build();
             String body = mvc.perform(post("/zhku/local-preview/campus-agent/v1/runs")
-                            .contentType(MediaType.APPLICATION_JSON).content(REQUEST))
+                    .contentType(MediaType.APPLICATION_JSON).content(REQUEST))
                     .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$.state").value("SUCCEEDED"))
                     .andExpect(jsonPath("$.terminated").value(true))
@@ -56,6 +142,10 @@ class CampusAgentPreviewControllerTest {
                     .andExpect(jsonPath("$.source.sourceLocator").value("PDF 第 76—77 页，第 8、10 条"))
                     .andReturn().getResponse().getContentAsString();
             JsonNode payload = new ObjectMapper().readTree(body);
+            var fields = new java.util.ArrayList<String>();
+            payload.fieldNames().forEachRemaining(fields::add);
+            assertThat(fields).containsExactlyInAnyOrder("runId", "state", "stopReason", "terminated", "status",
+                    "answer", "failureCategory", "steps", "source");
             assertThat(payload.path("steps").size()).isEqualTo(3);
             mvc.perform(get("/zhku/local-preview/campus-agent/v1/runs/" + payload.path("runId").asText()))
                     .andExpect(status().isOk())

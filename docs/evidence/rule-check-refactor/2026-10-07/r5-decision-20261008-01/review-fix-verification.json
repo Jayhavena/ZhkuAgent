@@ -1,0 +1,20 @@
+{
+  "findingId": "I1",
+  "severity": "Important",
+  "status": "FIXED_RED_GREEN_REGRESSION",
+  "redPhase": "r5-decision-review-fix-red-20261008-02",
+  "redTests": 32,
+  "redFailures": 3,
+  "greenPhase": "r5-decision-review-fix-green-20261008-01",
+  "greenTests": 32,
+  "finalRegressionPhase": "r5-decision-final-regression-20261008-01",
+  "testNames": [
+    "publicBranchDoesNotAskYearUsedOnlyByExcludedProfessionalBranch",
+    "irrelevantUnknownYearCannotRejectOtherwiseCoveredPublicBranch",
+    "missingCategoryIsAskedBeforePotentiallyIrrelevantBranchYear",
+    "professionalBranchStillAsksItsMissingYear",
+    "relevantUnknownYearCannotBeDiscardedToAnswerAnIndependentGeneralFact"
+  ],
+  "fix": "先以合法已知条件收敛候选，仅校验仍相关的键；非法相关值不能用于过滤分支；按声明顺序只问一个未决条件。",
+  "secondReviewPerformed": false
+}

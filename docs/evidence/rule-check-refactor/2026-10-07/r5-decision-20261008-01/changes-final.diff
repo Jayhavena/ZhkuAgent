@@ -1,0 +1,1753 @@
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckRuleTemplate.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckRuleTemplate.java
+@@ -0,0 +1,75 @@
++package com.zhku.knowledge.rulecheck;
++
++import java.time.LocalDate;
++import java.util.List;
++import java.util.Map;
++import java.util.UUID;
++import java.util.HashSet;
++import java.util.LinkedHashMap;
++import java.util.Objects;
++
++/** 服务端审核规则；相关性、条件完整性与独立性由审核负责，不能由学生或模型自证。 */
++public record RuleCheckRuleTemplate(String ruleId, String referenceRevision, ReviewState reviewState,
++                                    String reviewer, LocalDate reviewedAt, List<Fact> facts,
++                                    List<Condition> conditions, List<String> evidenceGaps,
++                                    List<Conflict> conflicts) {
++    public RuleCheckRuleTemplate {
++        requireText(ruleId); requireText(referenceRevision); Objects.requireNonNull(reviewState);
++        if (reviewState == ReviewState.APPROVED && (reviewer == null || reviewer.isBlank() || reviewedAt == null))
++            throw new IllegalArgumentException("已审规则必须保留实际审核责任");
++        facts = List.copyOf(facts); conditions = List.copyOf(conditions);
++        evidenceGaps = List.copyOf(evidenceGaps); conflicts = List.copyOf(conflicts);
++        evidenceGaps.forEach(RuleCheckRuleTemplate::requireText);
++        var definitions = new LinkedHashMap<String,Condition>();
++        for (var condition : conditions)
++            if (definitions.putIfAbsent(condition.key(), condition) != null)
++                throw new IllegalArgumentException("决定性条件不能重复定义");
++        var ids = new HashSet<String>();
++        for (var fact : facts) {
++            if (!ids.add(fact.id())) throw new IllegalArgumentException("事实标识不能重复");
++            for (var requirement : fact.when().entrySet()) {
++                var condition = definitions.get(requirement.getKey());
++                if (condition == null || !condition.allowedValues().contains(requirement.getValue()))
++                    throw new IllegalArgumentException("事实前提必须属于已声明条件及允许值");
++            }
++        }
++    }
++    public enum ReviewState { DRAFT, APPROVED, RETIRED }
++    public record EvidenceBinding(UUID sourceId, UUID chunkId, String revision, String checksum,
++                                  int startInclusive, int endExclusive, String quote) {
++        public EvidenceBinding {
++            Objects.requireNonNull(sourceId); Objects.requireNonNull(chunkId);
++            requireText(revision); requireText(checksum); requireText(quote);
++        }
++    }
++    public record Fact(String id, String text, boolean independentlyAnswerable, Map<String,String> when,
++                       List<EvidenceBinding> evidenceBindings) {
++        public Fact {
++            requireText(id); requireText(text);
++            when = Map.copyOf(when); evidenceBindings = List.copyOf(evidenceBindings);
++            if (evidenceBindings.isEmpty()) throw new IllegalArgumentException("事实必须绑定必要证据");
++            when.forEach((key,value)->{requireText(key); requireText(value);});
++        }
++    }
++    public record Condition(String key, String question, List<String> allowedValues) {
++        public Condition {
++            requireText(key); requireText(question); allowedValues = List.copyOf(allowedValues);
++            if (allowedValues.isEmpty() || new HashSet<>(allowedValues).size() != allowedValues.size())
++                throw new IllegalArgumentException("条件必须有不重复的允许值");
++            allowedValues.forEach(RuleCheckRuleTemplate::requireText);
++        }
++    }
++    public record Conflict(String issue, List<Fact> sides) {
++        public Conflict {
++            requireText(issue); sides = List.copyOf(sides);
++            if (sides.size() < 2 || sides.stream().map(Fact::id).distinct().count() != sides.size())
++                throw new IllegalArgumentException("冲突必须有至少两个明确且不同的证据侧");
++            // 冲突须在选定规则的适用范围内；条件冲突应先由范围解析消解，不能无条件下发。
++            if (sides.stream().anyMatch(side -> !side.when().isEmpty()))
++                throw new IllegalArgumentException("冲突侧不能携带尚未消解的条件分支");
++        }
++    }
++    private static void requireText(String text) {
++        if (text == null || text.isBlank()) throw new IllegalArgumentException("规则字段不能缺失或为空白");
++    }
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckDecision.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckDecision.java
+@@ -0,0 +1,38 @@
++package com.zhku.knowledge.rulecheck;
++
++import java.util.List;
++
++/** 业务判断与执行状态分开；本接口尚未装配HTTP。 */
++public record RuleCheckDecision(Status status, String referenceRevision, List<SupportedFact> confirmedFacts,
++                                List<Clarification> clarificationQuestions, List<String> unknownItems,
++                                List<ConflictEvidence> conflicts) {
++    public RuleCheckDecision {
++        if (status == null || referenceRevision == null || referenceRevision.isBlank())
++            throw new IllegalArgumentException("判断必须明确状态和引用版本");
++        confirmedFacts = List.copyOf(confirmedFacts); clarificationQuestions = List.copyOf(clarificationQuestions);
++        unknownItems = List.copyOf(unknownItems); conflicts = List.copyOf(conflicts);
++        // 不允许调用者把缺证/冲突标成完整答案，或在缺证状态夹带未经确认的肯定正文。
++        boolean valid = switch (status) {
++            case ANSWERED -> !confirmedFacts.isEmpty() && unknownItems.isEmpty() && clarificationQuestions.isEmpty() && conflicts.isEmpty();
++            case PARTIALLY_ANSWERED -> !confirmedFacts.isEmpty() && !unknownItems.isEmpty() && clarificationQuestions.isEmpty() && conflicts.isEmpty();
++            case NEED_CLARIFICATION -> !clarificationQuestions.isEmpty() && conflicts.isEmpty();
++            case INSUFFICIENT_EVIDENCE -> confirmedFacts.isEmpty() && clarificationQuestions.isEmpty() && conflicts.isEmpty() && !unknownItems.isEmpty();
++            case CONFLICTING_EVIDENCE -> confirmedFacts.isEmpty() && clarificationQuestions.isEmpty() && !conflicts.isEmpty();
++        };
++        if (!valid) throw new IllegalArgumentException("业务状态与判断内容不一致");
++    }
++    public enum Status { ANSWERED, PARTIALLY_ANSWERED, NEED_CLARIFICATION, INSUFFICIENT_EVIDENCE, CONFLICTING_EVIDENCE }
++    public record SupportedFact(String id, String text, List<RuleCheckVerifiedExcerpt> evidence) {
++        public SupportedFact {
++            if (id == null || id.isBlank() || text == null || text.isBlank()) throw new IllegalArgumentException("事实不能为空");
++            evidence = List.copyOf(evidence);
++            if (evidence.isEmpty()) throw new IllegalArgumentException("输出事实必须有核验依据");
++        }
++    }
++    public record Clarification(String key, String question, List<String> allowedValues) {
++        public Clarification { allowedValues = List.copyOf(allowedValues); }
++    }
++    public record ConflictEvidence(String issue, List<SupportedFact> sides) {
++        public ConflictEvidence { sides = List.copyOf(sides); }
++    }
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckDecisionService.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckDecisionService.java
+@@ -0,0 +1,126 @@
++package com.zhku.knowledge.rulecheck;
++
++import java.util.List;
++import java.util.Map;
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.HashSet;
++import java.util.Objects;
++import java.util.Optional;
++import static com.zhku.knowledge.rulecheck.RuleCheckDecision.*;
++import static com.zhku.knowledge.rulecheck.RuleCheckDecision.Status.*;
++import static com.zhku.knowledge.rulecheck.RuleCheckRuleTemplate.*;
++
++/** 只消费服务端审核规则和已取证快照；不负责自然语言路由，也不接受模型事实正文。 */
++public final class RuleCheckDecisionService {
++    private final RuleCheckEvidenceVerifier verifier;
++    public RuleCheckDecisionService(RuleCheckEvidenceVerifier verifier) { this.verifier = Objects.requireNonNull(verifier); }
++
++    public RuleCheckDecision decide(RuleCheckRuleTemplate template, Map<String,String> suppliedConditions,
++                                    List<RuleCheckEvidenceSnapshot> retrieved) {
++        Objects.requireNonNull(template, "服务端必须选择规则");
++        if (template.reviewState() != ReviewState.APPROVED)
++            return insufficient(template, "规则尚未审核或已退役");
++        if (suppliedConditions == null || retrieved == null)
++            return insufficient(template, "条件或证据输入缺失");
++        Map<String,String> values;
++        List<RuleCheckEvidenceSnapshot> snapshots;
++        try { values = Map.copyOf(suppliedConditions); snapshots = List.copyOf(retrieved); }
++        catch (NullPointerException malformed) { return insufficient(template, "条件或证据输入不完整"); }
++        var definitions = new HashMap<String,Condition>();
++        template.conditions().forEach(condition -> definitions.put(condition.key(), condition));
++        var candidates = template.facts().stream().filter(fact -> compatible(fact, values, definitions)).toList();
++        var relevantKeys = new HashSet<String>();
++        candidates.forEach(fact -> relevantKeys.addAll(fact.when().keySet()));
++        for (var condition : template.conditions()) {
++            if (!relevantKeys.contains(condition.key())) continue;
++            var value = values.get(condition.key());
++            if (value != null && !value.isBlank() && !condition.allowedValues().contains(value))
++                return insufficient(template, "已提供条件不在本规则覆盖范围：" + condition.key());
++        }
++
++        var conflicts = new ArrayList<ConflictEvidence>();
++        for (var conflict : template.conflicts()) {
++            var sides = new ArrayList<SupportedFact>();
++            for (var side : conflict.sides()) {
++                var verified = verifyFact(template, side, snapshots);
++                // 任一方缺证都不能挑剩下的一方肯定作答，也不能下发未核验的冲突正文。
++                if (verified.isEmpty()) return insufficient(template, "冲突证据不完整或当前不可用");
++                sides.add(verified.get());
++            }
++            conflicts.add(new ConflictEvidence(conflict.issue(), sides));
++        }
++        if (!conflicts.isEmpty()) return new RuleCheckDecision(CONFLICTING_EVIDENCE, template.referenceRevision(),
++                List.of(), List.of(), List.of(), conflicts);
++
++        var known = new ArrayList<SupportedFact>();
++        var independent = new ArrayList<SupportedFact>();
++        var gaps = new ArrayList<>(template.evidenceGaps());
++        int compatibleCount = 0;
++        for (var fact : candidates) {
++            compatibleCount++;
++            var verified = verifyFact(template, fact, snapshots);
++            if (verified.isEmpty()) {
++                gaps.add("必要证据未通过核验：" + fact.id());
++                continue;
++            }
++            if (requirementsKnown(fact, values)) {
++                known.add(verified.get());
++                if (fact.independentlyAnswerable()) independent.add(verified.get());
++            }
++        }
++        if (compatibleCount == 0) return insufficient(template, "本规则没有覆盖该问题条件的事实");
++        if (!gaps.isEmpty()) {
++            // 缺资料不能通过重复询问用户掩盖；部分事实必须由审核显式声明可独立成立。
++            return new RuleCheckDecision(independent.isEmpty() ? INSUFFICIENT_EVIDENCE : PARTIALLY_ANSWERED,
++                    template.referenceRevision(), independent, List.of(), gaps, List.of());
++        }
++        var questions = new ArrayList<Clarification>();
++        for (var condition : template.conditions()) {
++            if (!relevantKeys.contains(condition.key())) continue;
++            var value = values.get(condition.key());
++            if (value == null || value.isBlank()) {
++                questions.add(new Clarification(condition.key(), condition.question(), condition.allowedValues()));
++                // 先解一个决定性条件，避免同时询问后续可能已被排除分支的专用信息。
++                break;
++            }
++        }
++        if (!questions.isEmpty()) return new RuleCheckDecision(NEED_CLARIFICATION, template.referenceRevision(),
++                independent, questions, List.of(), List.of());
++        if (known.isEmpty()) return insufficient(template, "尚无可以确认的结论");
++        return new RuleCheckDecision(ANSWERED, template.referenceRevision(), known, List.of(), List.of(), List.of());
++    }
++
++    private Optional<SupportedFact> verifyFact(RuleCheckRuleTemplate rule, Fact fact, List<RuleCheckEvidenceSnapshot> snapshots) {
++        var excerpts = new ArrayList<RuleCheckVerifiedExcerpt>();
++        for (var binding : fact.evidenceBindings()) {
++            if (!rule.referenceRevision().equals(binding.revision())) return Optional.empty();
++            var matches = snapshots.stream().filter(e -> binding.sourceId().equals(e.sourceId())
++                    && binding.chunkId().equals(e.chunkId())).toList();
++            // 相同持久身份的多个本轮别名也有歧义；不能取第一项或接受客户端提供的资格。
++            if (matches.size() != 1) return Optional.empty();
++            var captured = matches.getFirst();
++            if (!binding.revision().equals(captured.revision()) || !binding.checksum().equalsIgnoreCase(captured.checksum()))
++                return Optional.empty();
++            var span = new RuleCheckEvidenceSpan(captured.citationId(), binding.startInclusive(), binding.endExclusive(), binding.quote());
++            var result = verifier.verify(span, snapshots);
++            if (!result.accepted()) return Optional.empty();
++            excerpts.add(result.excerpt());
++        }
++        // 输出文字来自审核模板；核验绑定只证明来源一致，不重新推断模板的语义正确性。
++        return Optional.of(new SupportedFact(fact.id(), fact.text(), excerpts));
++    }
++    private static boolean compatible(Fact fact, Map<String,String> values, Map<String,Condition> definitions) {
++        // 非法值不能用来消除仍可能适用的规则，再由相关键校验拒绝；否则可绕过必要前提。
++        return fact.when().entrySet().stream().allMatch(e -> values.get(e.getKey()) == null
++                || values.get(e.getKey()).isBlank()
++                || !definitions.get(e.getKey()).allowedValues().contains(values.get(e.getKey()))
++                || e.getValue().equals(values.get(e.getKey())));
++    }
++    private static boolean requirementsKnown(Fact fact, Map<String,String> values) {
++        return fact.when().entrySet().stream().allMatch(e -> e.getValue().equals(values.get(e.getKey())));
++    }
++    private static RuleCheckDecision insufficient(RuleCheckRuleTemplate rule, String reason) {
++        return new RuleCheckDecision(INSUFFICIENT_EVIDENCE, rule.referenceRevision(), List.of(), List.of(), List.of(reason), List.of());
++    }
++}
+--- before/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckDecisionServiceTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckDecisionServiceTest.java
+@@ -0,0 +1,279 @@
++package com.zhku.knowledge.rulecheck;
++
++import org.junit.jupiter.api.Test;
++import java.nio.charset.StandardCharsets;
++import java.security.MessageDigest;
++import java.time.LocalDate;
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.HexFormat;
++import java.util.List;
++import java.util.Map;
++import java.util.Optional;
++import java.util.UUID;
++import java.util.concurrent.atomic.AtomicInteger;
++
++import static com.zhku.knowledge.rulecheck.RuleCheckDecision.Status.*;
++import static com.zhku.knowledge.rulecheck.RuleCheckRuleTemplate.*;
++import static org.assertj.core.api.Assertions.*;
++
++class RuleCheckDecisionServiceTest {
++    // 全部为合成工程夹具，不是2025政策或真实资料放行记录。
++    private static final UUID SOURCE=UUID.fromString("00000000-0000-0000-0000-000000000001");
++    private static final UUID CHUNK=UUID.fromString("00000000-0000-0000-0000-000000000002");
++    private static final UUID OTHER=UUID.fromString("00000000-0000-0000-0000-000000000003");
++    private static final String TEXT="合成甲：上限4学分。";
++    private static final String SECOND="合成乙：另有限制。";
++    private static final RuleCheckEvidenceSnapshot EVIDENCE=snapshot(CHUNK,TEXT,"v1",true);
++    private static final RuleCheckEvidenceSnapshot EXCEPTION=snapshot(OTHER,SECOND,"v1",true);
++    private static final Condition COURSE=new Condition("courseType","请明确课程类别",List.of("PUBLIC","PROFESSIONAL"));
++
++    @Test void completeAnswerUsesReviewedTextAndVerifiedOriginalWithRequestAlias() {
++        var result=decide(template(List.of(fact("limit",false))),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(ANSWERED);
++        assertThat(result.confirmedFacts()).extracting(RuleCheckDecision.SupportedFact::text).containsExactly("合成上限为4学分。");
++        assertThat(result.confirmedFacts().getFirst().evidence().getFirst().text()).isEqualTo(TEXT);
++        assertThat(result.confirmedFacts().getFirst().evidence().getFirst().citationId()).isEqualTo("request-"+CHUNK);
++        assertThat(result.referenceRevision()).isEqualTo("v1");
++        assertThat(result.unknownItems()).isEmpty();
++    }
++
++    @Test void missingDecisiveConditionAsksWithoutChoosingAnUnmatchedBranch() {
++        var result=decide(withConditions(List.of(branch("public","PUBLIC")),List.of(COURSE)),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(NEED_CLARIFICATION);
++        assertThat(result.clarificationQuestions()).extracting(RuleCheckDecision.Clarification::key).containsExactly("courseType");
++        assertThat(result.confirmedFacts()).isEmpty();
++    }
++
++    @Test void independentInformationMayAccompanyClarification() {
++        var result=decide(withConditions(List.of(fact("general",true),branch("public","PUBLIC")),List.of(COURSE)),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(NEED_CLARIFICATION);
++        assertThat(result.confirmedFacts()).extracting(RuleCheckDecision.SupportedFact::id).containsExactly("general");
++    }
++
++    @Test void providedConditionIsNotAskedAgainAndOtherBranchIsNotShown() {
++        var result=decide(withConditions(List.of(branch("public","PUBLIC"),branch("professional","PROFESSIONAL")),List.of(COURSE)),
++                Map.of("courseType","PROFESSIONAL"),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(ANSWERED);
++        assertThat(result.confirmedFacts()).extracting(RuleCheckDecision.SupportedFact::id).containsExactly("professional");
++        assertThat(result.clarificationQuestions()).isEmpty();
++    }
++
++    @Test void unknownValueDoesNotCoerceUserIntoAnAllowedCategory() {
++        var result=decide(withConditions(List.of(branch("public","PUBLIC")),List.of(COURSE)),Map.of("courseType","UNKNOWN_CATEGORY"),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(result.confirmedFacts()).isEmpty();assertThat(result.clarificationQuestions()).isEmpty();
++    }
++
++    @Test void materialGapCannotBeDisguisedAsAnotherUserQuestion() {
++        var rule=rule(ReviewState.APPROVED,List.of(fact("general",true)),List.of(COURSE),List.of("缺当期通知"),List.of());
++        var result=decide(rule,Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(PARTIALLY_ANSWERED);
++        assertThat(result.unknownItems()).contains("缺当期通知");assertThat(result.clarificationQuestions()).isEmpty();
++    }
++
++    @Test void dependentFactCannotBecomePartialAnswerWhenMaterialIsMissing() {
++        var result=decide(rule(ReviewState.APPROVED,List.of(fact("dependent",false)),List.of(),List.of("缺关联例外"),List.of()),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();
++    }
++
++    @Test void emptyRuleIsInsufficientRatherThanVacuouslyAnswered() {
++        var result=decide(template(List.of()),Map.of(),List.of());
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.unknownItems()).isNotEmpty();
++    }
++
++    @Test void draftOrRetiredTemplateNeverReadsEvidenceOrEmitsItsFacts() {
++        for(var state:List.of(ReviewState.DRAFT,ReviewState.RETIRED)) {
++            var calls=new AtomicInteger();
++            var result=service(calls).decide(rule(state,List.of(fact("limit",true)),List.of(),List.of(),List.of()),Map.of(),List.of(EVIDENCE));
++            assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();assertThat(calls).hasValue(0);
++        }
++    }
++
++    @Test void bindingWithFortyCannotUseValidFourCitationToReleaseFact() {
++        var bad=new EvidenceBinding(SOURCE,CHUNK,"v1",hash(TEXT),0,TEXT.length(),"合成甲：上限40学分。");
++        var result=decide(template(List.of(new Fact("bad","不能泄漏的结论40",true,Map.of(),List.of(bad)))),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();
++        assertThat(result.toString()).doesNotContain("不能泄漏","40");
++    }
++
++    @Test void factNeedsEveryBoundClauseIncludingException() {
++        var combined=new Fact("combined","必须同时满足甲乙",true,Map.of(),List.of(binding(EVIDENCE),binding(EXCEPTION)));
++        var result=decide(template(List.of(combined)),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();
++    }
++
++    @Test void partialAnswerKeepsOnlyIndependentFactsWhenAnotherBindingFails() {
++        var failed=new Fact("exception","未核验例外结论",false,Map.of(),List.of(binding(EXCEPTION)));
++        var result=decide(template(List.of(fact("general",true),failed)),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(PARTIALLY_ANSWERED);
++        assertThat(result.confirmedFacts()).extracting(RuleCheckDecision.SupportedFact::id).containsExactly("general");
++        assertThat(result.unknownItems()).isNotEmpty();
++    }
++
++    @Test void withdrawalCannotReuseCapturedEligibleEvidence() {
++        var current=snapshot(CHUNK,TEXT,"v1",false);
++        var service=new RuleCheckDecisionService(new RuleCheckEvidenceVerifier((s,c)->Optional.of(current)));
++        var result=service.decide(template(List.of(fact("limit",true))),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();
++    }
++
++    @Test void equalTextCannotBypassCurrentRevisionChange() {
++        var current=snapshot(CHUNK,TEXT,"v2",true);
++        var result=new RuleCheckDecisionService(new RuleCheckEvidenceVerifier((s,c)->Optional.of(current)))
++                .decide(template(List.of(fact("limit",true))),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();
++    }
++
++    @Test void templateRevisionMustMatchBindingEvenIfSourceItselfIsValid() {
++        var oldBinding=new EvidenceBinding(SOURCE,CHUNK,"v0",hash(TEXT),0,TEXT.length(),TEXT);
++        var result=decide(template(List.of(new Fact("old","旧模板结论",true,Map.of(),List.of(oldBinding)))),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();
++    }
++
++    @Test void ambiguousPersistentBindingCannotChooseFirstMatchingAlias() {
++        var second=new RuleCheckEvidenceSnapshot("another-alias",SOURCE,CHUNK,"v1",hash(TEXT),TEXT,true);
++        var result=decide(template(List.of(fact("limit",true))),Map.of(),List.of(EVIDENCE,second));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();
++    }
++
++    @Test void fullySupportedConflictHasPriorityOverMissingCondition() {
++        var other=new Fact("opposite","合成另一规则结论",false,Map.of(),List.of(binding(EXCEPTION)));
++        var conflict=new Conflict("合成规则冲突",List.of(fact("limit",false),other));
++        var result=decide(rule(ReviewState.APPROVED,List.of(),List.of(COURSE),List.of(),List.of(conflict)),Map.of(),List.of(EVIDENCE,EXCEPTION));
++        assertThat(result.status()).isEqualTo(CONFLICTING_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();
++        assertThat(result.conflicts().getFirst().sides()).extracting(RuleCheckDecision.SupportedFact::id).containsExactly("limit","opposite");
++        assertThat(result.clarificationQuestions()).isEmpty();
++    }
++
++    @Test void missingConflictSideCannotSilentlyChooseRemainingConclusion() {
++        var other=new Fact("opposite","合成另一规则结论",false,Map.of(),List.of(binding(EXCEPTION)));
++        var conflict=new Conflict("合成规则冲突",List.of(fact("limit",false),other));
++        var result=decide(rule(ReviewState.APPROVED,List.of(fact("general",true)),List.of(),List.of(),List.of(conflict)),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();
++        assertThat(result.conflicts()).isEmpty();assertThat(result.unknownItems()).isNotEmpty();
++    }
++
++    @Test void readerFailureDoesNotExposeInternalErrorOrFacts() {
++        var result=new RuleCheckDecisionService(new RuleCheckEvidenceVerifier((s,c)->{throw new IllegalStateException("internal-sensitive-detail");}))
++                .decide(template(List.of(fact("limit",true))),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();
++        assertThat(result.toString()).doesNotContain("internal-sensitive-detail");
++    }
++
++    @Test void nonMatchingBranchDoesNotReadOrReleaseItsEvidence() {
++        var calls=new AtomicInteger();
++        var result=service(calls).decide(withConditions(List.of(branch("public","PUBLIC")),List.of(COURSE)),Map.of("courseType","PROFESSIONAL"),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();assertThat(calls).hasValue(0);
++    }
++
++    @Test void nullConditionInputFailsClosedWithoutClaim() {
++        var result=decide(template(List.of(fact("limit",true))),null,List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.confirmedFacts()).isEmpty();
++    }
++
++    @Test void approvedTemplateRequiresActualReviewMetadata() {
++        assertThatThrownBy(()->new RuleCheckRuleTemplate("rule","v1",ReviewState.APPROVED,null,null,List.of(fact("limit",false)),List.of(),List.of(),List.of()))
++                .isInstanceOf(IllegalArgumentException.class);
++    }
++
++    @Test void factsWithoutEvidenceCannotBeApprovedIntoOutput() {
++        assertThatThrownBy(()->new Fact("unbound","没有依据的结论",true,Map.of(),List.of()))
++                .isInstanceOf(IllegalArgumentException.class);
++    }
++
++    @Test void duplicateConditionsCannotCreateContradictoryPromptDefinitions() {
++        assertThatThrownBy(()->withConditions(List.of(fact("limit",false)),List.of(COURSE,COURSE)))
++                .isInstanceOf(IllegalArgumentException.class);
++    }
++
++    @Test void factConditionMustBelongToDeclaredAllowedValues() {
++        assertThatThrownBy(()->withConditions(List.of(branch("bad","UNDECLARED")),List.of(COURSE))).isInstanceOf(IllegalArgumentException.class);
++    }
++
++    @Test void duplicateFactIdsCannotHideAnotherConclusion() {
++        assertThatThrownBy(()->template(List.of(fact("duplicate",false),fact("duplicate",true))))
++                .isInstanceOf(IllegalArgumentException.class);
++    }
++
++    @Test void templateDefensivelyCopiesFactsConditionsAndRequirements() {
++        var requirements=new HashMap<String,String>();requirements.put("courseType","PUBLIC");
++        var bindings=new ArrayList<>(List.of(binding(EVIDENCE)));
++        var fact=new Fact("public","合成上限为4学分。",false,requirements,bindings);
++        var facts=new ArrayList<>(List.of(fact));var conditions=new ArrayList<>(List.of(COURSE));
++        var rule=withConditions(facts,conditions);
++        requirements.put("courseType","PROFESSIONAL");bindings.clear();facts.clear();conditions.clear();
++        var result=decide(rule,Map.of("courseType","PUBLIC"),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(ANSWERED);assertThat(result.confirmedFacts()).hasSize(1);
++        assertThatThrownBy(()->rule.facts().clear()).isInstanceOf(UnsupportedOperationException.class);
++        assertThatThrownBy(()->result.confirmedFacts().clear()).isInstanceOf(UnsupportedOperationException.class);
++    }
++
++    @Test void publicBranchDoesNotAskYearUsedOnlyByExcludedProfessionalBranch() {
++        var result=decide(courseAndYearRule(),Map.of("courseType","PUBLIC"),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(ANSWERED);
++        assertThat(result.confirmedFacts()).extracting(RuleCheckDecision.SupportedFact::id).containsExactly("public");
++        assertThat(result.clarificationQuestions()).isEmpty();
++    }
++
++    @Test void irrelevantUnknownYearCannotRejectOtherwiseCoveredPublicBranch() {
++        var result=decide(courseAndYearRule(),Map.of("courseType","PUBLIC","year","Y3"),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(ANSWERED);
++        assertThat(result.confirmedFacts()).extracting(RuleCheckDecision.SupportedFact::id).containsExactly("public");
++    }
++
++    @Test void missingCategoryIsAskedBeforePotentiallyIrrelevantBranchYear() {
++        var result=decide(courseAndYearRule(),Map.of(),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(NEED_CLARIFICATION);
++        assertThat(result.clarificationQuestions()).extracting(RuleCheckDecision.Clarification::key).containsExactly("courseType");
++        assertThat(result.confirmedFacts()).isEmpty();
++    }
++
++    @Test void professionalBranchStillAsksItsMissingYear() {
++        var result=decide(courseAndYearRule(),Map.of("courseType","PROFESSIONAL"),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(NEED_CLARIFICATION);
++        assertThat(result.clarificationQuestions()).extracting(RuleCheckDecision.Clarification::key).containsExactly("year");
++        assertThat(result.confirmedFacts()).isEmpty();
++    }
++
++    @Test void relevantUnknownYearCannotBeDiscardedToAnswerAnIndependentGeneralFact() {
++        var base=courseAndYearRule();
++        var facts=new ArrayList<>(base.facts());facts.add(fact("general",true));
++        var rule=withConditions(facts,base.conditions());
++        var result=decide(rule,Map.of("courseType","PROFESSIONAL","year","Y3"),List.of(EVIDENCE));
++        assertThat(result.status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(result.confirmedFacts()).isEmpty();assertThat(result.clarificationQuestions()).isEmpty();
++    }
++
++    private static RuleCheckRuleTemplate courseAndYearRule() {
++        var year=new Condition("year","请补充年级",List.of("Y1","Y2"));
++        return withConditions(List.of(branch("public","PUBLIC"),
++                new Fact("professional-y1","合成Y1规则",false,Map.of("courseType","PROFESSIONAL","year","Y1"),List.of(binding(EVIDENCE))),
++                new Fact("professional-y2","合成Y2规则",false,Map.of("courseType","PROFESSIONAL","year","Y2"),List.of(binding(EVIDENCE)))),List.of(COURSE,year));
++    }
++
++    private static RuleCheckDecision decide(RuleCheckRuleTemplate rule,Map<String,String> conditions,List<RuleCheckEvidenceSnapshot> evidence) {
++        return service(new AtomicInteger()).decide(rule,conditions,evidence);
++    }
++    private static RuleCheckDecisionService service(AtomicInteger calls) {
++        return new RuleCheckDecisionService(new RuleCheckEvidenceVerifier((s,c)->{
++            calls.incrementAndGet();return c.equals(CHUNK)?Optional.of(EVIDENCE):c.equals(OTHER)?Optional.of(EXCEPTION):Optional.empty();
++        }));
++    }
++    private static Fact fact(String id,boolean independent) {return new Fact(id,"合成上限为4学分。",independent,Map.of(),List.of(binding(EVIDENCE)));}
++    private static Fact branch(String id,String category) {return new Fact(id,"合成上限为4学分。",false,Map.of("courseType",category),List.of(binding(EVIDENCE)));}
++    private static RuleCheckRuleTemplate template(List<Fact> facts) {return rule(ReviewState.APPROVED,facts,List.of(),List.of(),List.of());}
++    private static RuleCheckRuleTemplate withConditions(List<Fact> facts,List<Condition> conditions) {return rule(ReviewState.APPROVED,facts,conditions,List.of(),List.of());}
++    private static RuleCheckRuleTemplate rule(ReviewState state,List<Fact> facts,List<Condition> conditions,List<String> gaps,List<Conflict> conflicts) {
++        return new RuleCheckRuleTemplate("synthetic-rule","v1",state,state==ReviewState.APPROVED?"合成审核夹具":null,
++                state==ReviewState.APPROVED?LocalDate.of(2026,10,8):null,facts,conditions,gaps,conflicts);
++    }
++    private static EvidenceBinding binding(RuleCheckEvidenceSnapshot e) {return new EvidenceBinding(e.sourceId(),e.chunkId(),e.revision(),e.checksum(),0,e.text().length(),e.text());}
++    private static RuleCheckEvidenceSnapshot snapshot(UUID chunk,String text,String revision,boolean eligible) {
++        return new RuleCheckEvidenceSnapshot("request-"+chunk,SOURCE,chunk,revision,hash(text),text,eligible);
++    }
++    private static String hash(String text) {
++        try {return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));}
++        catch(Exception e) {throw new AssertionError(e);}
++    }
++}
+--- before/knowledge/scripts/verify-rule-check-refactor.ps1
++++ after/knowledge/scripts/verify-rule-check-refactor.ps1
+@@ -22,7 +22,7 @@
+         'RetrievalAugmentedAnswerServiceTest','RetrievalEligibilityFilterTest','ZhkuLocalAdminControllerTest',
+         'ZhkuLocalAdminPageResourceTest','ModelOutputParserTest','AnswerEvidenceGuardTest','CandidateResponseMappingTest',
+         'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest',
+-        'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest')
++        'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest','RuleCheckDecisionServiceTest')
+     $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+         'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
+         'JdbcRuleCheckEvidenceReaderTest')
+--- before/docs/product/rule-check-2025-rule-template-draft.json
++++ after/docs/product/rule-check-2025-rule-template-draft.json
+@@ -0,0 +1,1209 @@
++{
++  "schemaVersion": 1,
++  "createdAt": "2026-10-08T10:30:26.507189+08:00",
++  "referenceRevision": "2025.9.2",
++  "sourceFileSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
++  "referenceArtifactSha256": "c01505d9114274d8b379ca98b0f47739c689f199e699f8a460e53bf9b367efc9",
++  "developmentReferenceConfirmed": true,
++  "ruleDefinitionReviewStatus": "DRAFT",
++  "runtimeActivated": false,
++  "studentVisible": false,
++  "sharingQualificationConfirmed": false,
++  "currentAcademicYearApplicability": "UNKNOWN",
++  "clauses": [
++    {
++      "locatorId": "handbook-2025-article-2",
++      "article": 2,
++      "pdfPhysicalPage": 76,
++      "printedPage": 64,
++      "referenceRevision": "2025.9.2",
++      "sourceFileSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
++      "excerptUtf8Sha256": "2d1dbdbee0a567fea8c345a62e6568bc93d373d36518c5b62253a11f5f136dd1",
++      "rawExtractedText": "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
++      "runtimeSourceId": null,
++      "runtimeChunkId": null,
++      "runtimeChunkChecksum": null,
++      "runtimeSpan": null
++    },
++    {
++      "locatorId": "handbook-2025-article-4",
++      "article": 4,
++      "pdfPhysicalPage": 76,
++      "printedPage": 64,
++      "referenceRevision": "2025.9.2",
++      "sourceFileSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
++      "excerptUtf8Sha256": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
++      "rawExtractedText": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
++      "runtimeSourceId": null,
++      "runtimeChunkId": null,
++      "runtimeChunkChecksum": null,
++      "runtimeSpan": null
++    },
++    {
++      "locatorId": "handbook-2025-article-18",
++      "article": 18,
++      "pdfPhysicalPage": 77,
++      "printedPage": 65,
++      "referenceRevision": "2025.9.2",
++      "sourceFileSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
++      "excerptUtf8Sha256": "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
++      "rawExtractedText": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
++      "runtimeSourceId": null,
++      "runtimeChunkId": null,
++      "runtimeChunkChecksum": null,
++      "runtimeSpan": null
++    },
++    {
++      "locatorId": "handbook-2025-article-5",
++      "article": 5,
++      "pdfPhysicalPage": 76,
++      "printedPage": 64,
++      "referenceRevision": "2025.9.2",
++      "sourceFileSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
++      "excerptUtf8Sha256": "94097c359d2cb712fab8a57e9b32c3096b41eb1e848ab272aed7c3bb6333b40d",
++      "rawExtractedText": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。",
++      "runtimeSourceId": null,
++      "runtimeChunkId": null,
++      "runtimeChunkChecksum": null,
++      "runtimeSpan": null
++    },
++    {
++      "locatorId": "handbook-2025-article-6",
++      "article": 6,
++      "pdfPhysicalPage": 76,
++      "printedPage": 64,
++      "referenceRevision": "2025.9.2",
++      "sourceFileSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
++      "excerptUtf8Sha256": "35910424a742c3fac925a219b7a4bc7fcac4725586e1641d30ed82c15268f2ab",
++      "rawExtractedText": "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
++      "runtimeSourceId": null,
++      "runtimeChunkId": null,
++      "runtimeChunkChecksum": null,
++      "runtimeSpan": null
++    },
++    {
++      "locatorId": "handbook-2025-article-8",
++      "article": 8,
++      "pdfPhysicalPage": 76,
++      "printedPage": 64,
++      "referenceRevision": "2025.9.2",
++      "sourceFileSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
++      "excerptUtf8Sha256": "056217b8775854fbadb44fff38af48c1ed37e1c3b0c92563e1681186387ffeb2",
++      "rawExtractedText": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
++      "runtimeSourceId": null,
++      "runtimeChunkId": null,
++      "runtimeChunkChecksum": null,
++      "runtimeSpan": null
++    },
++    {
++      "locatorId": "handbook-2025-article-9",
++      "article": 9,
++      "pdfPhysicalPage": 77,
++      "printedPage": 65,
++      "referenceRevision": "2025.9.2",
++      "sourceFileSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
++      "excerptUtf8Sha256": "52f7661f0d5ac579a69f2506b37552b38279cc82fd267c8262bcb0fba176e303",
++      "rawExtractedText": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
++      "runtimeSourceId": null,
++      "runtimeChunkId": null,
++      "runtimeChunkChecksum": null,
++      "runtimeSpan": null
++    },
++    {
++      "locatorId": "handbook-2025-article-10",
++      "article": 10,
++      "pdfPhysicalPage": 77,
++      "printedPage": 65,
++      "referenceRevision": "2025.9.2",
++      "sourceFileSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
++      "excerptUtf8Sha256": "cd02ac0ab183f2a9f22b0e7129ce5fb6e7bdbb8d4c9dc4011413fabdc6adba24",
++      "rawExtractedText": "第十条　每学期选修公共选修课最高不得超过 4 个学分。",
++      "runtimeSourceId": null,
++      "runtimeChunkId": null,
++      "runtimeChunkChecksum": null,
++      "runtimeSpan": null
++    },
++    {
++      "locatorId": "handbook-2025-article-11",
++      "article": 11,
++      "pdfPhysicalPage": 77,
++      "printedPage": 65,
++      "referenceRevision": "2025.9.2",
++      "sourceFileSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
++      "excerptUtf8Sha256": "e1a9646cc11334e64ecf233b86ae27760b0d00d5638b623c1635bce7bf04503d",
++      "rawExtractedText": "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
++      "runtimeSourceId": null,
++      "runtimeChunkId": null,
++      "runtimeChunkChecksum": null,
++      "runtimeSpan": null
++    },
++    {
++      "locatorId": "handbook-2025-article-12",
++      "article": 12,
++      "pdfPhysicalPage": 77,
++      "printedPage": 65,
++      "referenceRevision": "2025.9.2",
++      "sourceFileSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
++      "excerptUtf8Sha256": "2985f3667b0e62bb19055ea9ee795b53cd0192a0da43d893fa612b73f876d9ae",
++      "rawExtractedText": "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
++      "runtimeSourceId": null,
++      "runtimeChunkId": null,
++      "runtimeChunkChecksum": null,
++      "runtimeSpan": null
++    }
++  ],
++  "profiles": [
++    {
++      "referenceCaseId": "r0-dev-01",
++      "reviewId": "Q01",
++      "reviewedQuestion": "全日制普通本科生是否必须按培养方案参加选修学习？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "全日制普通本科学生必须按人才培养方案要求参加选修课学习。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T09:53:47.534476+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "Q01确认；Q02确认；Q03确认；Q04确认；Q05确认",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "全日制普通本科学生必须按人才培养方案要求参加选修课学习。"
++        ],
++        "acceptedEvidence": [
++          {
++            "article": 2,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。"
++          }
++        ],
++        "reason": "用户在查看上一轮原文位置及逐项参考判断后明确逐项确认。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "业务状态映射自已展示的回答/缺证/先补类别判断；未运行模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-2"
++      ],
++      "boundaryDraft": "不能扩展到所有学历或替代个人培养方案。",
++      "boundarySeparatelyConfirmed": null,
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-02",
++      "reviewId": "Q02",
++      "reviewedQuestion": "这份办法是否也能直接用于研究生的选修要求？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "INSUFFICIENT_EVIDENCE",
++      "confirmedReferencePoints": [
++        "第2条没有提供研究生选修规则，不能据此判断研究生要求。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T09:53:47.534476+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "Q01确认；Q02确认；Q03确认；Q04确认；Q05确认",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "INSUFFICIENT_EVIDENCE",
++        "acceptedFacts": [
++          "第2条没有提供研究生选修规则，不能据此判断研究生要求。"
++        ],
++        "acceptedEvidence": [
++          {
++            "article": 2,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。"
++          }
++        ],
++        "reason": "用户在查看上一轮原文位置及逐项参考判断后明确逐项确认。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "业务状态映射自已展示的回答/缺证/先补类别判断；未运行模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-2"
++      ],
++      "boundaryDraft": "不能把普通本科适用范围推广至研究生。",
++      "boundarySeparatelyConfirmed": null,
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [
++        "研究生选修规则未取得"
++      ],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-03",
++      "reviewId": "Q03",
++      "reviewedQuestion": "专业选修课和公共选修课是同一类别吗？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "专业选修课与公共选修课是两种类别。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T09:53:47.534476+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "Q01确认；Q02确认；Q03确认；Q04确认；Q05确认",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "专业选修课与公共选修课是两种类别。"
++        ],
++        "acceptedEvidence": [
++          {
++            "article": 4,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
++          }
++        ],
++        "reason": "用户在查看上一轮原文位置及逐项参考判断后明确逐项确认。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "业务状态映射自已展示的回答/缺证/先补类别判断；未运行模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-4"
++      ],
++      "boundaryDraft": "保留两类区分。",
++      "boundarySeparatelyConfirmed": null,
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-04",
++      "reviewId": "Q04",
++      "reviewedQuestion": "公共选修课包含网络课吗？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "公共选修课包括校内公选课和网络公选课。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T09:53:47.534476+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "Q01确认；Q02确认；Q03确认；Q04确认；Q05确认",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "公共选修课包括校内公选课和网络公选课。"
++        ],
++        "acceptedEvidence": [
++          {
++            "article": 4,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
++          }
++        ],
++        "reason": "用户在查看上一轮原文位置及逐项参考判断后明确逐项确认。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "业务状态映射自已展示的回答/缺证/先补类别判断；未运行模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-4"
++      ],
++      "boundaryDraft": "不能将网络课等同全部公选课。",
++      "boundarySeparatelyConfirmed": null,
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-05",
++      "reviewId": "Q05",
++      "reviewedQuestion": "我说的是选修课，但没说是哪一类，能判断缓考和重修吗？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "NEED_CLARIFICATION",
++      "confirmedReferencePoints": [
++        "判断具体课程的缓考、重修规定时，应先明确课程类别。",
++        "公共选修课不办理缓考，成绩不合格者不安排重修。",
++        "专业选修课成绩不合格者可申请重修。",
++        "专业选修课的缓考规定仍需其他依据。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T09:53:47.534476+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "Q01确认；Q02确认；Q03确认；Q04确认；Q05确认",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "NEED_CLARIFICATION",
++        "acceptedFacts": [
++          "判断具体课程的缓考、重修规定时，应先明确课程类别。",
++          "公共选修课不办理缓考，成绩不合格者不安排重修。",
++          "专业选修课成绩不合格者可申请重修。",
++          "专业选修课的缓考规定仍需其他依据。"
++        ],
++        "acceptedEvidence": [
++          {
++            "article": 4,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
++          },
++          {
++            "article": 18,
++            "physicalPage": 77,
++            "printedPage": 65,
++            "rawExtractedText": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。"
++          }
++        ],
++        "reason": "用户在查看上一轮原文位置及逐项参考判断后明确逐项确认。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "业务状态映射自已展示的回答/缺证/先补类别判断；未运行模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-4",
++        "handbook-2025-article-18"
++      ],
++      "boundaryDraft": "先确定课程类别，不先套用公选规则。",
++      "boundarySeparatelyConfirmed": null,
++      "proposedRequiredConditions": [
++        {
++          "key": "courseType",
++          "question": "这门课属于公共选修还是专业选修？",
++          "allowedValues": [
++            "PUBLIC",
++            "PROFESSIONAL"
++          ]
++        }
++      ],
++      "missingDependenciesDraft": [
++        "专业选修课缓考依据未取得"
++      ],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-06",
++      "reviewId": "Q06",
++      "reviewedQuestion": "公共选修课通常安排多少学时？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "公共选修课授课时间原则上为16学时，保留“原则上”的限定。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:07:06.860984+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "确认",
++        "decision": "CONFIRMED",
++        "confirmationScope": "Q06–Q10（上一轮展示的五题审核批次）",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "公共选修课授课时间原则上为16学时，保留“原则上”的限定。"
++        ],
++        "acceptedEvidence": [
++          {
++            "article": 5,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。"
++          }
++        ],
++        "reason": "用户在上一轮Q06–Q10原文位置及参考要点展示后回复“确认”，按该批次上下文记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "业务状态映射自已展示的回答/部分回答类别判断；未运行模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-5"
++      ],
++      "boundaryDraft": "保留原则上，不把16写成无例外固定值。",
++      "boundarySeparatelyConfirmed": null,
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-07",
++      "reviewId": "Q07",
++      "reviewedQuestion": "公共选修课的学时上限是什么？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "公共选修课最多不超过32学时，单位是学时。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:07:06.860984+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "确认",
++        "decision": "CONFIRMED",
++        "confirmationScope": "Q06–Q10（上一轮展示的五题审核批次）",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "公共选修课最多不超过32学时，单位是学时。"
++        ],
++        "acceptedEvidence": [
++          {
++            "article": 5,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。"
++          }
++        ],
++        "reason": "用户在上一轮Q06–Q10原文位置及参考要点展示后回复“确认”，按该批次上下文记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "业务状态映射自已展示的回答/部分回答类别判断；未运行模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-5"
++      ],
++      "boundaryDraft": "不把学时误写为学分。",
++      "boundarySeparatelyConfirmed": null,
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-08",
++      "reviewId": "Q08",
++      "reviewedQuestion": "校内公选课通常需要多少人，低于30人如何处理？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "校内公共选修课选课人数一般要求30–150人，低于30人不予开课。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:07:06.860984+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "确认",
++        "decision": "CONFIRMED",
++        "confirmationScope": "Q06–Q10（上一轮展示的五题审核批次）",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "校内公共选修课选课人数一般要求30–150人，低于30人不予开课。"
++        ],
++        "acceptedEvidence": [
++          {
++            "article": 6,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。"
++          }
++        ],
++        "reason": "用户在上一轮Q06–Q10原文位置及参考要点展示后回复“确认”，按该批次上下文记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "业务状态映射自已展示的回答/部分回答类别判断；未运行模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-6"
++      ],
++      "boundaryDraft": "保留一般要求与校内范围。",
++      "boundarySeparatelyConfirmed": null,
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-09",
++      "reviewId": "Q09",
++      "reviewedQuestion": "现在有31人选了某门课，你能确认它一定开班吗？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "PARTIALLY_ANSWERED",
++      "confirmedReferencePoints": [
++        "31人选课不足以确认实际开班。",
++        "人数条款针对校内公共选修课，实际开课结果仍需核实。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:07:06.860984+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "确认",
++        "decision": "CONFIRMED",
++        "confirmationScope": "Q06–Q10（上一轮展示的五题审核批次）",
++        "acceptedStatus": "PARTIALLY_ANSWERED",
++        "acceptedFacts": [
++          "31人选课不足以确认实际开班。",
++          "人数条款针对校内公共选修课，实际开课结果仍需核实。"
++        ],
++        "acceptedEvidence": [
++          {
++            "article": 6,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。"
++          }
++        ],
++        "reason": "用户在上一轮Q06–Q10原文位置及参考要点展示后回复“确认”，按该批次上下文记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "业务状态映射自已展示的回答/部分回答类别判断；未运行模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-6"
++      ],
++      "boundaryDraft": "可解释历史人数条款，不能确认当期开课结果。",
++      "boundarySeparatelyConfirmed": null,
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [
++        "实际当期开课结果未核实"
++      ],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-10",
++      "reviewId": "Q10",
++      "reviewedQuestion": "判断选修要求应先看什么资料？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "人才培养方案是选课的重要依据。",
++        "个人具体选修要求需要对应的培养方案。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:07:06.860984+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "确认",
++        "decision": "CONFIRMED",
++        "confirmationScope": "Q06–Q10（上一轮展示的五题审核批次）",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "人才培养方案是选课的重要依据。",
++          "个人具体选修要求需要对应的培养方案。"
++        ],
++        "acceptedEvidence": [
++          {
++            "article": 8,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。"
++          }
++        ],
++        "reason": "用户在上一轮Q06–Q10原文位置及参考要点展示后回复“确认”，按该批次上下文记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "业务状态映射自已展示的回答/部分回答类别判断；未运行模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-8"
++      ],
++      "boundaryDraft": "个人要求取决于本人培养方案。",
++      "boundarySeparatelyConfirmed": null,
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-11",
++      "reviewId": "Q11",
++      "reviewedQuestion": "网络公选课的比例规则，分母是什么？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "原文比例以人才培养方案要求的选修课学分为基数，网络公选课一般不能超过其一半。",
++        "不能改成全部毕业学分或单学期学分；进一步的类别口径需要对应培养方案确认。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:10:02.579084+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "11-20我都看过了，保持确认",
++        "confirmationScope": "Q11–Q20",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "原文比例以人才培养方案要求的选修课学分为基数，网络公选课一般不能超过其一半。",
++          "不能改成全部毕业学分或单学期学分；进一步的类别口径需要对应培养方案确认。"
++        ],
++        "acceptedBoundary": "不能把分母改成全部毕业学分或单学期学分。",
++        "acceptedEvidence": [
++          {
++            "article": 8,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。"
++          }
++        ],
++        "reviewedArtifact": "上一轮Q11–Q15参考要点与核对清单",
++        "reason": "用户明确表示11–20均已看过并确认；仅按相应已展示要点及工作表边界记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "已确认开发参考的预期业务状态；未对实际模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-8"
++      ],
++      "boundaryDraft": "不能把分母改成全部毕业学分或单学期学分。",
++      "boundarySeparatelyConfirmed": "不能把分母改成全部毕业学分或单学期学分。",
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-12",
++      "reviewId": "Q12",
++      "reviewedQuestion": "网络公选课是不是在所有情况下绝对不能超过一半？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "原文使用“一般不能”，应保留限定。",
++        "第8条未列出具体例外或审批办法，不能自行编造。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:10:02.579084+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "11-20我都看过了，保持确认",
++        "confirmationScope": "Q11–Q20",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "原文使用“一般不能”，应保留限定。",
++          "第8条未列出具体例外或审批办法，不能自行编造。"
++        ],
++        "acceptedBoundary": "保留一般，不能编造条文没有写出的审批例外。",
++        "acceptedEvidence": [
++          {
++            "article": 8,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。"
++          }
++        ],
++        "reviewedArtifact": "上一轮Q11–Q15参考要点与核对清单",
++        "reason": "用户明确表示11–20均已看过并确认；仅按相应已展示要点及工作表边界记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "已确认开发参考的预期业务状态；未对实际模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-8"
++      ],
++      "boundaryDraft": "保留一般，不能编造条文没有写出的审批例外。",
++      "boundarySeparatelyConfirmed": "保留一般，不能编造条文没有写出的审批例外。",
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-13",
++      "reviewId": "Q13",
++      "reviewedQuestion": "仅凭手册能判断我毕业还缺多少选修学分吗？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "PARTIALLY_ANSWERED",
++      "confirmedReferencePoints": [
++        "仅凭手册不能确定个人还缺多少选修学分。",
++        "可解释培养方案依据；个人缺口还需要对应培养方案和可靠的已修记录。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:10:02.579084+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "11-20我都看过了，保持确认",
++        "confirmationScope": "Q11–Q20",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "PARTIALLY_ANSWERED",
++        "acceptedFacts": [
++          "仅凭手册不能确定个人还缺多少选修学分。",
++          "可解释培养方案依据；个人缺口还需要对应培养方案和可靠的已修记录。"
++        ],
++        "acceptedBoundary": "可说明方案依据，个人缺口需要方案和授权记录。",
++        "acceptedEvidence": [
++          {
++            "article": 8,
++            "physicalPage": 76,
++            "printedPage": 64,
++            "rawExtractedText": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。"
++          }
++        ],
++        "reviewedArtifact": "上一轮Q11–Q15参考要点与核对清单",
++        "reason": "用户明确表示11–20均已看过并确认；仅按相应已展示要点及工作表边界记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "已确认开发参考的预期业务状态；未对实际模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-8"
++      ],
++      "boundaryDraft": "可说明方案依据，个人缺口需要方案和授权记录。",
++      "boundarySeparatelyConfirmed": "可说明方案依据，个人缺口需要方案和授权记录。",
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [
++        "个人对应培养方案及可靠的已修记录未取得"
++      ],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-14",
++      "reviewId": "Q14",
++      "reviewedQuestion": "应依据什么开课计划，怎样完成公选选课？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "依据教务处公布的公共选修课开课计划，在规定时间内完成网上选课。",
++        "具体时间和入口需另查当期通知。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:10:02.579084+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "11-20我都看过了，保持确认",
++        "confirmationScope": "Q11–Q20",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "依据教务处公布的公共选修课开课计划，在规定时间内完成网上选课。",
++          "具体时间和入口需另查当期通知。"
++        ],
++        "acceptedBoundary": "当前时间及入口需另有当期依据。",
++        "acceptedEvidence": [
++          {
++            "article": 9,
++            "physicalPage": 77,
++            "printedPage": 65,
++            "rawExtractedText": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。"
++          }
++        ],
++        "reviewedArtifact": "上一轮Q11–Q15参考要点与核对清单",
++        "reason": "用户明确表示11–20均已看过并确认；仅按相应已展示要点及工作表边界记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "已确认开发参考的预期业务状态；未对实际模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-9"
++      ],
++      "boundaryDraft": "当前时间及入口需另有当期依据。",
++      "boundarySeparatelyConfirmed": "当前时间及入口需另有当期依据。",
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [
++        "若查询具体选课时间或入口，需另查当期通知"
++      ],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-15",
++      "reviewId": "Q15",
++      "reviewedQuestion": "没有正式选课就参加考试，手册如何规定？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "未经选课者，不得参加课程考核或考核成绩无效。",
++        "保留原文“或”的关系，不能直接判定某个人的成绩。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:10:02.579084+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "11-20我都看过了，保持确认",
++        "confirmationScope": "Q11–Q20",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "未经选课者，不得参加课程考核或考核成绩无效。",
++          "保留原文“或”的关系，不能直接判定某个人的成绩。"
++        ],
++        "acceptedBoundary": "不等于代教务判定某人成绩。",
++        "acceptedEvidence": [
++          {
++            "article": 9,
++            "physicalPage": 77,
++            "printedPage": 65,
++            "rawExtractedText": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。"
++          }
++        ],
++        "reviewedArtifact": "上一轮Q11–Q15参考要点与核对清单",
++        "reason": "用户明确表示11–20均已看过并确认；仅按相应已展示要点及工作表边界记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "已确认开发参考的预期业务状态；未对实际模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-9"
++      ],
++      "boundaryDraft": "不等于代教务判定某人成绩。",
++      "boundarySeparatelyConfirmed": "不等于代教务判定某人成绩。",
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-16",
++      "reviewId": "Q16",
++      "reviewedQuestion": "今天网上公选入口是否开放？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "INSUFFICIENT_EVIDENCE",
++      "confirmedReferencePoints": [
++        "按教务处开课计划在规定时间网上选课；未经选课考核受限或成绩无效。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:10:02.579084+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "11-20我都看过了，保持确认",
++        "confirmationScope": "Q11–Q20",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "INSUFFICIENT_EVIDENCE",
++        "acceptedFacts": [
++          "按教务处开课计划在规定时间网上选课；未经选课考核受限或成绩无效。"
++        ],
++        "acceptedBoundary": "缺当期通知及入口状态，不编造开放时间。",
++        "acceptedEvidence": [
++          {
++            "article": 9,
++            "physicalPage": 77,
++            "printedPage": 65,
++            "rawExtractedText": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。"
++          }
++        ],
++        "reviewedArtifact": "核对清单Q16–Q20草稿及边界",
++        "reason": "用户明确表示11–20均已看过并确认；仅按相应已展示要点及工作表边界记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "已确认开发参考的预期业务状态；未对实际模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-9"
++      ],
++      "boundaryDraft": "缺当期通知及入口状态，不编造开放时间。",
++      "boundarySeparatelyConfirmed": "缺当期通知及入口状态，不编造开放时间。",
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [
++        "当期通知和入口开放状态未核实"
++      ],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-17",
++      "reviewId": "Q17",
++      "reviewedQuestion": "一学期最多选多少公共选修学分？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "每学期公共选修课上限为4个学分，不能推导个人当前资格。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:10:02.579084+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "11-20我都看过了，保持确认",
++        "confirmationScope": "Q11–Q20",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "每学期公共选修课上限为4个学分，不能推导个人当前资格。"
++        ],
++        "acceptedBoundary": "限定单学期公选，不能解释成毕业公选总量。",
++        "acceptedEvidence": [
++          {
++            "article": 10,
++            "physicalPage": 77,
++            "printedPage": 65,
++            "rawExtractedText": "第十条　每学期选修公共选修课最高不得超过 4 个学分。"
++          }
++        ],
++        "reviewedArtifact": "核对清单Q16–Q20草稿及边界",
++        "reason": "用户明确表示11–20均已看过并确认；仅按相应已展示要点及工作表边界记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "已确认开发参考的预期业务状态；未对实际模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-10"
++      ],
++      "boundaryDraft": "限定单学期公选，不能解释成毕业公选总量。",
++      "boundarySeparatelyConfirmed": "限定单学期公选，不能解释成毕业公选总量。",
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-18",
++      "reviewId": "Q18",
++      "reviewedQuestion": "我口述已选3学分，想再选2学分，能确认我有选课资格吗？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "PARTIALLY_ANSWERED",
++      "confirmedReferencePoints": [
++        "每学期公共选修课上限为4个学分，不能推导个人当前资格。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:10:02.579084+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "11-20我都看过了，保持确认",
++        "confirmationScope": "Q11–Q20",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "PARTIALLY_ANSWERED",
++        "acceptedFacts": [
++          "每学期公共选修课上限为4个学分，不能推导个人当前资格。"
++        ],
++        "acceptedBoundary": "仅解释上限，不核实口述、系统余额或官方资格。",
++        "acceptedEvidence": [
++          {
++            "article": 10,
++            "physicalPage": 77,
++            "printedPage": 65,
++            "rawExtractedText": "第十条　每学期选修公共选修课最高不得超过 4 个学分。"
++          }
++        ],
++        "reviewedArtifact": "核对清单Q16–Q20草稿及边界",
++        "reason": "用户明确表示11–20均已看过并确认；仅按相应已展示要点及工作表边界记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "已确认开发参考的预期业务状态；未对实际模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-10"
++      ],
++      "boundaryDraft": "仅解释上限，不核实口述、系统余额或官方资格。",
++      "boundarySeparatelyConfirmed": "仅解释上限，不核实口述、系统余额或官方资格。",
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [
++        "口述数据不能核实官方选课记录或个人资格"
++      ],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-19",
++      "reviewId": "Q19",
++      "reviewedQuestion": "已经合格的公选课，或与专业计划相近的课，可以再选吗？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "不得选与专业教学计划相同或相近课程；已合格课程不能重复修读。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:10:02.579084+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "11-20我都看过了，保持确认",
++        "confirmationScope": "Q11–Q20",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "不得选与专业教学计划相同或相近课程；已合格课程不能重复修读。"
++        ],
++        "acceptedBoundary": "同时保留已合格与相同相近两项条件。",
++        "acceptedEvidence": [
++          {
++            "article": 11,
++            "physicalPage": 77,
++            "printedPage": 65,
++            "rawExtractedText": "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。"
++          }
++        ],
++        "reviewedArtifact": "核对清单Q16–Q20草稿及边界",
++        "reason": "用户明确表示11–20均已看过并确认；仅按相应已展示要点及工作表边界记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "已确认开发参考的预期业务状态；未对实际模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-11"
++      ],
++      "boundaryDraft": "同时保留已合格与相同相近两项条件。",
++      "boundarySeparatelyConfirmed": "同时保留已合格与相同相近两项条件。",
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    },
++    {
++      "referenceCaseId": "r0-dev-20",
++      "reviewId": "Q20",
++      "reviewedQuestion": "公选课与必修、专业选修的排课顺序是什么？",
++      "purpose": "DEVELOPMENT_REFERENCE_PROFILE_NOT_QUERY_ROUTER",
++      "expectedStatusForReviewedQuestion": "ANSWERED",
++      "confirmedReferencePoints": [
++        "开课前一学期排课，先必修及专业选修，再全校公选。"
++      ],
++      "referenceReview": {
++        "reviewer": "用户（项目开发者，自核）",
++        "reviewedAt": "2026-10-08",
++        "recordedAt": "2026-10-08T10:10:02.579084+08:00",
++        "authority": "DIRECT_USER_MESSAGE",
++        "confirmationText": "11-20我都看过了，保持确认",
++        "confirmationScope": "Q11–Q20",
++        "decision": "CONFIRMED",
++        "acceptedStatus": "ANSWERED",
++        "acceptedFacts": [
++          "开课前一学期排课，先必修及专业选修，再全校公选。"
++        ],
++        "acceptedBoundary": "安排顺序不保证个人课表无冲突。",
++        "acceptedEvidence": [
++          {
++            "article": 12,
++            "physicalPage": 77,
++            "printedPage": 65,
++            "rawExtractedText": "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。"
++          }
++        ],
++        "reviewedArtifact": "核对清单Q16–Q20草稿及边界",
++        "reason": "用户明确表示11–20均已看过并确认；仅按相应已展示要点及工作表边界记录。",
++        "reviewMethod": "AUTHOR_SELF_REVIEW_WITH_AI_ASSISTED_DRAFT",
++        "independentSecondReviewer": false,
++        "statusMappingNote": "已确认开发参考的预期业务状态；未对实际模型输出评分。"
++      },
++      "requiredEvidenceLocators": [
++        "handbook-2025-article-12"
++      ],
++      "boundaryDraft": "安排顺序不保证个人课表无冲突。",
++      "boundarySeparatelyConfirmed": "安排顺序不保证个人课表无冲突。",
++      "proposedRequiredConditions": [],
++      "missingDependenciesDraft": [],
++      "factIndependenceReview": null,
++      "scopeAndExceptionsReview": null,
++      "conflictCompletenessReview": null,
++      "ruleDefinitionReviewStatus": "DRAFT",
++      "ruleDefinitionReviewer": null,
++      "ruleDefinitionReviewedAt": null,
++      "runtimeTemplate": null
++    }
++  ],
++  "notes": [
++    "20题确认只确认相应问题的参考要点，不能推导出任意新问题的适用条件。",
++    "证据定位按条款归并为10项；PDF文件hash、摘录hash和未来数据库片段hash不可混用。",
++    "提取文本存在换行；运行时跨度必须在实际发布片段上重新绑定，不伪造UUID或位置。",
++    "每项事实的独立性、条件与例外完整性、冲突、资料展示资格另审；此草案不注册生产Bean。",
++    "Q14的当期通知缺口只在查询具体时间/入口时触发；不能把相关但非必要材料变成无用追问。"
++  ]
++}

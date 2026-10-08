@@ -31,6 +31,9 @@ public enum AgentRunState {
      */
     SUCCEEDED,
 
+    /** 本次执行已结束，但请求未完成；补充信息需发起新请求。 */
+    INCOMPLETE,
+
     /**
      * 工作线程因为异常而失败。
      */
@@ -44,10 +47,11 @@ public enum AgentRunState {
     /**
      * 判断当前状态是否属于最终业务状态。
      *
-     * @return 如果运行已经得到成功、失败或取消结果，则返回 true
+     * @return 如果运行已经得到成功、未完成、失败或取消结果，则返回 true
      */
     public boolean isTerminal() {
         return this == SUCCEEDED
+                || this == INCOMPLETE
                 || this == FAILED
                 || this == CANCELLED;
     }

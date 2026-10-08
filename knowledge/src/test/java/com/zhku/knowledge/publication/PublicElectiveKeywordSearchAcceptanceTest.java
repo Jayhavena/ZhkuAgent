@@ -23,10 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class PublicElectiveKeywordSearchAcceptanceTest {
 
-    private static final String DATABASE_URL = System.getProperty(
-            "zhku.db.url",
-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
-    );
+    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
     private static final String DATABASE_USER = System.getProperty(
             "zhku.db.user",
             "zhkuagent"

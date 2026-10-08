@@ -32,18 +32,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class JdbcEmbeddingProfileStoreTest {
 
-    private static final String DATABASE_URL = System.getProperty(
-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
-    );
+    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
     private static final String DATABASE_USER = System.getProperty(
-            "zhku.db.user", "zhkuagent"
-    );
+            "zhku.db.user", "zhkuagent");
     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
 
     private static final String OLD_PROFILE = "jdbc-store-test-old";
     private static final String NEW_PROFILE = "jdbc-store-test-new";
     private static final String THIRD_PROFILE = "jdbc-store-test-third";
-    private static final String[] PROFILES = {OLD_PROFILE, NEW_PROFILE, THIRD_PROFILE};
+    private static final String[] PROFILES = { OLD_PROFILE, NEW_PROFILE, THIRD_PROFILE };
 
     private static final UUID SOURCE = UUID.fromString("7d111111-1111-4111-8111-111111111111");
     private static final UUID CHUNK = UUID.fromString("7dd11111-1111-4111-8111-111111111111");
@@ -98,7 +95,8 @@ class JdbcEmbeddingProfileStoreTest {
     void shouldReturnEmptyForUnregisteredProfile() {
         assertThat(store.find("jdbc-store-test-missing")).isEmpty();
         // 只断言"未登记的 fixture 不在册/不是 ACTIVE"，不假设库里没有其他 profile 共存。
-        assertThat(store.findActive().map(EmbeddingProfile::profileId)).isNotEqualTo(java.util.Optional.of(OLD_PROFILE));
+        assertThat(store.findActive().map(EmbeddingProfile::profileId))
+                .isNotEqualTo(java.util.Optional.of(OLD_PROFILE));
     }
 
     @Test
@@ -206,7 +204,7 @@ class JdbcEmbeddingProfileStoreTest {
                 CHUNK, "第一条 每学期公共选修课最高修读 4 学分。", "a".repeat(64), "学生手册 2026 版",
                 new SourceEligibilitySnapshot(SOURCE, "PUBLISHED", "STUDENT_VISIBLE",
                         true, false, "PUBLIC_ELECTIVE", null, null)),
-                CHUNKING_VERSION, new float[]{1f, 0f, 0f});
+                CHUNKING_VERSION, new float[] { 1f, 0f, 0f });
         indexRepository.completeRun(runId, 1);
     }
 
@@ -220,8 +218,8 @@ class JdbcEmbeddingProfileStoreTest {
 
     private java.sql.Timestamp activatedAt(String profileId) {
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT activated_at FROM embedding_profile WHERE profile_id = ?")) {
+                PreparedStatement statement = connection.prepareStatement(
+                        "SELECT activated_at FROM embedding_profile WHERE profile_id = ?")) {
             statement.setString(1, profileId);
             try (ResultSet result = statement.executeQuery()) {
                 assertThat(result.next()).isTrue();
@@ -234,8 +232,8 @@ class JdbcEmbeddingProfileStoreTest {
 
     private long count(String sql) {
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet result = statement.executeQuery()) {
+                PreparedStatement statement = connection.prepareStatement(sql);
+                ResultSet result = statement.executeQuery()) {
             assertThat(result.next()).isTrue();
             return result.getLong(1);
         } catch (SQLException exception) {
@@ -245,7 +243,7 @@ class JdbcEmbeddingProfileStoreTest {
 
     private void seedCorpus() throws SQLException {
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement("""
+                PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO knowledge_source (
                          id, title, source_type, source_version, publication_status,
                          published_at, content_checksum, visibility_scope, publication_scope,
@@ -259,7 +257,7 @@ class JdbcEmbeddingProfileStoreTest {
             statement.executeUpdate();
         }
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement("""
+                PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO knowledge_chunk (
                          id, source_id, chunk_index, section_title, source_locator,
                          page_number, content, content_checksum

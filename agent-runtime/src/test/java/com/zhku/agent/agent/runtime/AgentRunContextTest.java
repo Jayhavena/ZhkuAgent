@@ -20,6 +20,79 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * 不调用真实大模型，也不执行任何外部工具。</p>
  */
 class AgentRunContextTest {
+    @Test void suppliedRunIdIsPreservedAndLegacyCreationRemainsRandom() {
+        var id = java.util.UUID.randomUUID();
+        assertThat(AgentRunContext.create(id,"合成任务").runId()).isEqualTo(id);
+        assertThat(AgentRunContext.create("合成任务").runId()).isNotEqualTo(AgentRunContext.create("合成任务").runId());
+        try (var owner=AgentRunObservationDispatcher.createOwned()) {
+            var context=AgentRunContext.create(id,"合成任务", e->{},owner);
+            assertThat(context.runId()).isEqualTo(id);
+            context.start(); context.finish(AgentRunState.INCOMPLETE);
+            context.cleanupOnce(()->{});context.signalTermination();context.publishTermination();
+        }
+    }
+    @Test
+    void completionFirstRejectsLateStopAndTerminalRewrites() {
+        var context = AgentRunContext.create("完成先提交");
+        context.start();
+        assertThat(context.finish(AgentRunState.SUCCEEDED)).isTrue();
+        assertThat(context.requestStop(AgentStopReason.USER_REQUEST)).isFalse();
+        context.cleanupOnce(() -> {
+        });
+        context.signalTermination();
+        assertThat(context.finish(AgentRunState.FAILED)).isFalse();
+        assertThat(context.stopReason()).isEqualTo(AgentStopReason.NONE);
+    }
+
+    @Test
+    void incompleteIsTerminalButCreatedCannotFinishNormally() {
+        var context = AgentRunContext.create("未启动");
+        assertThatThrownBy(() -> context.finish(AgentRunState.INCOMPLETE)).isInstanceOf(IllegalStateException.class);
+        context.start();
+        context.requestStop(AgentStopReason.RUN_TIMEOUT);
+        assertThat(context.finish(AgentRunState.INCOMPLETE)).isFalse();
+        context.finish(AgentRunState.CANCELLED);
+        context.cleanupOnce(() -> {
+        });
+        context.signalTermination();
+        assertThat(context.stopReason()).isEqualTo(AgentStopReason.RUN_TIMEOUT);
+    }
+
+    @Test
+    void cleanupMustFinishBeforeTerminationCanBePublished() {
+        var context = AgentRunContext.create("cleanup");
+        context.start();
+        context.finish(AgentRunState.SUCCEEDED);
+        context.cleanupOnce(() -> assertThatThrownBy(context::signalTermination)
+                .isInstanceOf(IllegalStateException.class));
+        assertThat(context.signalTermination()).isTrue();
+    }
+
+    @Test
+    void cleanupFailureSettlesAsFailedAndStillAllowsTermination() {
+        var context = AgentRunContext.create("cleanup failure");
+        context.start();
+        context.finish(AgentRunState.SUCCEEDED);
+        assertThatThrownBy(() -> context.cleanupOnce(() -> {
+            throw new IllegalStateException("test cleanup failure");
+        })).isInstanceOf(IllegalStateException.class);
+        assertThat(context.state()).isEqualTo(AgentRunState.FAILED);
+        assertThat(context.signalTermination()).isTrue();
+        assertThat(context.termination().join()).isEqualTo(AgentRunState.FAILED);
+        assertThat(context.cleanupOnce(() -> {
+            throw new AssertionError("重复清理");
+        })).isFalse();
+    }
+
+    @Test
+    void stopWinsAgainstLateSuccessWithoutIllegalTransition() {
+        var context = AgentRunContext.create("race");
+        context.start();
+        context.requestStop(AgentStopReason.USER_REQUEST);
+        assertThat(context.finish(AgentRunState.SUCCEEDED)).isFalse();
+        assertThat(context.finish(AgentRunState.CANCELLED)).isTrue();
+        assertThat(context.stopReason()).isEqualTo(AgentStopReason.USER_REQUEST);
+    }
 
     /**
      * 验证正常运行的完整生命周期：
@@ -150,15 +223,13 @@ class AgentRunContextTest {
         List<Message> snapshot = firstRun.messageSnapshot();
 
         assertThatThrownBy(
-                () -> snapshot.add(new UserMessage("非法外部修改"))
-        ).isInstanceOf(UnsupportedOperationException.class);
+                () -> snapshot.add(new UserMessage("非法外部修改"))).isInstanceOf(UnsupportedOperationException.class);
 
         // 测试替换消息时，AgentRunContext 会复制输入集合，
         // 而不是保存调用者提供的可变 List 引用。
         firstRun.replaceMessages(List.of(
                 new UserMessage("重建后的用户消息"),
-                new AssistantMessage("重建后的助手消息")
-        ));
+                new AssistantMessage("重建后的助手消息")));
 
         assertThat(firstRun.messageSnapshot())
                 .extracting(Message::getText)

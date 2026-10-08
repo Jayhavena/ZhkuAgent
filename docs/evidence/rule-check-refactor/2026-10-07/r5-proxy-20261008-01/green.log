@@ -1,0 +1,6 @@
+PASS v2 routes preserve URI and upstream status/body
+PASS v1 compatibility preserves URI
+PASS unsupported namespace and bare prefix stay 404 without upstream calls
+PASS v2 POST is forwarded once and never replayed
+PASS SPA route loads but absent assets are real 404
+PROXY checks=5 passed=true upstream=NODE_FIXTURE java=false database=false provider=false

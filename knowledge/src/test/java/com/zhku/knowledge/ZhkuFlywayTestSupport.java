@@ -7,14 +7,9 @@ import java.util.Objects;
 /**
  * 测试侧 Flyway 迁移的统一入口。
  *
- * <p><b>为什么要统一收口并开启 outOfOrder</b>：本项目的迁移号段按阶段分配，跨线并行开发时
- * 会出现"高版本先入共享库、低版本后补"的真实情形（线上已发生：`V16` 先应用，随后补的 `V15`
- * 被判为乱序迁移，所有直接 `Flyway.configure()` 的入口在校验阶段全部失败）。
- * 把开关收敛到这一个入口，既避免"在十几个测试类里各写一遍"的散落写法，也让这条约定有唯一出处。</p>
- *
- * <p><b>这不是放宽校验</b>：`outOfOrder` 只影响"已存在的历史迁移能否补应用"，不改校验强度、
- * 不改已有迁移内容。**创建新迁移前仍需先确认编号大于共享库当前最大版本**；本入口只是让
- * 已发生的乱序能被安全补上（配合 `ZhkuFlywayTestSupportTest` 的乱序用例锁定行为）。</p>
+ * <p>只允许显式专用临时库；校验须先于Flyway配置，直接运行旧测试也不能迁移原库。
+ * outOfOrder保留既有测试合同，用临时schema验证历史迁移号乱序场景；不修改已有迁移内容，
+ * 也不授予共享或生产库补迁移权限。</p>
  */
 public final class ZhkuFlywayTestSupport {
 
@@ -23,7 +18,7 @@ public final class ZhkuFlywayTestSupport {
     private ZhkuFlywayTestSupport() {
     }
 
-    /** 迁移默认位置（`classpath:db/migration`），行为与收口前一致，只多了乱序容忍。 */
+    /** 迁移默认位置；所有入口均先拒绝原库，乱序只沿用既有临时库合同。 */
     public static void migrate(String url, String user, String password) {
         migrate(url, user, password, DEFAULT_LOCATIONS);
     }
@@ -56,7 +51,7 @@ public final class ZhkuFlywayTestSupport {
 
     private static Flyway configured(
             String url, String user, String password, String locations, String schema) {
-        Objects.requireNonNull(url, "数据库地址不能为空");
+        ZhkuDatabaseTestConfig.verifyTarget(url);
         Objects.requireNonNull(user, "数据库用户不能为空");
         Objects.requireNonNull(password, "数据库密码不能为空");
         Objects.requireNonNull(locations, "迁移位置不能为空");

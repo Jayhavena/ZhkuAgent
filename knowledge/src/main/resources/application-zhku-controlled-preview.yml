@@ -1,0 +1,35 @@
+server:
+  address: 127.0.0.1
+  servlet:
+    session:
+      timeout: 15m
+      persistent: false
+      tracking-modes: cookie
+      cookie:
+        name: ZHKU_CONTROLLED_SESSION
+        path: /api/zhku/controlled-preview/v1
+        http-only: true
+        secure: false
+        same-site: strict
+spring:
+  flyway:
+    enabled: false
+    out-of-order: false
+zhku:
+  controlled-preview:
+    enabled: false
+    conversations:
+      # 3B仅开启重修澄清JSON入口；仍要求同一显式专用数据库及活动V20。
+      enabled: false
+  local-preview:
+    enabled: false
+  local-admin:
+    enabled: false
+  rag:
+    enabled: false
+  streaming:
+    enabled: false
+  campus-agent:
+    enabled: false
+    archive:
+      enabled: false

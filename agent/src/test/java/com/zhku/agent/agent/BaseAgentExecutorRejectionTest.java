@@ -141,6 +141,7 @@ class BaseAgentExecutorRejectionTest {
                 );
             }
 
+            context.finish(AgentRunState.SUCCEEDED);
             return "released";
         }
 

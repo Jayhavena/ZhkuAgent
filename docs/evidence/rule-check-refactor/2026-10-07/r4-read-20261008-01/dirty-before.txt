@@ -1,0 +1,237 @@
+ M AGENTS.md
+ M README.md
+ M agent-runtime/pom.xml
+ M agent-runtime/src/main/java/com/zhku/agent/agent/runtime/AgentRunContext.java
+ M agent-runtime/src/main/java/com/zhku/agent/agent/runtime/AgentRunState.java
+ M agent-runtime/src/test/java/com/zhku/agent/agent/runtime/AgentRunContextTest.java
+ M agent/README.md
+ M agent/frontend/Dockerfile
+ M agent/frontend/README.md
+ M agent/frontend/index.html
+ M agent/frontend/nginx.conf
+ M agent/frontend/src/api/index.js
+ M agent/frontend/src/components/AppFooter.vue
+ M agent/frontend/src/router/index.js
+ M agent/frontend/src/views/Home.vue
+ M agent/pom.xml
+ M agent/src/main/java/com/zhku/agent/agent/BaseAgent.java
+ M agent/src/main/java/com/zhku/agent/agent/DefaultAgent.java
+ M agent/src/main/java/com/zhku/agent/agent/ToolCallAgent.java
+ M agent/src/main/java/com/zhku/agent/demo/invoke/LangChainAiInvoke.java
+ M agent/src/main/java/com/zhku/agent/demo/invoke/OllamaAiInvoke.java
+ M agent/src/main/java/com/zhku/agent/demo/invoke/SdkAiInvoke.java
+ M agent/src/main/java/com/zhku/agent/demo/invoke/SpringAiAiInvoke.java
+ M agent/src/main/java/com/zhku/agent/demo/rag/MultiQueryExpanderDemo.java
+ M agent/src/main/java/com/zhku/agent/tools/ResourceDownloadTool.java
+ M agent/src/main/java/com/zhku/agent/tools/TerminalOperationTool.java
+ M agent/src/main/java/com/zhku/agent/tools/TerminateTool.java
+ M agent/src/main/java/com/zhku/agent/tools/WebSearchTool.java
+ M agent/src/test/java/com/zhku/agent/agent/BaseAgentExecutorRejectionTest.java
+ M agent/src/test/java/com/zhku/agent/agent/BaseAgentExecutorSelectionTest.java
+ M agent/src/test/java/com/zhku/agent/agent/BaseAgentExecutorTerminationTest.java
+ M agent/src/test/java/com/zhku/agent/demo/rag/MultiQueryExpanderDemoTest.java
+ M agent/src/test/java/com/zhku/agent/tools/FileOperationToolTest.java
+ M agent/src/test/java/com/zhku/agent/tools/PDFGenerationToolTest.java
+ M agent/src/test/java/com/zhku/agent/tools/ResourceDownloadToolTest.java
+ M agent/src/test/java/com/zhku/agent/tools/WebScrapingToolTest.java
+ M agent/src/test/java/com/zhku/agent/tools/WebSearchToolTest.java
+ M agent/tools/image-search/pom.xml
+ M "docs/agent/\350\277\201\347\247\273\345\211\215README.md"
+ M knowledge/README.md
+ M knowledge/pom.xml
+ M knowledge/scripts/verify-campus-temp-db.ps1
+ M knowledge/src/main/java/com/zhku/knowledge/campusagent/CampusCreditAgentManager.java
+ M knowledge/src/main/java/com/zhku/knowledge/campusagent/CampusCreditAgentService.java
+ M knowledge/src/main/java/com/zhku/knowledge/conversation/ConversationStoreFactory.java
+ M knowledge/src/main/java/com/zhku/knowledge/conversation/JdbcConversationStore.java
+ M knowledge/src/main/java/com/zhku/knowledge/conversation/elective/JdbcElectiveRetakeEvidenceFinder.java
+ M knowledge/src/main/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminApplication.java
+ M knowledge/src/main/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminController.java
+ M knowledge/src/main/java/com/zhku/knowledge/rag/AnswerEvidenceGuard.java
+ M knowledge/src/main/java/com/zhku/knowledge/rag/ModelOutputParser.java
+ M knowledge/src/main/java/com/zhku/knowledge/retrieval/HybridRetrievalService.java
+ M knowledge/src/main/java/com/zhku/knowledge/tools/SampleAcademicScheduleTool.java
+ M knowledge/src/main/java/com/zhku/knowledge/tools/modelcall/CourseCreditChatModelFactory.java
+ M knowledge/src/main/java/com/zhku/knowledge/tools/modelcall/CourseCreditModelCallCli.java
+ M knowledge/src/main/java/com/zhku/knowledge/web/CampusAgentPreviewConfiguration.java
+ M knowledge/src/main/java/com/zhku/knowledge/web/CampusAgentPreviewController.java
+ M knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewApplication.java
+ M knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java
+ M knowledge/src/main/resources/zhku/local-admin/index.html
+ M knowledge/src/main/resources/zhku/local-preview/index.html
+ M knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusCreditAgentJdbcEndToEndTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusCreditAgentLiveProviderTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusCreditAgentManagerTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusCreditAgentServiceTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/conversation/ConversationSessionSchemaTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/conversation/ConversationStoreFactoryTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/conversation/JdbcConversationStoreContractTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/feedback/FeedbackPreviewEndpointTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminControllerTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/privacy/AnonymousTelemetryTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/rag/GroundedAnswerComposerTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/rag/ProviderProfileContractTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/rag/RagProviderConfigurationTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/rag/RetrievalAugmentedAnswerServiceTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/rag/SpringAiAdapterContractTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/retrieval/HybridRetrievalServiceTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcCandidateRetrieverTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcEmbeddingProfileStoreTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRetrievalIndexingTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/retrieval/RetrievalEligibilityFilterTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/retrieval/RetrievalIndexingRepeatTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/tools/modelcall/CourseCreditModelCallServiceTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/tools/modelcall/CourseCreditSpringAiProtocolContractTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/web/CampusAgentPreviewControllerTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/web/ZhkuLocalPreviewApplicationTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfigurationTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/web/ZhkuLocalPreviewConversationControllerTest.java
+ M knowledge/src/test/java/com/zhku/knowledge/web/streaming/ZhkuLocalPreviewStreamingConfigurationTest.java
+ M pom.xml
+?? .learnings/
+?? .superpowers/
+?? agent-runtime/src/main/java/com/zhku/agent/agent/runtime/AgentRunObservationDispatcher.java
+?? agent-runtime/src/main/java/com/zhku/agent/agent/runtime/contract/
+?? agent-runtime/src/test/java/com/zhku/agent/agent/runtime/AgentRunDefaultObservationOwnerProbe.java
+?? agent-runtime/src/test/java/com/zhku/agent/agent/runtime/AgentRunObservationDispatcherTest.java
+?? agent-runtime/src/test/java/com/zhku/agent/agent/runtime/AgentRunObservationIsolationTest.java
+?? agent-runtime/src/test/java/com/zhku/agent/agent/runtime/AgentRuntimeLifecycleContractTest.java
+?? agent-runtime/src/test/java/com/zhku/agent/agent/runtime/SharedRuntimeContractTest.java
+?? agent/frontend/compose.preview.yaml
+?? agent/frontend/src/api/controlled.js
+?? agent/frontend/src/components/CampusSource.vue
+?? agent/frontend/src/components/ControlledLayout.vue
+?? agent/frontend/src/components/PasswordInput.vue
+?? agent/frontend/src/state/
+?? agent/frontend/src/styles/
+?? agent/frontend/src/views/CampusConversation.vue
+?? agent/frontend/src/views/CampusHistory.vue
+?? agent/frontend/src/views/CampusRun.vue
+?? agent/frontend/src/views/ControlledLogin.vue
+?? agent/frontend/start-nginx-preview.cmd
+?? agent/frontend/start-nginx-preview.ps1
+?? agent/frontend/tests/
+?? agent/src/main/java/com/zhku/agent/agent/model/AgentExecutionFailure.java
+?? agent/src/test/java/com/zhku/agent/agent/BaseAgentCleanupLifecycleTest.java
+?? agent/src/test/java/com/zhku/agent/agent/BaseAgentFailureOutputTest.java
+?? agent/src/test/java/com/zhku/agent/agent/BaseAgentObserverIsolationTest.java
+?? agent/src/test/java/com/zhku/agent/agent/BaseAgentStepLimitTest.java
+?? agent/src/test/java/com/zhku/agent/agent/GenericRuntimeContractTest.java
+?? agent/src/test/java/com/zhku/agent/agent/ToolCallAgentOutcomeTest.java
+?? agent/src/test/java/com/zhku/agent/tools/TerminateToolContractTest.java
+?? agent/src/test/java/com/zhku/agent/tools/WebSearchToolContractTest.java
+?? career/
+?? docs/career/
+?? docs/design/
+?? "docs/evidence/2026-10-02-milestone-1a-\351\252\214\346\224\266\350\256\260\345\275\225.md"
+?? docs/evidence/controlled-web-demo/
+?? docs/evidence/manual-demo/
+?? docs/evidence/maven-coordinates/
+?? docs/evidence/milestone-1a/
+?? docs/evidence/milestone-1b/
+?? docs/evidence/milestone-2.5/
+?? docs/evidence/milestone-2.6/
+?? docs/evidence/milestone-2/
+?? docs/evidence/milestone-3a/
+?? docs/evidence/milestone-3b/
+?? docs/evidence/milestone-3c/
+?? docs/evidence/milestone-4a/
+?? docs/evidence/nginx-preview/
+?? docs/evidence/presentation-cleanup/
+?? docs/evidence/rule-check-refactor/
+?? docs/evidence/single-session/
+?? docs/evidence/three-session/
+?? docs/manual/
+?? docs/plans/2026-10-03-agent-review-remediation-roadmap.md
+?? docs/plans/2026-10-03-integrated-three-session-roadmap.md
+?? docs/plans/2026-10-04-local-preview-closeout-plan.md
+?? docs/plans/2026-10-04-single-session-development-plan.md
+?? docs/plans/2026-10-05-4a-3b-parallel-contract.md
+?? "docs/plans/agent-sync/2026-09-22-PM\346\264\276\345\217\221-\344\270\211\346\235\241\347\272\277\346\217\220\347\244\272\350\257\215.md"
+?? "docs/plans/agent-sync/2026-09-26-PM\346\264\276\345\217\221.md"
+?? docs/plans/agent-sync/2026-10-03-three-session/
+?? docs/plans/agent-sync/2026-10-05-4a-3b/
+?? docs/product/
+?? docs/reviews/
+?? docs/superpowers/plans/2026-10-01-milestone-1a-reliability.md
+?? docs/superpowers/plans/2026-10-03-milestone-3a-run-archive.md
+?? docs/superpowers/plans/2026-10-03-post-3a-backend-roadmap.md
+?? docs/superpowers/plans/2026-10-06-controlled-campus-web-demo-plan.md
+?? docs/superpowers/plans/2026-10-07-milestone-3c-submission-resource-plan.md
+?? docs/superpowers/plans/2026-10-07-rule-check-p0-plan.md
+?? docs/superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md
+?? docs/superpowers/specs/2026-10-03-milestone-3a-run-archive-design.md
+?? docs/superpowers/specs/2026-10-03-milestone-4a-identity-ownership-design.md
+?? docs/superpowers/specs/2026-10-06-controlled-campus-web-ui-design.md
+?? docs/superpowers/specs/2026-10-06-frontend-design-agent-handoff.md
+?? "docs/tutorials/AI\347\263\273\347\273\237\350\257\204\344\274\260-\345\255\227\345\271\225\346\225\264\347\220\206\344\270\216\345\256\236\350\267\265\346\200\235\350\267\257.md"
+?? "docs/zhkuagent/2026-10-06-\351\241\271\347\233\256\350\214\203\345\233\264\344\270\216\351\235\236\346\240\241\345\233\255\345\206\205\345\256\271\347\233\230\347\202\271.md"
+?? "docs/zhkuagent/\351\241\271\347\233\256\347\233\256\345\275\225\344\270\216Agent\344\273\243\347\240\201\347\264\242\345\274\225.md"
+?? knowledge/scripts/open-controlled-web-demo.cmd
+?? knowledge/scripts/start-controlled-manual-demo.cmd
+?? knowledge/scripts/start-controlled-manual-demo.ps1
+?? knowledge/scripts/start-controlled-web-demo.cmd
+?? knowledge/scripts/start-controlled-web-demo.ps1
+?? knowledge/scripts/verify-campus-identity-temp-db.ps1
+?? knowledge/scripts/verify-campus-run-archive-temp-db.ps1
+?? knowledge/scripts/verify-campus-submission-temp-db.cmd
+?? knowledge/scripts/verify-campus-submission-temp-db.ps1
+?? knowledge/scripts/verify-conversation-owned-temp-db.ps1
+?? knowledge/scripts/verify-rule-check-refactor.cmd
+?? knowledge/scripts/verify-rule-check-refactor.ps1
+?? knowledge/src/main/java/com/zhku/knowledge/campusagent/CampusAdmissionBudget.java
+?? knowledge/src/main/java/com/zhku/knowledge/campusagent/CampusAgentResultVisibility.java
+?? knowledge/src/main/java/com/zhku/knowledge/campusagent/CampusExecutionBudget.java
+?? knowledge/src/main/java/com/zhku/knowledge/campusagent/archive/
+?? knowledge/src/main/java/com/zhku/knowledge/campusagent/submission/
+?? knowledge/src/main/java/com/zhku/knowledge/controlled/
+?? knowledge/src/main/java/com/zhku/knowledge/conversation/ControlledConversationAccessStore.java
+?? knowledge/src/main/java/com/zhku/knowledge/conversation/ConversationJdbcAccess.java
+?? knowledge/src/main/java/com/zhku/knowledge/conversation/ConversationOperationBudget.java
+?? knowledge/src/main/java/com/zhku/knowledge/conversation/ConversationStoreFailure.java
+?? knowledge/src/main/java/com/zhku/knowledge/security/
+?? knowledge/src/main/java/com/zhku/knowledge/tools/modelcall/CourseCreditModelTransport.java
+?? knowledge/src/main/java/com/zhku/knowledge/web/CampusAgentHistoryPreviewController.java
+?? knowledge/src/main/java/com/zhku/knowledge/web/CampusRunArchiveConfiguration.java
+?? knowledge/src/main/java/com/zhku/knowledge/web/LocalPreviewBindingGuard.java
+?? knowledge/src/main/resources/application-zhku-controlled-preview.yml
+?? knowledge/src/main/resources/db/migration/V18__create_campus_agent_run_archive.sql
+?? knowledge/src/main/resources/db/migration/V19__create_preview_identity_and_run_ownership.sql
+?? knowledge/src/main/resources/db/migration/V20__add_conversation_session_ownership.sql
+?? knowledge/src/main/resources/db/migration/V21__create_campus_run_submission.sql
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusAdmissionBudgetTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusCreditAgentArchiveTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusCreditAgentOwnershipTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusCreditAgentQueueDeadlineTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusCreditAgentRetentionTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusCreditAgentSubmissionTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusCreditModelProgressTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusExecutionBudgetTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusObserverIsolationIntegrationTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusRuntimeContractTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusRuntimeIntegrationTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/archive/
+?? knowledge/src/test/java/com/zhku/knowledge/campusagent/submission/
+?? knowledge/src/test/java/com/zhku/knowledge/controlled/
+?? knowledge/src/test/java/com/zhku/knowledge/conversation/ControlledConversationAccessStoreTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/conversation/OwnedConversationSessionSchemaTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/conversation/OwnedConversationStoreContractTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/conversation/OwnedConversationStoreFailureTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/conversation/OwnedJdbcConversationStoreContractTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/governance/web/CandidateResponseMappingTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/rag/AnswerEvidenceGuardTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/rag/ModelOutputParserTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/security/
+?? knowledge/src/test/java/com/zhku/knowledge/tools/modelcall/CourseCreditModelBudgetProtocolTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/tools/modelcall/CourseCreditModelTransportLifecycleTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/web/CampusAgentHistoryPreviewControllerTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/web/CampusAgentResultVisibilityTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/web/CampusAgentSaturationContractTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/web/CampusModelTransportContractTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/web/CampusRunArchiveConfigurationIntegrationTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/web/CampusRunArchiveConfigurationTest.java
+?? knowledge/src/test/java/com/zhku/knowledge/web/LocalPreviewBindingGuardTest.java
+?? scripts/Resolve-ZhkuNode.ps1
+?? scripts/tests/
+?? "\345\257\274\345\255\246-\344\273\262\345\233\255\346\237\245\350\257\201.md"
+?? "\351\235\242\347\273\217-\344\273\262\345\233\255\346\237\245\350\257\201.md"

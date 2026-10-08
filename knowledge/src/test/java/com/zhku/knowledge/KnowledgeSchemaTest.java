@@ -15,16 +15,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * 仲园 Agent 知识库的最小数据契约测试。
  *
- * <p>该测试在本机开发数据库执行版本化结构迁移，但不写入或清理任何资料。
+ * <p>该测试仅在显式专用临时数据库执行版本化结构迁移，但不写入或清理任何资料。
  * 它确保后续问答至少有“资料来源—资料片段—发布状态”这一条可追溯链路。</p>
  */
 class KnowledgeSchemaTest {
 
-    // 允许命令行覆盖连接信息；默认值只服务于本机 Docker 开发环境。
-    private static final String DATABASE_URL = System.getProperty(
-            "zhku.db.url",
-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
-    );
+    // 显式临时库目标在字段初始化时验证，禁止连接、迁移或清理原演示库。
+    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
 
     private static final String DATABASE_USER = System.getProperty(
             "zhku.db.user",

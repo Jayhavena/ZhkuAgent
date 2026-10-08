@@ -1,0 +1,272 @@
+--- before/knowledge/src/main/java/com/zhku/knowledge/security/PreviewSecurityConfiguration.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/security/PreviewSecurityConfiguration.java
+@@ -105,7 +105,7 @@
+                     access.anyRequest().denyAll();
+                 });
+         // 不安全请求先检查CSRF，再查当前身份；数据库故障不能覆盖本该先发生的403。
+-        http.addFilterAfter(new CurrentIdentityFilter(repository, mapper,cookieName,cookiePath), CsrfFilter.class);
++        http.addFilterAfter(new CurrentIdentityFilter(repository, mapper,cookieName,cookiePath,ruleCheck,prefix), CsrfFilter.class);
+         // 直接创建而非Servlet Bean；先身份/CSRF/授权，再读取和限制业务body。
+         if (ruleCheck) {
+             http.addFilterBefore(new com.zhku.knowledge.rulecheck.web.RuleCheckMediaTypeFilter(),CsrfFilter.class);
+@@ -155,23 +155,28 @@
+     private static final class CurrentIdentityFilter extends OncePerRequestFilter {
+         private final PreviewIdentityRepository repository;
+         private final ObjectMapper mapper;
+-        private final String cookieName,cookiePath;
+-        CurrentIdentityFilter(PreviewIdentityRepository repository,ObjectMapper mapper,String cookieName,String cookiePath) {
+-            this.repository=repository;this.mapper=mapper;this.cookieName=cookieName;this.cookiePath=cookiePath;
++        private final String cookieName,cookiePath,prefix;
++        private final boolean ruleCheck;
++        CurrentIdentityFilter(PreviewIdentityRepository repository,ObjectMapper mapper,String cookieName,String cookiePath,boolean ruleCheck,String prefix) {
++            this.repository=repository;this.mapper=mapper;this.cookieName=cookieName;this.cookiePath=cookiePath;this.ruleCheck=ruleCheck;this.prefix=prefix;
+         }
+         @Override protected boolean shouldNotFilterAsyncDispatch() { return false; }
+         @Override protected boolean shouldNotFilterErrorDispatch() { return false; }
+         @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+                 throws ServletException, IOException {
++            String path=request.getRequestURI().substring(request.getContextPath().length());
++            // 旧许可失效仍须允许CSRF已核对后的重新认证/退出；新登录由Provider核验新主体。
++            boolean identityAction="POST".equals(request.getMethod()) && (path.equals(prefix+"/auth/login") || path.equals(prefix+"/auth/logout"));
++            boolean csrfRead="GET".equals(request.getMethod()) && path.equals(prefix+"/auth/csrf");
++            if (ruleCheck && (identityAction || csrfRead)) {
++                chain.doFilter(request,response);return;
++            }
+             var authentication = SecurityContextHolder.getContext().getAuthentication();
+             if (authentication != null && authentication.isAuthenticated()
+                     && !(authentication instanceof AnonymousAuthenticationToken)
+                     && !(authentication.getPrincipal() instanceof PreviewPrincipal)) {
+                 // 其他认证源的同名USER权限不是本入口的可信主体。
+-                SecurityContextHolder.clearContext();
+-                var session = request.getSession(false);
+-                if (session != null) session.invalidate();
+-                clearCookie(response,cookieName,cookiePath);
++                rejectIdentity(request,response);
+                 json(mapper, response, 401, new ErrorReply("AUTH_REVOKED", "登录主体不受支持"));
+                 return;
+             }
+@@ -181,10 +186,7 @@
+                     if (failure.code() == PreviewIdentityRepository.Code.IDENTITY_UNAVAILABLE) {
+                         json(mapper, response, 503, new ErrorReply("IDENTITY_UNAVAILABLE", "身份核验暂不可用"));
+                     } else {
+-                        SecurityContextHolder.clearContext();
+-                        var session = request.getSession(false);
+-                        if (session != null) session.invalidate();
+-                        clearCookie(response,cookieName,cookiePath);
++                        rejectIdentity(request,response);
+                         json(mapper, response, 401, new ErrorReply("AUTH_REVOKED", "登录许可已失效"));
+                     }
+                     return;
+@@ -192,6 +194,15 @@
+             }
+             chain.doFilter(request, response);
+         }
++        private void rejectIdentity(HttpServletRequest request,HttpServletResponse response) {
++            SecurityContextHolder.clearContext();
++            // v2旧请求的异常可能晚于新登录；Session锁也不能控制Cookie的网络交付顺序。
++            // 保留记录不保留许可：每次仍fresh核验并拒绝，显式退出或自然TTL负责结束会话。
++            if (ruleCheck) return;
++            var session=request.getSession(false);
++            if (session!=null) session.invalidate();
++            clearCookie(response,cookieName,cookiePath);
++        }
+     }
+ 
+     static void clearCookie(HttpServletResponse response) {
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckOriginalHttpTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckOriginalHttpTest.java
+@@ -146,6 +146,28 @@
+             } finally {release.countDown();}
+         }
+     });}
++    @Test void delayedEntryRevocationCannotInvalidateNewLoginOrDeleteItsCookie() {run(app->{
++        var f=app.context().getBean(OriginalFixture.class);
++        try(var user=new User(app.port());var executor=Executors.newSingleThreadExecutor()) {
++            login(user,app.accounts().get(0));
++            var entered=new CountDownLatch(1);var release=new CountDownLatch(1);
++            // 首次SQL核对后暂停，再以真实SQL读已撤销A；制造入口异常跨越B登录的窗口。
++            f.afterIdentity=()->{entered.countDown();if(!release.await(4,TimeUnit.SECONDS))throw new IllegalStateException("夹具未释放");
++                app.context().getBean(com.zhku.knowledge.security.PreviewIdentityRepository.class).requireCurrent(
++                    new com.zhku.knowledge.security.TrustedActor(app.accounts().get(0).id(),com.zhku.knowledge.security.TrustedActor.Role.USER,0));};
++            var old=executor.submit(()->user.json(BODY,true,false));
++            try {
++                assertThat(entered.await(3,TimeUnit.SECONDS)).isTrue();
++                // A此刻仍有效，B先完成登录和新题，再撤销A并交付旧请求失败。
++                assertThat(user.login(app.accounts().get(1),true).statusCode()).isEqualTo(200);user.csrf();
++                String current=answer(user);f.revoke(app.accounts().get(0));release.countDown();var response=old.get(4,TimeUnit.SECONDS);
++                rejected(response,401);assertThat(response.headers().allValues("set-cookie")).isEmpty();
++                assertThat(user.get("/rule-check/originals/"+current).statusCode()).isEqualTo(200);
++                assertThat(JSON.readTree(user.get("/auth/me").body()).path("userId").asText()).isEqualTo(app.accounts().get(1).id().toString());
++                assertThat(f.countAudit()).isEqualTo(1);
++            } finally {release.countDown();}
++        }
++    });}
+     @FunctionalInterface interface Hook {void run()throws Exception;}
+     static final class OriginalFixture implements AutoCloseable {
+         final UUID source=UUID.randomUUID(),chunk=UUID.randomUUID(),run=UUID.randomUUID(),entry=UUID.randomUUID();
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckPreviewHttpTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckPreviewHttpTest.java
+@@ -49,16 +49,18 @@
+             }
+         })).doesNotThrowAnyException();
+     }
+-    @Test void actualCurrentIdentityRevisionRevokesCookieAndAccountSwitchUsesNewActor() {
+-        assertThatCode(()->withApp(app->{
+-            try(var user=new User(app.port)) {
+-                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);
++    @Test void actualCurrentIdentityRevisionRejectsOldActorAndAccountSwitchUsesNewActor() {
++        assertThatCode(()->withApp(app->{
++            try(var user=new User(app.port)) {
++                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();
+                 try(var c=app.source.getConnection();var p=c.prepareStatement("UPDATE preview_identity SET auth_revision=auth_revision+1 WHERE user_id=?")) {
+                     p.setObject(1,app.accounts.get(0).id());assertThat(p.executeUpdate()).isEqualTo(1);
+                 }
+                 var revoked=user.get("/auth/me");assertThat(revoked.statusCode()).isEqualTo(401);
+-                assertThat(revoked.headers().allValues("set-cookie").toString()).contains("ZHKU_RULE_CHECK_SESSION=", "Max-Age=0", "Path="+PREFIX);
+-                user.csrf();assertThat(user.login(app.accounts.get(1),true).statusCode()).isEqualTo(200);
++                assertThat(revoked.headers().allValues("set-cookie")).isEmpty();
++                assertThat(user.get("/auth/me").statusCode()).isEqualTo(401);
++                assertThat(user.json("{\"question\":\"合成问题\",\"confirmedConditions\":{}}",true,false).statusCode()).isEqualTo(401);
++                user.csrf();assertThat(user.login(app.accounts.get(1),true).statusCode()).isEqualTo(200);user.csrf();
+                 assertThat(JSON.readTree(user.get("/auth/me").body()).path("userId").asText()).isEqualTo(app.accounts.get(1).id().toString());
+             }
+         })).doesNotThrowAnyException();
+--- before/knowledge/src/test/java/com/zhku/knowledge/security/RuleCheckPreviewSecurityConfigurationTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/security/RuleCheckPreviewSecurityConfigurationTest.java
+@@ -62,15 +62,16 @@
+                 .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("AUTH_REVOKED"));
+         verifyNoInteractions(repository);
+     });}
+-    @Test void revokedRevisionClearsOnlyV2CookieAndInvalidatesSession(){run((mvc,repository)->{
+-        var session=login(mvc,"user-a");
++    @Test void revokedRevisionRejectsEveryRequestWithoutLateCookieOrSessionDeletion(){run((mvc,repository)->{
++        var session=login(mvc,"user-a");
++        clearInvocations(repository);
+         doThrow(new PreviewIdentityRepository.Failure(PreviewIdentityRepository.Code.AUTH_REVOKED)).when(repository).requireCurrent(USER);
+         mvc.perform(get(P+"/auth/me").session(session)).andExpect(status().isUnauthorized())
+-                .andExpect(header().string("Set-Cookie",org.hamcrest.Matchers.allOf(
+-                        org.hamcrest.Matchers.containsString("ZHKU_RULE_CHECK_SESSION="),
+-                        org.hamcrest.Matchers.containsString("Path=/api"+P),
+-                        org.hamcrest.Matchers.containsString("Max-Age=0"))));
+-        assertThat(session.isInvalid()).isTrue();
++                .andExpect(header().doesNotExist("Set-Cookie"));
++        assertThat(session.isInvalid()).isFalse();
++        mvc.perform(post(P+"/rule-check").contentType("application/json").session(session).with(csrf()))
++                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("AUTH_REVOKED"));
++        verify(repository,times(2)).requireCurrent(USER);
+     });}
+     @Test void identityUnavailableIs503WithoutClearingValidSession(){run((mvc,repository)->{
+         var session=login(mvc,"user-a");
+@@ -79,6 +80,15 @@
+                 .andExpect(jsonPath("$.code").value("IDENTITY_UNAVAILABLE")).andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("SENTINEL"))));
+         assertThat(session.isInvalid()).isFalse();
+         mvc.perform(post(P+"/rule-check").contentType("application/json").session(session)).andExpect(status().isForbidden());
++    });}
++    @Test void revokedActorCanObtainCsrfAndExplicitlyLogoutWithoutBusinessAccess(){run((mvc,repository)->{
++        var session=login(mvc,"user-a");clearInvocations(repository);
++        doThrow(new PreviewIdentityRepository.Failure(PreviewIdentityRepository.Code.AUTH_REVOKED)).when(repository).requireCurrent(USER);
++        mvc.perform(get(P+"/auth/csrf").session(session)).andExpect(status().isOk()).andExpect(jsonPath("$.token").isNotEmpty());
++        verifyNoInteractions(repository);
++        mvc.perform(get(P+"/auth/me").session(session)).andExpect(status().isUnauthorized());
++        mvc.perform(post(P+"/auth/logout").session(session).with(csrf())).andExpect(status().isNoContent());
++        assertThat(session.isInvalid()).isTrue();
+     });}
+     @Test void loginFailureIsBoundedAndConsumesOneAttempt(){run((mvc,repository)->{
+         for(int i=0;i<20;i++) mvc.perform(post(P+"/auth/login").param("username","unknown").param("password","synthetic-password").with(csrf()))
+--- before/docs/product/rule-check-decision-contract.md
++++ after/docs/product/rule-check-decision-contract.md
+@@ -54,7 +54,7 @@
+ 
+ ## 独立v2身份边界（2026-10-08）
+ 
+-新zhku-rule-check-preview独立profile/应用上下文；/api/zhku/controlled-preview/v2固定ZHKU_RULE_CHECK_SESSION cookie，15分钟闲置、内存、HttpOnly、SameSite Strict，仅本机HTTP；旧v1 cookie不扩宽，不提供SSO。四个auth路径之外只授权USER查证POST，MAINTAINER无角色继承；客户端身份头不可信。CSRF先于当前身份读取，登录换session ID并刷新token；撤销或revision不符清新cookie/session，身份库故障503且不输出事实。安全环境缺实际cookie配置或混用profile/匿名/治理/Agent入口时拒绝，不能靠守卫默认值补齐。
++新zhku-rule-check-preview独立profile/应用上下文；/api/zhku/controlled-preview/v2固定ZHKU_RULE_CHECK_SESSION cookie，15分钟闲置超时、内存、HttpOnly、SameSite Strict，仅本机HTTP；旧v1 cookie不扩宽，不提供SSO。四个auth路径之外只授权USER查证POST及原文GET，MAINTAINER无角色继承；客户端身份头不可信。CSRF先于当前身份读取，登录换session ID并刷新token；撤销或revision不符返回401/no-store，每次fresh核验，不自动删除Session/Cookie，以免迟到响应伤新登录。显式logout结束会话并清Cookie，闲置超时回收Session；持续访问可能延长闲置期限，不称15分钟绝对寿命。身份库故障503且不输出事实。安全环境缺实际cookie配置或混用profile/匿名/治理/Agent入口时拒绝，不能靠守卫默认值补齐。
+ 
+ Task2F为真实安全过滤链与身份仓储替身工程验收；暂无独立启动Application/实际cookie创建/业务Controller。A02/A03仍待完成，真实规则及资料许可不由身份工程验收授权。证据见r5-security-20261008-01。
+ 
+@@ -137,3 +137,7 @@
+ /rules使用独立v2身份与查证客户端，首页主入口指向该页，旧学分/通用助手标实验。五状态独立pending；展示问题范围、用户声明条件、事实成立前提、未知项与冲突两侧；原文按上下文相对跨度对照，不造页码映射或PDF跳页。政策/元数据使用插值转义，外链HTTPS且无userinfo/非443，不替代服务端host许可。
+ 
+ 身份epoch清输入/密码，编辑新题清旧内容，离开销毁Workflow。登录从开始即保留共享LOGIN_UNCONFIRMED，只同代成功/已知失败清理；页面销毁不取消服务端登录，也不丢未知，先只读me再登录。密码不持久化。SSR9项只模板；生命周期2项实际Vue虚拟host只setup/mount/unmount；静态浏览器只布局/路由，尚无代理或真实账号交互闭环。
++
++## v2入口身份失败策略（Task2P，2026-10-08）
++
++失效身份每次fresh DB失败即拒绝业务/原文/me；只清请求上下文，不从在途失败删除共享Session或同名Cookie。保留记录不提供许可，结束职责为显式logout或15m闲置超时。精确GET auth/csrf仅提供CSRF，不授业务身份；精确POST login/logout在既有CSRF之后恢复/结束，新Provider仍authenticate+requireCurrent。旧v1未扩改；不宣称所有Set-Cookie网络顺序原子。
+--- before/docs/product/rule-check-blockers.md
++++ after/docs/product/rule-check-blockers.md
+@@ -181,3 +181,11 @@
+ Node80/80=既有69+实际SFC SSR9+Vue生命周期虚拟host2，0fail/cancel/skip，真实页面bundle20.28KB。审查I1登录pending跨页面丢未知状态有效11/1RED→GREEN；M1尾斜杠class由实际浏览器确认。首次生命周期夹具缺SSR context的TypeError单独保留，不算业务RED。[本批证据](../evidence/rule-check-refactor/2026-10-07/r5-student-page-20261008-01/acceptance.md)。静态预览686宽登录页无水平溢出；/rules/ class正确，首页移除，主CTA返回/rules；无代理时me不可用为预期，不计A10。临时预览关闭，4175无监听。没有数据库/真实模型操作，Java/API/旧v1/真实DRAFT/参考保护不变。
+ 
+ A08页面可构建但尚未完整使用；A09旧v1 RC11、A10代理/真实后端/普通终端/浏览器矩阵继续OPEN。B/C/真实可见/G2不放行。A07入口过滤器迟到失败风险另批最小复现后处理。
++
++## 2026-10-08 Task2P：v2入口迟到撤销和恢复路径
++
++此前静态风险已用真实临时库/HTTP复现并修正。入口身份失败仅清本请求上下文并返回401/no-store，不invalidate共享Session或发删除Cookie，避免旧异常伤已完成B登录/新题/原文句柄。连续失效me/POST仍拒绝；精确csrf GET、login/logout POST允许身份恢复，CSRF前序和新Provider许可仍保留。旧v1处理不变。失效Session记录按闲置超时或显式退出回收，15m非绝对寿命，持续访问可延长。
++
++有效37/3 Cookie RED、16/1 csrf恢复RED→48类503（358纯单元+133临时库含22实际HTTP+12配置）、0fail/error/skip/sourceDrift，V22/18迁移/连接0/退出核对；29合同计数替身。首次37/3并发夹具停在B登录，502回归含调用计数夹具，首次503回归1失败为登录后旧CSRF导致403；全部失败报告保留、不冒称对应行为RED/GREEN。最终[证据](../evidence/rule-check-refactor/2026-10-07/r5-entry-identity-20261008-01/acceptance.md)明确范围。审查C0/I0/M2；合同同步+Controller仅注释scope extension，原9项before保留，实际去注释语义等价，不重跑Java。前端80保护未改未重跑。
++
++本批仅v2入口身份失败，不解决旧v1、主动logout或匿名CSRF新Session的网络Cookie交付窗口；资料/规则顺序核验非最终交付原子性。A10整链/真实内容B/C/G2仍OPEN，无模型/原库写入。
+--- before/docs/product/rule-check-remaining-tasks-2026-10-08.md
++++ after/docs/product/rule-check-remaining-tasks-2026-10-08.md
+@@ -24,7 +24,7 @@
+ | A04 | 多轮必要澄清（工程完成，真实规则与浏览器待B/A10） | 绑定服务端选定规则、引用版本和已确认条件；不重复/无关追问，不把资料缺失转嫁用户；刷新/切换版本时不使用错误上下文 | Codex；A03；只实现查证必需上下文，不强建完整聊天历史 |
+ | A05 | 有界自然语言规则选择适配（协议组件已验收，真实适配/语义待续） | 模型只返回已审目录ID，严格解析、超时/外发预算、空/歧义/越权/注入/故障拒绝；不生成政策事实、不猜个人条件 | Codex可先替身合同；真实语义表现由C组验证；必要性用简单选题基线对照 |
+ | A06 | 原文查询与定位入口（HTTP/会话凭据已验收，真实页码/浏览器待续） | 学生点击后到达实际版本/页码/条款；来源元数据与引用绑定；不存在/内部/撤回资料拒绝；资料文本与地址安全展示 | Codex；A01/A03/B01 |
+-| A07 | 最终外发及再次展示边界（HTTP资料/规则/身份/Session复查已验收，下发原子窗口仍有局限） | 明确从取证到响应、历史再次展示的复查策略；真实HTTP层撤回/版本/hash/身份变化矩阵；阻断或重取证，不用顺序检查宣称全链原子性 | Codex；A03/A06；完整清单时效继续D组 |
++| A07 | 最终外发及再次展示边界（HTTP复查及v2入口迟到撤销/身份恢复已验收，网络窗口仍有局限） | 明确从取证到响应、历史再次展示的复查策略；真实HTTP层撤回/版本/hash/身份变化矩阵；阻断或重取证，不用顺序检查宣称全链原子性 | Codex；A03/A06；完整清单时效继续D组 |
+ | A08 | 学生查证页面与产品入口（v2客户端/状态与页面已验收，完整代理浏览器待续） | 提问、五状态、原文、条件/例外、独立确认项/未知项、版本说明；主入口改为规则查证，学分/通用Agent放实验导航；保留旧URL | Codex；可先合成页面，真实使用依赖B组 |
+ | A09 | 页面状态与兼容修复（身份/问题迟到状态已验收，旧v1文案/浏览器待续） | 修RC-11同键内容冲突说明和完成后仍“正在确认”；丢响应不能说未受理，不自动重复执行未知任务；换账号不展示旧正文；沿用实际涉及的3C合同 | Codex；A08，不把只读查证强塞进学分执行循环 |
+ | A10 | 浏览器端到端验收 | 实际Vue→Nginx→Java→专用临时库覆盖回答/部分回答/澄清/缺证/冲突、定位、撤回、换账号和旧v1；中文及普通用户终端验证 | Codex；A01–A09；替身效果与供应商效果分开 |
+--- before/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
++++ after/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
+@@ -293,3 +293,13 @@
+ - [x] 全Node既有69+SSR、Vue构建真实导入新页面、增量审查与证据；真实浏览器/代理/普通终端另Task3C，不因SSR给A10或G2放行。
+ 
+ Expected：目前Nginx只开旧v1，本批页面bundle并不等于可用HTTP代理闭环；真实CLOSED保持，未审资料正确缺证，B/C/用户收益门禁继续OPEN。
++
++## Task2P / A07 查证入口迟到身份撤销（2026-10-08）
++
++9项before见r5-entry-identity-20261008-01；仅v2入口失败清请求上下文并拒绝，停止由在途身份检查invalidate Session/clearCookie。正常每次fresh DB许可、Controller末端复核、CSRF/角色/方法保持；主动logout仍结束Session并清Cookie，旧v1行为保护。
++
++- [x] RED：入口A首SQL后暂停，B先登录完成新题，撤销A后第二次真实SQL交付入口失败，旧A异常返回不得清B会话/Cookie/句柄；连续撤销请求均拒绝。
++- [x] GREEN：v2独立失败策略，无返回数据/新权限；正常身份503/foreign主体/旧v1/登录/退出/原文/澄清全相关回归。
++- [x] 全48类、29合同、一次增量审查、before/after/日志/hash及退出证据；实际浏览器和proxy另Task3C。
++
++Expected：保留失效Session记录不赋予许可，持久存储不变且闲置Session TTL清理；旧v1与显式logout网络交付窗口不在本批解决，不能称全系统Cookie顺序原子性。
+--- before/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
++++ after/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
+@@ -528,3 +528,23 @@
+ Final: fixed M1 路由命名RuleCheck且afterEach成功导航按name设置class；实际浏览器/rules/的bodyClass=rule-check-page，首页移除，主链接返回/rules。
+ 
+ 继续Task2P A07入口迟到身份失败最小复现，然后Task3C代理/完整浏览器；B/C/G2仍OPEN。
++
++Task2P: start — 9项before/595保护；真实SQL撤销后的异常延迟，不mock许可。现有v2清Cookie合同先改为安全目标并与新并发反例跑有效RED，非无证据更改验收。
++Task2P: Ruling: v2请求身份失败拒绝但不invalidate Session或发删除Cookie — 即便加Session锁，旧响应网络交付仍可能删除新Cookie — 成本：旧Session记录到自然TTL/显式退出，每次fresh DB仍拒绝，不增任何许可；旧v1行为不扩改。
++
++Task2P: Ruling: 首次37/3中并发夹具先撤销A，B登录因入口旧许可失败被阻断，尚未执行Cookie断言；首次502全回归还包含Provider调用计数夹具，均保留为失败、不冒称GREEN。改为A首SQL后暂停→B先完成新登录/题→撤销A→第二次真实SQL交付旧异常，恢复旧cleanup后37/3有效Cookie断言RED；保留真实仓储spy而不是mock身份许可。
++Task2P: Ruling: 保留失效Session需单独允许精确CSRF GET、login/logout POST — 当前身份过滤器位于CSRF之后和登录过滤器之前，旧actor核验不能阻断重新认证 — 成本：仅这三个身份动作跳旧许可，Provider仍fresh核验新主体；新增csrf恢复16/1有效RED，查证/原文/me继续拒绝。
++
++Task2P: complete — 最终48类503/0fail/error/skip/sourceDrift，资源退出；真实22 HTTP仅合成。有效37/3与恢复16/1RED；早期夹具/调用计数/旧CSRF失败保留。C0/I0/M2同步，显式Controller注释extension，纯语义相同，无二次审查。
++
++Final: Ruling: 一次独立审查C0/I0/M2；合同/中文注释同步属于原业务边界维护，显式扩为10项增量，原9项before不覆盖。
++
++Final: Ruling: 最终503全回归发生于注释同步前；后续唯一Java变化为注释，由源码等价检查验证，不冒称测试覆盖后补语义变化。
++
++Final: Ruling: 旧v1、显式logout和匿名csrf创建会话仍有网络Cookie交付窗口，未称全系统原子性。
++
++Final: fixed M1 正式合同同步v2失效身份401/no-store/fresh许可，不自动删除Cookie/Session；显式logout和闲置超时回收，15分钟并非绝对寿命。
++
++Final: fixed M2 scope-extension独立保存原Controller字节，仅同步中文注释；去除Java注释后与before完全相同，不重新执行业务测试。
++
++接续Task3C1实际Nginx→Node边界已5项通过、审查中；随后H03索引同步、A09旧文案与完整Java临时库浏览器；B/C/G2保持OPEN。
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckController.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckController.java
+@@ -124,7 +124,7 @@
+     }
+     private static ResponseEntity<ErrorReply> originalChanged() {return error(409,"ORIGINAL_CHANGED","引用或资料已变化，请重新查证");}
+     private static ResponseEntity<ErrorReply> identityError(PreviewIdentityRepository.Failure failure) {
+-        // 迟到的旧身份失败不能注销并发新登录；入口安全链负责正常撤销Cookie。
++        // 入口和末端均拒绝失效许可；迟到请求不注销新登录，显式退出或闲置超时结束会话。
+         return failure.code()==PreviewIdentityRepository.Code.IDENTITY_UNAVAILABLE
+             ?error(503,"IDENTITY_UNAVAILABLE","身份核验暂不可用"):error(401,"AUTH_REVOKED","身份已变化，请重新登录");
+     }

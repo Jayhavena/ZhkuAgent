@@ -1,0 +1,1089 @@
+--- before/knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcVectorCandidateRetriever.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcVectorCandidateRetriever.java
+@@ -23,6 +23,7 @@
+     private final String profileId;
+     private final String requiredScope;
+     private final EmbeddingClient embeddingClient;
++    private final boolean offlineEvaluation;
+ 
+     public JdbcVectorCandidateRetriever(
+             DataSource dataSource,
+@@ -31,11 +32,23 @@
+             String requiredScope,
+             EmbeddingClient embeddingClient
+     ) {
++        this(dataSource, eligibilityFilter, profileId, requiredScope, embeddingClient, false);
++    }
++
++    private JdbcVectorCandidateRetriever(DataSource dataSource, RetrievalEligibilityFilter eligibilityFilter,
++            String profileId, String requiredScope, EmbeddingClient embeddingClient, boolean offlineEvaluation) {
+         this.dataSource = Objects.requireNonNull(dataSource, "数据源不能为空");
+         this.eligibilityFilter = Objects.requireNonNull(eligibilityFilter, "资格过滤器不能为空");
+         this.profileId = Objects.requireNonNull(profileId, "profile 标识不能为空");
+         this.requiredScope = requiredScope;
+         this.embeddingClient = Objects.requireNonNull(embeddingClient, "embedding 客户端不能为空");
++        this.offlineEvaluation = offlineEvaluation;
++    }
++
++    /** 仅离线评测允许读取BUILDING；评测在激活前执行，不能为其提前放宽线上入口。资料资格仍完整检查。 */
++    public static JdbcVectorCandidateRetriever forOfflineEvaluation(DataSource dataSource,
++            RetrievalEligibilityFilter eligibilityFilter, String profileId, String requiredScope, EmbeddingClient embeddingClient) {
++        return new JdbcVectorCandidateRetriever(dataSource, eligibilityFilter, profileId, requiredScope, embeddingClient, true);
+     }
+ 
+     @Override
+@@ -57,7 +70,7 @@
+         }
+ 
+         List<RetrievedChunk> candidates = new ArrayList<>();
+-        for (CandidateRow row : loadRows(toVectorLiteral(queryVector))) {
++        for (CandidateRow row : loadRows(toVectorLiteral(queryVector), limit)) {
+             if (!eligibilityFilter.evaluate(row.source(), requiredScope).eligible()) {
+                 continue;
+             }
+@@ -72,11 +85,16 @@
+     private int profileDimensions() {
+         try (Connection connection = dataSource.getConnection();
+              PreparedStatement statement = connection.prepareStatement(
+-                     "SELECT dimensions FROM embedding_profile WHERE profile_id = ?")) {
++                     "SELECT dimensions, status FROM embedding_profile WHERE profile_id = ?")) {
+             statement.setString(1, profileId);
+             try (ResultSet result = statement.executeQuery()) {
+                 if (!result.next()) {
+                     throw new RetrieverUnavailableException("profile 未在册：" + profileId);
++                }
++                String status = result.getString("status");
++                // 状态检查必须早于embedding外发；维度匹配不等于这个profile已经上线。
++                if (!"ACTIVE".equals(status) && !(offlineEvaluation && "BUILDING".equals(status))) {
++                    throw new RetrieverUnavailableException("profile 不允许当前读取模式：" + status);
+                 }
+                 return result.getInt("dimensions");
+             }
+@@ -85,8 +103,9 @@
+         }
+     }
+ 
+-    private List<CandidateRow> loadRows(String vectorLiteral) {
+-        // 不在此处 LIMIT：资格过滤发生在 Java 侧，先截断会让不合格条目挤掉合格候选。
++    private List<CandidateRow> loadRows(String vectorLiteral, int limit) {
++        // 所有已知资格先在SQL过滤，再精确排序/LIMIT，避免物化全库或被不合格近邻挤占。
++        // 查询时再检查profile，防止embedding期间退役后仍输出候选；完整时效映射仍待后续实现。
+         String sql = """
+                 SELECT entry.chunk_id, chunk.content, chunk.source_locator, chunk.page_number,
+                        chunk.content_checksum, source.id AS source_id, source.title AS source_title,
+@@ -95,13 +114,31 @@
+                 FROM retrieval_index_entry entry
+                 JOIN knowledge_chunk chunk ON chunk.id = entry.chunk_id
+                 JOIN knowledge_source source ON source.id = chunk.source_id
+-                WHERE entry.profile_id = ? AND entry.embedding IS NOT NULL
++                JOIN embedding_profile profile ON profile.profile_id = entry.profile_id
++                JOIN retrieval_index_run index_run ON index_run.id = entry.run_id
++                WHERE entry.profile_id = ?
++                  AND (profile.status = 'ACTIVE' OR (? AND profile.status = 'BUILDING'))
++                  AND index_run.status = 'COMPLETED'
++                  AND index_run.profile_id = entry.profile_id
++                  AND index_run.chunking_version = entry.chunking_version
++                  AND source.publication_status = 'PUBLISHED'
++                  AND source.visibility_scope = 'STUDENT_VISIBLE'
++                  AND source.sharing_rights_confirmed = TRUE
++                  AND (CAST(? AS VARCHAR) IS NULL OR source.knowledge_scope = ?)
++                  AND entry.source_version = source.source_version
++                  AND entry.content_checksum = chunk.content_checksum
++                  AND entry.embedding IS NOT NULL
+                 ORDER BY entry.embedding <=> CAST(? AS vector), entry.chunk_id
++                LIMIT ?
+                 """;
+         try (Connection connection = dataSource.getConnection();
+              PreparedStatement statement = connection.prepareStatement(sql)) {
+             statement.setString(1, profileId);
+-            statement.setString(2, vectorLiteral);
++            statement.setBoolean(2, offlineEvaluation);
++            statement.setString(3, requiredScope);
++            statement.setString(4, requiredScope);
++            statement.setString(5, vectorLiteral);
++            statement.setInt(6, limit);
+             try (ResultSet result = statement.executeQuery()) {
+                 List<CandidateRow> rows = new ArrayList<>();
+                 while (result.next()) {
+--- before/knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcLexicalCandidateRetriever.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcLexicalCandidateRetriever.java
+@@ -14,9 +14,8 @@
+ /**
+  * 受控词法候选检索：在指定 profile 的索引条目上做词面匹配。
+  *
+- * <p>资格判定完全交给 {@link RetrievalEligibilityFilter}：SQL 不重复实现一套
+- * 过滤条件（首期数据量小，先保证口径唯一）；未来若加 SQL 预过滤，
+- * 必须同时保留过滤器的最终判定并补齐对应用例。</p>
++ * <p>SQL先过滤当前schema可表达的资料与索引资格，仍保留
++ * {@link RetrievalEligibilityFilter} 的最终复核；词面评分后截断，避免提前截无序集合。</p>
+  */
+ public final class JdbcLexicalCandidateRetriever implements ChunkCandidateRetriever {
+ 
+@@ -24,6 +23,7 @@
+     private final RetrievalEligibilityFilter eligibilityFilter;
+     private final String profileId;
+     private final String requiredScope;
++    private final boolean offlineEvaluation;
+ 
+     public JdbcLexicalCandidateRetriever(
+             DataSource dataSource,
+@@ -31,10 +31,22 @@
+             String profileId,
+             String requiredScope
+     ) {
++        this(dataSource, eligibilityFilter, profileId, requiredScope, false);
++    }
++
++    private JdbcLexicalCandidateRetriever(DataSource dataSource, RetrievalEligibilityFilter eligibilityFilter,
++            String profileId, String requiredScope, boolean offlineEvaluation) {
+         this.dataSource = Objects.requireNonNull(dataSource, "数据源不能为空");
+         this.eligibilityFilter = Objects.requireNonNull(eligibilityFilter, "资格过滤器不能为空");
+         this.profileId = Objects.requireNonNull(profileId, "profile 标识不能为空");
+         this.requiredScope = requiredScope;
++        this.offlineEvaluation = offlineEvaluation;
++    }
++
++    /** 评测必须在激活前完成；此显式入口允许BUILDING，但不放宽资料资格或允许RETIRED。 */
++    public static JdbcLexicalCandidateRetriever forOfflineEvaluation(DataSource dataSource,
++            RetrievalEligibilityFilter eligibilityFilter, String profileId, String requiredScope) {
++        return new JdbcLexicalCandidateRetriever(dataSource, eligibilityFilter, profileId, requiredScope, true);
+     }
+ 
+     @Override
+@@ -68,6 +80,7 @@
+     }
+ 
+     private List<CandidateRow> loadRows() {
++        assertReadableProfile();
+         String sql = """
+                 SELECT entry.chunk_id, chunk.content, chunk.source_locator, chunk.page_number,
+                        chunk.content_checksum, source.id AS source_id, source.title AS source_title,
+@@ -76,12 +89,27 @@
+                 FROM retrieval_index_entry entry
+                 JOIN knowledge_chunk chunk ON chunk.id = entry.chunk_id
+                 JOIN knowledge_source source ON source.id = chunk.source_id
++                JOIN embedding_profile profile ON profile.profile_id = entry.profile_id
++                JOIN retrieval_index_run index_run ON index_run.id = entry.run_id
+                 WHERE entry.profile_id = ?
++                  AND (profile.status = 'ACTIVE' OR (? AND profile.status = 'BUILDING'))
++                  AND index_run.status = 'COMPLETED'
++                  AND index_run.profile_id = entry.profile_id
++                  AND index_run.chunking_version = entry.chunking_version
++                  AND source.publication_status = 'PUBLISHED'
++                  AND source.visibility_scope = 'STUDENT_VISIBLE'
++                  AND source.sharing_rights_confirmed = TRUE
++                  AND (CAST(? AS VARCHAR) IS NULL OR source.knowledge_scope = ?)
++                  AND entry.source_version = source.source_version
++                  AND entry.content_checksum = chunk.content_checksum
+                 ORDER BY entry.chunk_id
+                 """;
+         try (Connection connection = dataSource.getConnection();
+              PreparedStatement statement = connection.prepareStatement(sql)) {
+             statement.setString(1, profileId);
++            statement.setBoolean(2, offlineEvaluation);
++            statement.setString(3, requiredScope);
++            statement.setString(4, requiredScope);
+             try (ResultSet result = statement.executeQuery()) {
+                 List<CandidateRow> rows = new ArrayList<>();
+                 while (result.next()) {
+@@ -115,6 +143,22 @@
+         }
+     }
+ 
++    private void assertReadableProfile() {
++        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(
++                "SELECT status FROM embedding_profile WHERE profile_id = ?")) {
++            statement.setString(1, profileId);
++            try (ResultSet result = statement.executeQuery()) {
++                if (!result.next()) { throw new RetrieverUnavailableException("profile 未在册：" + profileId); }
++                String status = result.getString("status");
++                if (!"ACTIVE".equals(status) && !(offlineEvaluation && "BUILDING".equals(status))) {
++                    throw new RetrieverUnavailableException("profile 不允许当前读取模式：" + status);
++                }
++            }
++        } catch (SQLException exception) {
++            throw new RetrieverUnavailableException("无法读取 profile 状态", exception);
++        }
++    }
++
+     private record CandidateRow(RetrievedChunk chunk, SourceEligibilitySnapshot source) {
+     }
+ 
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcCandidateRetrieverTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcCandidateRetrieverTest.java
+@@ -13,13 +13,26 @@
+ import java.sql.DriverManager;
+ import java.sql.PreparedStatement;
+ import java.sql.SQLException;
++import java.lang.reflect.InvocationTargetException;
++import java.lang.reflect.Proxy;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.security.MessageDigest;
+ import java.time.Clock;
+ import java.time.Instant;
+ import java.time.ZoneOffset;
+ import java.util.List;
+ import java.util.UUID;
++import java.util.Map;
++import java.util.TreeMap;
++import java.util.concurrent.atomic.AtomicInteger;
++import java.util.concurrent.atomic.AtomicReference;
++import org.springframework.jdbc.datasource.AbstractDataSource;
++import com.fasterxml.jackson.databind.ObjectMapper;
+ 
+ import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
+ 
+ /**
+  * 词法/向量候选检索的资格与排名集成测试（真实 PostgreSQL + pgvector）。
+@@ -30,8 +43,7 @@
+  */
+ class JdbcCandidateRetrieverTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String DATABASE_URL = System.getProperty("zhku.db.url");
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+@@ -49,11 +61,24 @@
+     private DataSource dataSource;
+     private JdbcRetrievalIndexRepository indexRepository;
+     private RetrievalEligibilityFilter filter;
++    private UUID runId;
++    private boolean databaseTargetVerified;
++    private String databaseUrl;
+ 
+     @BeforeEach
+     void setUp() throws SQLException {
+-        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+-        dataSource = new DriverManagerDataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
++        setUpAt(DATABASE_URL);
++    }
++
++    // 包内入口让纯单元验证真正的setup/AfterEach拒绝路径，无需尝试连接不安全目标。
++    void setUpAt(String targetUrl) throws SQLException {
++        databaseTargetVerified = false;
++        // 测试会改变全局ACTIVE；裸Maven也必须在任何迁移/连接/写入前拒绝原库，不能只依赖启动器。
++        RuleCheckDatabaseTestTarget.verify(targetUrl);
++        databaseUrl = targetUrl;
++        databaseTargetVerified = true;
++        ZhkuFlywayTestSupport.migrate(databaseUrl, DATABASE_USER, DATABASE_PASSWORD);
++        dataSource = new DriverManagerDataSource(databaseUrl, DATABASE_USER, DATABASE_PASSWORD);
+         filter = new RetrievalEligibilityFilter(CLOCK);
+         deleteFixtures();
+         insertSource(ELIGIBLE_SOURCE, "PUBLISHED", "STUDENT_VISIBLE", true, "学生手册 2026 版");
+@@ -68,18 +93,18 @@
+         indexRepository = new JdbcRetrievalIndexRepository(dataSource);
+         indexRepository.registerProfile(new EmbeddingProfile(
+                 PROFILE, "test-provider", "test-model", 3, ProfileStatus.BUILDING));
+-        UUID runId = indexRepository.startRun(PROFILE, CHUNKING_VERSION);
++        runId = indexRepository.startRun(PROFILE, CHUNKING_VERSION);
+         indexRepository.appendEntry(runId, PROFILE, new IndexableChunk(
+-                ELIGIBLE_CHUNK_A, "第一条 每学期公共选修课最高修读 4 学分。", "a".repeat(64),
++                ELIGIBLE_CHUNK_A, "第一条 每学期公共选修课最高修读 4 学分。", checksum("第一条 每学期公共选修课最高修读 4 学分。"),
+                 "学生手册 2026 版", snapshot(ELIGIBLE_SOURCE, "PUBLISHED", "STUDENT_VISIBLE", true)),
+                 CHUNKING_VERSION, new float[] { 1f, 0f, 0f });
+         indexRepository.appendEntry(runId, PROFILE, new IndexableChunk(
+-                ELIGIBLE_CHUNK_B, "第二条 公共选修课不办理缓考，不及格者应重修。", "b".repeat(64),
++                ELIGIBLE_CHUNK_B, "第二条 公共选修课不办理缓考，不及格者应重修。", checksum("第二条 公共选修课不办理缓考，不及格者应重修。"),
+                 "学生手册 2026 版", snapshot(ELIGIBLE_SOURCE, "PUBLISHED", "STUDENT_VISIBLE", true)),
+                 CHUNKING_VERSION, new float[] { 0f, 1f, 0f });
+         // 内部资料也写入索引，验证检索侧必须自行挡掉——不能假设"只有合格资料才会被索引"。
+         indexRepository.appendEntry(runId, PROFILE, new IndexableChunk(
+-                INTERNAL_CHUNK, "内部条款 公共选修课缓考特殊处理办法。", "c".repeat(64),
++                INTERNAL_CHUNK, "内部条款 公共选修课缓考特殊处理办法。", checksum("内部条款 公共选修课缓考特殊处理办法。"),
+                 "内部细则", snapshot(INTERNAL_SOURCE, "PUBLISHED", "INTERNAL_ONLY", true)),
+                 CHUNKING_VERSION, new float[] { 0f, 0f, 1f });
+         indexRepository.completeRun(runId, 3);
+@@ -87,11 +112,13 @@
+ 
+     @AfterEach
+     void tearDown() throws SQLException {
+-        deleteFixtures();
++        // JUnit在BeforeEach失败后仍执行AfterEach；拒绝目标后不能因清理又去连接原库。
++        if (databaseTargetVerified) { deleteFixtures(); }
+     }
+ 
+     @Test
+     void shouldRankLexicalCandidatesByMatchedTermsAndExcludeIneligible() {
++        activateProfile();
+         JdbcLexicalCandidateRetriever retriever = new JdbcLexicalCandidateRetriever(dataSource, filter, PROFILE,
+                 "PUBLIC_ELECTIVE");
+ 
+@@ -105,6 +132,7 @@
+ 
+     @Test
+     void shouldReturnNoLexicalCandidateWhenQueryHasNoUsableTerm() {
++        activateProfile();
+         JdbcLexicalCandidateRetriever retriever = new JdbcLexicalCandidateRetriever(dataSource, filter, PROFILE,
+                 "PUBLIC_ELECTIVE");
+ 
+@@ -113,6 +141,7 @@
+ 
+     @Test
+     void shouldRankVectorCandidatesByCosineDistanceAndExcludeIneligible() {
++        activateProfile();
+         JdbcVectorCandidateRetriever retriever = new JdbcVectorCandidateRetriever(
+                 dataSource, filter, PROFILE, "PUBLIC_ELECTIVE", new FixedEmbeddingClient(3));
+ 
+@@ -125,6 +154,7 @@
+ 
+     @Test
+     void shouldRespectLimitOnBothPaths() {
++        activateProfile();
+         JdbcLexicalCandidateRetriever lexical = new JdbcLexicalCandidateRetriever(dataSource, filter, PROFILE,
+                 "PUBLIC_ELECTIVE");
+         JdbcVectorCandidateRetriever vector = new JdbcVectorCandidateRetriever(
+@@ -132,6 +162,296 @@
+ 
+         assertThat(lexical.retrieve("公共选修课", 1)).hasSize(1);
+         assertThat(vector.retrieve("公共选修课", 1)).hasSize(1);
++    }
++
++    @Test
++    void buildingProfileMustNotServeOnlineOrCallEmbedding() {
++        assertOnlineUnavailableWithoutEmbedding(PROFILE);
++    }
++
++    @Test
++    void retiredProfileMustNotServeOnlineOrCallEmbedding() throws SQLException {
++        activateProfile();
++        update("UPDATE embedding_profile SET status='RETIRED' WHERE profile_id=?", PROFILE);
++        assertOnlineUnavailableWithoutEmbedding(PROFILE);
++    }
++
++    @Test
++    void missingProfileMustNotCallEmbedding() {
++        assertOnlineUnavailableWithoutEmbedding("missing-r4-profile");
++    }
++
++    @Test
++    void clientDimensionMismatchMustNotCallEmbedding() {
++        activateProfile();
++        AtomicInteger calls = new AtomicInteger();
++        var retriever = new JdbcVectorCandidateRetriever(dataSource, filter, PROFILE, "PUBLIC_ELECTIVE", countingClient(calls, 4, new float[]{0, 1, 0, 0}));
++        assertThatThrownBy(() -> retriever.retrieve("公共选修课", 1)).isInstanceOf(RetrieverUnavailableException.class);
++        assertThat(calls).hasValue(0);
++    }
++
++    @Test
++    void actualVectorLengthMismatchMustFailThisPath() {
++        activateProfile();
++        AtomicInteger calls = new AtomicInteger();
++        var retriever = new JdbcVectorCandidateRetriever(dataSource, filter, PROFILE, "PUBLIC_ELECTIVE", countingClient(calls, 3, new float[]{0, 1}));
++        assertThatThrownBy(() -> retriever.retrieve("公共选修课", 1)).isInstanceOf(RetrieverUnavailableException.class);
++        assertThat(calls).hasValue(1);
++        assertThat(lexical(dataSource, "PUBLIC_ELECTIVE").retrieve("公共选修课", 1)).hasSize(1);
++    }
++
++    @Test
++    void draftSourceMustBeExcludedOnBothPaths() throws SQLException {
++        activateProfile();
++        update("UPDATE knowledge_source SET publication_status='DRAFT', visibility_scope='INTERNAL_ONLY' WHERE id=?", ELIGIBLE_SOURCE);
++        assertBothEmpty("PUBLIC_ELECTIVE");
++    }
++
++    @Test
++    void internalSourceMustBeExcludedOnBothPaths() throws SQLException {
++        activateProfile();
++        update("UPDATE knowledge_source SET visibility_scope='INTERNAL_ONLY' WHERE id=?", ELIGIBLE_SOURCE);
++        assertBothEmpty("PUBLIC_ELECTIVE");
++    }
++
++    @Test
++    void unconfirmedSharingMustBeExcludedOnBothPaths() throws SQLException {
++        activateProfile();
++        // 当前schema禁止未授权或未发布资料仍学生可见；先验证库约束，再测试合法的内部未授权状态。
++        assertThatThrownBy(() -> update("UPDATE knowledge_source SET sharing_rights_confirmed=false WHERE id=?", ELIGIBLE_SOURCE))
++                .isInstanceOf(SQLException.class).hasMessageContaining("ck_knowledge_source_student_visibility");
++        update("UPDATE knowledge_source SET sharing_rights_confirmed=false, visibility_scope='INTERNAL_ONLY' WHERE id=?", ELIGIBLE_SOURCE);
++        assertBothEmpty("PUBLIC_ELECTIVE");
++    }
++
++    @Test
++    void scopeMismatchMustBeExcludedButNullScopeIsSupported() {
++        activateProfile();
++        assertBothEmpty("OTHER_SCOPE");
++        assertThat(lexical(dataSource, null).retrieve("公共选修课", 10)).hasSize(2);
++        assertThat(vector(dataSource, null).retrieve("公共选修课", 10)).hasSize(2);
++    }
++
++    @Test
++    void sourceVersionDriftMustExcludeStaleEntries() throws SQLException {
++        activateProfile();
++        update("UPDATE knowledge_source SET source_version='changed-version' WHERE id=?", ELIGIBLE_SOURCE);
++        assertBothEmpty("PUBLIC_ELECTIVE");
++    }
++
++    @Test
++    void chunkChecksumDriftMustExcludeOnlyStaleChunk() throws SQLException {
++        activateProfile();
++        update("UPDATE knowledge_chunk SET content_checksum=? WHERE id=?", "f".repeat(64), ELIGIBLE_CHUNK_A);
++        assertOnlyBOnBothPaths();
++    }
++
++    @Test
++    void indexChecksumDriftMustExcludeOnlyStaleChunk() throws SQLException {
++        activateProfile();
++        update("UPDATE retrieval_index_entry SET content_checksum=? WHERE chunk_id=? AND profile_id=?", "f".repeat(64), ELIGIBLE_CHUNK_A, PROFILE);
++        assertOnlyBOnBothPaths();
++    }
++
++    @Test
++    void chunkingVersionDriftMustExcludeOnlyStaleChunk() throws SQLException {
++        activateProfile();
++        update("UPDATE retrieval_index_entry SET chunking_version='changed-version' WHERE chunk_id=? AND profile_id=?", ELIGIBLE_CHUNK_A, PROFILE);
++        assertOnlyBOnBothPaths();
++    }
++
++    @Test
++    void retirementDuringEmbeddingMustPreventCandidateRead() {
++        activateProfile();
++        EmbeddingClient client = new EmbeddingClient() {
++            public int dimensions() { return 3; }
++            public float[] embed(String text) {
++                try { update("UPDATE embedding_profile SET status='RETIRED' WHERE profile_id=?", PROFILE); }
++                catch (SQLException exception) { throw new AssertionError(exception); }
++                return new float[]{0, 1, 0};
++            }
++        };
++        assertThat(new JdbcVectorCandidateRetriever(dataSource, filter, PROFILE, "PUBLIC_ELECTIVE", client)
++                .retrieve("公共选修课", 1)).isEmpty();
++    }
++
++    @Test
++    void unfinishedFailedOrRolledBackRunMustBeExcluded() throws SQLException {
++        activateProfile();
++        for (String status : List.of("RUNNING", "FAILED", "ROLLED_BACK")) {
++            update("UPDATE retrieval_index_run SET status=? WHERE id=?", status, runId);
++            assertBothEmpty("PUBLIC_ELECTIVE");
++        }
++    }
++
++    @Test
++    void runProfileMismatchMustNotMakeEntriesReadable() throws SQLException {
++        activateProfile();
++        indexRepository.registerProfile(new EmbeddingProfile("r4-foreign-profile", "test-provider", "test-model", 3, ProfileStatus.BUILDING));
++        try {
++            update("UPDATE retrieval_index_run SET profile_id='r4-foreign-profile' WHERE id=?", runId);
++            assertBothEmpty("PUBLIC_ELECTIVE");
++        } finally {
++            update("UPDATE retrieval_index_run SET profile_id=? WHERE id=?", PROFILE, runId);
++            update("DELETE FROM embedding_profile WHERE profile_id='r4-foreign-profile'");
++        }
++    }
++
++    @Test
++    void ineligibleNearestMustNotDisplaceEligibleResultAndJdbcReadIsBounded() throws Exception {
++        activateProfile();
++        update("UPDATE retrieval_index_entry SET embedding=CAST(? AS vector) WHERE chunk_id=? AND profile_id=?", "[0,1,0]", INTERNAL_CHUNK, PROFILE);
++        update("UPDATE retrieval_index_entry SET embedding=CAST(? AS vector) WHERE chunk_id=? AND profile_id=?", "[1,1,0]", ELIGIBLE_CHUNK_B, PROFILE);
++        var observation = new QueryObservation();
++        DataSource tracked = trackedDataSource(observation);
++        assertThat(vector(tracked, "PUBLIC_ELECTIVE").retrieve("公共选修课", 1))
++                .extracting(RetrievedChunk::chunkId).containsExactly(ELIGIBLE_CHUNK_B);
++        // 测真实ResultSet产出的行数，防止“结果一条、JDBC仍物化全库”被误报为有界读取。
++        saveExplain(observation);
++        assertThat(observation.rowsRead).hasValue(1);
++    }
++
++    @Test
++    void equalCosineDistanceKeepsStableChunkOrder() throws SQLException {
++        activateProfile();
++        update("UPDATE retrieval_index_entry SET embedding=CAST(? AS vector) WHERE profile_id=?", "[0,1,0]", PROFILE);
++        assertThat(vector(dataSource, "PUBLIC_ELECTIVE").retrieve("公共选修课", 2))
++                .extracting(RetrievedChunk::chunkId).containsExactly(ELIGIBLE_CHUNK_A, ELIGIBLE_CHUNK_B);
++    }
++
++    @Test
++    void explicitOfflineEvaluationCanReadBuildingWithoutActivatingIt() {
++        assertThat(JdbcLexicalCandidateRetriever.forOfflineEvaluation(dataSource, filter, PROFILE, "PUBLIC_ELECTIVE")
++                .retrieve("公共选修课", 10)).hasSize(2);
++        assertThat(JdbcVectorCandidateRetriever.forOfflineEvaluation(dataSource, filter, PROFILE, "PUBLIC_ELECTIVE", new FixedEmbeddingClient(3))
++                .retrieve("公共选修课", 10)).hasSize(2);
++        assertThat(indexRepository.findProfile(PROFILE)).get().extracting(EmbeddingProfile::status).isEqualTo(ProfileStatus.BUILDING);
++        assertOnlineUnavailableWithoutEmbedding(PROFILE);
++    }
++
++    @Test
++    void offlineEvaluationStillRejectsRetiredAndIneligibleSource() throws SQLException {
++        var lexical = JdbcLexicalCandidateRetriever.forOfflineEvaluation(dataSource, filter, PROFILE, "OTHER_SCOPE");
++        assertThat(lexical.retrieve("公共选修课", 10)).isEmpty();
++        AtomicInteger calls = new AtomicInteger();
++        var vector = JdbcVectorCandidateRetriever.forOfflineEvaluation(dataSource, filter, PROFILE, "PUBLIC_ELECTIVE", countingClient(calls, 3, new float[]{0, 1, 0}));
++        update("UPDATE embedding_profile SET status='RETIRED' WHERE profile_id=?", PROFILE);
++        assertThatThrownBy(() -> vector.retrieve("公共选修课", 1)).isInstanceOf(RetrieverUnavailableException.class);
++        assertThat(calls).hasValue(0);
++        assertThatThrownBy(() -> lexical.retrieve("公共选修课", 1)).isInstanceOf(RetrieverUnavailableException.class);
++    }
++
++    private void activateProfile() {
++        new EmbeddingProfileSwitcher(new JdbcEmbeddingProfileStore(dataSource)).activate(PROFILE);
++    }
++
++    private JdbcLexicalCandidateRetriever lexical(DataSource source, String scope) {
++        return new JdbcLexicalCandidateRetriever(source, filter, PROFILE, scope);
++    }
++
++    private JdbcVectorCandidateRetriever vector(DataSource source, String scope) {
++        return new JdbcVectorCandidateRetriever(source, filter, PROFILE, scope, new FixedEmbeddingClient(3));
++    }
++
++    private void assertBothEmpty(String scope) {
++        assertThat(lexical(dataSource, scope).retrieve("公共选修课", 10)).isEmpty();
++        assertThat(vector(dataSource, scope).retrieve("公共选修课", 10)).isEmpty();
++    }
++
++    private void assertOnlyBOnBothPaths() {
++        assertThat(lexical(dataSource, "PUBLIC_ELECTIVE").retrieve("公共选修课", 10))
++                .extracting(RetrievedChunk::chunkId).containsExactly(ELIGIBLE_CHUNK_B);
++        assertThat(vector(dataSource, "PUBLIC_ELECTIVE").retrieve("公共选修课", 10))
++                .extracting(RetrievedChunk::chunkId).containsExactly(ELIGIBLE_CHUNK_B);
++    }
++
++    private void assertOnlineUnavailableWithoutEmbedding(String profile) {
++        AtomicInteger calls = new AtomicInteger();
++        var vector = new JdbcVectorCandidateRetriever(dataSource, filter, profile, "PUBLIC_ELECTIVE", countingClient(calls, 3, new float[]{0, 1, 0}));
++        assertThatThrownBy(() -> vector.retrieve("公共选修课", 1)).isInstanceOf(RetrieverUnavailableException.class);
++        assertThat(calls).hasValue(0);
++        assertThatThrownBy(() -> new JdbcLexicalCandidateRetriever(dataSource, filter, profile, "PUBLIC_ELECTIVE")
++                .retrieve("公共选修课", 1)).isInstanceOf(RetrieverUnavailableException.class);
++    }
++
++    private static EmbeddingClient countingClient(AtomicInteger calls, int dimensions, float[] value) {
++        return new EmbeddingClient() {
++            public int dimensions() { return dimensions; }
++            public float[] embed(String text) { calls.incrementAndGet(); return value; }
++        };
++    }
++
++    private void update(String sql, Object... parameters) throws SQLException {
++        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
++            for (int i = 0; i < parameters.length; i++) { statement.setObject(i + 1, parameters[i]); }
++            statement.executeUpdate();
++        }
++    }
++
++    private DataSource trackedDataSource(QueryObservation observation) {
++        return new AbstractDataSource() {
++            @Override
++            public Connection getConnection(String username, String password) throws SQLException {
++                throw new java.sql.SQLFeatureNotSupportedException("测试包装仅允许已配置数据源的无参连接");
++            }
++
++            @Override
++            public Connection getConnection() throws SQLException {
++                Connection connection = dataSource.getConnection();
++                return (Connection) Proxy.newProxyInstance(Connection.class.getClassLoader(), new Class<?>[]{Connection.class}, (proxy, method, args) -> {
++                    Object value = invoke(connection, method, args);
++                    if (!method.getName().equals("prepareStatement") || !((String) args[0]).contains("FROM retrieval_index_entry")) { return value; }
++                    observation.sql.set((String) args[0]);
++                    PreparedStatement statement = (PreparedStatement) value;
++                    return Proxy.newProxyInstance(PreparedStatement.class.getClassLoader(), new Class<?>[]{PreparedStatement.class}, (p, m, a) -> {
++                        if (m.getName().startsWith("set") && a != null && a.length >= 2 && a[0] instanceof Integer index) {
++                            observation.parameters.put(index, a[1]);
++                        }
++                        Object result = invoke(statement, m, a);
++                        if (!m.getName().equals("executeQuery")) { return result; }
++                        return Proxy.newProxyInstance(java.sql.ResultSet.class.getClassLoader(), new Class<?>[]{java.sql.ResultSet.class}, (r, rm, ra) -> {
++                            Object next = invoke(result, rm, ra);
++                            if (rm.getName().equals("next") && Boolean.TRUE.equals(next)) { observation.rowsRead.incrementAndGet(); }
++                            return next;
++                        });
++                    });
++                });
++            }
++        };
++    }
++
++    private static Object invoke(Object target, java.lang.reflect.Method method, Object[] arguments) throws Throwable {
++        try { return method.invoke(target, arguments); }
++        catch (InvocationTargetException exception) { throw exception.getCause(); }
++    }
++
++    private void saveExplain(QueryObservation observation) throws Exception {
++        String directory = System.getProperty("zhku.rulecheck.evidenceDir");
++        if (directory == null) { return; }
++        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(
++                "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " + observation.sql.get())) {
++            for (var parameter : observation.parameters.entrySet()) { statement.setObject(parameter.getKey(), parameter.getValue()); }
++            try (var result = statement.executeQuery()) {
++                assertThat(result.next()).isTrue();
++                var mapper = new ObjectMapper();
++                Files.writeString(Path.of(directory).resolve("r4-vector-query-plan.json"), mapper.writerWithDefaultPrettyPrinter().writeValueAsString(
++                        Map.of("sql", observation.sql.get(), "boundParameters", observation.parameters,
++                                "jdbcRowsRead", observation.rowsRead.get(), "fixtureKind", "SYNTHETIC",
++                                "explain", mapper.readTree(result.getString(1)))), StandardCharsets.UTF_8);
++            }
++        }
++    }
++
++    private static final class QueryObservation {
++        private final AtomicInteger rowsRead = new AtomicInteger();
++        private final AtomicReference<String> sql = new AtomicReference<>();
++        private final Map<Integer, Object> parameters = new TreeMap<>();
++    }
++
++    private static String checksum(String content) {
++        try {
++            return java.util.HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(content.getBytes(StandardCharsets.UTF_8)));
++        } catch (java.security.NoSuchAlgorithmException exception) { throw new AssertionError(exception); }
+     }
+ 
+     private static SourceEligibilitySnapshot snapshot(
+@@ -178,14 +498,14 @@
+             statement.setString(5, "第 " + (index + 1) + " 页");
+             statement.setInt(6, index + 1);
+             statement.setString(7, content);
+-            statement.setString(8, "e".repeat(64));
++            statement.setString(8, checksum(content));
+             statement.executeUpdate();
+         }
+     }
+ 
+     private void deleteFixtures() throws SQLException {
+         try (Connection connection = DriverManager.getConnection(
+-                DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
++                databaseUrl, DATABASE_USER, DATABASE_PASSWORD)) {
+             connection.createStatement().executeUpdate(
+                     "DELETE FROM retrieval_index_entry WHERE profile_id = '" + PROFILE + "'");
+             connection.createStatement().executeUpdate(
+--- before/knowledge/src/test/java/com/zhku/knowledge/eval/RetrievalAcceptanceEvalTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/eval/RetrievalAcceptanceEvalTest.java
+@@ -77,7 +77,7 @@
+         RetrievalEligibilityFilter filter = new RetrievalEligibilityFilter(
+                 Clock.fixed(Instant.parse("2026-09-17T00:00:00Z"), ZoneOffset.UTC));
+         HybridRetrievalService hybrid = new HybridRetrievalService(new HybridCandidateFuser());
+-        JdbcLexicalCandidateRetriever lexical = new JdbcLexicalCandidateRetriever(
++        JdbcLexicalCandidateRetriever lexical = JdbcLexicalCandidateRetriever.forOfflineEvaluation(
+                 dataSource, filter, PROFILE, "PUBLIC_ELECTIVE");
+         // 向量路：本机无真实 embedding profile → 明确不可用（降级），而不是用假向量凑分。
+         var vectorUnavailable = (com.zhku.knowledge.retrieval.ChunkCandidateRetriever)
+--- before/knowledge/src/test/java/com/zhku/knowledge/eval/RetrievalVectorBaselineEvalTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/eval/RetrievalVectorBaselineEvalTest.java
+@@ -163,9 +163,9 @@
+ 
+         // ③ 评测：词法路 + 真实向量路，RRF 融合；与首份基线同 K、同分母、同数据集版本。
+         HybridRetrievalService hybrid = new HybridRetrievalService(new HybridCandidateFuser());
+-        JdbcLexicalCandidateRetriever lexical = new JdbcLexicalCandidateRetriever(
++        JdbcLexicalCandidateRetriever lexical = JdbcLexicalCandidateRetriever.forOfflineEvaluation(
+                 dataSource, filter, PROFILE, SCOPE);
+-        JdbcVectorCandidateRetriever vector = new JdbcVectorCandidateRetriever(
++        JdbcVectorCandidateRetriever vector = JdbcVectorCandidateRetriever.forOfflineEvaluation(
+                 dataSource, filter, PROFILE, SCOPE, embeddingClient);
+ 
+         List<Double> recalls = new ArrayList<>();
+--- before/knowledge/scripts/verify-rule-check-refactor.ps1
++++ after/knowledge/scripts/verify-rule-check-refactor.ps1
+@@ -21,8 +21,9 @@
+     $unit=@('HybridRetrievalServiceTest','HybridCandidateFusionTest','GroundedAnswerComposerTest',
+         'RetrievalAugmentedAnswerServiceTest','RetrievalEligibilityFilterTest','ZhkuLocalAdminControllerTest',
+         'ZhkuLocalAdminPageResourceTest','ModelOutputParserTest','AnswerEvidenceGuardTest','CandidateResponseMappingTest',
+-        'SpringAiAdapterContractTest')
+-    $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest')
++        'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest')
++    $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
++        'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest')
+     $selected=@($Tests.Split(',')|ForEach-Object {$_.Trim()})
+     if (@($selected|Sort-Object -Unique).Count -ne $selected.Count) {throw '测试选择不能重复'}
+     foreach ($selector in $selected) {
+@@ -141,7 +142,8 @@
+     }
+     $exitCode=1; $failure=$null; $dbResult=$null; $cleanup=$true; $container=$null; $mavenStarted=$false; $databaseReady=$false
+     $arguments=@('-o',"-Dmaven.repo.local=$env:USERPROFILE/.m2/repository",'-Dfile.encoding=UTF-8','-pl','knowledge','-am',
+-        "-Dtest=$($plan.Selected -join ',')",'-Dsurefire.failIfNoSpecifiedTests=false',"-Dzhku.db.url=$($plan.DatabaseUrl)",'-Dzhku.db.user=zhkuagent','test')
++        "-Dtest=$($plan.Selected -join ',')",'-Dsurefire.failIfNoSpecifiedTests=false',"-Dzhku.db.url=$($plan.DatabaseUrl)",
++        "-Dzhku.rulecheck.evidenceDir=$($plan.Directory)",'-Dzhku.db.user=zhkuagent','test')
+     Save-RuleCheckJson ([ordered]@{mode=$Mode;phase=$Phase;selectedClasses=$plan.Selected;providerAllowed=$false;database=$plan.Database;
+         databaseUrl=$plan.DatabaseUrl;startedAt=$started.ToString('o');maven=$plan.Maven;arguments=$arguments;sourceHead=$headBefore}) (Join-Path $plan.Directory 'command.json')
+     try {
+--- before/docs/product/rule-check-scope.md
++++ after/docs/product/rule-check-scope.md
+@@ -131,3 +131,5 @@
+ 资料核验发现官网已有2026版手册；本机2025版可核对历史正文，但仍标本地验证、学生不可见且传播资格未确认。36题候选与16个风险场景已准备，均为AI辅助草稿，未取得当前资料核验和人工金标准，未锁定正式报告集。**R0部分完成，G0尚未通过**；G1/G2未执行，新回答状态未实现。当前依赖见 [来源核验](../evidence/rule-check-refactor/2026-10-07/r0-baseline-01/source-audit.md)。
+ 
+ 每项开发继续绑定问题ID，保留复现、改动、定向复验、兼容回归和当前源码一致性证据。价值问题必须补用户/效果证据才能关闭。
++
++**2026-10-08补充：**R4和P0局部工程收口完成，最终20类151项通过，独立审查测试目标风险已补修；[收口证据](../evidence/rule-check-refactor/2026-10-07/p0-closeout-20261008-01/acceptance.md)。在线已知资格落实不代表完整时效、事实语义或用户收益。G0仍未通过；用户已授权连续实施，R5先推进独立原文组件，资料/人工参考卡点留账。
+--- before/docs/product/rule-check-blockers.md
++++ after/docs/product/rule-check-blockers.md
+@@ -0,0 +1,14 @@
++# 校园规则查证：卡点与持续执行记录
++
++更新：2026-10-08。用户已授权按实施计划连续推进，不再逐项等待“开始下一步”。卡点只阻断依赖它的工作；工程修复、验收准备与独立回归继续执行。授权不代替资料审核、用户收益门禁或部署决定。
++
++| 编号 | 状态 | 卡点与证据 | 阻断范围 | 解除条件与接续动作 |
++| --- | --- | --- | --- | --- |
++| B-01 | OPEN | G0当前有效资料正文、版本适用性及学生传播资格尚未确认；见[R0验收](../evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md) | 真实单主题查证质量结论、学生试点；不阻断独立合成工程反例 | 资料维护者确认完整来源快照、适用对象/时间、公开资格与版本；建立可核对原文及审核记录，再锁定主题 |
++| B-02 | OPEN | 36题质量候选与独立风险草稿未形成锁定的人工参考、原子主张/条件/例外rubric | 真实检索预算调优、语义评分、产品收益结论 | 在B-01资料上人工核对问题与参考证据；家族隔离开发/报告集；评分一致性确认后执行配对比较 |
++| B-03 | OPEN，开发任务R5 | 合法引用仍可放行“4→40”；[R3合成探针](../evidence/rule-check-refactor/2026-10-07/r3-output-20261008-01/semantic-gap.json)的qualityGatePassed=false | 通用事实支持与新查证回答闭环 | R5完成主张到证据、条件/例外和必要澄清的受控切片；合成合同与人工真实评估分别验收，不能以关键词检查关闭 |
++| B-04 | OPEN，开发任务R6 | 在线读取尚未把完整有效期、被替代、撤回及发布清单语义映射到数据库 | 完整资料时效控制与扩展覆盖 | R6明确未知时间与无上限的区别、来源生命周期/快照与撤回合同，再做迁移及查询矩阵；R4只覆盖已有字段 |
++
++未执行的真实供应商评测、PDF整本导入和用户对照属于待实施/门禁依赖，不写成凭证缺失，也不拿合成测试补成“已完成”。有新证据时追加实际日期、批次和解除理由，不覆盖历史失败。
++
++下一次上下文恢复先读P0计划、执行账本和本文件；已验证任务按最终源码哈希复核，不重复重写。若所有剩余任务都依赖外部资料或人工判断，明确报告阻断范围和已备妥的接续入口。
+--- before/docs/superpowers/plans/2026-10-07-rule-check-p0-plan.md
++++ after/docs/superpowers/plans/2026-10-07-rule-check-p0-plan.md
+@@ -10,7 +10,7 @@
+ 
+ **Spec:** [产品范围约定](../../product/rule-check-scope.md)、[主路线图](2026-10-07-rule-check-refactor-roadmap.md) 与 [诊断报告](../../reviews/2026-10-07-refactor-design.md)。五种查证业务状态是后续目标，不修改本批ModelResponse四字段协议。
+ 
+-日期：2026-10-07；状态：Task 1工程部分完成技术验证，资料/人工参考仍待确认，G0未通过。Task 2的RC-02截断缺陷已修复复验，预算调优仍待人工参考；Task 3的RC-03管理员原文对照已完成工程及真实浏览器验收；Task 4结构工程验证完成，事实支持仍开放；Task 5–6未开始。2026-10-08执行R3。实际执行见 [R0验收](../../evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md)、[R1验收](../../evidence/rule-check-refactor/2026-10-07/r1-fusion-01/acceptance.md)、[R2验收](../../evidence/rule-check-refactor/2026-10-07/r2-admin-01/acceptance.md)、[R3验收](../../evidence/rule-check-refactor/2026-10-07/r3-output-20261008-01/acceptance.md)。局部修复不代替G0资料门禁，也不宣称产品收益。
++日期：2026-10-07；状态：Task 1工程部分完成技术验证，资料/人工参考仍待确认，G0未通过。Task 2的RC-02截断缺陷已修复复验，预算调优仍待人工参考；Task 3的RC-03管理员原文对照已完成工程及真实浏览器验收；Task 4结构工程验证完成，事实支持仍开放；Task 5–6已完成局部工程技术验证（最终20类151项，G0仍未通过）。2026-10-08执行R3/R4及独立审查补修。实际执行见 [R0验收](../../evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md)、[R1验收](../../evidence/rule-check-refactor/2026-10-07/r1-fusion-01/acceptance.md)、[R2验收](../../evidence/rule-check-refactor/2026-10-07/r2-admin-01/acceptance.md)、[R3验收](../../evidence/rule-check-refactor/2026-10-07/r3-output-20261008-01/acceptance.md)。局部修复不代替G0资料门禁，也不宣称产品收益。
+ 
+ 评估口径沿用 [Eval 协议](../../product/rule-check-eval-contract.md)：R0准备人工参考和原子rubric，P0以确定性回归为主，不要求先引入付费模型裁判或通用平台。质量、已知风险与裁判验证样本用途分开。
+ 
+@@ -229,8 +229,8 @@
+ 
+ **Consumes：**Task1临时数据库、当前V9索引关系和资格过滤器。**Produces：**在线ACTIVE约束、已知资格与内容版本一致性、精确过滤检索。问题：RC-05读取部分。
+ 
+-- [ ] **Step 1：记录现有夹具状态。** JdbcCandidateRetrieverTest当前注册BUILDING却进行候选读取；保持该状态先写不可在线读取断言，合法排名夹具在修复后显式转ACTIVE，不能删状态测试以求全绿。
+-- [ ] **Step 2：写“inactive不外发embedding”RED。** 复用既有夹具PROFILE、dataSource、filter；新增AtomicInteger import，EmbeddingClient按当前真实两方法接口实现：
++- [x] **Step 1：记录现有夹具状态。** JdbcCandidateRetrieverTest当前注册BUILDING却进行候选读取；保持该状态先写不可在线读取断言，合法排名夹具在修复后显式转ACTIVE，不能删状态测试以求全绿。
++- [x] **Step 2：写“inactive不外发embedding”RED。** 复用既有夹具PROFILE、dataSource、filter；新增AtomicInteger import，EmbeddingClient按当前真实两方法接口实现：
+ 
+ ```java
+ var embeddingCalls = new java.util.concurrent.atomic.AtomicInteger();
+@@ -248,8 +248,8 @@
+ assertThat(embeddingCalls.get()).isZero();
+ ```
+ 
+-- [ ] **Step 3：实现online检查。** 默认线上构造查询ACTIVE和维度；词法同样约束ACTIVE。构建路径允许BUILDING不等于在线读取允许BUILDING；发现离线评测确实复用线上读取时单独登记兼容需求，不通过放宽online约束处理。
+-- [ ] **Step 4：资格预过滤。** 加profile ACTIVE、索引run COMPLETED、source PUBLISHED/STUDENT_VISIBLE/share确认、scope以及entry/source版本与entry/chunk校验和一致；资格检查仍在Java最终复核。当前schema没有完整时间列，不编造SQL字段。
++- [x] **Step 3：实现online检查。** 默认线上构造查询ACTIVE和维度；词法同样约束ACTIVE。构建路径允许BUILDING不等于在线读取允许BUILDING；发现离线评测确实复用线上读取时单独登记兼容需求，不通过放宽online约束处理。
++- [x] **Step 4：资格预过滤。** 加profile ACTIVE、索引run COMPLETED、source PUBLISHED/STUDENT_VISIBLE/share确认、scope以及entry/source版本与entry/chunk校验和一致；资格检查仍在Java最终复核。当前schema没有完整时间列，不编造SQL字段。
+ 
+ 向量查询增加如下连接/条件；保留原SELECT字段与参数绑定。requiredScope允许null，两个scope参数都以相同值绑定。该SQL只覆盖现有字段，不代表完整时效控制：
+ 
+@@ -272,21 +272,21 @@
+ ```
+ 
+ PostgreSQL空值参数类型由显式CAST固定；两个scope值保持一致，不能因null参数无法推导而删scope条件。词法查询使用相同已知资格，去掉embedding非空要求和向量ORDER/LIMIT，继续按既有词面评分后截断。
+-- [ ] **Step 5：向量排序后有限读取。** 已知资格全部过滤后才ORDER BY distance并LIMIT；参数绑定保持当前余弦排序与稳定UUID次序。词法先限制到合法集合，命中词数/UUID顺序维持原合同，不突然LIMIT词法未排序集合。
+-- [ ] **Step 6：真库矩阵。** BUILDING/RETIRED、草稿/内部/未确认分享/scope不符、索引未完成、版本/校验和漂移分别不可召回；不合格最近向量在前而合格较远结果仍可取得；合法精确排序不退步。维度错不外发，异常只降级对应路。
+-- [ ] **Step 7：兼容检索夹具。** 只修明确不符新语义的profile状态/真实校验和，不改数据断言掩盖错误；新增与修改类名单写入command.json。
+-- [ ] **Step 8：保存查询计划、读取数、结果和退出。** RC-05读取部分可关，完整时间映射与清单仍OPEN至R6。
++- [x] **Step 5：向量排序后有限读取。** 已知资格全部过滤后才ORDER BY distance并LIMIT；参数绑定保持当前余弦排序与稳定UUID次序。词法先限制到合法集合，命中词数/UUID顺序维持原合同，不突然LIMIT词法未排序集合。
++- [x] **Step 6：真库矩阵。** BUILDING/RETIRED、草稿/内部/未确认分享/scope不符、索引未完成、版本/校验和漂移分别不可召回；不合格最近向量在前而合格较远结果仍可取得；合法精确排序不退步。维度错不外发，异常只降级对应路。
++- [x] **Step 7：兼容检索夹具。** 只修明确不符新语义的profile状态/真实校验和，不改数据断言掩盖错误；新增与修改类名单写入command.json。
++- [x] **Step 8：保存查询计划、读取数、结果和退出。** RC-05读取部分可关，完整时间映射与清单仍OPEN至R6。
+ 
+ ## Task 6：G1收口与回退演练
+ 
+ **Consumes：**Tasks1–5的批次证据。**Produces：**G1报告、台账更新、源码manifest和恢复说明。
+ 
+-- [ ] **Step 1：确认每项证据对应当前字节。** 定向GREEN后源码有变化，至少重跑受影响的必要集合；XML旧时间/缺类/跳过/漂移均不准通过。
+-- [ ] **Step 2：回归必要集合。** R1/R3：hybrid、composer、RAG服务及有关适配器合同；R2：管理映射/controller/page、审核/发布状态；R4：真库retrieval/indexing/相关eval及scope权限。只有触及controlled/身份/提交装配才额外执行相应3C门禁，避免每次低影响改动重复全量大验收。
+-- [ ] **Step 3：输出metrics。** 每个指标含样本数/分母/资料与模型性质，未测标NOT_RUN；不算新用户收益，不把单测数当准确率。
+-- [ ] **Step 4：验证回退只恢复本批。** 在隔离恢复样例或明确临时目录验证原字节/新增文件清单，原工作区不做递归清理；不删新旧迁移/私有数据。记录入口关闭策略，避免恢复了旧文件就认为旧binary可继续受理。
+-- [ ] **Step 5：判定G1。** RC-02/03和RC-04/05的P0子项通过；RC-01/04语义/05时效/06–09仍按范围开放。建立下一阶段R5任务计划前先汇报缺口和实际新增复杂度。
+-- [ ] **Step 6：更新交付状态。** 标“局部修复技术验证”，不写“校园查证上线”。只有未来G2/G4通过，才能追加用户价值与有限产品完成结论。
++- [x] **Step 1：确认每项证据对应当前字节。** 定向GREEN后源码有变化，至少重跑受影响的必要集合；XML旧时间/缺类/跳过/漂移均不准通过。
++- [x] **Step 2：回归必要集合。** R1/R3：hybrid、composer、RAG服务及有关适配器合同；R2：管理映射/controller/page、审核/发布状态；R4：真库retrieval/indexing/相关eval及scope权限。只有触及controlled/身份/提交装配才额外执行相应3C门禁，避免每次低影响改动重复全量大验收。
++- [x] **Step 3：输出metrics。** 每个指标含样本数/分母/资料与模型性质，未测标NOT_RUN；不算新用户收益，不把单测数当准确率。
++- [x] **Step 4：验证回退只恢复本批。** 在隔离恢复样例或明确临时目录验证原字节/新增文件清单，原工作区不做递归清理；不删新旧迁移/私有数据。记录入口关闭策略，避免恢复了旧文件就认为旧binary可继续受理。
++- [x] **Step 5：判定G1。** RC-02/03和RC-04/05的P0子项通过；RC-01/04语义/05时效/06–09仍按范围开放。建立下一阶段R5任务计划前先汇报缺口和实际新增复杂度。
++- [x] **Step 6：更新交付状态。** 标“局部修复技术验证”，不写“校园查证上线”。只有未来G2/G4通过，才能追加用户价值与有限产品完成结论。
+ 
+ ## 2. 每个任务的标准输出
+ 
+@@ -299,3 +299,5 @@
+ - [x] 旧方法与新重载参数顺序一致，DTO字段为rawText，根协议四字段不改名。
+ - [x] 前置临时库与真实/替身证据性质明确，未声明执行过本计划。
+ - [x] G1不自动进入P1/P2，不自动迁目录或升级依赖。
++
++**P0最终实际：**[收口验收](../../evidence/rule-check-refactor/2026-10-07/p0-closeout-20261008-01/acceptance.md)。独立审查1项Important已RED→GREEN修复；20类151项、合同29项、回退样例22项通过。G1为局部工程验证，G0/产品质量/用户收益仍未通过。用户已授权连续执行，下一阶段可独立部分按R5计划推进。
+--- before/docs/superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md
++++ after/docs/superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md
+@@ -145,13 +145,15 @@
+ 
+ **文件：**修改两类 JDBC retriever 与 `JdbcCandidateRetrieverTest`；更新查询测试夹具及检索相关回归。
+ 
+-- [ ] 在线向量/词法读取要求 profile ACTIVE；BUILDING/RETIRED 不能进入在线结果。构建与离线评测路径另有显式接口，不能为通过测试临时自动激活。
+-- [ ] 以当前 schema 可表达的发布状态、学生可见、分享权、scope、完成索引运行、source version 和 chunk checksum 一致性作 SQL 预过滤；最终仍保留资格检查。
+-- [ ] 向量精确排序在全部已知资格过滤后 LIMIT；不得先截不合格条目再在 Java 过滤。词法先缩小合法集合，保留原排序基线；中文匹配优化单独测，不顺便换全文搜索引擎。
+-- [ ] 未激活向量检索在调用 embedding 前终止；用可计数替身证明无多余供应商调用。
+-- [ ] 明确当前查询仍没有完整有效期/取代数据映射；R6 补真实字段与时间边界，不能在本批继续以 false/null 声称时效受控。
++- [x] 在线向量/词法读取要求 profile ACTIVE；BUILDING/RETIRED 不能进入在线结果。构建与离线评测路径另有显式接口，不能为通过测试临时自动激活。
++- [x] 以当前 schema 可表达的发布状态、学生可见、分享权、scope、完成索引运行、source version 和 chunk checksum 一致性作 SQL 预过滤；最终仍保留资格检查。
++- [x] 向量精确排序在全部已知资格过滤后 LIMIT；不得先截不合格条目再在 Java 过滤。词法先缩小合法集合，保留原排序基线；中文匹配优化单独测，不顺便换全文搜索引擎。
++- [x] 未激活向量检索在调用 embedding 前终止；用可计数替身证明无多余供应商调用。
++- [x] 明确当前查询仍没有完整有效期/取代数据映射；R6 补真实字段与时间边界，不能在本批继续以 false/null 声称时效受控。
+ 
+ **完成：**未获准/profile 不可用/内容漂移不进入证据；合法结果与精确基线一致；专用临时库验证。P0 细节和 RED 示例见子计划。
++
++**实际：**[R4验收](../../evidence/rule-check-refactor/2026-10-07/r4-read-20261008-01/acceptance.md)，24项真库合成定向通过；P0最终20类151项通过。RC-05读取CLOSED、生命周期OPEN，G0未通过。
+ 
+ ### R5 / P1：一个主题的真实查证纵向切片
+ 
+--- before/docs/evidence/rule-check-refactor/2026-10-07/issues.json
++++ after/docs/evidence/rule-check-refactor/2026-10-07/issues.json
+@@ -3,7 +3,7 @@
+   "program": "rule-check-refactor",
+   "createdDate": "2026-10-07",
+   "timezone": "Asia/Shanghai",
+-  "deliveryStage": "OUTPUT_STRUCTURE_TECHNICAL_VALIDATION",
++  "deliveryStage": "P0_LOCAL_ENGINEERING_VALIDATION",
+   "productScopePath": "docs/product/rule-check-scope.md",
+   "evalContractPath": "docs/product/rule-check-eval-contract.md",
+   "evaluationDesignStatus": "DOCUMENTED_NOT_EXECUTED",
+@@ -195,7 +195,7 @@
+         "R4",
+         "R6"
+       ],
+-      "status": "OPEN",
++      "status": "PARTIAL",
+       "problem": "在线激活、已知资格和有效期数据未完整落实到查询",
+       "evidenceKind": "STATIC_REVIEW",
+       "sourcePaths": [
+@@ -207,13 +207,20 @@
+         {
+           "id": "RC-05-READ",
+           "task": "R4",
+-          "status": "OPEN",
+-          "verificationStatus": "NOT_RUN",
++          "status": "CLOSED",
++          "verificationStatus": "PASSED",
+           "closeWhen": [
+             "ACTIVE与已知资格矩阵通过",
+             "版本/hash漂移拒绝",
+             "不合格近邻不挤掉合法结果"
+-          ]
++          ],
++          "closedAt": "2026-10-08T01:21:46.793082+08:00",
++          "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r4-read-20261008-01/acceptance.md",
++          "closureScope": "仅ACTIVE与现有schema资格/版本/hash/run一致性；完整时效与输出前竞态未完成",
++          "verifiedSourceHashes": {
++            "knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcLexicalCandidateRetriever.java": "a03a0952a0d13c5c566119425cc462e9dc1bc09dc4763b4845b99a729540f1c5",
++            "knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcVectorCandidateRetriever.java": "e121c4503964c547f1ac22659a533e091dc392faacbdfd8568914dd571aed76d"
++          }
+         },
+         {
+           "id": "RC-05-LIFECYCLE",
+@@ -226,7 +233,7 @@
+           ]
+         }
+       ],
+-      "verificationStatus": "NOT_RUN",
++      "verificationStatus": "READ_PASSED_LIFECYCLE_OPEN",
+       "closeWhen": [
+         "两个子项均验证",
+         "查询与输出快照/复查边界可复现"
+@@ -412,7 +419,14 @@
+           "task": "FOLLOW_UP_SCOPING_REQUIRED",
+           "status": "OPEN",
+           "verificationStatus": "NOT_RUN",
+-          "problem": "旧KnowledgeSchemaTest/JdbcCandidateRetrieverTest直接运行仍默认54329；本轮未修改，不能把新入口通过当默认地址已修复"
++          "problem": "其他旧KnowledgeSchemaTest等直接运行仍存在默认原库风险；R4 JdbcCandidateRetrieverTest本轮已在setup/cleanup前拒绝不安全目标，不能据此关闭全仓旧默认风险"
++        },
++        {
++          "id": "RC-10-R4-ACTIVATION",
++          "task": "R4_REVIEW_FIX",
++          "status": "CLOSED",
++          "verificationStatus": "PASSED",
++          "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/p0-closeout-20261008-01/acceptance.md"
+         }
+       ]
+     },
+@@ -439,20 +453,18 @@
+   ],
+   "verificationInfrastructureImplemented": true,
+   "latestExecution": {
+-    "stage": "R3_VERIFIED_STRUCTURE_SEMANTICS_OPEN",
+-    "executedAt": "2026-10-08T00:31:21.485652+08:00",
+-    "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r3-output-20261008-01/acceptance.md",
++    "stage": "P0_LOCAL_ENGINEERING_VERIFIED_G0_PENDING",
++    "executedAt": "2026-10-08T01:21:46.793082+08:00",
++    "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/p0-closeout-20261008-01/acceptance.md",
+     "testsExecuted": true,
+     "businessCodeChanged": true,
+-    "testCount": 96,
+-    "browserRealChainRun": false,
+-    "databaseOperationRun": false,
+-    "pdfIngestionRun": false,
++    "testCount": 151,
++    "testClassCount": 20,
++    "databaseOperationRun": true,
++    "databaseScope": "DEDICATED_RANDOM_TEMP_CONTAINER_SYNTHETIC_ONLY",
+     "providerCalled": false,
+     "productEvaluationRun": false,
+     "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
+-    "budgetCalibration": "NOT_RUN_HUMAN_REFERENCE_NOT_LOCKED",
+-    "semanticKnownRisk": "4_TO_40_WITH_VALID_CITATION_STILL_ANSWERED",
+     "planningTurnFieldsAreHistorical": true
+   },
+   "executionHistory": [
+@@ -492,6 +504,31 @@
+       "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
+       "budgetCalibration": "NOT_RUN_HUMAN_REFERENCE_NOT_LOCKED",
+       "planningTurnFieldsAreHistorical": true
++    },
++    {
++      "stage": "R3_VERIFIED_STRUCTURE_SEMANTICS_OPEN",
++      "executedAt": "2026-10-08T00:31:21.485652+08:00",
++      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r3-output-20261008-01/acceptance.md",
++      "testsExecuted": true,
++      "businessCodeChanged": true,
++      "testCount": 96,
++      "browserRealChainRun": false,
++      "databaseOperationRun": false,
++      "pdfIngestionRun": false,
++      "providerCalled": false,
++      "productEvaluationRun": false,
++      "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
++      "budgetCalibration": "NOT_RUN_HUMAN_REFERENCE_NOT_LOCKED",
++      "semanticKnownRisk": "4_TO_40_WITH_VALID_CITATION_STILL_ANSWERED",
++      "planningTurnFieldsAreHistorical": true
++    }
++  ],
++  "reviewFindings": [
++    {
++      "id": "P0-REVIEW-01",
++      "severity": "Important",
++      "status": "FIXED_VERIFIED",
++      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/p0-closeout-20261008-01/acceptance.md"
+     }
+   ]
+ }
+--- before/docs/evidence/rule-check-refactor/2026-10-07/README.md
++++ after/docs/evidence/rule-check-refactor/2026-10-07/README.md
+@@ -104,3 +104,7 @@
+ 新增入口和合同测试已验证；保留首次Docker访问边界失败，再以新批次完成专用临时库结构测试。普通Windows用户PATH及PowerShell5.1中文边界另验，不借Codex PATH推定可用。源码指纹、XML、迁移/连接/容器退出分别归档。
+ 
+ 历史2025资料核对及36题/16风险草稿是评估准备，不是人工参考或实际产品得分；当前主题资料仍需核验新版本和学生发布资格。详见R0验收与source-audit；历史规划manifest保留，当前执行指纹另存，不改写旧记录。
++
++## 2026-10-08 P0收口
++
++[R4验收](r4-read-20261008-01/acceptance.md)与[P0收口](p0-closeout-20261008-01/acceptance.md)：20类151项、入口合同29项、样例恢复22项通过。RC-05-READ关闭；语义、生命周期、其他旧默认DB风险仍开放。G0/真实产品评估/用户收益未通过。
+--- before/.superpowers/sdd/2026-10-07-rule-check-p0-plan/progress.md
++++ after/.superpowers/sdd/2026-10-07-rule-check-p0-plan/progress.md
+@@ -67,3 +67,31 @@
+ Task 4: 合成语义探针：原文4、回答40、合法引用；guard未拒绝且composer返回ANSWERED，qualityGatePassed=false。仅保留已知风险，不写成应当放行的回归，不算真实质量分。RC-04-STRUCTURE CLOSED，SEMANTICS OPEN，父项PARTIAL。
+ 
+ Task 4: VERIFIED_STRUCTURE_SEMANTICS_OPEN — 本批Steps1–6完成；G0未通过，R1预算校准仍NOT_RUN，R4未开始。按增量自审类型、分值、空引用、调用链与证据完整性，不代表完整P0最终独立审查，不提交/部署或清理其他dirty。
++
++Task 5: Ruling: 2026-10-08用户明确持续执行实施计划，不再逐项等“下一步”；承接R4及P0收口，卡点写入持久台账，继续不依赖卡点的工作。学生试点及产品收益门禁不因连续授权而跳过，不自动推送/部署。
++
++Task 5: in_progress; evidence: docs/evidence/rule-check-refactor/2026-10-07/r4-read-20261008-01/。已备份本批字节及HEAD，先保持BUILDING夹具写拒绝断言；正常线上排名测试显式激活，hash改为正文真实SHA-256，不改变原文或结果断言。
++
++Task 5: Ruling: 存在“BUILDING→离线评测→激活”的真实调用，默认线上ACTIVE不能让该链死锁；给两类retriever新增显式forOfflineEvaluation入口，仅允许BUILDING/ACTIVE，RETIRED仍拒绝，资料/索引资格不放宽。额外文件声明RetrievalAcceptanceEvalTest与RetrievalVectorBaselineEvalTest，仅改调用入口；真实向量供应商评测本批不执行。
++
++Task 5: Ruling: 验收白名单追加JdbcRetrievalIndexingTest、JdbcEmbeddingProfileStoreTest、RetrievalAcceptanceEvalTest、KnowledgeGovernancePublisherTest，均已核对为DB夹具/确定性替身，不含供应商；只在隔离Database/Acceptance模式显式选择。入口传本批evidenceDir供实际查询计划留存，不记录凭证。数据修改仅通过随机无卷专用临时库。
++
++Task 5: 首次red-01测试DataSource缺带凭证的接口实现导致编译失败，未执行测试；red-02执行22项，11断言失败但2夹具违反现有学生可见CHECK约束，不能作为纯行为RED。保留两批，修为合法状态组合并独立验证库拒绝未授权学生可见状态；red-03实际22项/11断言失败/错误跳过0。没有关闭或修改数据库约束。
++
++Task 5: GREEN24项通过，覆盖额外offline入口的兼容；默认状态/资格、source/hash/切分版本漂移、run/profile一致性、退役竞态、过滤后精确排序和JDBC读取上限均已验证。SQL额外核对index_run.chunking_version与entry相同，防止完成运行名义下混用切分版本；当前schema没有完整时效，仍不冒充R6。
++
++Task 6: in_progress; 本批继续P0收口，无需逐项确认。追加单元白名单CandidateReviewServiceTest、RetrievalIndexingRepeatTest（内存审核/固定embedding替身），合并当前11类单元与6类数据库进行19类Acceptance，随机无卷专用临时库，真实向量评测类始终未登记。随后独立审查P0增量和回退演练；G0与真实资料/人工评估仍不跳过。
++
++Final review: 2026-10-08依executing-plans/requesting-code-review派发一次独立整批审查，fresh context，无子代理分片/重审；见p0-closeout-20261008-01/review.md。19类142项通过；1项Important：R4测试新增全局profile激活但仍默认原库，外层runner安全不覆盖裸Maven。按实际影响纳入单次修复，不归为原RC-10已知风险而放过新增副作用。
++
++Final: Ruling: 新增test-only RuleCheckDatabaseTestTarget及其独立Unit测试，移除R4测试原库默认值，setup校验严格显式临时目标，拒绝后AfterEach不连接 — 这是新增激活副作用必要防护 — 代价是旧脚本若未传本批专用目标会响亮失败；不自动放宽目标。追加文件、原字节与新增清单已存review-fix/source-before.json。
++
++## Task5/Task6 final：2026-10-08
++
++Task5 VERIFIED_READ_LIFECYCLE_OPEN；Task6 LOCAL_ENGINEERING_VERIFIED_G0_PENDING。目标guard RED8项7失败→GREEN；真实setup/cleanup生命周期RED9项1失败→最终9项通过。最终Acceptance20类151项全过，合同29，XML/当前源码一致，资源退出；隔离恢复样例22项通过。
++
++Ruling: 独立审查13项未判定逐项保留在收口报告，资料/语义/时效/规模/网络竞态/供应商/用户收益保持未完成 — 工程证据仅证明所测合同 — 成本是产品试点必须另过门禁。
++
++Ruling: 不删除本计划账本和证据、不提交历史dirty文件 — 回退和职责证据必须保留且用户未授权推送 — 成本是工作区仍dirty。
++
++Ruling: 连续授权允许进入R5可独立Task1，不等同通过G0或扩张P2 — 遵守用户持续实施指令与产品门禁 — 成本是新组件暂不接学生入口。详见R5独立计划/账本。
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckDatabaseTestTarget.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckDatabaseTestTarget.java
+@@ -0,0 +1,19 @@
++package com.zhku.knowledge.retrieval;
++
++import java.util.regex.Pattern;
++
++/** R4测试在建立连接前校验目标；不依赖外层启动器来保护原库。 */
++final class RuleCheckDatabaseTestTarget {
++    private static final Pattern TARGET = Pattern.compile("^jdbc:postgresql://127\\.0\\.0\\.1:([0-9]{4,5})/zhkuagent_rulecheck_e2e$");
++    private RuleCheckDatabaseTestTarget() {}
++
++    static void verify(String url) {
++        if (url == null) { throw new IllegalArgumentException("必须显式配置专用临时数据库目标"); }
++        var match = TARGET.matcher(url);
++        if (!match.matches()) { throw new IllegalArgumentException("仅允许专用回环临时数据库，拒绝原库或URL扩展参数"); }
++        int port = Integer.parseInt(match.group(1));
++        if (port < 1024 || port > 65535 || port == 54329) {
++            throw new IllegalArgumentException("拒绝原演示库端口或非法端口");
++        }
++    }
++}
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckDatabaseTestTargetTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckDatabaseTestTargetTest.java
+@@ -0,0 +1,70 @@
++package com.zhku.knowledge.retrieval;
++
++import org.junit.jupiter.api.Test;
++
++import static org.assertj.core.api.Assertions.assertThatNoException;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
++
++/** 目标校验不建连接；旧默认URL和伪装为临时库的URL均须失败。 */
++class RuleCheckDatabaseTestTargetTest {
++    @Test
++    void missingTargetIsRejected() {
++        reject(null); reject(""); reject(" ");
++    }
++
++    @Test
++    void originalDemoDatabaseIsRejected() { reject("jdbc:postgresql://127.0.0.1:54329/zhkuagent"); }
++
++    @Test
++    void originalPortIsRejectedEvenWithTestDatabaseName() { reject(url("127.0.0.1", "54329", "zhkuagent_rulecheck_e2e")); }
++
++    @Test
++    void nonExactLoopbackHostsAreRejected() {
++        for (String host : new String[]{"localhost", "remote.example", "[::1]", "127.0.0.1.example"}) {
++            reject(url(host, "55439", "zhkuagent_rulecheck_e2e"));
++        }
++    }
++
++    @Test
++    void otherDatabaseNamesAreRejected() {
++        reject(url("127.0.0.1", "55439", "zhkuagent"));
++        reject(url("127.0.0.1", "55439", "zhkuagent_rulecheck_e2e_backup"));
++    }
++
++    @Test
++    void QueryOptionsAndTrailingContentAreRejected() {
++        String safe = url("127.0.0.1", "55439", "zhkuagent_rulecheck_e2e");
++        for (String suffix : new String[]{"?options=x", "#fragment", ";other", "/", " "}) { reject(safe + suffix); }
++    }
++
++    @Test
++    void invalidOrReservedPortsAreRejected() {
++        for (String port : new String[]{"0", "1023", "65536", "-1", "123456"}) {
++            reject(url("127.0.0.1", port, "zhkuagent_rulecheck_e2e"));
++        }
++    }
++
++    @Test
++    void dedicatedTemporaryTargetsAreAllowed() {
++        for (String port : new String[]{"55439", "55440"}) {
++            assertThatNoException().isThrownBy(() -> RuleCheckDatabaseTestTarget.verify(url("127.0.0.1", port, "zhkuagent_rulecheck_e2e")));
++        }
++    }
++
++    @Test
++    void rejectedSetupDoesNotConnectAgainDuringAfterEach() {
++        for (String target : new String[]{null, "jdbc:postgresql://127.0.0.1:54329/zhkuagent", "jdbc:postgresql://remote.example:55439/zhkuagent_rulecheck_e2e"}) {
++            var lifecycle = new JdbcCandidateRetrieverTest();
++            assertThatThrownBy(() -> lifecycle.setUpAt(target)).isInstanceOf(IllegalArgumentException.class);
++            assertThatNoException().isThrownBy(lifecycle::tearDown);
++        }
++    }
++
++    private static void reject(String url) {
++        assertThatThrownBy(() -> RuleCheckDatabaseTestTarget.verify(url)).isInstanceOf(IllegalArgumentException.class);
++    }
++
++    private static String url(String host, String port, String database) {
++        return "jdbc:postgresql://" + host + ":" + port + "/" + database;
++    }
++}

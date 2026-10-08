@@ -1,0 +1,264 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] ZhkuAgent                                                          [pom]
+[INFO] ZhkuAgent Shared Runtime                                           [jar]
+[INFO] ZhkuAgent Knowledge                                                [jar]
+[INFO] 
+[INFO] ------------------------< com.zhku:zhku-agent >-------------------------
+[INFO] Building ZhkuAgent 0.0.1-SNAPSHOT                                  [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] -----------------------< com.zhku:agent-runtime >-----------------------
+[INFO] Building ZhkuAgent Shared Runtime 0.0.1-SNAPSHOT                   [2/3]
+[INFO]   from agent-runtime\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ agent-runtime ---
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.0.1-SNAPSHOT                        [3/3]
+[INFO]   from knowledge\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 20 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 2 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 202 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[WARNING] file.encoding cannot be set as system property, use <argLine>-Dfile.encoding=...</argLine> instead
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTargetTest
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.182 s <<< FAILURE! -- in com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTargetTest
+[ERROR] com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTargetTest.failedConnectionBecomesControlledVerificationRejection -- Time elapsed: 0.014 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting AtomicInteger(0) to have value:
+  1
+but did not.
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTargetTest.failedConnectionBecomesControlledVerificationRejection(JdbcRuleCheckEvidenceReaderTargetTest.java:45)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest
+01:40:20.851 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:20.926 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Schema history table "public"."flyway_schema_history" does not exist yet
+01:40:20.932 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.044s)
+01:40:20.954 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "public"."flyway_schema_history" ...
+01:40:21.043 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": << Empty Schema >>
+01:40:21.043 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:21.062 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "1 - create zhku knowledge schema"
+01:40:21.177 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "2 - add knowledge source visibility governance"
+01:40:21.219 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "3 - create zhku knowledge governance staging"
+01:40:21.325 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "4 - add zhku knowledge source version scope"
+01:40:21.360 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "5 - allow archived knowledge submission reimport"
+01:40:21.398 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "6 - add official notice lifecycle"
+01:40:21.488 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "7 - allow superseded notice audit visibility"
+01:40:21.514 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "8 - support reviewed internal official notice material"
+01:40:21.546 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "9 - add retrieval catalog and index audit"
+01:40:21.670 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "12 - create conversation session store"
+01:40:21.710 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "15 - create service guides"
+01:40:21.877 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "16 - create anonymous feedback"
+01:40:21.925 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "17 - create anonymous telemetry"
+01:40:21.983 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "18 - create campus agent run archive"
+01:40:22.058 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "19 - create preview identity and run ownership"
+01:40:22.110 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "20 - add conversation session ownership"
+01:40:22.141 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "21 - create campus run submission"
+01:40:22.189 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 17 migrations to schema "public", now at version v21 (execution time 00:00.759s)
+01:40:22.436 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:22.462 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.015s)
+01:40:22.486 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:22.486 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:22.487 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:22.680 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:22.706 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.016s)
+01:40:22.728 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:22.728 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:22.729 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:22.939 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:22.963 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.013s)
+01:40:22.988 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:22.988 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:22.989 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:23.218 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:23.243 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.014s)
+01:40:23.267 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:23.268 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:23.268 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:23.477 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:23.507 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.020s)
+01:40:23.531 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:23.531 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:23.532 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:23.744 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:23.768 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.014s)
+01:40:23.792 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:23.792 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:23.793 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:24.000 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:24.022 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.013s)
+01:40:24.045 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:24.045 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:24.046 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:24.241 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:24.268 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.018s)
+01:40:24.288 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:24.289 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:24.289 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:24.471 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:24.494 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.013s)
+01:40:24.518 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:24.518 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:24.519 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:24.734 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:24.754 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.010s)
+01:40:24.774 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:24.774 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:24.775 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:24.994 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:25.022 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.018s)
+01:40:25.042 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:25.042 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:25.043 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:25.229 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:25.252 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.012s)
+01:40:25.272 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:25.272 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:25.273 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:25.465 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:25.485 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.011s)
+01:40:25.507 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:25.507 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:25.508 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+01:40:25.713 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+01:40:25.733 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.010s)
+01:40:25.753 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+01:40:25.753 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+01:40:25.753 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[ERROR] Tests run: 15, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 5.570 s <<< FAILURE! -- in com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest
+[ERROR] com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.reindexedRevisionStillCannotValidateCapturedVersion -- Time elapsed: 2.065 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting Optional to contain a value but it was empty.
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.assertChanged(JdbcRuleCheckEvidenceReaderTest.java:158)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.reindexedRevisionStillCannotValidateCapturedVersion(JdbcRuleCheckEvidenceReaderTest.java:122)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.currentReadAndVerifierReturnActualServerText -- Time elapsed: 0.246 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting Optional to contain a value but it was empty.
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.currentReadAndVerifierReturnActualServerText(JdbcRuleCheckEvidenceReaderTest.java:73)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.bodyAndBothHashesChangedStillRejectCapturedEvidence -- Time elapsed: 0.278 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting Optional to contain a value but it was empty.
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.assertChanged(JdbcRuleCheckEvidenceReaderTest.java:158)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.bodyAndBothHashesChangedStillRejectCapturedEvidence(JdbcRuleCheckEvidenceReaderTest.java:136)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.bodyChangeWithStaleStoredHashIsDetectedByVerifier -- Time elapsed: 0.257 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting Optional to contain a value but it was empty.
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.assertChanged(JdbcRuleCheckEvidenceReaderTest.java:158)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.bodyChangeWithStaleStoredHashIsDetectedByVerifier(JdbcRuleCheckEvidenceReaderTest.java:130)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.withdrawalBetweenReadsBlocksOldQuote -- Time elapsed: 0.232 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting Optional to contain a value but it was empty.
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.withdrawalBetweenReadsBlocksOldQuote(JdbcRuleCheckEvidenceReaderTest.java:86)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   JdbcRuleCheckEvidenceReaderTargetTest.failedConnectionBecomesControlledVerificationRejection:45 
+Expecting AtomicInteger(0) to have value:
+  1
+but did not.
+[ERROR]   JdbcRuleCheckEvidenceReaderTest.bodyAndBothHashesChangedStillRejectCapturedEvidence:136->assertChanged:158 
+Expecting Optional to contain a value but it was empty.
+[ERROR]   JdbcRuleCheckEvidenceReaderTest.bodyChangeWithStaleStoredHashIsDetectedByVerifier:130->assertChanged:158 
+Expecting Optional to contain a value but it was empty.
+[ERROR]   JdbcRuleCheckEvidenceReaderTest.currentReadAndVerifierReturnActualServerText:73 
+Expecting Optional to contain a value but it was empty.
+[ERROR]   JdbcRuleCheckEvidenceReaderTest.reindexedRevisionStillCannotValidateCapturedVersion:122->assertChanged:158 
+Expecting Optional to contain a value but it was empty.
+[ERROR]   JdbcRuleCheckEvidenceReaderTest.withdrawalBetweenReadsBlocksOldQuote:86 
+Expecting Optional to contain a value but it was empty.
+[INFO] 
+[ERROR] Tests run: 18, Failures: 6, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ZhkuAgent 0.0.1-SNAPSHOT:
+[INFO] 
+[INFO] ZhkuAgent .......................................... SUCCESS [  0.003 s]
+[INFO] ZhkuAgent Shared Runtime ........................... SUCCESS [  1.404 s]
+[INFO] ZhkuAgent Knowledge ................................ FAILURE [ 16.666 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  18.548 s
+[INFO] Finished at: 2026-10-08T01:40:26+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: There are test failures.
+[ERROR] 
+[ERROR] See D:\alldesk\Projects\ZhkuAgent\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :knowledge

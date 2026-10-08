@@ -1,0 +1,27 @@
+--- review/knowledge/src/main/java/com/zhku/knowledge/rag/CitationAuditRecord.java
++++ final/knowledge/src/main/java/com/zhku/knowledge/rag/CitationAuditRecord.java
+@@ -5,15 +5,19 @@
+ import java.util.UUID;
+ 
+ /**
+- * 一条引用下发审计记录：证明"这个标识是本轮服务端为该片段分配的"。
++ * 一条服务端引用审计事件：关联本轮标识与知识片段，不单独证明回答已经送达学生。
+  *
+- * <p>审计的意义在于可反查：学生端看到的任一引用都能定位到具体索引条目；
+- * 若模型输出了审计中不存在的标识，可直接判定为伪造。</p>
++ * <p>旧回答路由保留原语义；RULE_CHECK_CAPTURE只记录取得证据的尝试，
++ * 后续仍须通过规则决策和输出边界，不能将此事件计为学生收到回答。</p>
+  *
+  * @param citationId 服务端分配的不透明标识
+  * @param chunkId 该标识对应的知识片段
+- * @param route 下发时的路由级别（枚举名，便于审计聚合）
+- * @param issuedAt 下发时刻
++ * @param route 服务端审计事件类型，不能由学生指定
++ * @param issuedAt 审计事件时刻；CAPTURE下是捕获审计时刻，不是回答送达时刻
++ * @param sourceId CAPTURE的持久来源身份，旧四参路由不提供此绑定
++ * @param sourceRevision CAPTURE时的来源版本，不能自动替换为当前版本
++ * @param contentChecksum CAPTURE全文的UTF-8 SHA-256，不是PDF文件指纹
++ * @param content CAPTURE时已核验的全文，供写审计时再次匹配；不是模型生成文本
+  */
+ public record CitationAuditRecord(String citationId, UUID chunkId, String route, Instant issuedAt,
+                                   UUID sourceId, String sourceRevision, String contentChecksum, String content) {

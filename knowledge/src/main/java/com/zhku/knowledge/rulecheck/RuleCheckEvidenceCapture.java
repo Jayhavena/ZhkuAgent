@@ -1,0 +1,89 @@
+package com.zhku.knowledge.rulecheck;
+
+import com.zhku.knowledge.rag.CitationAuditRepository;
+import com.zhku.knowledge.rag.CitationAuditRecord;
+import com.zhku.knowledge.rag.CitationIdFactory;
+import com.zhku.knowledge.retrieval.RetrievedChunk;
+import java.time.Clock;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
+/** 服务端检索结果到当前核验的连接；不接收客户端自证的资料资格。 */
+public final class RuleCheckEvidenceCapture {
+    private final RuleCheckEvidenceVerifier verifier;
+    private final CitationIdFactory ids;
+    private final CitationAuditRepository audit;
+    private final Clock clock;
+
+    public RuleCheckEvidenceCapture(RuleCheckEvidenceVerifier verifier, CitationIdFactory ids,
+                                    CitationAuditRepository audit, Clock clock) {
+        this.verifier = Objects.requireNonNull(verifier);
+        this.ids = Objects.requireNonNull(ids);
+        this.audit = Objects.requireNonNull(audit);
+        this.clock = Objects.requireNonNull(clock);
+    }
+
+    public CaptureResult capture(List<RetrievedChunk> chunks) {
+        List<RetrievedChunk> candidates;
+        try { candidates = List.copyOf(chunks); }
+        catch (NullPointerException invalid) { return rejected(RejectionReason.INVALID_CANDIDATES); }
+        if (candidates.isEmpty()) return rejected(RejectionReason.INVALID_CANDIDATES);
+        var chunkIds = new HashSet<UUID>();
+        for (var chunk : candidates) {
+            // 同chunk的多重别名会令必要证据绑定有歧义，不能取第一条或伪造来源UUID。
+            if (chunk.sourceId() == null || !chunkIds.add(chunk.chunkId()))
+                return rejected(RejectionReason.INVALID_CANDIDATES);
+        }
+
+        var snapshots = new ArrayList<RuleCheckEvidenceSnapshot>();
+        var aliases = new HashSet<String>();
+        try {
+            for (var chunk : candidates) {
+                String alias = ids.next();
+                if (alias == null || alias.isBlank() || !aliases.add(alias))
+                    return rejected(RejectionReason.CITATION_ALLOCATION_FAILED);
+                // true只是内部待核验标记；整批通过current reader前绝不交给调用方。
+                snapshots.add(new RuleCheckEvidenceSnapshot(alias, chunk.sourceId(), chunk.chunkId(),
+                        chunk.sourceVersion(), chunk.contentChecksum(), chunk.content(), true));
+            }
+        } catch (RuntimeException unavailable) {
+            return rejected(RejectionReason.CITATION_ALLOCATION_FAILED);
+        }
+        for (var snapshot : snapshots) {
+            // 复用完整原文核验，不复制hash/UTF-16/资格逻辑；捕获后决策输出仍必须重读。
+            var proposal = new RuleCheckEvidenceSpan(snapshot.citationId(), 0, snapshot.text().length(), snapshot.text());
+            if (!verifier.verify(proposal, snapshots).accepted())
+                return rejected(RejectionReason.UNVERIFIED_EVIDENCE);
+        }
+        try {
+            var issuedAt = clock.instant();
+            // 仓储只有逐条接口；失败可留下部分尝试记录，但不会交出可消费证据。
+            // CAPTURE路由表示取得证据，不证明学生已经看到回答，也不声称事务原子性。
+            for (var snapshot : snapshots)
+                audit.record(new CitationAuditRecord(snapshot.citationId(), snapshot.chunkId(), "RULE_CHECK_CAPTURE", issuedAt,
+                        snapshot.sourceId(), snapshot.revision(), snapshot.checksum(), snapshot.text()));
+        } catch (RuntimeException unavailable) {
+            return rejected(RejectionReason.AUDIT_UNAVAILABLE);
+        }
+        return new CaptureResult(snapshots, null);
+    }
+
+    private static CaptureResult rejected(RejectionReason reason) {
+        return new CaptureResult(List.of(), reason);
+    }
+
+    public enum RejectionReason { INVALID_CANDIDATES, CITATION_ALLOCATION_FAILED,
+        UNVERIFIED_EVIDENCE, AUDIT_UNAVAILABLE }
+
+    public record CaptureResult(List<RuleCheckEvidenceSnapshot> snapshots, RejectionReason rejectionReason) {
+        public CaptureResult {
+            snapshots = List.copyOf(snapshots);
+            if ((rejectionReason == null) == snapshots.isEmpty())
+                throw new IllegalArgumentException("捕获结果只能是非空已核验快照或无快照的拒绝原因");
+        }
+        public boolean accepted() { return rejectionReason == null; }
+    }
+}

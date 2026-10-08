@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.045" tests="15" errors="0" skipped="0" failures="8"><testcase name="preservesValidFieldsWithoutRewritingCitationIds" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.012" /><testcase name="rejectsJavaNullWithControlledException" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.003"><failure message="[必须受控拒绝输入：null] &#xA;Expecting actual throwable to be an instance of:&#xA;  com.zhku.knowledge.rag.ModelOutputFormatException&#xA;but was:&#xA;  java.lang.IllegalArgumentException: argument &quot;content&quot; is null&#xA; at com.fasterxml.jackson.databind.ObjectMapper._assertNotNull(ObjectMapper.java:5086)&#xA; at com.fasterxml.jackson.databind.ObjectMapper.readTree(ObjectMapper.java:3279)&#xA; at com.zhku.knowledge.rag.ModelOutputParser.parse(ModelOutputParser.java:32)&#xA; ...(76 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+[必须受控拒绝输入：null] 
+Expecting actual throwable to be an instance of:
+  com.zhku.knowledge.rag.ModelOutputFormatException
+but was:
+  java.lang.IllegalArgumentException: argument "content" is null
+	at com.fasterxml.jackson.databind.ObjectMapper._assertNotNull(ObjectMapper.java:5086)
+	at com.fasterxml.jackson.databind.ObjectMapper.readTree(ObjectMapper.java:3279)
+	at com.zhku.knowledge.rag.ModelOutputParser.parse(ModelOutputParser.java:32)
+	...(76 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.rag.ModelOutputParserTest.reject(ModelOutputParserTest.java:111)
+	at com.zhku.knowledge.rag.ModelOutputParserTest.rejectsJavaNullWithControlledException(ModelOutputParserTest.java:37)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="rejectsEmptyInputWithControlledException" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.001" /><testcase name="rejectsInvalidCitationMembersIncludingMixedArray" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.005"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rag.ModelOutputParserTest.reject(ModelOutputParserTest.java:110)
+	at com.zhku.knowledge.rag.ModelOutputParserTest.rejectsInvalidCitationMembersIncludingMixedArray(ModelOutputParserTest.java:98)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="rejectsNonNumericScoresIndependently" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.001"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rag.ModelOutputParserTest.reject(ModelOutputParserTest.java:110)
+	at com.zhku.knowledge.rag.ModelOutputParserTest.rejectsNonNumericScoresIndependently(ModelOutputParserTest.java:77)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="requiresEveryProtocolField" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.001"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rag.ModelOutputParserTest.reject(ModelOutputParserTest.java:110)
+	at com.zhku.knowledge.rag.ModelOutputParserTest.requiresEveryProtocolField(ModelOutputParserTest.java:57)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="rejectsOutOfRangeOrOverflowScores" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.002"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rag.ModelOutputParserTest.reject(ModelOutputParserTest.java:110)
+	at com.zhku.knowledge.rag.ModelOutputParserTest.rejectsOutOfRangeOrOverflowScores(ModelOutputParserTest.java:84)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="rejectsNonTextAnswersIndependently" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.001"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rag.ModelOutputParserTest.reject(ModelOutputParserTest.java:110)
+	at com.zhku.knowledge.rag.ModelOutputParserTest.rejectsNonTextAnswersIndependently(ModelOutputParserTest.java:63)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="canRepresentHandoffWithNoCitations" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.002" /><testcase name="rejectsNonObjectRoots" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.001" /><testcase name="requiresCitationArray" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.001" /><testcase name="acceptsNumericRangeEndpointsWithoutChangingScoreSemantics" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.001" /><testcase name="requiresActualBooleanHandoffIndependently" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.001"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rag.ModelOutputParserTest.reject(ModelOutputParserTest.java:110)
+	at com.zhku.knowledge.rag.ModelOutputParserTest.requiresActualBooleanHandoffIndependently(ModelOutputParserTest.java:105)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="rejectsBlankAnswers" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.002"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rag.ModelOutputParserTest.reject(ModelOutputParserTest.java:110)
+	at com.zhku.knowledge.rag.ModelOutputParserTest.rejectsBlankAnswers(ModelOutputParserTest.java:70)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="rejectsMalformedJson" classname="com.zhku.knowledge.rag.ModelOutputParserTest" time="0.002" /></testsuite>

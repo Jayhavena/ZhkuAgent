@@ -1,0 +1,75 @@
+package com.zhku.knowledge.rulecheck;
+
+import javax.sql.DataSource;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.sql.SQLException;
+
+/** 输出前按持久身份重读现有字段资格；尚未装配学生入口，完整时间/发布清单仍待R6。 */
+public final class JdbcRuleCheckEvidenceReader implements RuleCheckEvidenceVerifier.CurrentEvidenceReader {
+    private final DataSource dataSource;
+    private final String profileId;
+    private final String chunkingVersion;
+    private final String requiredScope;
+
+    public JdbcRuleCheckEvidenceReader(DataSource dataSource, String profileId, String chunkingVersion, String requiredScope) {
+        this.dataSource = Objects.requireNonNull(dataSource);
+        this.profileId = nonBlank(profileId);
+        this.chunkingVersion = nonBlank(chunkingVersion);
+        this.requiredScope = nonBlank(requiredScope);
+    }
+
+    private static String nonBlank(String value) {
+        if (value == null || value.isBlank()) { throw new IllegalArgumentException("当前读取必须明确服务端索引与范围配置"); }
+        return value;
+    }
+
+    @Override public Optional<RuleCheckEvidenceSnapshot> read(UUID sourceId, UUID chunkId) {
+        Objects.requireNonNull(sourceId);
+        Objects.requireNonNull(chunkId);
+        // 按已绑定身份重读而非重新排序候选；配置由服务端给定，不能由模型放宽scope。
+        // 同一SQL快照确认已有字段资格，无法消除读取后到HTTP下发之间的撤回窗口。
+        String sql = """
+                SELECT source.id AS source_id, chunk.id AS chunk_id, source.source_version,
+                       chunk.content_checksum, chunk.content
+                FROM knowledge_chunk chunk
+                JOIN knowledge_source source ON source.id = chunk.source_id
+                JOIN retrieval_index_entry entry ON entry.chunk_id = chunk.id
+                JOIN embedding_profile profile ON profile.profile_id = entry.profile_id
+                JOIN retrieval_index_run index_run ON index_run.id = entry.run_id
+                WHERE entry.profile_id = ? AND entry.chunking_version = ?
+                  AND source.knowledge_scope = ? AND source.id = ? AND chunk.id = ?
+                  AND profile.status = 'ACTIVE'
+                  AND index_run.status = 'COMPLETED'
+                  AND index_run.profile_id = entry.profile_id
+                  AND index_run.chunking_version = entry.chunking_version
+                  AND source.publication_status = 'PUBLISHED'
+                  AND source.visibility_scope = 'STUDENT_VISIBLE'
+                  AND source.sharing_rights_confirmed = TRUE
+                  AND entry.source_version = source.source_version
+                  AND entry.content_checksum = chunk.content_checksum
+                """;
+        try (var connection = dataSource.getConnection(); var statement = connection.prepareStatement(sql)) {
+            statement.setString(1, profileId);
+            statement.setString(2, chunkingVersion);
+            statement.setString(3, requiredScope);
+            statement.setObject(4, sourceId);
+            statement.setObject(5, chunkId);
+            try (var rows = statement.executeQuery()) {
+                if (!rows.next()) { return Optional.empty(); }
+                // 当前reader没有本轮citation别名，核验器最终保留approved中已绑定的别名。
+                var snapshot = new RuleCheckEvidenceSnapshot("current-" + chunkId,
+                        rows.getObject("source_id", UUID.class), rows.getObject("chunk_id", UUID.class),
+                        rows.getString("source_version"), rows.getString("content_checksum"),
+                        rows.getString("content"), true);
+                // 唯一约束应确保单行；若schema/数据破坏约束则拒绝，不能任取第一个版本。
+                if (rows.next()) { throw new IllegalStateException("当前证据身份不唯一"); }
+                return Optional.of(snapshot);
+            }
+        } catch (SQLException unavailable) {
+            // 交给verifier统一受控拒绝，不能把读库失败解释为原快照仍可使用。
+            throw new IllegalStateException("当前证据读取失败", unavailable);
+        }
+    }
+}

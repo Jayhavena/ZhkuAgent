@@ -1,0 +1,25 @@
+package com.zhku.knowledge.rulecheck.web;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
+import org.springframework.context.annotation.Import;
+import com.zhku.knowledge.security.RuleCheckPreviewSecurityConfiguration;
+
+/** 显式装配避免旧匿名、治理、Agent入口被同目录扫描带入。 */
+@SpringBootConfiguration(proxyBeanMethods=false)
+@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class,FlywayAutoConfiguration.class,UserDetailsServiceAutoConfiguration.class})
+@Import({RuleCheckPreviewConfiguration.class,RuleCheckPreviewSecurityConfiguration.class,RuleCheckAuthController.class,RuleCheckController.class})
+public class RuleCheckPreviewApplication {
+    public static SpringApplication application() {
+        var application=new SpringApplication(RuleCheckPreviewApplication.class);
+        application.setAdditionalProfiles("zhku-rule-check-preview");
+        // main与HTTP夹具共用守卫；错误目标必须在连接、迁移和监听前失败。
+        application.addInitializers(context->RuleCheckPreviewConfiguration.validateEnvironment(context.getEnvironment()));
+        return application;
+    }
+    public static void main(String[] args) { application().run(args); }
+}

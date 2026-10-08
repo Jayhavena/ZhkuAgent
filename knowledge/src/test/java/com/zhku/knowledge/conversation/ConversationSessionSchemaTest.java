@@ -18,10 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /** 数据库会话存储的最小结构契约。 */
 class ConversationSessionSchemaTest {
 
-    private static final String DATABASE_URL = System.getProperty(
-            "zhku.db.url",
-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
-    );
+    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
     private static final String DATABASE_USER = System.getProperty("zhku.db.user", "zhkuagent");
     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
 
@@ -45,7 +42,8 @@ class ConversationSessionSchemaTest {
                     "pending_intent",
                     "pending_field",
                     "expires_at",
-                    "revision"
+                    "revision",
+                    "owner_user_id"
             );
             assertThat(indexColumnsOf(metadata, "conversation_session"))
                     .contains("expires_at");

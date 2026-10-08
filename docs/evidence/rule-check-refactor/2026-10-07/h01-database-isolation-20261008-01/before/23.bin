@@ -1,0 +1,294 @@
+package com.zhku.knowledge.retrieval;
+
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
+
+import com.zhku.knowledge.ZhkuDatabaseTestConfig;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+/**
+ * JDBC 版 embedding profile 存储集成测试（真实 PostgreSQL + V9 迁移）。
+ *
+ * <p>为什么要有这一层：内存实现只能证明"状态机规则写对了"，而"新 profile → 重建 →
+ * 评测 → 原子切换 → 保留旧索引回滚窗口"这条流程要在**真实库**上成立，必须由 JDBC 实现
+ * 保证两件事：① 退旧与启新在同一事务内完成，不会出现"两个 ACTIVE"或"切换半途而废"；
+ * ② 切换不删旧 profile 的索引条目——否则"回滚窗口"只是纸面说法，回滚回去也检不出东西。</p>
+ *
+ * <p>第三件事由数据库兜底：`uq_embedding_profile_single_active` 部分唯一索引让"两个 ACTIVE"
+ * 在结构上不可能出现，应用层的顺序错误会在这里被响亮拒绝，而不是静默产生双活。</p>
+ */
+class JdbcEmbeddingProfileStoreTest {
+
+    private static final String DATABASE_URL = System.getProperty(
+            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
+    private static final String DATABASE_USER = System.getProperty(
+            "zhku.db.user", "zhkuagent");
+    private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+
+    private static final String OLD_PROFILE = "jdbc-store-test-old";
+    private static final String NEW_PROFILE = "jdbc-store-test-new";
+    private static final String THIRD_PROFILE = "jdbc-store-test-third";
+    private static final String[] PROFILES = { OLD_PROFILE, NEW_PROFILE, THIRD_PROFILE };
+
+    private static final UUID SOURCE = UUID.fromString("7d111111-1111-4111-8111-111111111111");
+    private static final UUID CHUNK = UUID.fromString("7dd11111-1111-4111-8111-111111111111");
+    private static final String CHUNKING_VERSION = "fact-aware-v1";
+
+    private DataSource dataSource;
+    private JdbcEmbeddingProfileStore store;
+    private JdbcRetrievalIndexRepository indexRepository;
+    /** 本机开发库里原有的 ACTIVE profile（若有）：测试期间暂退，收尾原样恢复。 */
+    private EmbeddingProfile foreignActive;
+
+    @BeforeEach
+    void setUp() throws SQLException {
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+        dataSource = new DriverManagerDataSource(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+        store = new JdbcEmbeddingProfileStore(dataSource);
+        indexRepository = new JdbcRetrievalIndexRepository(dataSource);
+        deleteFixtures();
+        seedCorpus();
+        // V9 的部分唯一索引保证"全局最多一个 ACTIVE"，所以切换语义必然牵动库里现有 ACTIVE。
+        // 本机开发库可能与演示/真实 profile 共存，测试不能顺手把别人的在役 profile 退役掉——
+        // 故此处暂退并记录，收尾恢复（这也是"回滚窗口"在测试里的同构做法）。
+        foreignActive = store.findActive()
+                .filter(profile -> !isFixture(profile.profileId()))
+                .map(profile -> {
+                    store.save(new EmbeddingProfile(profile.profileId(), profile.provider(),
+                            profile.model(), profile.dimensions(), ProfileStatus.RETIRED));
+                    return profile;
+                })
+                .orElse(null);
+    }
+
+    @AfterEach
+    void tearDown() throws SQLException {
+        deleteFixtures();
+        if (foreignActive != null) {
+            store.save(new EmbeddingProfile(foreignActive.profileId(), foreignActive.provider(),
+                    foreignActive.model(), foreignActive.dimensions(), ProfileStatus.ACTIVE));
+        }
+    }
+
+    private static boolean isFixture(String profileId) {
+        for (String candidate : PROFILES) {
+            if (candidate.equals(profileId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Test
+    void shouldReturnEmptyForUnregisteredProfile() {
+        assertThat(store.find("jdbc-store-test-missing")).isEmpty();
+        // 只断言"未登记的 fixture 不在册/不是 ACTIVE"，不假设库里没有其他 profile 共存。
+        assertThat(store.findActive().map(EmbeddingProfile::profileId))
+                .isNotEqualTo(java.util.Optional.of(OLD_PROFILE));
+    }
+
+    @Test
+    void shouldReadBackProviderModelDimensionsAndStatus() {
+        store.save(new EmbeddingProfile(
+                OLD_PROFILE, "dashscope", "text-embedding-v4", 1024, ProfileStatus.BUILDING));
+
+        assertThat(store.find(OLD_PROFILE)).hasValueSatisfying(profile -> {
+            assertThat(profile.provider()).isEqualTo("dashscope");
+            assertThat(profile.model()).isEqualTo("text-embedding-v4");
+            assertThat(profile.dimensions()).isEqualTo(1024);
+            assertThat(profile.status()).isEqualTo(ProfileStatus.BUILDING);
+        });
+    }
+
+    @Test
+    void shouldRetirePreviousActiveAndActivateNewOneInOneStep() throws SQLException {
+        store.save(new EmbeddingProfile(
+                OLD_PROFILE, "dashscope", "text-embedding-v3", 1024, ProfileStatus.BUILDING));
+        new EmbeddingProfileSwitcher(store).activate(OLD_PROFILE);
+        store.save(new EmbeddingProfile(
+                NEW_PROFILE, "dashscope", "text-embedding-v4", 1024, ProfileStatus.BUILDING));
+
+        new EmbeddingProfileSwitcher(store).activate(NEW_PROFILE);
+
+        assertThat(store.find(NEW_PROFILE)).map(EmbeddingProfile::status)
+                .contains(ProfileStatus.ACTIVE);
+        assertThat(store.find(OLD_PROFILE)).map(EmbeddingProfile::status)
+                .contains(ProfileStatus.RETIRED);
+        assertThat(activeCount()).isOne();
+        assertThat(store.findActive()).map(EmbeddingProfile::profileId).contains(NEW_PROFILE);
+        // ACTIVE 行必须带 activated_at，否则 V9 的 ck_embedding_profile_activation 会拒绝写入。
+        assertThat(activatedAt(NEW_PROFILE)).isNotNull();
+    }
+
+    @Test
+    void shouldRejectSecondActiveProfileEvenIfApplicationOrderIsWrong() {
+        store.save(new EmbeddingProfile(
+                OLD_PROFILE, "dashscope", "text-embedding-v3", 1024, ProfileStatus.ACTIVE));
+        store.save(new EmbeddingProfile(
+                NEW_PROFILE, "dashscope", "text-embedding-v4", 1024, ProfileStatus.BUILDING));
+
+        // 绕过切换器直接写第二个 ACTIVE：必须被部分唯一索引拒绝（数据库是最后一道闸）。
+        assertThatThrownBy(() -> store.save(new EmbeddingProfile(
+                NEW_PROFILE, "dashscope", "text-embedding-v4", 1024, ProfileStatus.ACTIVE)))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void shouldRollbackToRetiredProfileWithinWindow() {
+        store.save(new EmbeddingProfile(
+                OLD_PROFILE, "dashscope", "text-embedding-v3", 1024, ProfileStatus.BUILDING));
+        EmbeddingProfileSwitcher switcher = new EmbeddingProfileSwitcher(store);
+        switcher.activate(OLD_PROFILE);
+        store.save(new EmbeddingProfile(
+                NEW_PROFILE, "dashscope", "text-embedding-v4", 1024, ProfileStatus.BUILDING));
+        switcher.activate(NEW_PROFILE);
+
+        switcher.rollback(OLD_PROFILE);
+
+        assertThat(store.find(OLD_PROFILE)).map(EmbeddingProfile::status)
+                .contains(ProfileStatus.ACTIVE);
+        assertThat(store.find(NEW_PROFILE)).map(EmbeddingProfile::status)
+                .contains(ProfileStatus.RETIRED);
+        assertThat(activeCount()).isOne();
+    }
+
+    @Test
+    void shouldKeepRetiredProfileIndexEntriesSoRollbackIsReal() {
+        store.save(new EmbeddingProfile(
+                OLD_PROFILE, "dashscope", "text-embedding-v3", 1024, ProfileStatus.BUILDING));
+        EmbeddingProfileSwitcher switcher = new EmbeddingProfileSwitcher(store);
+        switcher.activate(OLD_PROFILE);
+        indexOneChunk(OLD_PROFILE);
+        store.save(new EmbeddingProfile(
+                NEW_PROFILE, "dashscope", "text-embedding-v4", 1024, ProfileStatus.BUILDING));
+
+        switcher.activate(NEW_PROFILE);
+
+        // 回滚窗口的实质：旧 profile 的向量仍在，回滚过去立刻可用（而不是要重新花钱重建）。
+        assertThat(indexEntryCount(OLD_PROFILE)).isEqualTo(1);
+        switcher.rollback(OLD_PROFILE);
+        assertThat(store.findActive()).map(EmbeddingProfile::profileId).contains(OLD_PROFILE);
+        assertThat(indexEntryCount(OLD_PROFILE)).isEqualTo(1);
+    }
+
+    @Test
+    void shouldRejectSilentProviderModelOrDimensionChangeOnExistingProfile() {
+        store.save(new EmbeddingProfile(
+                OLD_PROFILE, "dashscope", "text-embedding-v4", 1024, ProfileStatus.BUILDING));
+
+        // profile 一旦创建，provider/model/维度永不可变——变更必须新建 profile（同一向量空间不变量）。
+        assertThatThrownBy(() -> store.save(new EmbeddingProfile(
+                OLD_PROFILE, "dashscope", "text-embedding-v4", 1536, ProfileStatus.BUILDING)))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> store.save(new EmbeddingProfile(
+                OLD_PROFILE, "dashscope", "text-embedding-v3", 1024, ProfileStatus.BUILDING)))
+                .isInstanceOf(IllegalStateException.class);
+        assertThat(store.find(OLD_PROFILE)).map(EmbeddingProfile::dimensions).contains(1024);
+    }
+
+    private void indexOneChunk(String profileId) {
+        UUID runId = indexRepository.startRun(profileId, CHUNKING_VERSION);
+        indexRepository.appendEntry(runId, profileId, new IndexableChunk(
+                CHUNK, "第一条 每学期公共选修课最高修读 4 学分。", "a".repeat(64), "学生手册 2026 版",
+                new SourceEligibilitySnapshot(SOURCE, "PUBLISHED", "STUDENT_VISIBLE",
+                        true, false, "PUBLIC_ELECTIVE", null, null)),
+                CHUNKING_VERSION, new float[] { 1f, 0f, 0f });
+        indexRepository.completeRun(runId, 1);
+    }
+
+    private long activeCount() {
+        return count("SELECT COUNT(*) FROM embedding_profile WHERE status = 'ACTIVE'");
+    }
+
+    private long indexEntryCount(String profileId) {
+        return count("SELECT COUNT(*) FROM retrieval_index_entry WHERE profile_id = '" + profileId + "'");
+    }
+
+    private java.sql.Timestamp activatedAt(String profileId) {
+        try (Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(
+                        "SELECT activated_at FROM embedding_profile WHERE profile_id = ?")) {
+            statement.setString(1, profileId);
+            try (ResultSet result = statement.executeQuery()) {
+                assertThat(result.next()).isTrue();
+                return result.getTimestamp("activated_at");
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("无法读取 activated_at", exception);
+        }
+    }
+
+    private long count(String sql) {
+        try (Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql);
+                ResultSet result = statement.executeQuery()) {
+            assertThat(result.next()).isTrue();
+            return result.getLong(1);
+        } catch (SQLException exception) {
+            throw new IllegalStateException("无法执行统计查询", exception);
+        }
+    }
+
+    private void seedCorpus() throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement("""
+                     INSERT INTO knowledge_source (
+                         id, title, source_type, source_version, publication_status,
+                         published_at, content_checksum, visibility_scope, publication_scope,
+                         review_notice, sharing_rights_confirmed, document_family, knowledge_scope
+                     ) VALUES (?, '公共选修规则手册', 'STUDENT_HANDBOOK', '公共选修规则手册',
+                         'PUBLISHED', CURRENT_TIMESTAMP, ?, 'STUDENT_VISIBLE', '本地验证',
+                         '存储测试语料', true, 'STUDENT_HANDBOOK', 'PUBLIC_ELECTIVE')
+                     """)) {
+            statement.setObject(1, SOURCE);
+            statement.setString(2, "a".repeat(64));
+            statement.executeUpdate();
+        }
+        try (Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement("""
+                     INSERT INTO knowledge_chunk (
+                         id, source_id, chunk_index, section_title, source_locator,
+                         page_number, content, content_checksum
+                     ) VALUES (?, ?, 0, '第一条', '第 1 页', 1,
+                         '第一条 每学期公共选修课最高修读 4 学分。', ?)
+                     """)) {
+            statement.setObject(1, CHUNK);
+            statement.setObject(2, SOURCE);
+            statement.setString(3, "a".repeat(64));
+            statement.executeUpdate();
+        }
+    }
+
+    private void deleteFixtures() throws SQLException {
+        String profileList = "'" + String.join("','", PROFILES) + "'";
+        try (Connection connection = DriverManager.getConnection(
+                DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
+            connection.createStatement().executeUpdate(
+                    "DELETE FROM citation_audit WHERE index_entry_id IN "
+                            + "(SELECT id FROM retrieval_index_entry WHERE profile_id IN (" + profileList + "))");
+            connection.createStatement().executeUpdate(
+                    "DELETE FROM retrieval_index_entry WHERE profile_id IN (" + profileList + ")");
+            connection.createStatement().executeUpdate(
+                    "DELETE FROM retrieval_index_run WHERE profile_id IN (" + profileList + ")");
+            connection.createStatement().executeUpdate(
+                    "DELETE FROM embedding_profile WHERE profile_id IN (" + profileList + ")");
+            connection.createStatement().executeUpdate(
+                    "DELETE FROM knowledge_chunk WHERE source_id = '" + SOURCE + "'");
+            connection.createStatement().executeUpdate(
+                    "DELETE FROM knowledge_source WHERE id = '" + SOURCE + "'");
+        }
+    }
+}

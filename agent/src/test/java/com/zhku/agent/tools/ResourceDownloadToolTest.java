@@ -10,8 +10,8 @@ public class ResourceDownloadToolTest {
     @Test
     public void testDownloadResource() {
         ResourceDownloadTool tool = new ResourceDownloadTool();
-        String url = "https://www.codefather.cn/logo.png";
-        String fileName = "logo.png";
+        String url = "https://example.com/";
+        String fileName = "example.html";
         String result = tool.downloadResource(url, fileName);
         assertNotNull(result);
     }

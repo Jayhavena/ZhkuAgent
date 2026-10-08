@@ -1,0 +1,360 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] ZhkuAgent                                                          [pom]
+[INFO] ZhkuAgent Shared Runtime                                           [jar]
+[INFO] ZhkuAgent Knowledge                                                [jar]
+[INFO] 
+[INFO] ------------------------< com.zhku:zhku-agent >-------------------------
+[INFO] Building ZhkuAgent 0.0.1-SNAPSHOT                                  [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] -----------------------< com.zhku:agent-runtime >-----------------------
+[INFO] Building ZhkuAgent Shared Runtime 0.0.1-SNAPSHOT                   [2/3]
+[INFO]   from agent-runtime\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ agent-runtime ---
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.0.1-SNAPSHOT                        [3/3]
+[INFO]   from knowledge\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 5 resources from src\main\resources to target\classes
+[INFO] Copying 21 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 298 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 2 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 214 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[WARNING] file.encoding cannot be set as system property, use <argLine>-Dfile.encoding=...</argLine> instead
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTest
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+16:13:37.630 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:37.708 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Schema history table "public"."flyway_schema_history" does not exist yet
+16:13:37.716 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.047s)
+16:13:37.739 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "public"."flyway_schema_history" ...
+16:13:37.833 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": << Empty Schema >>
+16:13:37.833 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:37.853 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "1 - create zhku knowledge schema"
+16:13:37.979 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "2 - add knowledge source visibility governance"
+16:13:38.026 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "3 - create zhku knowledge governance staging"
+16:13:38.140 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "4 - add zhku knowledge source version scope"
+16:13:38.175 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "5 - allow archived knowledge submission reimport"
+16:13:38.214 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "6 - add official notice lifecycle"
+16:13:38.298 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "7 - allow superseded notice audit visibility"
+16:13:38.330 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "8 - support reviewed internal official notice material"
+16:13:38.358 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "9 - add retrieval catalog and index audit"
+16:13:38.487 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "12 - create conversation session store"
+16:13:38.536 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "15 - create service guides"
+16:13:38.723 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "16 - create anonymous feedback"
+16:13:38.772 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "17 - create anonymous telemetry"
+16:13:38.835 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "18 - create campus agent run archive"
+16:13:38.918 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "19 - create preview identity and run ownership"
+16:13:38.968 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "20 - add conversation session ownership"
+16:13:39.005 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "21 - create campus run submission"
+16:13:39.046 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "22 - allow rule check capture audit"
+16:13:39.070 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 18 migrations to schema "public", now at version v22 (execution time 00:00.820s)
+16:13:39.459 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:39.488 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.017s)
+16:13:39.509 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:39.509 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:39.510 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:39.778 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:39.803 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.015s)
+16:13:39.824 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:39.824 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:39.824 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:40.050 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:40.072 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.014s)
+16:13:40.092 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:40.092 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:40.093 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:40.506 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:40.528 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.012s)
+16:13:40.547 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:40.547 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:40.548 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:40.847 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:40.869 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.014s)
+16:13:40.889 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:40.889 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:40.890 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:41.326 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:41.347 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+16:13:41.372 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:41.373 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:41.373 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:41.601 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:41.621 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+16:13:41.640 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:41.640 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:41.641 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:41.924 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:41.942 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+16:13:41.962 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:41.962 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:41.963 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:42.210 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:42.228 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+16:13:42.244 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:42.244 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:42.245 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:42.460 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:42.482 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.013s)
+16:13:42.502 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:42.502 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:42.504 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:42.728 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:42.747 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+16:13:42.765 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:42.765 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:42.766 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:42.991 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:43.010 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+16:13:43.029 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:43.029 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:43.031 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:43.244 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:43.262 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+16:13:43.279 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:43.280 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:43.280 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:43.481 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:43.500 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+16:13:43.519 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:43.519 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:43.520 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:43.819 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:43.838 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+16:13:43.855 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:43.856 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:43.857 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:44.208 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:44.223 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+16:13:44.241 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:44.241 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:44.242 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:44.441 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:44.456 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+16:13:44.473 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:44.473 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:44.473 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:44.674 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:44.690 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.008s)
+16:13:44.707 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:44.707 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:44.708 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:44.910 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:44.926 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+16:13:44.942 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:44.942 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:44.943 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:45.265 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:45.281 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+16:13:45.302 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:45.302 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:45.302 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:45.596 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:45.613 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+16:13:45.630 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:45.631 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:45.631 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:45.869 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:45.885 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+16:13:45.905 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:45.905 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:45.905 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:46.112 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:46.131 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+16:13:46.152 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:46.152 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:46.153 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[INFO] Tests run: 24, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.436 s -- in com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTest
+[INFO] Running com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTargetTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTargetTest
+[INFO] Running com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest
+16:13:46.387 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:46.412 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.012s)
+16:13:46.436 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:46.436 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:46.437 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:46.684 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:46.705 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.011s)
+16:13:46.726 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:46.726 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:46.727 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:46.966 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:47.001 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.022s)
+16:13:47.024 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:47.024 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:47.025 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:47.257 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:47.281 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.014s)
+16:13:47.308 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:47.308 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:47.309 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:47.550 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:47.578 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.017s)
+16:13:47.602 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:47.602 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:47.603 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:47.826 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:47.842 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+16:13:47.861 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:47.861 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:47.861 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:48.069 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:48.087 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+16:13:48.103 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:48.104 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:48.105 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:48.291 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:48.307 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.008s)
+16:13:48.323 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:48.323 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:48.323 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:48.507 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:48.521 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.008s)
+16:13:48.536 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:48.537 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:48.537 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:48.738 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:48.754 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+16:13:48.772 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:48.772 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:48.772 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:48.967 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:48.982 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.008s)
+16:13:48.999 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:48.999 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:49.000 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:49.223 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:49.250 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.015s)
+16:13:49.269 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:49.269 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:49.270 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:49.523 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:49.540 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+16:13:49.561 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:49.561 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:49.563 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:49.766 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:49.783 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.008s)
+16:13:49.802 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:49.802 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:49.803 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:50.089 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:50.106 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+16:13:50.125 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:50.125 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:50.128 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:50.359 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:50.380 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+16:13:50.401 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:50.401 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:50.402 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:50.617 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:50.635 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+16:13:50.654 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:50.654 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:50.654 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:50.905 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:50.922 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.009s)
+16:13:50.939 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:50.939 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:50.940 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+16:13:51.133 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55466/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+16:13:51.153 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.010s)
+16:13:51.172 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 22
+16:13:51.172 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+16:13:51.173 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[ERROR] Tests run: 19, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 5.001 s <<< FAILURE! -- in com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest
+[ERROR] com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.originalLookupRechecksWithdrawalVisibilityAndSharing -- Time elapsed: 0.291 s <<< ERROR!
+org.postgresql.util.PSQLException: 
+ERROR: new row for relation "knowledge_source" violates check constraint "ck_knowledge_source_student_visibility"
+  ��ϸ��Failing row contains (034d1116-ef51-4cb3-9b40-701fe81f583a, �ϳ�ԭ�ĺ���о�, STUDENT_HANDBOOK, null, v1, ARCHIVED, 2026-10-08 16:13:47.044614+08, 4ab7f15026ed74c3463b1a039d934975a039b35beaa5af8a82e6d9e91668579a, 2026-10-08 16:13:47.044614+08, 2026-10-08 16:13:47.044614+08, STUDENT_VISIBLE, ������֤, ����ʵ�������, t, STUDENT_HANDBOOK, PUBLIC_ELECTIVE).
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2733)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2420)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:372)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:517)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:434)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:194)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:155)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.update(JdbcRuleCheckEvidenceReaderTest.java:191)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.originalLookupRechecksWithdrawalVisibilityAndSharing(JdbcRuleCheckEvidenceReaderTest.java:92)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckApplicationServiceTest
+[INFO] Tests run: 27, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.063 s -- in com.zhku.knowledge.rulecheck.RuleCheckApplicationServiceTest
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckOriginalEvidenceServiceTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in com.zhku.knowledge.rulecheck.RuleCheckOriginalEvidenceServiceTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Errors: 
+[ERROR]   JdbcRuleCheckEvidenceReaderTest.originalLookupRechecksWithdrawalVisibilityAndSharing:92->update:191 ? PSQL ERROR: new row for relation "knowledge_source" violates check constraint "ck_knowledge_source_student_visibility"
+  ��ϸ��Failing row contains (034d1116-ef51-4cb3-9b40-701fe81f583a, �ϳ�ԭ�ĺ���о�, STUDENT_HANDBOOK, null, v1, ARCHIVED, 2026-10-08 16:13:47.044614+08, 4ab7f15026ed74c3463b1a039d934975a039b35beaa5af8a82e6d9e91668579a, 2026-10-08 16:13:47.044614+08, 2026-10-08 16:13:47.044614+08, STUDENT_VISIBLE, ������֤, ����ʵ�������, t, STUDENT_HANDBOOK, PUBLIC_ELECTIVE).
+[INFO] 
+[ERROR] Tests run: 104, Failures: 0, Errors: 1, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ZhkuAgent 0.0.1-SNAPSHOT:
+[INFO] 
+[INFO] ZhkuAgent .......................................... SUCCESS [  0.003 s]
+[INFO] ZhkuAgent Shared Runtime ........................... SUCCESS [  1.636 s]
+[INFO] ZhkuAgent Knowledge ................................ FAILURE [ 30.273 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  32.426 s
+[INFO] Finished at: 2026-10-08T16:13:51+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: 
+[ERROR] 
+[ERROR] See D:\alldesk\Projects\ZhkuAgent\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :knowledge

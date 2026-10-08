@@ -1,0 +1,16 @@
+{
+  "reviewer": "r5_selector_review",
+  "assessment": "Accepted component; M1 test synchronization improved without production change",
+  "criticalRemaining": 0,
+  "importantRemaining": 0,
+  "verificationStatus": "VERIFIED_FINAL_GREEN",
+  "finalPhase": "r5-selector-final-20261008-01",
+  "fixed": [
+    "M1静态测试同步缺口：两次成功选择间awaitIdle等待worker实际finally；未制造RED/未称已复现偶发失败，生产占用语义不变。"
+  ],
+  "deferredMinors": [],
+  "rulings": [
+    "M1保留生产非协作资源守卫，只在顺序测试等待实际占用释放 — future结果发布早于worker finally，返回成功不承诺下一纳秒空闲 — 成本：调用者可能短暂BUSY，页面不得盲目自动重试，测试同步后重新验收。",
+    "合法目录ID只证明协议白名单，非语义/注入安全；真实网络下载/超时/retry/成本仍Transport后段 — 本批替身没有这些证据 — 成本：正式CLOSED不装配新组件，A05整体/C组保持OPEN。"
+  ]
+}

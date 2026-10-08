@@ -1,0 +1,17 @@
+{
+  "criticalRemaining": 0,
+  "importantRemaining": 0,
+  "finalPhase": "r5-api-review-green-20261008-01",
+  "fixed": [
+    "I1编码路径绕过 — actual HTTP新增encodedBusinessPathsCannotBypassActualBodyLimit/encodedBusinessFormsAreRejectedBeforeCsrfParameterParsing，RED8/2断言失败→仅v2应用CSRF前拒绝全部百分号路径→完整相关GREEN；不重复审查。"
+  ],
+  "rulings": [
+    "I1采用新应用CSRF前拒绝全部编码路径，而不对原URI自行解码 — 固定API没有动态路径段，既阻断编码业务后缀，也阻断编码前缀；v1不应用新守卫 — 代价：新入口编码形式即使语义合法也400，客户端必须使用规范路径；旧v1历史编码限长风险不由本批关闭。",
+    "M1合同收窄为只限制Content-Type/charset声明，正文严格UTF8验证延期 — 当前实际字节上限、JSON字段UTF16/类型检查仍成立，接受Unicode JSON并不授予资料资格 — 代价：不能声称拒绝声明与正文编码不符的全部请求。",
+    "真实语义/例外/个人适用、跨轮/原文/最终下发竞态、供应商/用户收益/G2及历史dirty不由本批裁定 — 保持CLOSED和相应待办；替身/真库/配置计数分开 — 代价：严格接口工程不等于真实学生查证闭环或网络抓包证明。"
+  ],
+  "deferredMinors": [
+    "M1：尚未在授权/字节限长后严格校验正文UTF8；已校正注释、错误消息和最终合同为媒体charset声明，不把解析器自动接受UTF16写成实际UTF8验证。"
+  ],
+  "verificationStatus": "VERIFIED_FINAL_GREEN"
+}

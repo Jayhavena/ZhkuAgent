@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "phase": "R2",
+  "createdAt": "2026-10-07T22:57:02.286529+08:00",
+  "head": "135c9d3e58ddbf99f9507ed3f952bd839fd99b86",
+  "branch": "zhkuagent-modules",
+  "stage": "R2_VERIFIED_LOCAL_SYNTHETIC",
+  "businessFilesChanged": [
+    "knowledge/src/main/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminController.java",
+    "knowledge/src/main/resources/zhku/local-admin/index.html",
+    "knowledge/src/test/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminControllerTest.java"
+  ],
+  "newBusinessFiles": [
+    "knowledge/src/test/java/com/zhku/knowledge/governance/web/CandidateResponseMappingTest.java"
+  ],
+  "unchangedRegressionTest": "knowledge/src/test/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminPageResourceTest.java",
+  "supportFiles": [
+    "local-browser-service.ps1",
+    "fixtures.sql"
+  ],
+  "commandEvidence": [
+    {
+      "path": "docs/evidence/rule-check-refactor/2026-10-07/r2-red-01/command.json",
+      "sha256": "3c98d8049c978ddb6a846b2d2442fd84156adfdf40012fd14c16688f6e1482f4"
+    },
+    {
+      "path": "docs/evidence/rule-check-refactor/2026-10-07/r2-green-01/command.json",
+      "sha256": "0c1b655457d38e0b9d55110d462063484c1339764b3e7f0b372464d3135d99ac"
+    },
+    {
+      "path": "docs/evidence/rule-check-refactor/2026-10-07/r2-regression-01/command.json",
+      "sha256": "8a03f161e2dbda170f86de1ddf35aca65b6109e62fb332d62a6a6e6cbabfc131"
+    }
+  ],
+  "serviceReadyEvidence": [
+    "browser-before/ready.json",
+    "browser-after/ready.json"
+  ],
+  "cleanupEvidence": [
+    "browser-before/cleanup.json",
+    "browser-after/cleanup.json"
+  ],
+  "committed": false,
+  "deployed": false,
+  "providerCalled": false,
+  "pdfIngestionRun": false,
+  "productEvaluationRun": false,
+  "originalDatabaseAccessed": false,
+  "g0": "NOT_PASSED",
+  "closedIssues": [
+    "RC-03"
+  ],
+  "independentReview": "NOT_RUN_LOCAL_TASK_SELF_REVIEW_ONLY"
+}

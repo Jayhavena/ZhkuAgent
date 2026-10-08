@@ -1,24 +1,25 @@
 <template>
   <div class="home-container">
     <main class="hero">
-      <h1 class="title">仲园 <span class="brand">Agent</span></h1>
-      <p class="subtitle">校园可信问答 · 本机演示</p>
+      <h1 class="title">仲园 <span class="brand">规则查证</span></h1>
+      <p class="subtitle">提出问题，确认条件，核对原文。</p>
 
-      <!-- 唯一入口卡：整卡可点，键盘可达。不虚构第二张占位卡——
-           当前产品只有任务助手一个应用，版面留白是设计而非缺失 -->
+      <!-- 校园入口复用可信身份与本人归属，不能指向旧通用匿名API。 -->
       <div
         class="entry-card"
         role="link"
         tabindex="0"
-        @click="navigateTo('/super-agent')"
-        @keydown.enter="navigateTo('/super-agent')"
+        @click="navigateTo('/rules')"
+        @keydown.enter="navigateTo('/rules')"
       >
         <div class="card-text">
-          <div class="card-title">任务助手</div>
-          <div class="card-desc">提交任务，查看处理过程与结果</div>
+          <div class="card-title">查证校园规则</div>
+          <div class="card-desc">登录后提问，查看能确认的规则和原文依据</div>
         </div>
         <div class="card-arrow" aria-hidden="true">→</div>
       </div>
+      <p class="legacy-note">个人项目，非学校官方系统。首轮以2025版文本为依据，现行适用性仍需核实。</p>
+      <nav class="legacy-note" aria-label="实验入口"><RouterLink to="/campus/run">学分实验</RouterLink> / <RouterLink to="/super-agent">通用助手实验</RouterLink></nav>
     </main>
 
     <AppFooter />
@@ -32,15 +33,15 @@ import AppFooter from '../components/AppFooter.vue'
 
 // 设置页面标题和元数据
 useHead({
-  title: '首页 - 仲园 Agent',
+  title: '校园规则查证 - 仲园',
   meta: [
     {
       name: 'description',
-      content: '仲园 Agent 本机演示，提供任务助手入口，展示任务处理过程与结果。'
+      content: '校园规则查证：自然语言提问、必要条件确认和原文核对。'
     },
     {
       name: 'keywords',
-      content: '仲园 Agent,ZhkuAgent,任务助手,本机演示,首页'
+      content: '仲园,ZhkuAgent,校园规则查证,原文核对,本机演示'
     }
   ]
 })
@@ -65,6 +66,7 @@ const navigateTo = (path) => {
   background-color: var(--color-page-bg);
   color: var(--color-text-primary);
 }
+.legacy-note { max-width:420px; margin-top:20px; color:var(--color-text-secondary); font-size:12px; text-align:center; }
 
 .hero {
   flex: 1;

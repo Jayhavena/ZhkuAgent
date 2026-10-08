@@ -45,7 +45,7 @@ try {
         }
     }
 
-    $jar = Join-Path $moduleRoot ("target/knowledge-0.0.1-SNAPSHOT-" + $Mode + ".jar")
+    $jar = Join-Path $moduleRoot ("target/knowledge-0.1.0-rc.1-" + $Mode + ".jar")
     if (-not (Test-Path -LiteralPath $jar)) {
         throw 'Build the knowledge module before starting this service.'
     }

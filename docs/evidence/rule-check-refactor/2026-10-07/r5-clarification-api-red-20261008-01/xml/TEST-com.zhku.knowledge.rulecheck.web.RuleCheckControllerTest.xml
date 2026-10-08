@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="2.534" tests="15" errors="0" skipped="0" failures="4"><testcase name="invalidJsonAndServiceErrorsNeverEchoInputOrCauses" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="2.001"></testcase><testcase name="clarificationConsumesServerContextOnceAndReturnsMergedExplicitConditions" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.112"><failure message="No value at JSON path &quot;$.clarificationToken&quot;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: No value at JSON path "$.clarificationToken"
+	at org.springframework.test.util.JsonPathExpectationsHelper.evaluateJsonPath(JsonPathExpectationsHelper.java:351)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertExistsAndReturn(JsonPathExpectationsHelper.java:388)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertValueIsString(JsonPathExpectationsHelper.java:182)
+	at org.springframework.test.web.servlet.result.JsonPathResultMatchers.lambda$isString$9(JsonPathResultMatchers.java:201)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest.token(RuleCheckControllerTest.java:143)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest.clarificationConsumesServerContextOnceAndReturnsMergedExplicitConditions(RuleCheckControllerTest.java:149)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: com.jayway.jsonpath.PathNotFoundException: No results for path: $['clarificationToken']
+]]></failure></testcase><testcase name="mediaTypeGuardRejectsFormsWithoutReadingBody" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.014"></testcase><testcase name="duplicatePropertiesAndTrailingJsonAreRejected" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.017"></testcase><testcase name="beginningNewQuestionMakesEarlierTokenUnusable" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.019"><failure message="No value at JSON path &quot;$.clarificationToken&quot;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: No value at JSON path "$.clarificationToken"
+	at org.springframework.test.util.JsonPathExpectationsHelper.evaluateJsonPath(JsonPathExpectationsHelper.java:351)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertExistsAndReturn(JsonPathExpectationsHelper.java:388)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertValueIsString(JsonPathExpectationsHelper.java:182)
+	at org.springframework.test.web.servlet.result.JsonPathResultMatchers.lambda$isString$9(JsonPathResultMatchers.java:201)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest.token(RuleCheckControllerTest.java:143)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest.beginningNewQuestionMakesEarlierTokenUnusable(RuleCheckControllerTest.java:169)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: com.jayway.jsonpath.PathNotFoundException: No results for path: $['clarificationToken']
+]]></failure></testcase><testcase name="unknownTrustedFieldsAreRejectedWithoutServiceInvocation" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.017"></testcase><testcase name="invalidDeltaOrDifferentQuestionKeepsCurrentClarificationCorrectable" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.016"><failure message="No value at JSON path &quot;$.clarificationToken&quot;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: No value at JSON path "$.clarificationToken"
+	at org.springframework.test.util.JsonPathExpectationsHelper.evaluateJsonPath(JsonPathExpectationsHelper.java:351)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertExistsAndReturn(JsonPathExpectationsHelper.java:388)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertValueIsString(JsonPathExpectationsHelper.java:182)
+	at org.springframework.test.web.servlet.result.JsonPathResultMatchers.lambda$isString$9(JsonPathResultMatchers.java:201)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest.token(RuleCheckControllerTest.java:143)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest.invalidDeltaOrDifferentQuestionKeepsCurrentClarificationCorrectable(RuleCheckControllerTest.java:163)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: com.jayway.jsonpath.PathNotFoundException: No results for path: $['clarificationToken']
+]]></failure></testcase><testcase name="allBusinessInputBoundsAreCheckedBeforeService" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.017"></testcase><testcase name="preservesAllFiveDecisionsAndExplicitClaims(RuleCheckDecision)[1]" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.031"></testcase><testcase name="preservesAllFiveDecisionsAndExplicitClaims(RuleCheckDecision)[2]" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.016"></testcase><testcase name="preservesAllFiveDecisionsAndExplicitClaims(RuleCheckDecision)[3]" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.013"></testcase><testcase name="preservesAllFiveDecisionsAndExplicitClaims(RuleCheckDecision)[4]" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.013"></testcase><testcase name="preservesAllFiveDecisionsAndExplicitClaims(RuleCheckDecision)[5]" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.016"></testcase><testcase name="clarificationCannotCrossAuthenticatedActors" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.015"><failure message="No value at JSON path &quot;$.clarificationToken&quot;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: No value at JSON path "$.clarificationToken"
+	at org.springframework.test.util.JsonPathExpectationsHelper.evaluateJsonPath(JsonPathExpectationsHelper.java:351)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertExistsAndReturn(JsonPathExpectationsHelper.java:388)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertValueIsString(JsonPathExpectationsHelper.java:182)
+	at org.springframework.test.web.servlet.result.JsonPathResultMatchers.lambda$isString$9(JsonPathResultMatchers.java:201)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest.token(RuleCheckControllerTest.java:143)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest.clarificationCannotCrossAuthenticatedActors(RuleCheckControllerTest.java:157)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: com.jayway.jsonpath.PathNotFoundException: No results for path: $['clarificationToken']
+]]></failure></testcase><testcase name="requiredObjectAndStringShapesDoNotCoerceScalars" classname="com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest" time="0.023"></testcase></testsuite>

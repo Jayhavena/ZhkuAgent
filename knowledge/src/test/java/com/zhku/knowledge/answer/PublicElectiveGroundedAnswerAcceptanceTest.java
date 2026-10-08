@@ -15,10 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /** 公共选修课程真实问法的有依据问答验收。 */
 class PublicElectiveGroundedAnswerAcceptanceTest {
 
-    private static final String DATABASE_URL = System.getProperty(
-            "zhku.db.url",
-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
-    );
+    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
     private static final String DATABASE_USER = System.getProperty(
             "zhku.db.user",
             "zhkuagent"

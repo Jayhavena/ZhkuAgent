@@ -1,0 +1,200 @@
+package com.zhku.knowledge.security;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zhku.knowledge.rulecheck.web.RuleCheckAuthController;
+import java.time.Clock;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
+import org.springframework.context.annotation.*;
+import org.springframework.mock.env.MockEnvironment;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+/** 真实Security过滤链，身份仓储为替身；不宣称实际cookie创建、HTTP监听或真库登录。 */
+class RuleCheckPreviewSecurityConfigurationTest {
+    private static final String P=RuleCheckPreviewSecurityConfiguration.PREFIX;
+    private static final TrustedActor USER=new TrustedActor(UUID.randomUUID(),TrustedActor.Role.USER,0);
+    private static final TrustedActor MAINTAINER=new TrustedActor(UUID.randomUUID(),TrustedActor.Role.MAINTAINER,0);
+    private static final String[] SETTINGS={"zhku.rule-check-preview.enabled=true","server.address=127.0.0.1",
+            "server.servlet.context-path=/api","server.servlet.session.timeout=15m","server.servlet.session.persistent=false",
+            "server.servlet.session.tracking-modes=cookie","server.servlet.session.cookie.name=ZHKU_RULE_CHECK_SESSION",
+            "server.servlet.session.cookie.path=/api/zhku/controlled-preview/v2","server.servlet.session.cookie.http-only=true",
+            "server.servlet.session.cookie.secure=false","server.servlet.session.cookie.same-site=strict"};
+    @Test void anonymousNeedsLoginAndCsrfFailurePrecedesIdentityRead(){run((mvc,repository)->{
+        mvc.perform(get(P+"/auth/me")).andExpect(status().isUnauthorized());
+        mvc.perform(get(P+"/auth/csrf")).andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"));
+        mvc.perform(post(P+"/rule-check").contentType("application/json")).andExpect(status().isForbidden());
+        mvc.perform(post(P+"/rule-check").contentType("application/json").with(csrf().useInvalidToken())).andExpect(status().isForbidden());
+        // 超大JSON也不能先于匿名授权失败被业务过滤器读取。
+        mvc.perform(post(P+"/rule-check").contentType("application/json").content(" ".repeat(32769)).with(csrf())).andExpect(status().isUnauthorized());
+        verifyNoInteractions(repository);
+    });}
+    @Test void loginTrustsStoredActorAndAllowsOnlyUserCheck(){run((mvc,repository)->{
+        var session=login(mvc,"user-a");
+        mvc.perform(get(P+"/auth/me").session(session)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(USER.userId().toString())).andExpect(jsonPath("$.role").value("USER"));
+        mvc.perform(post(P+"/rule-check").contentType("application/json").session(session).with(csrf())).andExpect(status().isOk());
+        mvc.perform(post(P+"/rule-check").contentType("application/json").content(" ".repeat(32769)).session(login(mvc,"maintainer")).with(csrf())).andExpect(status().isForbidden());
+        verify(repository,times(1)).authenticate(eq("user-a"),any());
+    });}
+    @Test void oldPathsWrongMethodsAndAnonymousInterfacesStayDenied(){run((mvc,repository)->{
+        var session=login(mvc,"user-a");
+        for(String path:List.of("/zhku/controlled-preview/v1/runs","/zhku/controlled-preview/v1/auth/csrf",
+                "/zhku/local-preview/campus-agent/v1/runs","/zhku/local-admin","/login",P+"/runs"))
+            mvc.perform(get(path).session(session)).andExpect(status().isForbidden());
+        mvc.perform(get(P+"/rule-check").session(session)).andExpect(status().isForbidden());
+        mvc.perform(post(P+"/other").session(session).with(csrf())).andExpect(status().isForbidden());
+    });}
+    @Test void identityHeadersAndForeignFrameworkPrincipalNeverAuthorize(){run((mvc,repository)->{
+        mvc.perform(get(P+"/auth/me").header("userId",USER.userId().toString()).header("role","USER")).andExpect(status().isUnauthorized());
+        mvc.perform(post(P+"/rule-check").contentType("application/json").with(user("foreign").roles("USER")).with(csrf()))
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("AUTH_REVOKED"));
+        verifyNoInteractions(repository);
+    });}
+    @Test void revokedRevisionRejectsEveryRequestWithoutLateCookieOrSessionDeletion(){run((mvc,repository)->{
+        var session=login(mvc,"user-a");
+        clearInvocations(repository);
+        doThrow(new PreviewIdentityRepository.Failure(PreviewIdentityRepository.Code.AUTH_REVOKED)).when(repository).requireCurrent(USER);
+        mvc.perform(get(P+"/auth/me").session(session)).andExpect(status().isUnauthorized())
+                .andExpect(header().doesNotExist("Set-Cookie"));
+        assertThat(session.isInvalid()).isFalse();
+        mvc.perform(post(P+"/rule-check").contentType("application/json").session(session).with(csrf()))
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("AUTH_REVOKED"));
+        verify(repository,times(2)).requireCurrent(USER);
+    });}
+    @Test void identityUnavailableIs503WithoutClearingValidSession(){run((mvc,repository)->{
+        var session=login(mvc,"user-a");
+        doThrow(new PreviewIdentityRepository.Failure(PreviewIdentityRepository.Code.IDENTITY_UNAVAILABLE)).when(repository).requireCurrent(USER);
+        mvc.perform(post(P+"/rule-check").contentType("application/json").session(session).with(csrf())).andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.code").value("IDENTITY_UNAVAILABLE")).andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("SENTINEL"))));
+        assertThat(session.isInvalid()).isFalse();
+        mvc.perform(post(P+"/rule-check").contentType("application/json").session(session)).andExpect(status().isForbidden());
+    });}
+    @Test void revokedActorCanObtainCsrfAndExplicitlyLogoutWithoutBusinessAccess(){run((mvc,repository)->{
+        var session=login(mvc,"user-a");clearInvocations(repository);
+        doThrow(new PreviewIdentityRepository.Failure(PreviewIdentityRepository.Code.AUTH_REVOKED)).when(repository).requireCurrent(USER);
+        mvc.perform(get(P+"/auth/csrf").session(session)).andExpect(status().isOk()).andExpect(jsonPath("$.token").isNotEmpty());
+        verifyNoInteractions(repository);
+        mvc.perform(get(P+"/auth/me").session(session)).andExpect(status().isUnauthorized());
+        mvc.perform(post(P+"/auth/logout").session(session).with(csrf())).andExpect(status().isNoContent());
+        assertThat(session.isInvalid()).isTrue();
+    });}
+    @Test void loginFailureIsBoundedAndConsumesOneAttempt(){run((mvc,repository)->{
+        for(int i=0;i<20;i++) mvc.perform(post(P+"/auth/login").param("username","unknown").param("password","synthetic-password").with(csrf()))
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("AUTHENTICATION_FAILED"));
+        mvc.perform(post(P+"/auth/login").param("username","unknown").param("password","synthetic-password").with(csrf()))
+                .andExpect(status().isTooManyRequests());
+        verify(repository,times(20)).authenticate(eq("unknown"),any());
+    });}
+    @Test void loginAndLogoutRequireCsrfAndLogoutDoesNotRedirect(){run((mvc,repository)->{
+        mvc.perform(post(P+"/auth/login").param("username","user-a").param("password","synthetic-password")).andExpect(status().isForbidden());
+        var session=login(mvc,"user-a");
+        mvc.perform(post(P+"/auth/logout").session(session)).andExpect(status().isForbidden());assertThat(session.isInvalid()).isFalse();
+        mvc.perform(post(P+"/auth/logout").session(session).with(csrf())).andExpect(status().isNoContent())
+                .andExpect(header().string("Set-Cookie",org.hamcrest.Matchers.containsString("ZHKU_RULE_CHECK_SESSION=")))
+                .andExpect(header().string("Set-Cookie",org.hamcrest.Matchers.containsString("Path=/api"+P)))
+                .andExpect(header().doesNotExist("Location"));assertThat(session.isInvalid()).isTrue();
+    });}
+    @Test void realSessionTokenChangesAfterLoginAndOldTokenCannotSubmit(){run((mvc,repository)->{
+        var first=mvc.perform(get(P+"/auth/csrf")).andExpect(status().isOk()).andReturn();
+        var mapper=new ObjectMapper();var token=mapper.readTree(first.getResponse().getContentAsString());
+        var session=(MockHttpSession)first.getRequest().getSession(false);String beforeId=session.getId();
+        mvc.perform(post(P+"/auth/login").session(session).param("username","user-a").param("password","synthetic-password")
+                .header(token.get("headerName").asText(),token.get("token").asText())).andExpect(status().isOk());
+        assertThat(session.getId()).isNotEqualTo(beforeId);
+        mvc.perform(post(P+"/rule-check").contentType("application/json").session(session).header(token.get("headerName").asText(),token.get("token").asText())).andExpect(status().isForbidden());
+        var fresh=mvc.perform(get(P+"/auth/csrf").session(session)).andExpect(status().isOk()).andReturn();
+        var freshToken=mapper.readTree(fresh.getResponse().getContentAsString());
+        mvc.perform(post(P+"/rule-check").contentType("application/json").session(session).header(freshToken.get("headerName").asText(),freshToken.get("token").asText())).andExpect(status().isOk());
+    });}
+    @Test void environmentRequiresExplicitIsolatedProfileAndEnablement(){
+        var accepted=environment();assertThatCode(()->RuleCheckPreviewSecurityConfiguration.validateEnvironment(accepted)).doesNotThrowAnyException();
+        accepted.setActiveProfiles("zhku-rule-check-preview","zhku-controlled-preview");refused(accepted);
+        refused(environment().withProperty("zhku.rule-check-preview.enabled","false"));
+        var oldOnly=environment();oldOnly.setActiveProfiles("zhku-controlled-preview");refused(oldOnly);
+    }
+    @Test void cookieScopeLifetimePersistenceAndBindingCannotBeOverridden(){
+        for(var pair:new String[][]{{"server.address","0.0.0.0"},{"server.servlet.context-path","/"},
+                {"server.servlet.session.cookie.name","ZHKU_CONTROLLED_SESSION"},{"server.servlet.session.cookie.path","/api"},
+                {"server.servlet.session.cookie.http-only","false"},{"server.servlet.session.cookie.secure","true"},
+                {"server.servlet.session.cookie.same-site","lax"},{"server.servlet.session.timeout","1h"},
+                {"server.servlet.session.persistent","true"},{"server.servlet.session.tracking-modes","url"},
+                {"server.servlet.session.cookie.domain","localhost"},{"server.servlet.session.cookie.max-age","1h"},
+                {"server.servlet.session.store-dir","temp"},{"spring.session.store-type","jdbc"}})
+            refused(environment().withProperty(pair[0],pair[1]));
+    }
+    @Test void unsafeModesAndProfilesCannotMixWithRuleCheckIdentity(){
+        for(String key:List.of("zhku.controlled-preview.enabled","zhku.controlled-preview.conversations.enabled",
+                "zhku.local-preview.enabled","zhku.local-admin.enabled","zhku.rag.enabled","zhku.streaming.enabled",
+                "zhku.campus-agent.enabled","zhku.campus-agent.archive.enabled"))refused(environment().withProperty(key,"true"));
+        for(String profile:List.of("zhku-local-preview","zhku-local-admin")){
+            var environment=environment();environment.setActiveProfiles("zhku-rule-check-preview",profile);refused(environment);
+        }
+    }
+    @Test void missingCookieConfigurationCannotBeMistakenForAppliedDefaults(){
+        var missing=new MockEnvironment().withProperty("zhku.rule-check-preview.enabled","true").withProperty("server.address","127.0.0.1");
+        missing.setActiveProfiles("zhku-rule-check-preview");refused(missing);
+    }
+    @Test void disabledEnvironmentFailsBeforeIdentityBeanInitialization(){
+        Fixture.initializations.set(0);
+        new WebApplicationContextRunner().withUserConfiguration(RuleCheckPreviewSecurityConfiguration.class,Fixture.class)
+                .withInitializer(c->c.getEnvironment().setActiveProfiles("zhku-rule-check-preview"))
+                .run(context->{assertThat(context).hasFailed();assertThat(context.getStartupFailure()).hasRootCauseInstanceOf(IllegalArgumentException.class);
+                    assertThat(Fixture.initializations.get()).isZero();});
+    }
+    private static void refused(MockEnvironment environment){assertThatThrownBy(()->RuleCheckPreviewSecurityConfiguration.validateEnvironment(environment)).isInstanceOf(IllegalArgumentException.class);}
+    private static MockEnvironment environment(){
+        var environment=new MockEnvironment();
+        for(String setting:SETTINGS){int split=setting.indexOf('=');environment.withProperty(setting.substring(0,split),setting.substring(split+1));}
+        environment.setActiveProfiles("zhku-rule-check-preview");return environment;
+    }
+    private static MockHttpSession login(MockMvc mvc,String name)throws Exception{
+        return (MockHttpSession)mvc.perform(post(P+"/auth/login").param("username",name).param("password","synthetic-password").with(csrf()))
+                .andExpect(status().isOk()).andExpect(header().doesNotExist("Location")).andReturn().getRequest().getSession(false);
+    }
+    @FunctionalInterface private interface Check{void run(MockMvc mvc,PreviewIdentityRepository repository)throws Exception;}
+    private static void run(Check check){
+        new WebApplicationContextRunner().withUserConfiguration(RuleCheckPreviewSecurityConfiguration.class,Fixture.class,RuleCheckAuthController.class,Sentinel.class)
+                .withPropertyValues(SETTINGS)
+                .withInitializer(c->c.getEnvironment().setActiveProfiles("zhku-rule-check-preview"))
+                .run(context->{assertThat(context).hasNotFailed();check.run(MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build(),context.getBean(PreviewIdentityRepository.class));});
+    }
+    @Configuration(proxyBeanMethods=false) @EnableWebMvc static class Fixture{
+        static final java.util.concurrent.atomic.AtomicInteger initializations=new java.util.concurrent.atomic.AtomicInteger();
+        @Bean ObjectMapper mapper(){return new ObjectMapper();}
+        @Bean Clock clock(){return Clock.systemUTC();}
+        @Bean PreviewIdentityRepository repository(){
+            initializations.incrementAndGet();
+            var repository=mock(PreviewIdentityRepository.class);
+            when(repository.authenticate(anyString(),any())).thenAnswer(invocation->{
+                Arrays.fill((char[])invocation.getArgument(1),'\0');String name=invocation.getArgument(0);
+                return name.equals("user-a")?Optional.of(new PreviewPrincipal(USER)):name.equals("maintainer")?Optional.of(new PreviewPrincipal(MAINTAINER)):Optional.empty();
+            });return repository;
+        }
+    }
+    @RestController static class Sentinel{
+        @RequestMapping(value=P+"/rule-check",method={RequestMethod.GET,RequestMethod.POST}) String check(){return "AUTHORIZED_SENTINEL";}
+        @GetMapping(P+"/rule-check/originals/{handle}") String original(){return "AUTHORIZED_ORIGINAL_SENTINEL";}
+    }
+    @Test void onlyUserGetOriginalNamespaceIsAuthorized(){run((mvc,repository)->{
+        String path=P+"/rule-check/originals/"+UUID.randomUUID();
+        mvc.perform(get(path)).andExpect(status().isUnauthorized());
+        mvc.perform(get(path).session(login(mvc,"user-a"))).andExpect(status().isOk());
+        mvc.perform(get(path).session(login(mvc,"maintainer"))).andExpect(status().isForbidden());
+        var session=login(mvc,"user-a");
+        mvc.perform(post(path).session(session).with(csrf())).andExpect(status().isForbidden());
+        mvc.perform(get(P+"/rule-check/originals").session(session)).andExpect(status().isForbidden());
+        mvc.perform(get(path+"/other").session(session)).andExpect(status().isForbidden());
+    });}
+}

@@ -1,0 +1,916 @@
+diff --git "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\empty-before.txt" "b/D:\\alldesk\\Projects\\ZhkuAgent\\knowledge\\scripts\\verify-rule-check-refactor.ps1"
+index e69de29..290b449 100644
+--- "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\empty-before.txt"
++++ "b/D:\\alldesk\\Projects\\ZhkuAgent\\knowledge\\scripts\\verify-rule-check-refactor.ps1"
+@@ -0,0 +1,226 @@
++#requires -Version 7.0
++param(
++    [string]$Mode='Unit',
++    [string]$Phase='',
++    [string]$Tests='',
++    [int]$Port=55439,
++    [string]$DatabaseUrl='',
++    [switch]$CheckEnvironment
++)
++$ErrorActionPreference='Stop'
++$runnerUtf8=[Text.UTF8Encoding]::new($false)
++[Console]::InputEncoding=$runnerUtf8; [Console]::OutputEncoding=$runnerUtf8; $OutputEncoding=$runnerUtf8
++
++function Get-RuleCheckVerificationPlan {
++    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='')
++    # 全部准入在任何外部进程与证据写入之前完成，连接失败不能替代目标隔离。
++    if ($Mode -notin @('Unit','Database','Acceptance')) {throw '未知验收模式'}
++    if ($Phase -notmatch '^[a-z0-9][a-z0-9-]{0,79}$') {throw '批次必须是1至80位小写字母、数字或连字符'}
++    if ($Port -lt 1024 -or $Port -gt 65535 -or $Port -eq 54329) {throw '拒绝原演示库端口或非法端口'}
++    if ([string]::IsNullOrWhiteSpace($Tests)) {throw '测试必须显式选类'}
++    $unit=@('HybridRetrievalServiceTest','HybridCandidateFusionTest','GroundedAnswerComposerTest',
++        'RetrievalAugmentedAnswerServiceTest','RetrievalEligibilityFilterTest','ZhkuLocalAdminControllerTest',
++        'ZhkuLocalAdminPageResourceTest','ModelOutputParserTest','AnswerEvidenceGuardTest','CandidateResponseMappingTest')
++    $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest')
++    $selected=@($Tests.Split(',')|ForEach-Object {$_.Trim()})
++    if (@($selected|Sort-Object -Unique).Count -ne $selected.Count) {throw '测试选择不能重复'}
++    foreach ($selector in $selected) {
++        if ($selector -notmatch '^[A-Za-z][A-Za-z0-9]*Test$' -or $selector -match 'LiveProvider|DashScope|RealModel') {throw '拒绝空项、通配符、方法选择或供应商测试'}
++        if ($selector -notin ($unit+$database)) {throw '未登记测试类'}
++        if ($Mode -eq 'Unit' -and $selector -notin $unit) {throw 'Unit不能选数据库测试'}
++        if ($Mode -eq 'Database' -and $selector -notin $database) {throw 'Database只允许数据库测试'}
++        $found=@(Get-ChildItem -LiteralPath (Join-Path $Root 'knowledge/src/test/java') -Recurse -File -Filter "$selector.java")
++        if ($found.Count -ne 1) {throw '测试源码必须唯一存在'}
++    }
++    $usesDatabase=@($selected|Where-Object {$_ -in $database}).Count -gt 0
++    $target="jdbc:postgresql://127.0.0.1:$Port/zhkuagent_rulecheck_e2e"
++    if ($DatabaseUrl -and (!$usesDatabase -or $DatabaseUrl -cne $target)) {throw 'URL必须与专用临时库、回环host和Port完全一致'}
++    $directory=Join-Path $Root ('docs/evidence/rule-check-refactor/2026-10-07/'+$Phase)
++    if (Test-Path -LiteralPath $directory) {throw '证据批次已存在，禁止覆盖'}
++    [pscustomobject]@{Root=$Root;Mode=$Mode;Phase=$Phase;Selected=$selected;Port=$Port;Database=$usesDatabase;
++        DatabaseUrl=$target;Directory=$directory;Maven=(Join-Path $Root 'mvnw.cmd')}
++}
++
++function Get-RuleCheckSourceSnapshot {
++    param([string]$Root)
++    $paths=@(Get-ChildItem -LiteralPath (Join-Path $Root 'knowledge/src'),(Join-Path $Root 'agent-runtime/src') -Recurse -File|ForEach-Object FullName)
++    $paths+=@('pom.xml','knowledge/pom.xml','agent-runtime/pom.xml','AGENTS.md','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties',
++        'scripts/Import-ZhkuCredentials.ps1','knowledge/scripts/verify-rule-check-refactor.ps1',
++        'knowledge/scripts/verify-rule-check-refactor.cmd','scripts/tests/verify-rule-check-refactor-contract.ps1')|ForEach-Object {Join-Path $Root $_}
++    @($paths|Sort-Object -Unique|ForEach-Object {[ordered]@{path=[IO.Path]::GetRelativePath($Root,$_).Replace('\','/');sha256=(Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()}})
++}
++
++function Save-RuleCheckJson {
++    param($Value,[string]$Path)
++    [IO.File]::WriteAllText($Path,($Value|ConvertTo-Json -Depth 12)+[Environment]::NewLine,[Text.UTF8Encoding]::new($false))
++}
++
++function Protect-RuleCheckText {
++    param([string]$Text,[string[]]$Secrets)
++    foreach ($secretValue in $Secrets) {if ($secretValue) {$Text=$Text.Replace($secretValue,'[REDACTED]')}}
++    $Text -replace '\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}','[REDACTED_HASH]'
++}
++
++function Start-RuleCheckDatabase {
++    param($Plan,[string]$Container)
++    $importer=Join-Path $Plan.Root 'scripts/Import-ZhkuCredentials.ps1'
++    & $importer -RequireDatabase
++    # 口令只通过子进程环境传入；不使用原库、数据卷或固定共享容器。
++    docker run --rm -d --name $Container --pull never --publish "127.0.0.1:$($Plan.Port):5432" `
++        --env POSTGRES_PASSWORD --env POSTGRES_USER=zhkuagent --env POSTGRES_DB=zhkuagent_rulecheck_e2e `
++        pgvector/pgvector:0.8.6-pg16-bookworm 2>$null | Out-Null
++    if ($LASTEXITCODE -ne 0) {throw '专用临时容器启动失败；需已有本机镜像与Docker守护进程'}
++    $ready=$false
++    for ($attempt=0;$attempt -lt 30;$attempt++) {
++        & $importer -RequireDatabase
++        docker exec $Container pg_isready -U zhkuagent -d zhkuagent_rulecheck_e2e 2>$null | Out-Null
++        if ($LASTEXITCODE -eq 0) {$ready=$true;break}
++        Start-Sleep -Seconds 1
++    }
++    if (!$ready) {throw '临时库启动预算耗尽'}
++}
++
++function Get-RuleCheckDatabaseResult {
++    param($Plan,[string]$Container)
++    $importer=Join-Path $Plan.Root 'scripts/Import-ZhkuCredentials.ps1'
++    & $importer -RequireDatabase
++    $version=@(docker exec $Container psql -U zhkuagent -d zhkuagent_rulecheck_e2e -Atc 'SELECT max(version::integer) FROM flyway_schema_history WHERE success AND version IS NOT NULL' 2>$null)
++    if ($LASTEXITCODE -ne 0 -or !$version.Count) {throw '临时库迁移版本读取失败'}
++    $expected=(Get-ChildItem -LiteralPath (Join-Path $Plan.Root 'knowledge/src/main/resources/db/migration') -File|ForEach-Object {if($_.Name -match '^V(\d+)__') {[int]$Matches[1]}}|Measure-Object -Maximum).Maximum
++    & $importer -RequireDatabase
++    $connections=@(docker exec $Container psql -U zhkuagent -d zhkuagent_rulecheck_e2e -Atc "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND backend_type='client backend' AND pid<>pg_backend_pid()" 2>$null)
++    if ($LASTEXITCODE -ne 0 -or !$connections.Count) {throw '临时库连接退出检查失败'}
++    [ordered]@{target=$Plan.DatabaseUrl;container=$Container;synthetic=$true;migration=$version[-1];expectedMigration=$expected;
++        connectionsAfterTests=[int]$connections[-1];verified=($version[-1] -eq [string]$expected -and $connections[-1] -eq '0')}
++}
++
++function Stop-RuleCheckDatabase {
++    param($Plan,[string]$Container)
++    $importer=Join-Path $Plan.Root 'scripts/Import-ZhkuCredentials.ps1'
++    & $importer -RequireDatabase
++    $existing=@(docker ps -a --filter "name=^/$Container$" --format '{{.Names}}' 2>$null)
++    if ($LASTEXITCODE -ne 0) {return $false}
++    if ($existing.Count) {
++        & $importer -RequireDatabase
++        docker stop --time 10 $Container 2>$null | Out-Null
++        if ($LASTEXITCODE -ne 0) {return $false}
++    }
++    & $importer -RequireDatabase
++    $remaining=@(docker ps -a --filter "name=^/$Container$" --format '{{.Names}}' 2>$null)
++    $LASTEXITCODE -eq 0 -and $remaining.Count -eq 0
++}
++
++function Invoke-RuleCheckMaven {
++    param($Plan,[string[]]$Arguments,[string[]]$Secrets)
++    Push-Location $Plan.Root
++    try {
++        & $Plan.Maven @Arguments 2>&1|ForEach-Object {Protect-RuleCheckText $_.ToString() $Secrets}|Tee-Object -FilePath (Join-Path $Plan.Directory 'maven.log')|Out-Null
++        return $LASTEXITCODE
++    } finally {Pop-Location}
++}
++
++function Invoke-RuleCheckVerificationCore {
++    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='')
++    $plan=Get-RuleCheckVerificationPlan @PSBoundParameters -ErrorAction Stop
++    if (!(Test-Path -LiteralPath $plan.Maven)) {throw '根Maven wrapper不可用'}
++    if (!(Get-Command java.exe -ErrorAction SilentlyContinue)) {throw '当前用户终端没有Java'}
++    New-Item -ItemType Directory -Path $plan.Directory -ErrorAction Stop|Out-Null
++    $started=[DateTimeOffset]::Now
++    $before=Get-RuleCheckSourceSnapshot $Root
++    Save-RuleCheckJson $before (Join-Path $plan.Directory 'source-before.json')
++    $headBefore=(git -C $Root rev-parse HEAD)
++    $javaBefore=@(Get-Process java -ErrorAction SilentlyContinue|ForEach-Object Id)
++    $saved=@{}; $secrets=@()
++    foreach ($name in @('ZHKU_DB_PASSWORD','ZHKU_DB_URL','ZHKU_DB_USER','POSTGRES_PASSWORD','DASHSCOPE_API_KEY')) {$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
++    foreach ($name in @('ZHKU_DB_PASSWORD','DASHSCOPE_API_KEY')) {
++        foreach ($scope in @('Process','User','Machine')) {
++            $value=[Environment]::GetEnvironmentVariable($name,$scope)
++            if ($value) {$secrets+=$value}
++        }
++    }
++    $exitCode=1; $failure=$null; $dbResult=$null; $cleanup=$true; $container=$null; $mavenStarted=$false; $databaseReady=$false
++    $arguments=@('-o',"-Dmaven.repo.local=$env:USERPROFILE/.m2/repository",'-Dfile.encoding=UTF-8','-pl','knowledge','-am',
++        "-Dtest=$($plan.Selected -join ',')",'-Dsurefire.failIfNoSpecifiedTests=false',"-Dzhku.db.url=$($plan.DatabaseUrl)",'-Dzhku.db.user=zhkuagent','test')
++    Save-RuleCheckJson ([ordered]@{mode=$Mode;phase=$Phase;selectedClasses=$plan.Selected;providerAllowed=$false;database=$plan.Database;
++        databaseUrl=$plan.DatabaseUrl;startedAt=$started.ToString('o');maven=$plan.Maven;arguments=$arguments;sourceHead=$headBefore}) (Join-Path $plan.Directory 'command.json')
++    try {
++        # 即便误装配模型也不能继承密钥；原环境在finally恢复。Unit只选无连接测试。
++        [Environment]::SetEnvironmentVariable('DASHSCOPE_API_KEY',$null,'Process')
++        $env:ZHKU_DB_URL=$plan.DatabaseUrl; $env:ZHKU_DB_USER='zhkuagent'
++        if ($plan.Database) {
++            & (Join-Path $Root 'scripts/Import-ZhkuCredentials.ps1') -UseDatabase
++            $temporarySecret=[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(18))
++            $secrets+=$temporarySecret
++            $env:ZHKU_DB_PASSWORD=$temporarySecret; $env:POSTGRES_PASSWORD=$temporarySecret
++            $container='zhku-rulecheck-'+[guid]::NewGuid().ToString('N').Substring(0,12)
++            Save-RuleCheckJson @{container=$container;target=$plan.DatabaseUrl;volumeMounted=$false;stage='START_ATTEMPT'} (Join-Path $plan.Directory 'database-attempt.json')
++            Start-RuleCheckDatabase $plan $container
++            $databaseReady=$true
++        } else {[Environment]::SetEnvironmentVariable('ZHKU_DB_PASSWORD',$null,'Process')}
++        $mavenStarted=$true
++        $exitCode=Invoke-RuleCheckMaven $plan $arguments $secrets
++        if ($plan.Database) {
++            $dbResult=Get-RuleCheckDatabaseResult $plan $container
++            Save-RuleCheckJson $dbResult (Join-Path $plan.Directory 'database.json')
++            if (!$dbResult.verified) {$exitCode=1}
++        }
++    } catch {
++        $exitCode=1; $failure=Protect-RuleCheckText $_.Exception.Message $secrets
++        Save-RuleCheckJson @{exceptionType=$_.Exception.GetType().Name;detail=$failure} (Join-Path $plan.Directory 'environment-failure.json')
++    } finally {
++        if ($container) {try {$cleanup=Stop-RuleCheckDatabase $plan $container} catch {$cleanup=$false}}
++        foreach ($name in $saved.Keys) {[Environment]::SetEnvironmentVariable($name,$saved[$name],'Process')}
++    }
++    $xmlDirectory=Join-Path $plan.Directory 'xml'; New-Item -ItemType Directory -Path $xmlDirectory|Out-Null
++    $suites=@(); $missing=@()
++    foreach ($class in $plan.Selected) {
++        $fresh=@(Get-ChildItem -LiteralPath (Join-Path $Root 'knowledge/target/surefire-reports') -Filter "TEST-*.$class.xml" -File -ErrorAction SilentlyContinue|Where-Object {$_.LastWriteTimeUtc -ge $started.UtcDateTime})
++        if ($fresh.Count -ne 1) {$missing+=$class;continue}
++        [xml]$xml=Protect-RuleCheckText (Get-Content -Raw -LiteralPath $fresh[0].FullName) $secrets
++        # 环境properties与自由stdout不作为必要测试证据，防止夹具泄露配置。
++        foreach ($node in @($xml.SelectNodes('//properties|//system-out|//system-err'))) {[void]$node.ParentNode.RemoveChild($node)}
++        [IO.File]::WriteAllText((Join-Path $xmlDirectory $fresh[0].Name),$xml.OuterXml,[Text.UTF8Encoding]::new($false))
++        $suites+=@{name=[string]$xml.testsuite.name;tests=[int]$xml.testsuite.tests;failures=[int]$xml.testsuite.failures;
++            errors=[int]$xml.testsuite.errors;skipped=[int]$xml.testsuite.skipped;xml=$fresh[0].Name;sha256=(Get-FileHash -LiteralPath (Join-Path $xmlDirectory $fresh[0].Name)).Hash.ToLowerInvariant()}
++    }
++    $after=Get-RuleCheckSourceSnapshot $Root
++    Save-RuleCheckJson $after (Join-Path $plan.Directory 'source-after.json')
++    $beforeMap=@{}; foreach ($entry in $before) {$beforeMap[$entry.path]=$entry.sha256}
++    $drift=@($after|Where-Object {!$beforeMap.ContainsKey($_.path) -or $beforeMap[$_.path] -ne $_.sha256})
++    if ($after.Count -ne $before.Count -or (git -C $Root rev-parse HEAD) -ne $headBefore) {$drift+='FILE_COUNT_OR_HEAD_CHANGED'}
++    $newJava=@(Get-Process java -ErrorAction SilentlyContinue|Where-Object {$_.Id -notin $javaBefore}|ForEach-Object Id)
++    $bad=@($suites|Where-Object {$_.tests -lt 1 -or $_.failures -or $_.errors -or $_.skipped})
++    $passed=$exitCode -eq 0 -and !$missing.Count -and !$bad.Count -and !$drift.Count -and $cleanup -and !$newJava.Count
++    $result=[ordered]@{phase=$Phase;mode=$Mode;passed=$passed;exitCode=$exitCode;testCount=($suites|Measure-Object -Property tests -Sum).Sum;
++        suites=$suites;missingXml=$missing;sourceDrift=$drift.Count;resourcesVerified=($cleanup -and !$newJava.Count);newJavaRemaining=$newJava;
++        mavenStarted=$mavenStarted;database=$plan.Database;databaseReady=$databaseReady;containerName=$container;containerExited=$cleanup;
++        providerAllowed=$false;providerVerification='显式非供应商选类、密钥移除；非网络抓包';failure=$failure;endedAt=[DateTimeOffset]::Now.ToString('o')}
++    Save-RuleCheckJson $result (Join-Path $plan.Directory 'results.json')
++    $result
++}
++
++function Invoke-RuleCheckVerification {
++    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='')
++    $null=Get-RuleCheckVerificationPlan @PSBoundParameters
++    $lockDirectory=Join-Path $Root '.superpowers'
++    New-Item -ItemType Directory -Path $lockDirectory -Force|Out-Null
++    # 同仓入口不能并发写target；用OS文件锁，异常退出后无需手工修改旧BOARD/lease。
++    try {$lease=[IO.File]::Open((Join-Path $lockDirectory 'rule-check-verification.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)}
++    catch {throw '同仓查证验收正在运行，未启动外部进程'}
++    try {Invoke-RuleCheckVerificationCore @PSBoundParameters} finally {$lease.Dispose()}
++}
++
++$runnerRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
++try {
++    if ($CheckEnvironment) {
++        $runnerPlan=Get-RuleCheckVerificationPlan -Root $runnerRoot -Mode $Mode -Phase $Phase -Tests $Tests -Port $Port -DatabaseUrl $DatabaseUrl
++        [ordered]@{powerShellVersion=$PSVersionTable.PSVersion.ToString();mavenWrapperAvailable=(Test-Path -LiteralPath $runnerPlan.Maven);
++            javaAvailable=($null -ne (Get-Command java.exe -ErrorAction SilentlyContinue));dockerAvailable=($null -ne (Get-Command docker.exe -ErrorAction SilentlyContinue));
++            mode=$Mode;selectedClasses=$runnerPlan.Selected;databaseUrl=$runnerPlan.DatabaseUrl;consoleCodePage=[Console]::OutputEncoding.CodePage;
++            encodingSample='中文验收：临时库、拒绝原库';requiresRipgrep=$false;externalStarts=0}|ConvertTo-Json
++        exit 0
++    }
++    $runnerResult=Invoke-RuleCheckVerification -Root $runnerRoot -Mode $Mode -Phase $Phase -Tests $Tests -Port $Port -DatabaseUrl $DatabaseUrl
++    Write-Output "RULECHECK phase=$Phase passed=$($runnerResult.passed) tests=$($runnerResult.testCount) database=$($runnerResult.database) resources=$($runnerResult.resourcesVerified)"
++    if (!$runnerResult.passed) {exit 1}
++} catch {Write-Error $_.Exception.Message;exit 1}
+
+diff --git "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\empty-before.txt" "b/D:\\alldesk\\Projects\\ZhkuAgent\\knowledge\\scripts\\verify-rule-check-refactor.cmd"
+index e69de29..bd6b76e 100644
+--- "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\empty-before.txt"
++++ "b/D:\\alldesk\\Projects\\ZhkuAgent\\knowledge\\scripts\\verify-rule-check-refactor.cmd"
+@@ -0,0 +1,18 @@
++@echo off
++setlocal
++rem Resolve PowerShell 7 without depending on Codex's injected PATH.
++set "ZHKU_VERIFY_PWSH="
++for %%I in (pwsh.exe) do set "ZHKU_VERIFY_PWSH=%%~$PATH:I"
++if not defined ZHKU_VERIFY_PWSH if exist "%ProgramFiles%\PowerShell\7\pwsh.exe" set "ZHKU_VERIFY_PWSH=%ProgramFiles%\PowerShell\7\pwsh.exe"
++if not defined ZHKU_VERIFY_PWSH if exist "%ProgramFiles(x86)%\PowerShell\7\pwsh.exe" set "ZHKU_VERIFY_PWSH=%ProgramFiles(x86)%\PowerShell\7\pwsh.exe"
++if not defined ZHKU_VERIFY_PWSH if exist "%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.exe" set "ZHKU_VERIFY_PWSH=%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.exe"
++if not defined ZHKU_VERIFY_PWSH (
++    echo PowerShell 7 executable was not found.
++    exit /b 1
++)
++for /f "tokens=2 delims=:" %%C in ('chcp') do set "ZHKU_VERIFY_OLD_CP=%%C"
++chcp 65001 >nul
++"%ZHKU_VERIFY_PWSH%" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0verify-rule-check-refactor.ps1" %*
++set "ZHKU_VERIFY_EXIT=%ERRORLEVEL%"
++if defined ZHKU_VERIFY_OLD_CP chcp %ZHKU_VERIFY_OLD_CP% >nul
++exit /b %ZHKU_VERIFY_EXIT%
+
+diff --git "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\empty-before.txt" "b/D:\\alldesk\\Projects\\ZhkuAgent\\scripts\\tests\\verify-rule-check-refactor-contract.ps1"
+index e69de29..72b59b1 100644
+--- "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\empty-before.txt"
++++ "b/D:\\alldesk\\Projects\\ZhkuAgent\\scripts\\tests\\verify-rule-check-refactor-contract.ps1"
+@@ -0,0 +1,112 @@
++#requires -Version 7.0
++param([string]$ReportPath='')
++$ErrorActionPreference='Stop'
++$testRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
++$testRunner=Join-Path $testRoot 'knowledge/scripts/verify-rule-check-refactor.ps1'
++if (!(Test-Path -LiteralPath $testRunner)) {
++    Write-Output 'FAIL 验收入口不存在，无法拒绝不安全选择；productionImplementation=MISSING'
++    exit 1
++}
++$testTokens=$null; $testErrors=$null
++$testAst=[Management.Automation.Language.Parser]::ParseFile($testRunner,[ref]$testTokens,[ref]$testErrors)
++if ($testErrors.Count) { throw '验收入口存在语法错误，不是目标行为RED' }
++# 加载真正的生产函数，替身只代替外部进程；断言预检查的结果与副作用。
++foreach ($testFunction in $testAst.FindAll({param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst]},$false)) {
++    . ([scriptblock]::Create($testFunction.Extent.Text))
++}
++$script:testExternalStarts=0
++function Invoke-RuleCheckMaven { $script:testExternalStarts++; throw 'UNEXPECTED_EXTERNAL_START' }
++function Start-RuleCheckDatabase { $script:testExternalStarts++; throw 'UNEXPECTED_EXTERNAL_START' }
++$testPhase='contract-'+[guid]::NewGuid().ToString('N')
++$testBase=@{Root=$testRoot;Mode='Unit';Phase=$testPhase;Tests='HybridRetrievalServiceTest';Port=55439;DatabaseUrl=''}
++$testCases=@(
++    @{name='空测试集合';override=@{Tests=''}},
++    @{name='通配符';override=@{Tests='*Test'}},
++    @{name='方法选择绕过';override=@{Tests='HybridRetrievalServiceTest#*'}},
++    @{name='供应商类';override=@{Tests='DashScopeLiveProviderTest'}},
++    @{name='未登记类';override=@{Tests='SharedCorpusEvaluationReportTest'}},
++    @{name='重复类';override=@{Tests='HybridRetrievalServiceTest,HybridRetrievalServiceTest'}},
++    @{name='空列表项';override=@{Tests='HybridRetrievalServiceTest,'}},
++    @{name='Unit选数据库类';override=@{Tests='KnowledgeSchemaTest'}},
++    @{name='Database选单元类';override=@{Mode='Database';Tests='HybridRetrievalServiceTest'}},
++    @{name='未知模式';override=@{Mode='Unknown'}},
++    @{name='危险批次路径';override=@{Phase='../escape'}},
++    @{name='原库端口';override=@{Port=54329}},
++    @{name='原库URL';override=@{Mode='Database';Tests='KnowledgeSchemaTest';DatabaseUrl='jdbc:postgresql://127.0.0.1:54329/zhkuagent'}},
++    @{name='外部host';override=@{Mode='Database';Tests='KnowledgeSchemaTest';DatabaseUrl='jdbc:postgresql://example.org:55439/zhkuagent_rulecheck_e2e'}},
++    @{name='相同端口其他库';override=@{Mode='Database';Tests='KnowledgeSchemaTest';DatabaseUrl='jdbc:postgresql://127.0.0.1:55439/zhkuagent'}},
++    @{name='URL额外参数';override=@{Mode='Database';Tests='KnowledgeSchemaTest';DatabaseUrl='jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e?options=x'}},
++    @{name='URL端口与Port不一致';override=@{Mode='Database';Tests='KnowledgeSchemaTest';DatabaseUrl='jdbc:postgresql://127.0.0.1:55440/zhkuagent_rulecheck_e2e'}},
++    @{name='已存在批次';override=@{Phase='r0-baseline-01'}}
++)
++$testResults=@()
++foreach ($testCase in $testCases) {
++    $testArguments=$testBase.Clone()
++    foreach ($testKey in $testCase.override.Keys) {$testArguments[$testKey]=$testCase.override[$testKey]}
++    $testRejected=$false; $testError=''
++    try { Invoke-RuleCheckVerification @testArguments } catch { $testRejected=$true; $testError=$_.Exception.Message }
++    $testDirectory=Join-Path $testRoot ('docs/evidence/rule-check-refactor/2026-10-07/'+$testArguments.Phase)
++    $testUnchanged=($testArguments.Phase -eq 'r0-baseline-01') -or !(Test-Path -LiteralPath $testDirectory)
++    $testPass=$testRejected -and $script:testExternalStarts -eq 0 -and $testUnchanged -and $testError -notlike '*UNEXPECTED_EXTERNAL_START*'
++    $testResults+=@{name=$testCase.name;passed=$testPass;rejected=$testRejected;externalStarts=$script:testExternalStarts;directoryUnchanged=$testUnchanged}
++    Write-Output "$(if($testPass){'PASS'}else{'FAIL'}) $($testCase.name)"
++}
++$testGood=Get-RuleCheckVerificationPlan @testBase
++if ($testGood.Database -or $testGood.Selected.Count -ne 1) {throw '合法Unit选择结果错误'}
++$testDatabase=Get-RuleCheckVerificationPlan -Root $testRoot -Mode Database -Phase $testPhase -Tests KnowledgeSchemaTest -Port 55439 -DatabaseUrl ''
++if ($testDatabase.DatabaseUrl -ne 'jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e') {throw '合法临时库目标错误'}
++$testResults+=@{name='合法Unit和Database计划不启动进程';passed=($script:testExternalStarts -eq 0);externalStarts=$script:testExternalStarts}
++$testFixture=Join-Path $testRoot ('.superpowers/sdd/2026-10-07-rule-check-p0-plan/contract-fixture-'+[guid]::NewGuid().ToString('N'))
++$testFiles=@('pom.xml','knowledge/pom.xml','agent-runtime/pom.xml','AGENTS.md','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties',
++    'scripts/Import-ZhkuCredentials.ps1','knowledge/scripts/verify-rule-check-refactor.ps1','knowledge/scripts/verify-rule-check-refactor.cmd',
++    'scripts/tests/verify-rule-check-refactor-contract.ps1','knowledge/src/test/java/HybridRetrievalServiceTest.java','agent-runtime/src/fixture.txt')
++foreach($testFile in $testFiles){
++    $testFilePath=Join-Path $testFixture $testFile
++    New-Item -ItemType Directory -Path (Split-Path $testFilePath) -Force|Out-Null
++    'fixture'|Set-Content -LiteralPath $testFilePath
++}
++New-Item -ItemType Directory -Path (Join-Path $testFixture '.superpowers') -Force|Out-Null
++# 外部Git/Maven替身仅用于隔离进程与制造报告；读取XML、计数、漂移及放行均走真实入口。
++function git {'fixture-head'}
++function Invoke-RuleCheckMaven {
++    param($Plan,$Arguments,$Secrets)
++    $script:testExternalStarts++
++    $reportRoot=Join-Path $Plan.Root 'knowledge/target/surefire-reports'
++    New-Item -ItemType Directory -Path $reportRoot -Force|Out-Null
++    $xmlPath=Join-Path $reportRoot 'TEST-fixture.HybridRetrievalServiceTest.xml'
++    if($script:testReportKind -ne 'missing') {
++        $counts=@{tests=1;failures=0;errors=0;skipped=0}
++        if($script:testReportKind -eq 'zero'){$counts.tests=0}
++        if($script:testReportKind -eq 'skipped'){$counts.skipped=1}
++        if($script:testReportKind -eq 'failure'){$counts.failures=1}
++        if($script:testReportKind -eq 'error'){$counts.errors=1}
++        "<testsuite name='fixture.HybridRetrievalServiceTest' tests='$($counts.tests)' failures='$($counts.failures)' errors='$($counts.errors)' skipped='$($counts.skipped)'><properties><property name='private' value='MUST_NOT_BE_COPIED'/></properties><testcase name='fixture'/><system-out>MUST_NOT_BE_COPIED</system-out></testsuite>"|Set-Content -LiteralPath $xmlPath
++        if($script:testReportKind -eq 'stale'){(Get-Item -LiteralPath $xmlPath).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(-10)}
++        if($script:testReportKind -eq 'drift'){'changed'|Set-Content -LiteralPath (Join-Path $Plan.Root 'knowledge/src/test/java/HybridRetrievalServiceTest.java')}
++    }
++    if($script:testReportKind -eq 'nonzero'){return 7}
++    return 0
++}
++foreach($testKind in @('good','missing','stale','zero','skipped','failure','error','drift','nonzero')){
++    $script:testReportKind=$testKind
++    $testResult=Invoke-RuleCheckVerification -Root $testFixture -Mode Unit -Phase $testKind -Tests HybridRetrievalServiceTest -Port 55439
++    $testExpected=$testKind -eq 'good'
++    $testPass=$testResult.passed -eq $testExpected
++    if($testKind -eq 'good') {
++        $testXml=Get-Content -Raw -LiteralPath (Join-Path $testFixture "docs/evidence/rule-check-refactor/2026-10-07/good/xml/TEST-fixture.HybridRetrievalServiceTest.xml")
++        $testPass=$testPass -and $testXml -notmatch 'MUST_NOT_BE_COPIED'
++    }
++    $testResults+=@{name="报告-$testKind";passed=$testPass;actual=$testResult.passed;expected=$testExpected}
++    Write-Output "$(if($testPass){'PASS'}else{'FAIL'}) 报告-$testKind"
++}
++$testLockPath=Join-Path $testFixture '.superpowers/rule-check-verification.lock'
++$testLock=[IO.File]::Open($testLockPath,[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
++$testStartsBeforeLock=$script:testExternalStarts; $testLockRejected=$false
++try {Invoke-RuleCheckVerification -Root $testFixture -Mode Unit -Phase locked -Tests HybridRetrievalServiceTest -Port 55439|Out-Null} catch {$testLockRejected=$true} finally {$testLock.Dispose()}
++$testLockPass=$testLockRejected -and $script:testExternalStarts -eq $testStartsBeforeLock -and !(Test-Path -LiteralPath (Join-Path $testFixture 'docs/evidence/rule-check-refactor/2026-10-07/locked'))
++$testResults+=@{name='同仓验收锁占用时不启动Maven或写批次';passed=$testLockPass}
++Write-Output "$(if($testLockPass){'PASS'}else{'FAIL'}) 同仓验收锁"
++$testSummary=@{passed=(@($testResults|Where-Object {!$_.passed}).Count -eq 0);checks=$testResults.Count;results=$testResults;databaseOperations=0;providerCalls=0;scope='生产预检查与调用顺序；外部执行器为计数替身，实际Maven/容器另验收'}
++if ($ReportPath) {$testSummary|ConvertTo-Json -Depth 8|Set-Content -Encoding utf8 -LiteralPath $ReportPath}
++Write-Output "CONTRACT checks=$($testResults.Count) passed=$($testSummary.passed) externalStarts=$script:testExternalStarts"
++if (!$testSummary.passed) {exit 1}
+
+diff --git "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\before\\docs\\product\\rule-check-scope.md" "b/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\product\\rule-check-scope.md"
+index 77eb27d..d618bc6 100644
+--- "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\before\\docs\\product\\rule-check-scope.md"
++++ "b/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\product\\rule-check-scope.md"
+@@ -1,6 +1,6 @@
+ # 校园规则查证助手：产品定位与范围约定
+ 
+-版本：1.0；日期：2026-10-07。用户已确定产品方向，本文件整理该方向及回答、验证和实施约定。**目标产品仍处于设计/计划阶段；新查证流程、回答协议和预期收益尚未验收。**
++版本：1.1；日期：2026-10-07。用户已确定产品方向，本文件整理该方向及回答、验证和实施约定。**R0工程基线已技术验证；新查证流程、回答协议和预期收益尚未验收。**
+ 
+ 本文件作为后续产品定位、回答协议和验收口径的统一依据。开发步骤见 [路线图](../superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md)，首批细节见 [P0计划](../superpowers/plans/2026-10-07-rule-check-p0-plan.md)，实施证据见 [问题与证据目录](../evidence/rule-check-refactor/2026-10-07/README.md)。
+ 
+@@ -126,6 +126,8 @@
+ | Eval协议 | 样本、评分器、分层结果、新旧比较与证据强度 |
+ | 问题/证据台账 | RC问题、改动、复验、阶段结果与未测事项 |
+ 
+-本轮已整理范围约定，尚未完成 R0：有效资料核验、题目标注、实施基线和隔离入口仍待执行；G0/G1/G2均不因文档完成而自动通过。新回答状态也没有因写入文档而实现。
++R0工程部分已执行：新增显式选类/临时库验收入口、合同测试与源码基线，相关7类49项单测和独立临时库结构测试通过，详见 [R0证据](../evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md)。这不是产品质量得分或用户收益。
++
++资料核验发现官网已有2026版手册；本机2025版可核对历史正文，但仍标本地验证、学生不可见且传播资格未确认。36题候选与16个风险场景已准备，均为AI辅助草稿，未取得当前资料核验和人工金标准，未锁定正式报告集。**R0部分完成，G0尚未通过**；G1/G2未执行，新回答状态未实现。当前依赖见 [来源核验](../evidence/rule-check-refactor/2026-10-07/r0-baseline-01/source-audit.md)。
+ 
+ 每项开发继续绑定问题ID，保留复现、改动、定向复验、兼容回归和当前源码一致性证据。价值问题必须补用户/效果证据才能关闭。
+
+diff --git "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\before\\docs\\superpowers\\plans\\2026-10-07-rule-check-p0-plan.md" "b/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\superpowers\\plans\\2026-10-07-rule-check-p0-plan.md"
+index 4ce69fb..f732e37 100644
+--- "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\before\\docs\\superpowers\\plans\\2026-10-07-rule-check-p0-plan.md"
++++ "b/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\superpowers\\plans\\2026-10-07-rule-check-p0-plan.md"
+@@ -10,7 +10,7 @@
+ 
+ **Spec:** [产品范围约定](../../product/rule-check-scope.md)、[主路线图](2026-10-07-rule-check-refactor-roadmap.md) 与 [诊断报告](../../reviews/2026-10-07-refactor-design.md)。五种查证业务状态是后续目标，不修改本批ModelResponse四字段协议。
+ 
+-日期：2026-10-07；状态：待未来实施指令。本次只写计划，没有运行本文件测试或修改业务实现。
++日期：2026-10-07；状态：用户已授权下一步R0，Task 1工程部分完成技术验证，资料/人工参考仍待确认，G0未通过。Task 2–6未开始；没有修改产品业务实现。实际执行见 [R0验收](../../evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md)。
+ 
+ 评估口径沿用 [Eval 协议](../../product/rule-check-eval-contract.md)：R0准备人工参考和原子rubric，P0以确定性回归为主，不要求先引入付费模型裁判或通用平台。质量、已知风险与裁判验证样本用途分开。
+ 
+@@ -71,8 +71,8 @@ Task 1 创建的 `.cmd` 入口接受：
+ **Consumes：**AGENTS、当前源码、主路线图、现有隔离runner作为参考。**Produces：**范围卡、36题版本清单、隔离入口、白名单、baseline清单。问题：RC-01/09/10。
+ 
+ - [ ] **Step 1：记录当前基线。** 保存HEAD、白名单文件SHA-256、dirty路径、3C与browser-supplement证据链接；声明旧记录未重跑。复核已有范围约定，补实际主题/资料核验；锁定36题质量集（20开发/16报告）与独立已知风险集。标注完整/部分回答、缺条件、缺证、冲突与必要/重复追问，记录用途/采样性质/parentCaseId、原文与rubric；简单改写按家族隔离。初期人工评分，语义能力不由结构测试推断。文档已整理不等于基线或G0已完成。
+-- [ ] **Step 2：编写入口合同反例。** 参数为空、通配符类、LiveProvider/DashScope类、原库URL/端口、外部host、已有Phase、未知模式、未登记类必须在启动Maven/容器前拒绝。合同测试输出实际是否启动进程，不能把“随后连接失败”当安全拒绝。
+-- [ ] **Step 3：实现目标校验。** 在新脚本中使用同等约束的函数，先验证再构造任何连接：
++- [x] **Step 2：编写入口合同反例。** 参数为空、通配符类、LiveProvider/DashScope类、原库URL/端口、外部host、已有Phase、未知模式、未登记类必须在启动Maven/容器前拒绝。合同测试输出实际是否启动进程，不能把“随后连接失败”当安全拒绝。
++- [x] **Step 3：实现目标校验。** 在新脚本中使用同等约束的函数，先验证再构造任何连接：
+ 
+ ```powershell
+ function Assert-RuleCheckDatabaseTarget([string]$JdbcUrl) {
+@@ -86,11 +86,11 @@ function Assert-RuleCheckDatabaseTarget([string]$JdbcUrl) {
+ }
+ ```
+ 
+-- [ ] **Step 4：实现执行/结果/退出。** 复用既有runner的临时容器、迁移、XML汇总与finally清理模式，移除旧阶段专用BOARD/lease写入；新阶段只写自己的证据。Process/User/Machine变量重新检查，临时库使用本次隔离口令，调用环境退出时恢复；不得记录值。若资源无法退出，结果标失败并说明残留，不能报绿色。
+-- [ ] **Step 5：验证普通用户入口。** `.cmd` 按既有启动器模式寻找实际PowerShell7，保留退出码，不假设裸pwsh；Node解析复用 Resolve-ZhkuNode，所有新路径先 Test-Path。用合同反例验证零外发/零原库访问，再执行纯单元基线；Database模式第一次只跑KnowledgeSchemaTest。
++- [x] **Step 4：实现执行/结果/退出。** 复用既有runner的临时容器、迁移、XML汇总与finally清理模式，移除旧阶段专用BOARD/lease写入；新阶段只写自己的证据。Process/User/Machine变量重新检查，临时库使用本次隔离口令，调用环境退出时恢复；不得记录值。若资源无法退出，结果标失败并说明残留，不能报绿色。
++- [x] **Step 5：验证普通用户入口。** `.cmd` 按既有启动器模式寻找实际PowerShell7，保留退出码，不假设裸pwsh；本入口没有Node操作，不新增Node/rg依赖（R0记录取舍）。用合同反例验证拒绝路径不启动外部执行器；实际.cmd反例另验，再执行纯单元基线；Database模式第一次只跑KnowledgeSchemaTest。普通Windows Machine/User PATH下CMD与PowerShell5.1入口/中文、Maven及49项单测均已验证。
+ - [ ] **Step 6：保存证据。** 正反目标、实际命令结构、工具版本、XML/计数、provider=0的验证性质、资源退出、源码哈希与范围卡。只有这些齐备才记G0通过。
+ 
+-**Expected：**任何不安全目标在构建连接前失败；Unit不建容器，Database只触达新库；无零测试假绿。当前尚无这些执行结果。
++**Expected：**任何不安全目标在构建连接前失败；Unit不建容器，Database只触达新库；无零测试假绿。这些工程条件已获本轮证据，资料及人工标注仍缺，不能整体标Task 1/G0完成。合同29项、实际.cmd拒绝3场景、单元49项、临时库结构1项分别报告，不累加为查证样本成功率。
+ 
+ ## Task 2：RRF 行为反例与兼容修复
+ 
+
+diff --git "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\before\\docs\\evidence\\rule-check-refactor\\2026-10-07\\README.md" "b/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\README.md"
+index ca03a5a..65849a5 100644
+--- "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\before\\docs\\evidence\\rule-check-refactor\\2026-10-07\\README.md"
++++ "b/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\README.md"
+@@ -1,6 +1,6 @@
+ # 校园规则查证重构：问题与开发证据
+ 
+-日期：2026-10-07。当前交付阶段：**计划/估算**。本目录已建立记录制度和初始问题台账，**没有本轮业务修复、数据库/真实模型验收或用户收益数据**。
++日期：2026-10-07。当前交付阶段：**R0工程基线技术验证，资料/评估准备部分完成**。本目录保留历史规划记录，追加 [R0验收](r0-baseline-01/acceptance.md)、隔离入口/单元与临时库结构证据；**没有产品业务修复、真实模型评估或用户收益数据**。
+ 
+ - [主路线图](../../../superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md)
+ - [P0任务级计划](../../../superpowers/plans/2026-10-07-rule-check-p0-plan.md)
+@@ -11,7 +11,7 @@
+ - `scope-alignment-manifest.json`：后续定位、五种回答状态与验收口径整理后的文档指纹；同样不代表业务已实现。
+ - `eval-alignment-manifest.json`：本次参照学习材料同步评估设计的文档指纹，保留前两份历史记录；不含项目评估成绩。
+ 
+-定位已由用户确定，范围约定已整理；有效资料、题目标注、隔离验收与查证流程仍未完成，全部问题保持OPEN。RC-04语义验证加入部分回答/关键例外边界，RC-09加入澄清成本与匹配任务对照；P0格式修复不关闭这两类产品问题。
++定位已由用户确定；R0隔离入口和工程基线已验证，当前资料、人工金标准与查证流程未完成，G0未通过。问题均未关闭：RC-09/10部分推进，其余仍OPEN。RC-04语义验证加入部分回答/关键例外边界，RC-09加入样本/评分可信度/配对比较；工程通过不能关闭产品价值问题。
+ 
+ ## 1. 初始问题索引
+ 
+@@ -25,8 +25,8 @@
+ | RC-06 受控咨询链与通用RAG分离 | R5 | 静态确认，OPEN | 统一应用链的实际装配与网页整链证据 |
+ | RC-07 长文审核/部分发布不足 | R6 | 静态确认，OPEN | 条款跨页/分页；部分发布不误撤；失败回滚与有效期 |
+ | RC-08 反馈未形成修订复验 | R7 | 静态确认，OPEN | 独立问题负责人、修订、回归、复验和关闭状态 |
+-| RC-09 用户效果无证据 | R0/R5/R8 | 缺口确认，OPEN | 用途分集、可信评分、配对差值/退步/不确定性、用户对照、延迟/用量口径 |
+-| RC-10 集成测试可能误连原库 | R0 | 默认URL风险静态确认，OPEN | 不安全目标零进程/零连接拒绝；临时库实际隔离 |
++| RC-09 用户效果无证据 | R0/R5/R8 | PARTIAL；候选集已准备，质量未测 | 人工参考、锁定报告、可信评分、配对差值/退步/不确定性、用户对照 |
++| RC-10 集成测试可能误连原库 | R0 | PARTIAL；新入口已验证，旧直接运行风险仍OPEN | 新入口安全证据已归档；旧测试默认URL不能因此被称已修复 |
+ | RC-11 冲突与已完成确认文案不足 | R5 | 既有浏览器验收记录，OPEN | 对应状态文案修正与真实网页观察，执行计数不变 |
+ 
+ RC-04/05/09在JSON中有子项状态。不能因为P0子项通过就关闭父问题，也不能把本轮静态确认当已跑RED。
+@@ -98,3 +98,9 @@ Eval还需记录集合用途/采样来源/父案例与聚类、rubric及裁判
+ 9. **面试追问：**为什么单主题先验方向？为什么非空引用不能关闭事实问题？如何防止原库误写和留出泄漏？
+ 
+ 升维说明：把一次大重构拆成可否定的价值假设、有限修复和阶段门禁，让新增复杂度对应真实问题；这一收益目前是方案预期，尚非实测成果。
++
++## 6. R0实际执行更新
++
++新增入口和合同测试已验证；保留首次Docker访问边界失败，再以新批次完成专用临时库结构测试。普通Windows用户PATH及PowerShell5.1中文边界另验，不借Codex PATH推定可用。源码指纹、XML、迁移/连接/容器退出分别归档。
++
++历史2025资料核对及36题/16风险草稿是评估准备，不是人工参考或实际产品得分；当前主题资料仍需核验新版本和学生发布资格。详见R0验收与source-audit；历史规划manifest保留，当前执行指纹另存，不改写旧记录。
+
+diff --git "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\before\\docs\\evidence\\rule-check-refactor\\2026-10-07\\issues.json" "b/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\issues.json"
+index 5ba84b2..8f9cf84 100644
+--- "a/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\r0-baseline-01\\before\\docs\\evidence\\rule-check-refactor\\2026-10-07\\issues.json"
++++ "b/D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-check-refactor\\2026-10-07\\issues.json"
+@@ -3,116 +3,387 @@
+   "program": "rule-check-refactor",
+   "createdDate": "2026-10-07",
+   "timezone": "Asia/Shanghai",
+-  "deliveryStage": "PLAN",
++  "deliveryStage": "BASELINE_TECHNICAL_VALIDATION",
+   "productScopePath": "docs/product/rule-check-scope.md",
+   "evalContractPath": "docs/product/rule-check-eval-contract.md",
+   "evaluationDesignStatus": "DOCUMENTED_NOT_EXECUTED",
+   "productDirectionStatus": "CONFIRMED_BY_USER",
+-  "plannedAnswerStatuses": ["ANSWERED", "PARTIALLY_ANSWERED", "NEED_CLARIFICATION", "INSUFFICIENT_EVIDENCE", "CONFLICTING_EVIDENCE"],
++  "plannedAnswerStatuses": [
++    "ANSWERED",
++    "PARTIALLY_ANSWERED",
++    "NEED_CLARIFICATION",
++    "INSUFFICIENT_EVIDENCE",
++    "CONFLICTING_EVIDENCE"
++  ],
+   "businessImplementationStarted": false,
+   "testsExecutedInThisPlanningTurn": false,
+   "issues": [
+     {
+-      "id": "RC-01", "priority": "P0", "tasks": ["R0", "R5"], "status": "OPEN",
++      "id": "RC-01",
++      "priority": "P0",
++      "tasks": [
++        "R0",
++        "R5"
++      ],
++      "status": "OPEN",
+       "problem": "规则查证定位与默认学分入口不一致",
+       "evidenceKind": "STATIC_REVIEW",
+-      "sourcePaths": ["README.md", "agent/frontend/src/views/Home.vue", "agent/frontend/src/router/index.js"],
++      "sourcePaths": [
++        "README.md",
++        "agent/frontend/src/views/Home.vue",
++        "agent/frontend/src/router/index.js"
++      ],
+       "verificationStatus": "NOT_RUN",
+       "scopeDocumentStatus": "DOCUMENTED",
+-      "closeWhen": ["范围约定与实际可审核试验主题一致", "真实查证入口与承诺一致", "G2用户对照达标"]
++      "closeWhen": [
++        "范围约定与实际可审核试验主题一致",
++        "真实查证入口与承诺一致",
++        "G2用户对照达标"
++      ]
+     },
+     {
+-      "id": "RC-02", "priority": "P0", "tasks": ["R1"], "status": "OPEN",
++      "id": "RC-02",
++      "priority": "P0",
++      "tasks": [
++        "R1"
++      ],
++      "status": "OPEN",
+       "problem": "两路候选提前按最终K截断，现有替身不遵守limit",
+       "evidenceKind": "STATIC_REVIEW",
+-      "sourcePaths": ["knowledge/src/main/java/com/zhku/knowledge/retrieval/HybridRetrievalService.java", "knowledge/src/test/java/com/zhku/knowledge/retrieval/HybridRetrievalServiceTest.java"],
++      "sourcePaths": [
++        "knowledge/src/main/java/com/zhku/knowledge/retrieval/HybridRetrievalService.java",
++        "knowledge/src/test/java/com/zhku/knowledge/retrieval/HybridRetrievalServiceTest.java"
++      ],
+       "verificationStatus": "NOT_RUN",
+-      "closeWhen": ["A/C与B/C行为RED已保存", "候选2结果1返回C", "稳定排序和降级回归通过"]
++      "closeWhen": [
++        "A/C与B/C行为RED已保存",
++        "候选2结果1返回C",
++        "稳定排序和降级回归通过"
++      ]
+     },
+     {
+-      "id": "RC-03", "priority": "P0", "tasks": ["R2"], "status": "OPEN",
++      "id": "RC-03",
++      "priority": "P0",
++      "tasks": [
++        "R2"
++      ],
++      "status": "OPEN",
+       "problem": "管理DTO与页面未展示候选原文",
+       "evidenceKind": "STATIC_REVIEW",
+-      "sourcePaths": ["knowledge/src/main/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminController.java", "knowledge/src/main/resources/zhku/local-admin/index.html"],
++      "sourcePaths": [
++        "knowledge/src/main/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminController.java",
++        "knowledge/src/main/resources/zhku/local-admin/index.html"
++      ],
+       "verificationStatus": "NOT_RUN",
+-      "closeWhen": ["原问题JSON与网页复现", "原文对照与编辑安全渲染", "待审到批准流程验证且学生端无原文越界"]
++      "closeWhen": [
++        "原问题JSON与网页复现",
++        "原文对照与编辑安全渲染",
++        "待审到批准流程验证且学生端无原文越界"
++      ]
+     },
+     {
+-      "id": "RC-04", "priority": "P0", "tasks": ["R3", "R5"], "status": "OPEN",
++      "id": "RC-04",
++      "priority": "P0",
++      "tasks": [
++        "R3",
++        "R5"
++      ],
++      "status": "OPEN",
+       "problem": "输出结构和证据白名单不足以证明事实支撑",
+       "evidenceKind": "STATIC_REVIEW",
+-      "sourcePaths": ["knowledge/src/main/java/com/zhku/knowledge/rag/ModelOutputParser.java", "knowledge/src/main/java/com/zhku/knowledge/rag/AnswerEvidenceGuard.java"],
++      "sourcePaths": [
++        "knowledge/src/main/java/com/zhku/knowledge/rag/ModelOutputParser.java",
++        "knowledge/src/main/java/com/zhku/knowledge/rag/AnswerEvidenceGuard.java"
++      ],
+       "subissues": [
+-        {"id": "RC-04-STRUCTURE", "task": "R3", "status": "OPEN", "verificationStatus": "NOT_RUN", "closeWhen": ["字段类型/有限范围/非空引用反例通过", "composer与适配器回归"]},
+-        {"id": "RC-04-SEMANTICS", "task": "R5", "status": "OPEN", "verificationStatus": "NOT_RUN", "closeWhen": ["数字/对象/条件/例外错误被阻断", "部分回答只含独立有据事实，未知项明确且不暗示整体资格", "关键条件或例外缺失时先澄清/缺证/冲突", "原文跨度/审核模板验证", "人工支撑性与留出门禁"]}
++        {
++          "id": "RC-04-STRUCTURE",
++          "task": "R3",
++          "status": "OPEN",
++          "verificationStatus": "NOT_RUN",
++          "closeWhen": [
++            "字段类型/有限范围/非空引用反例通过",
++            "composer与适配器回归"
++          ]
++        },
++        {
++          "id": "RC-04-SEMANTICS",
++          "task": "R5",
++          "status": "OPEN",
++          "verificationStatus": "NOT_RUN",
++          "closeWhen": [
++            "数字/对象/条件/例外错误被阻断",
++            "部分回答只含独立有据事实，未知项明确且不暗示整体资格",
++            "关键条件或例外缺失时先澄清/缺证/冲突",
++            "原文跨度/审核模板验证",
++            "人工支撑性与留出门禁"
++          ]
++        }
+       ],
+       "verificationStatus": "NOT_RUN",
+-      "closeWhen": ["两个子项均验证", "关键错误零漏放，按独立样本报告"]
++      "closeWhen": [
++        "两个子项均验证",
++        "关键错误零漏放，按独立样本报告"
++      ]
+     },
+     {
+-      "id": "RC-05", "priority": "P0", "tasks": ["R4", "R6"], "status": "OPEN",
++      "id": "RC-05",
++      "priority": "P0",
++      "tasks": [
++        "R4",
++        "R6"
++      ],
++      "status": "OPEN",
+       "problem": "在线激活、已知资格和有效期数据未完整落实到查询",
+       "evidenceKind": "STATIC_REVIEW",
+-      "sourcePaths": ["knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcVectorCandidateRetriever.java", "knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcLexicalCandidateRetriever.java", "knowledge/src/main/java/com/zhku/knowledge/retrieval/RetrievalEligibilityFilter.java"],
++      "sourcePaths": [
++        "knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcVectorCandidateRetriever.java",
++        "knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcLexicalCandidateRetriever.java",
++        "knowledge/src/main/java/com/zhku/knowledge/retrieval/RetrievalEligibilityFilter.java"
++      ],
+       "subissues": [
+-        {"id": "RC-05-READ", "task": "R4", "status": "OPEN", "verificationStatus": "NOT_RUN", "closeWhen": ["ACTIVE与已知资格矩阵通过", "版本/hash漂移拒绝", "不合格近邻不挤掉合法结果"]},
+-        {"id": "RC-05-LIFECYCLE", "task": "R6", "status": "OPEN", "verificationStatus": "NOT_RUN", "closeWhen": ["有效期未知与无上限分开", "到期/撤回/清单切换合同验证"]}
++        {
++          "id": "RC-05-READ",
++          "task": "R4",
++          "status": "OPEN",
++          "verificationStatus": "NOT_RUN",
++          "closeWhen": [
++            "ACTIVE与已知资格矩阵通过",
++            "版本/hash漂移拒绝",
++            "不合格近邻不挤掉合法结果"
++          ]
++        },
++        {
++          "id": "RC-05-LIFECYCLE",
++          "task": "R6",
++          "status": "OPEN",
++          "verificationStatus": "NOT_RUN",
++          "closeWhen": [
++            "有效期未知与无上限分开",
++            "到期/撤回/清单切换合同验证"
++          ]
++        }
+       ],
+       "verificationStatus": "NOT_RUN",
+-      "closeWhen": ["两个子项均验证", "查询与输出快照/复查边界可复现"]
++      "closeWhen": [
++        "两个子项均验证",
++        "查询与输出快照/复查边界可复现"
++      ]
+     },
+     {
+-      "id": "RC-06", "priority": "P1", "tasks": ["R5"], "status": "OPEN",
++      "id": "RC-06",
++      "priority": "P1",
++      "tasks": [
++        "R5"
++      ],
++      "status": "OPEN",
+       "problem": "受控咨询与通用检索链能力分离",
+       "evidenceKind": "STATIC_REVIEW",
+-      "sourcePaths": ["knowledge/src/main/java/com/zhku/knowledge/controlled/ControlledConversationFacade.java", "knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java"],
++      "sourcePaths": [
++        "knowledge/src/main/java/com/zhku/knowledge/controlled/ControlledConversationFacade.java",
++        "knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java"
++      ],
+       "verificationStatus": "NOT_RUN",
+-      "closeWhen": ["共享查证服务真实装配", "真实网页到临时库的规则/检索流程通过", "身份与旧v1兼容"]
++      "closeWhen": [
++        "共享查证服务真实装配",
++        "真实网页到临时库的规则/检索流程通过",
++        "身份与旧v1兼容"
++      ]
+     },
+     {
+-      "id": "RC-07", "priority": "P1", "tasks": ["R6"], "status": "OPEN",
++      "id": "RC-07",
++      "priority": "P1",
++      "tasks": [
++        "R6"
++      ],
++      "status": "OPEN",
+       "problem": "长文按页审核与整范围替换不支持高效安全的部分发布",
+       "evidenceKind": "STATIC_REVIEW",
+-      "sourcePaths": ["knowledge/src/main/java/com/zhku/knowledge/governance/KnowledgeSubmissionService.java", "knowledge/src/main/java/com/zhku/knowledge/publication/ReviewedKnowledgePublisher.java"],
++      "sourcePaths": [
++        "knowledge/src/main/java/com/zhku/knowledge/governance/KnowledgeSubmissionService.java",
++        "knowledge/src/main/java/com/zhku/knowledge/publication/ReviewedKnowledgePublisher.java"
++      ],
+       "verificationStatus": "NOT_RUN",
+-      "closeWhen": ["条款跨页/分页与失败可见", "部分发布保留其他有效条款", "失败回滚/并发发布/撤回验证", "真实审核质量与耗时记录"]
++      "closeWhen": [
++        "条款跨页/分页与失败可见",
++        "部分发布保留其他有效条款",
++        "失败回滚/并发发布/撤回验证",
++        "真实审核质量与耗时记录"
++      ]
+     },
+     {
+-      "id": "RC-08", "priority": "P1", "tasks": ["R7"], "status": "OPEN",
++      "id": "RC-08",
++      "priority": "P1",
++      "tasks": [
++        "R7"
++      ],
++      "status": "OPEN",
+       "problem": "匿名反馈聚合不等于有负责人和复验的纠错问题",
+       "evidenceKind": "STATIC_REVIEW",
+-      "sourcePaths": ["knowledge/src/main/java/com/zhku/knowledge/feedback/AnonymousFeedbackService.java"],
++      "sourcePaths": [
++        "knowledge/src/main/java/com/zhku/knowledge/feedback/AnonymousFeedbackService.java"
++      ],
+       "verificationStatus": "NOT_RUN",
+-      "closeWhen": ["独立纠错问题到修订/复验/关闭", "无复验不能关闭", "匿名与自愿跟踪分离"]
++      "closeWhen": [
++        "独立纠错问题到修订/复验/关闭",
++        "无复验不能关闭",
++        "匿名与自愿跟踪分离"
++      ]
+     },
+     {
+-      "id": "RC-09", "priority": "P0", "tasks": ["R0", "R5", "R8"], "status": "OPEN",
++      "id": "RC-09",
++      "priority": "P0",
++      "tasks": [
++        "R0",
++        "R5",
++        "R8"
++      ],
++      "status": "PARTIAL",
+       "problem": "工程验收缺少主张支撑与真实用户查证收益证据",
+       "evidenceKind": "EVIDENCE_GAP",
+-      "sourcePaths": ["knowledge/src/main/java/com/zhku/knowledge/eval/EvaluationRunner.java", "docs/evidence/milestone-3c/2026-10-07/3c-3/acceptance.md"],
++      "sourcePaths": [
++        "knowledge/src/main/java/com/zhku/knowledge/eval/EvaluationRunner.java",
++        "docs/evidence/milestone-3c/2026-10-07/3c-3/acceptance.md"
++      ],
+       "subissues": [
+-        {"id": "RC-09-SAMPLING", "tasks": ["R0", "R8"], "status": "OPEN", "verificationStatus": "NOT_RUN", "closeWhen": ["质量/边界/裁判集合用途分开，采样与分母明确", "按任务家族隔离调优和报告，探索样本不推广总体"]},
+-        {"id": "RC-09-GRADING", "tasks": ["R0", "R5", "R8"], "status": "OPEN", "verificationStatus": "NOT_RUN", "closeWhen": ["原文人工参考、原子rubric和可复核输出齐备", "使用模型裁判时独立验证漏放/误拦/未知，未达标保持人工", "检索/答案支撑/执行结果分层记录"]},
+-        {"id": "RC-09-COMPARISON", "tasks": ["R5", "R8"], "status": "OPEN", "verificationStatus": "NOT_RUN", "closeWhen": ["同题配对改善/退步/未知与差值不确定性报告", "用户分组对照含失败/超时，样本不足不声称总体提升", "重复试验与失败成本按实际需要记录，不以缓存/幂等重放冒充"]}
++        {
++          "id": "RC-09-SAMPLING",
++          "tasks": [
++            "R0",
++            "R8"
++          ],
++          "status": "PARTIAL",
++          "verificationStatus": "NOT_RUN",
++          "closeWhen": [
++            "质量/边界/裁判集合用途分开，采样与分母明确",
++            "按任务家族隔离调优和报告，探索样本不推广总体"
++          ],
++          "draftCasesPrepared": true,
++          "reportSetLocked": false
++        },
++        {
++          "id": "RC-09-GRADING",
++          "tasks": [
++            "R0",
++            "R5",
++            "R8"
++          ],
++          "status": "OPEN",
++          "verificationStatus": "NOT_RUN",
++          "closeWhen": [
++            "原文人工参考、原子rubric和可复核输出齐备",
++            "使用模型裁判时独立验证漏放/误拦/未知，未达标保持人工",
++            "检索/答案支撑/执行结果分层记录"
++          ]
++        },
++        {
++          "id": "RC-09-COMPARISON",
++          "tasks": [
++            "R5",
++            "R8"
++          ],
++          "status": "OPEN",
++          "verificationStatus": "NOT_RUN",
++          "closeWhen": [
++            "同题配对改善/退步/未知与差值不确定性报告",
++            "用户分组对照含失败/超时，样本不足不声称总体提升",
++            "重复试验与失败成本按实际需要记录，不以缓存/幂等重放冒充"
++          ]
++        }
+       ],
+       "verificationStatus": "NOT_RUN",
+-      "closeWhen": ["三个子项验证完成", "锁定留出与人工标注口径，覆盖五种回答状态", "三主题G4质量门禁，区分样本通过与改善证明", "用户匹配任务对照和失败记录", "必要/无关/重复追问及澄清轮数记录", "性能/用量/未知项报告"]
++      "closeWhen": [
++        "三个子项验证完成",
++        "锁定留出与人工标注口径，覆盖五种回答状态",
++        "三主题G4质量门禁，区分样本通过与改善证明",
++        "用户匹配任务对照和失败记录",
++        "必要/无关/重复追问及澄清轮数记录",
++        "性能/用量/未知项报告"
++      ],
++      "latestEvidencePaths": [
++        "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/quality-cases-draft.json",
++        "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/cases-validation.json",
++        "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/source-audit.md"
++      ],
++      "evaluationPreparationStatus": "AI_ASSISTED_DRAFT_PENDING_CURRENT_SOURCE_AND_HUMAN_REVIEW"
+     },
+     {
+-      "id": "RC-10", "priority": "P0", "tasks": ["R0"], "status": "OPEN",
++      "id": "RC-10",
++      "priority": "P0",
++      "tasks": [
++        "R0"
++      ],
++      "status": "PARTIAL",
+       "problem": "部分数据库测试默认连接原演示库，缺少新阶段隔离入口",
+       "evidenceKind": "STATIC_REVIEW",
+-      "sourcePaths": ["knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcCandidateRetrieverTest.java"],
+-      "verificationStatus": "NOT_RUN",
+-      "closeWhen": ["不安全目标在连接前拒绝", "白名单/防覆写入口合同通过", "仅专用临时库执行且资源退出"]
++      "sourcePaths": [
++        "knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcCandidateRetrieverTest.java"
++      ],
++      "verificationStatus": "PARTIAL",
++      "closeWhen": [
++        "不安全目标在连接前拒绝",
++        "白名单/防覆写入口合同通过",
++        "仅专用临时库执行且资源退出"
++      ],
++      "latestEvidencePaths": [
++        "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/contract-current-green.json",
++        "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/actual-rejection-checks.json",
++        "docs/evidence/rule-check-refactor/2026-10-07/r0-ordinary-unit-baseline/results.json",
++        "docs/evidence/rule-check-refactor/2026-10-07/r0-schema-baseline-03/results.json"
++      ],
++      "subissues": [
++        {
++          "id": "RC-10-ENTRY",
++          "task": "R0",
++          "status": "VERIFIED",
++          "verificationStatus": "PASSED",
++          "scope": "新显式选类/专用临时库入口；不代表旧测试裸运行安全",
++          "evidencePaths": [
++            "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/contract-current-green.json",
++            "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/actual-rejection-checks.json",
++            "docs/evidence/rule-check-refactor/2026-10-07/r0-ordinary-unit-baseline/results.json",
++            "docs/evidence/rule-check-refactor/2026-10-07/r0-schema-baseline-03/results.json"
++          ]
++        },
++        {
++          "id": "RC-10-LEGACY-DEFAULT",
++          "task": "FOLLOW_UP_SCOPING_REQUIRED",
++          "status": "OPEN",
++          "verificationStatus": "NOT_RUN",
++          "problem": "旧KnowledgeSchemaTest/JdbcCandidateRetrieverTest直接运行仍默认54329；本轮未修改，不能把新入口通过当默认地址已修复"
++        }
++      ]
+     },
+     {
+-      "id": "RC-11", "priority": "P1", "tasks": ["R5"], "status": "OPEN",
++      "id": "RC-11",
++      "priority": "P1",
++      "tasks": [
++        "R5"
++      ],
++      "status": "OPEN",
+       "problem": "409通用提示不说明同键内容冲突，完成任务仍出现正在确认静态文案",
+       "evidenceKind": "HISTORICAL_ACCEPTANCE",
+-      "sourcePaths": ["docs/evidence/milestone-3c/2026-10-07/3c-3/browser-supplement/acceptance.md", "agent/frontend/src/views"],
++      "sourcePaths": [
++        "docs/evidence/milestone-3c/2026-10-07/3c-3/browser-supplement/acceptance.md",
++        "agent/frontend/src/views"
++      ],
+       "verificationStatus": "NOT_RUN",
+-      "closeWhen": ["冲突与完成/未确认文案明确", "真实网页对应状态复验", "提交/派发计数不退步"]
++      "closeWhen": [
++        "冲突与完成/未确认文案明确",
++        "真实网页对应状态复验",
++        "提交/派发计数不退步"
++      ]
+     }
+-  ]
++  ],
++  "verificationInfrastructureImplemented": true,
++  "latestExecution": {
++    "stage": "R0_PARTIAL",
++    "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md",
++    "testsExecuted": true,
++    "businessCodeChanged": false,
++    "productEvaluationRun": false,
++    "providerCalled": false,
++    "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
++    "planningTurnFieldsAreHistorical": true
++  }
+ }

@@ -32,14 +32,10 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  */
 class JdbcRetrievalIndexingTest {
 
-    private static final String DATABASE_URL = System.getProperty(
-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
-    );
+    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
     private static final String DATABASE_USER = System.getProperty(
-            "zhku.db.user", "zhkuagent"
-    );
-    private static final String DATABASE_PASSWORD =
-            ZhkuDatabaseTestConfig.databasePassword();
+            "zhku.db.user", "zhkuagent");
+    private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
 
     private static final UUID ELIGIBLE_SOURCE = UUID.fromString("5a111111-1111-4111-8111-111111111111");
     private static final UUID DRAFT_SOURCE = UUID.fromString("5a222222-2222-4222-8222-222222222222");
@@ -80,7 +76,7 @@ class JdbcRetrievalIndexingTest {
                 PROFILE, "test-provider", "test-model", 3, ProfileStatus.BUILDING));
         RetrievalIndexingService service = new RetrievalIndexingService(
                 repository, new FixedEmbeddingClient(3), new RetrievalEligibilityFilter(
-                Clock.fixed(Instant.parse("2026-09-17T00:00:00Z"), ZoneOffset.UTC)));
+                        Clock.fixed(Instant.parse("2026-09-17T00:00:00Z"), ZoneOffset.UTC)));
 
         IndexRunResult result = service.indexProfile(PROFILE, CHUNKING_VERSION, "PUBLIC_ELECTIVE");
 
@@ -116,7 +112,7 @@ class JdbcRetrievalIndexingTest {
                            AND source.knowledge_scope = 'PUBLIC_ELECTIVE')
                 """;
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, PROFILE);
             try (ResultSet result = statement.executeQuery()) {
                 assertThat(result.next()).isTrue();
@@ -131,13 +127,13 @@ class JdbcRetrievalIndexingTest {
                 PROFILE, "test-provider", "test-model", 3, ProfileStatus.BUILDING));
         RetrievalIndexingService service = new RetrievalIndexingService(
                 repository, new FixedEmbeddingClient(3), new RetrievalEligibilityFilter(
-                Clock.fixed(Instant.parse("2026-09-17T00:00:00Z"), ZoneOffset.UTC)));
+                        Clock.fixed(Instant.parse("2026-09-17T00:00:00Z"), ZoneOffset.UTC)));
 
         service.indexProfile(PROFILE, CHUNKING_VERSION, "PUBLIC_ELECTIVE");
 
         // 审核追溯要求：每条索引都能反查来源版本、切分版本与内容哈希，向量不悬空。
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement("""
+                PreparedStatement statement = connection.prepareStatement("""
                      SELECT source_version, chunking_version, content_checksum,
                             (embedding IS NOT NULL) AS has_embedding
                      FROM retrieval_index_entry WHERE chunk_id = ?
@@ -159,7 +155,7 @@ class JdbcRetrievalIndexingTest {
                 PROFILE, "test-provider", "test-model", 3, ProfileStatus.BUILDING));
         RetrievalIndexingService service = new RetrievalIndexingService(
                 repository, new FixedEmbeddingClient(4), new RetrievalEligibilityFilter(
-                Clock.fixed(Instant.parse("2026-09-17T00:00:00Z"), ZoneOffset.UTC)));
+                        Clock.fixed(Instant.parse("2026-09-17T00:00:00Z"), ZoneOffset.UTC)));
 
         // 禁止混用维度：embedding 维度与 profile 声明不符时整轮失败并留痕。
         assertThatIllegalStateException()
@@ -171,8 +167,8 @@ class JdbcRetrievalIndexingTest {
 
     private String runStatus(UUID runId) throws SQLException {
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT status FROM retrieval_index_run WHERE id = ?")) {
+                PreparedStatement statement = connection.prepareStatement(
+                        "SELECT status FROM retrieval_index_run WHERE id = ?")) {
             statement.setObject(1, runId);
             try (ResultSet result = statement.executeQuery()) {
                 assertThat(result.next()).isTrue();
@@ -183,9 +179,9 @@ class JdbcRetrievalIndexingTest {
 
     private String lastRunStatus() throws SQLException {
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT status FROM retrieval_index_run WHERE profile_id = ? "
-                             + "ORDER BY started_at DESC, id DESC LIMIT 1")) {
+                PreparedStatement statement = connection.prepareStatement(
+                        "SELECT status FROM retrieval_index_run WHERE profile_id = ? "
+                                + "ORDER BY started_at DESC, id DESC LIMIT 1")) {
             statement.setString(1, PROFILE);
             try (ResultSet result = statement.executeQuery()) {
                 assertThat(result.next()).isTrue();
@@ -196,8 +192,8 @@ class JdbcRetrievalIndexingTest {
 
     private List<UUID> indexedChunkIds() throws SQLException {
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT chunk_id FROM retrieval_index_entry WHERE profile_id = ?")) {
+                PreparedStatement statement = connection.prepareStatement(
+                        "SELECT chunk_id FROM retrieval_index_entry WHERE profile_id = ?")) {
             statement.setString(1, PROFILE);
             try (ResultSet result = statement.executeQuery()) {
                 List<UUID> ids = new java.util.ArrayList<>();
@@ -210,10 +206,10 @@ class JdbcRetrievalIndexingTest {
     }
 
     private void insertSource(
-            UUID sourceId, String status, String visibility, boolean rights, String version
-    ) throws SQLException {
+            UUID sourceId, String status, String visibility, boolean rights, String version) throws SQLException {
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement("""
+                PreparedStatement statement = connection.prepareStatement(
+                        """
                      INSERT INTO knowledge_source (
                          id, title, source_type, source_version, publication_status,
                          published_at, content_checksum, visibility_scope, publication_scope,
@@ -234,7 +230,7 @@ class JdbcRetrievalIndexingTest {
 
     private void insertChunk(UUID chunkId, UUID sourceId, int index, String content) throws SQLException {
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement("""
+                PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO knowledge_chunk (
                          id, source_id, chunk_index, section_title, source_locator,
                          page_number, content, content_checksum

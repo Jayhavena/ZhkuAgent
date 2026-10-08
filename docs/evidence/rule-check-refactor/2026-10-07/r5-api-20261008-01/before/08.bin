@@ -1,0 +1,110 @@
+package com.zhku.knowledge.rulecheck.web;
+
+import com.zhku.knowledge.security.RuleCheckPreviewSecurityConfiguration;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.env.YamlPropertySourceLoader;
+import org.springframework.core.io.ClassPathResource;
+import static org.assertj.core.api.Assertions.*;
+
+class RuleCheckPreviewConfigurationTest {
+    static MockEnvironment valid() {
+        var e=new MockEnvironment();e.setActiveProfiles("zhku-rule-check-preview");
+        Map.ofEntries(
+            Map.entry("zhku.rule-check-preview.enabled","true"),Map.entry("server.address","127.0.0.1"),
+            Map.entry("server.servlet.context-path","/api"),Map.entry("server.servlet.session.timeout","15m"),
+            Map.entry("server.servlet.session.persistent","false"),Map.entry("server.servlet.session.tracking-modes","cookie"),
+            Map.entry("server.servlet.session.cookie.name","ZHKU_RULE_CHECK_SESSION"),
+            Map.entry("server.servlet.session.cookie.path","/api/zhku/controlled-preview/v2"),
+            Map.entry("server.servlet.session.cookie.http-only","true"),Map.entry("server.servlet.session.cookie.secure","false"),
+            Map.entry("server.servlet.session.cookie.same-site","strict"),Map.entry("spring.flyway.enabled","false"),
+            Map.entry("spring.flyway.out-of-order","false"),Map.entry("zhku.db.url","jdbc:postgresql://127.0.0.1:55462/zhkuagent_rulecheck_e2e"),
+            Map.entry("zhku.db.username","zhkuagent"),Map.entry("zhku.rule-check-preview.initialize","true"),
+            Map.entry("zhku.rule-check-preview.catalogue-mode","CLOSED"),Map.entry("zhku.rule-check-preview.profile-id","synthetic-http"),
+            Map.entry("zhku.rule-check-preview.chunking-version","synthetic-v1"),Map.entry("zhku.rule-check-preview.required-scope","PUBLIC_ELECTIVE_CREDIT_LIMIT"),
+            Map.entry("zhku.rule-check-preview.reference-revision","2025.9.2"),Map.entry("zhku.rule-check-preview.candidate-limit","40"),
+            Map.entry("zhku.rule-check-preview.result-limit","5")
+        ).forEach(e::setProperty);return e;
+    }
+    @Test void explicitValidBoundaryDoesNotNeedCredentialsOrOpenResources() {
+        assertThatCode(()->RuleCheckPreviewConfiguration.validateEnvironment(valid())).doesNotThrowAnyException();
+    }
+    @Test void validatesExistingSecurityGuardInsteadOfSilentlyBypassingIt() {
+        for(String key:new String[]{"zhku.rule-check-preview.enabled","server.servlet.session.cookie.path","server.address"}) {
+            var e=valid().withProperty(key,"wrong");
+            assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
+        }
+        var e=valid();e.setActiveProfiles("zhku-rule-check-preview","zhku-controlled-preview");
+        assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test void onlyDedicatedTemporaryTargetIsAllowedBeforeAnyConnection() {
+        for(String url:new String[]{"jdbc:postgresql://127.0.0.1:54329/zhkuagent_rulecheck_e2e",
+                "jdbc:postgresql://127.0.0.1:55462/zhkuagent","jdbc:postgresql://localhost:55462/zhkuagent_rulecheck_e2e",
+                "jdbc:postgresql://127.0.0.1:55462/zhkuagent_rulecheck_e2e?password=do-not-echo",
+                "jdbc:postgresql://do-not-echo@127.0.0.1:55462/zhkuagent_rulecheck_e2e",
+                "jdbc:postgresql://127.0.0.1:99999/zhkuagent_rulecheck_e2e","bad-do-not-echo"}) {
+            var e=valid().withProperty("zhku.db.url",url);
+            assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageNotContaining("do-not-echo").hasCause(null);
+        }
+    }
+    @Test void databaseUsernameAndAliasMustBeExplicitConsistent() {
+        for(String user:new String[]{"","-bad","x".repeat(64)}) {
+            var e=valid().withProperty("zhku.db.username",user);
+            assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
+        }
+        var e=valid().withProperty("zhku.db.user","other");
+        assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test void passwordsAndAlternateDatasourceOrFlywayTargetsCannotBeConfigured() {
+        for(String key:new String[]{"zhku.db.password","ZHKU_DB_PASSWORD","spring.datasource.url","spring.datasource.username",
+                "spring.datasource.password","spring.flyway.url","spring.flyway.user","spring.flyway.password"}) {
+            var e=valid().withProperty(key,"do-not-echo");
+            assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageNotContaining("do-not-echo").hasCause(null);
+        }
+    }
+    @Test void migrationNeedsExplicitConsentAndAutomaticMigrationMustRemainOff() {
+        for(String key:new String[]{"zhku.rule-check-preview.initialize","spring.flyway.enabled","spring.flyway.out-of-order"}) {
+            var e=valid().withProperty(key,key.endsWith("initialize")?"false":"true");
+            assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+    @Test void closedCatalogueCannotBeReplacedWithFakeApprovalOrLiveTransport() {
+        for(String mode:new String[]{"","APPROVED","LIVE","DRAFT"}) {
+            var e=valid().withProperty("zhku.rule-check-preview.catalogue-mode",mode);
+            assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+    @Test void runtimeBoundariesAndBudgetsAreExplicitAndBounded() {
+        for(String key:new String[]{"profile-id","chunking-version","required-scope","reference-revision","candidate-limit","result-limit"}) {
+            var e=valid().withProperty("zhku.rule-check-preview."+key,"");
+            assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
+        }
+        for(String budget:new String[]{"201","4","0","not-a-number"}) {
+            var e=valid().withProperty("zhku.rule-check-preview.candidate-limit",budget);
+            assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+    @Test void startupApplicationUsesExplicitImportsWithoutComponentScanning() {
+        assertThat(RuleCheckPreviewApplication.class.getAnnotation(SpringBootConfiguration.class)).isNotNull();
+        assertThat(RuleCheckPreviewApplication.class.getAnnotation(ComponentScan.class)).isNull();
+        var imports=RuleCheckPreviewApplication.class.getAnnotation(Import.class);assertThat(imports).isNotNull();
+        assertThat(imports.value()).containsExactlyInAnyOrder(RuleCheckPreviewConfiguration.class,
+                RuleCheckPreviewSecurityConfiguration.class,RuleCheckAuthController.class);
+    }
+    @Test void profileYamlKeepsEntryAndInitializationClosedByDefault() throws Exception {
+        var resource=new ClassPathResource("application-zhku-rule-check-preview.yml");assertThat(resource.exists()).isTrue();
+        var sources=new YamlPropertySourceLoader().load("rulecheck-default",resource);
+        var e=new MockEnvironment();e.setActiveProfiles("zhku-rule-check-preview");
+        sources.forEach(s->e.getPropertySources().addLast(s));
+        assertThat(e.getProperty("zhku.rule-check-preview.enabled")).isEqualTo("false");
+        assertThat(e.getProperty("zhku.rule-check-preview.initialize")).isEqualTo("false");
+        assertThat(e.getProperty("server.servlet.session.cookie.path")).isEqualTo("/api/zhku/controlled-preview/v2");
+        assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
+    }
+}

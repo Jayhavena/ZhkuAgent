@@ -53,7 +53,9 @@ class RetrievalAugmentedAnswerServiceTest {
 
     @Test
     void shouldReturnEmptyAndSkipModelWhenNoCandidateRetrieved() {
-        ModelChatClient client = request -> { throw new AssertionError("无候选时不得调用模型"); };
+        ModelChatClient client = request -> {
+            throw new AssertionError("无候选时不得调用模型");
+        };
 
         Optional<ComposedAnswer> answer = service(client).answer("无关问题");
 
@@ -101,8 +103,7 @@ class RetrievalAugmentedAnswerServiceTest {
                 "第 1 页",
                 1,
                 "学生手册 2026 版",
-                "a".repeat(64)
-        );
+                "a".repeat(64));
     }
 
     /** 组装被测服务：候选由固定检索器提供，审计写入内存列表。 */
@@ -133,8 +134,7 @@ class RetrievalAugmentedAnswerServiceTest {
                     new SequentialCitationIdFactory(),
                     audits::add,
                     Clock.fixed(Instant.parse("2026-09-17T00:00:00Z"), ZoneOffset.UTC),
-                    topK
-            );
+                    topK);
             return service.answer(question);
         }
     }

@@ -297,6 +297,7 @@ class BaseAgentExecutorTerminationTest {
                             "测试步骤没有收到停止中断"
                     );
                 }
+                context.finish(AgentRunState.SUCCEEDED);
                 return "released";
             } catch (InterruptedException exception) {
                 workerInterrupted = true;

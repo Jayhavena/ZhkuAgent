@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.2" tests="27" errors="0" skipped="0" failures="13"><testcase name="unknownValueDoesNotCoerceUserIntoAnAllowedCategory" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.079" /><testcase name="completeAnswerUsesReviewedTextAndVerifiedOriginalWithRequestAlias" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.011"><failure message="&#xA;expected: ANSWERED&#xA; but was: INSUFFICIENT_EVIDENCE" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.completeAnswerUsesReviewedTextAndVerifiedOriginalWithRequestAlias(RuleCheckDecisionServiceTest.java:33)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="missingConflictSideCannotSilentlyChooseRemainingConclusion" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.002" /><testcase name="partialAnswerKeepsOnlyIndependentFactsWhenAnotherBindingFails" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.002"><failure message="&#xA;expected: PARTIALLY_ANSWERED&#xA; but was: INSUFFICIENT_EVIDENCE" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: PARTIALLY_ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.partialAnswerKeepsOnlyIndependentFactsWhenAnotherBindingFails(RuleCheckDecisionServiceTest.java:109)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="emptyRuleIsInsufficientRatherThanVacuouslyAnswered" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.002" /><testcase name="materialGapCannotBeDisguisedAsAnotherUserQuestion" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001"><failure message="&#xA;expected: PARTIALLY_ANSWERED&#xA; but was: INSUFFICIENT_EVIDENCE" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: PARTIALLY_ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.materialGapCannotBeDisguisedAsAnotherUserQuestion(RuleCheckDecisionServiceTest.java:71)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="templateRevisionMustMatchBindingEvenIfSourceItselfIsValid" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001" /><testcase name="factConditionMustBelongToDeclaredAllowedValues" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.006"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.factConditionMustBelongToDeclaredAllowedValues(RuleCheckDecisionServiceTest.java:191)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="providedConditionIsNotAskedAgainAndOtherBranchIsNotShown" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.003"><failure message="&#xA;expected: ANSWERED&#xA; but was: INSUFFICIENT_EVIDENCE" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.providedConditionIsNotAskedAgainAndOtherBranchIsNotShown(RuleCheckDecisionServiceTest.java:57)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="duplicateConditionsCannotCreateContradictoryPromptDefinitions" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.duplicateConditionsCannotCreateContradictoryPromptDefinitions(RuleCheckDecisionServiceTest.java:186)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="ambiguousPersistentBindingCannotChooseFirstMatchingAlias" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001" /><testcase name="templateDefensivelyCopiesFactsConditionsAndRequirements" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001"><failure message="&#xA;expected: ANSWERED&#xA; but was: INSUFFICIENT_EVIDENCE" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.templateDefensivelyCopiesFactsConditionsAndRequirements(RuleCheckDecisionServiceTest.java:207)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="withdrawalCannotReuseCapturedEligibleEvidence" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001" /><testcase name="factNeedsEveryBoundClauseIncludingException" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001" /><testcase name="factsWithoutEvidenceCannotBeApprovedIntoOutput" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.003"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.factsWithoutEvidenceCannotBeApprovedIntoOutput(RuleCheckDecisionServiceTest.java:181)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="dependentFactCannotBecomePartialAnswerWhenMaterialIsMissing" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001" /><testcase name="approvedTemplateRequiresActualReviewMetadata" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.approvedTemplateRequiresActualReviewMetadata(RuleCheckDecisionServiceTest.java:176)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="duplicateFactIdsCannotHideAnotherConclusion" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.duplicateFactIdsCannotHideAnotherConclusion(RuleCheckDecisionServiceTest.java:195)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="fullySupportedConflictHasPriorityOverMissingCondition" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001"><failure message="&#xA;expected: CONFLICTING_EVIDENCE&#xA; but was: INSUFFICIENT_EVIDENCE" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: CONFLICTING_EVIDENCE
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.fullySupportedConflictHasPriorityOverMissingCondition(RuleCheckDecisionServiceTest.java:144)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="equalTextCannotBypassCurrentRevisionChange" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001" /><testcase name="draftOrRetiredTemplateNeverReadsEvidenceOrEmitsItsFacts" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.005" /><testcase name="nullConditionInputFailsClosedWithoutClaim" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001" /><testcase name="independentInformationMayAccompanyClarification" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.002"><failure message="&#xA;expected: NEED_CLARIFICATION&#xA; but was: INSUFFICIENT_EVIDENCE" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: NEED_CLARIFICATION
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.independentInformationMayAccompanyClarification(RuleCheckDecisionServiceTest.java:50)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="bindingWithFortyCannotUseValidFourCitationToReleaseFact" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.025" /><testcase name="readerFailureDoesNotExposeInternalErrorOrFacts" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.002" /><testcase name="nonMatchingBranchDoesNotReadOrReleaseItsEvidence" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001" /><testcase name="missingDecisiveConditionAsksWithoutChoosingAnUnmatchedBranch" classname="com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest" time="0.001"><failure message="&#xA;expected: NEED_CLARIFICATION&#xA; but was: INSUFFICIENT_EVIDENCE" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: NEED_CLARIFICATION
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.missingDecisiveConditionAsksWithoutChoosingAnUnmatchedBranch(RuleCheckDecisionServiceTest.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase></testsuite>

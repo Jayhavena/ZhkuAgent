@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="4.641" tests="19" errors="7" skipped="0" failures="1"><testcase name="reindexedRevisionStillCannotValidateCapturedVersion" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.25"><error message="当前证据读取失败" type="java.lang.IllegalStateException"><![CDATA[java.lang.IllegalStateException: 当前证据读取失败
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:80)
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.read(JdbcRuleCheckEvidenceReader.java:29)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.assertChanged(JdbcRuleCheckEvidenceReaderTest.java:186)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.reindexedRevisionStillCannotValidateCapturedVersion(JdbcRuleCheckEvidenceReaderTest.java:150)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: org.postgresql.util.PSQLException: 查询结果指标位置不正确，您也许需要呼叫 ResultSet 的 next() 方法。
+	at org.postgresql.jdbc.PgResultSet.getRawValue(PgResultSet.java:3287)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2393)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2932)
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:75)
+	... 6 more
+]]></error></testcase><testcase name="currentReadAndVerifierReturnActualServerText" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.213"><error message="当前证据读取失败" type="java.lang.IllegalStateException"><![CDATA[java.lang.IllegalStateException: 当前证据读取失败
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:80)
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.read(JdbcRuleCheckEvidenceReader.java:29)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.currentReadAndVerifierReturnActualServerText(JdbcRuleCheckEvidenceReaderTest.java:73)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: org.postgresql.util.PSQLException: 查询结果指标位置不正确，您也许需要呼叫 ResultSet 的 next() 方法。
+	at org.postgresql.jdbc.PgResultSet.getRawValue(PgResultSet.java:3287)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2393)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2932)
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:75)
+	... 5 more
+]]></error></testcase><testcase name="originalLookupRechecksWithdrawalVisibilityAndSharing" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.209"><failure message="&#xA;expected: FOUND&#xA; but was: UNAVAILABLE" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: FOUND
+ but was: UNAVAILABLE
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.originalLookupRechecksWithdrawalVisibilityAndSharing(JdbcRuleCheckEvidenceReaderTest.java:89)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="internalVisibilityBlocksOldQuote" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.255"></testcase><testcase name="bodyAndBothHashesChangedStillRejectCapturedEvidence" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.269"><error message="当前证据读取失败" type="java.lang.IllegalStateException"><![CDATA[java.lang.IllegalStateException: 当前证据读取失败
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:80)
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.read(JdbcRuleCheckEvidenceReader.java:29)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.assertChanged(JdbcRuleCheckEvidenceReaderTest.java:186)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.bodyAndBothHashesChangedStillRejectCapturedEvidence(JdbcRuleCheckEvidenceReaderTest.java:164)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: org.postgresql.util.PSQLException: 查询结果指标位置不正确，您也许需要呼叫 ResultSet 的 next() 方法。
+	at org.postgresql.jdbc.PgResultSet.getRawValue(PgResultSet.java:3287)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2393)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2932)
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:75)
+	... 6 more
+]]></error></testcase><testcase name="oversizedCurrentChunkIsRejectedBeforeReturningDatabaseText" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.27"></testcase><testcase name="storedChecksumDriftCannotRead" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.256"></testcase><testcase name="sourceRevisionWithoutReindexingCannotRead" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.23"></testcase><testcase name="bodyChangeWithStaleStoredHashIsDetectedByVerifier" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.222"><error message="当前证据读取失败" type="java.lang.IllegalStateException"><![CDATA[java.lang.IllegalStateException: 当前证据读取失败
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:80)
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.read(JdbcRuleCheckEvidenceReader.java:29)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.assertChanged(JdbcRuleCheckEvidenceReaderTest.java:186)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.bodyChangeWithStaleStoredHashIsDetectedByVerifier(JdbcRuleCheckEvidenceReaderTest.java:158)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: org.postgresql.util.PSQLException: 查询结果指标位置不正确，您也许需要呼叫 ResultSet 的 next() 方法。
+	at org.postgresql.jdbc.PgResultSet.getRawValue(PgResultSet.java:3287)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2393)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2932)
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:75)
+	... 6 more
+]]></error></testcase><testcase name="scopeDriftIsRejected" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.245"></testcase><testcase name="sourceAndChunkMustBothMatch" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.213"></testcase><testcase name="buildingAndRetiredProfilesCannotRead" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.27"></testcase><testcase name="locatedReadBindsCurrentMetadataToTheSameQualifiedChunk" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.233"><error message="当前证据读取失败" type="java.lang.IllegalStateException"><![CDATA[java.lang.IllegalStateException: 当前证据读取失败
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:80)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.locatedReadBindsCurrentMetadataToTheSameQualifiedChunk(JdbcRuleCheckEvidenceReaderTest.java:81)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: org.postgresql.util.PSQLException: 查询结果指标位置不正确，您也许需要呼叫 ResultSet 的 next() 方法。
+	at org.postgresql.jdbc.PgResultSet.getRawValue(PgResultSet.java:3287)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2393)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2932)
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:75)
+	... 4 more
+]]></error></testcase><testcase name="failedOrIncompleteRunCannotRead" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.306"></testcase><testcase name="withdrawalBetweenReadsBlocksOldQuote" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.213"><error message="当前证据读取失败" type="java.lang.IllegalStateException"><![CDATA[java.lang.IllegalStateException: 当前证据读取失败
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:80)
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.read(JdbcRuleCheckEvidenceReader.java:29)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.withdrawalBetweenReadsBlocksOldQuote(JdbcRuleCheckEvidenceReaderTest.java:114)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: org.postgresql.util.PSQLException: 查询结果指标位置不正确，您也许需要呼叫 ResultSet 的 next() 方法。
+	at org.postgresql.jdbc.PgResultSet.getRawValue(PgResultSet.java:3287)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2393)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2932)
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:75)
+	... 5 more
+]]></error></testcase><testcase name="unconfirmedSharingAndScopeAreRejected" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.26"></testcase><testcase name="configuredChunkingVersionDoesNotFallBack" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.267"></testcase><testcase name="configValuesAreBoundParameters" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.208"></testcase><testcase name="unlimitedTextMetadataIsSuppressedInSqlWithoutChangingEvidenceText" classname="com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest" time="0.24"><error message="当前证据读取失败" type="java.lang.IllegalStateException"><![CDATA[java.lang.IllegalStateException: 当前证据读取失败
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:80)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckEvidenceReaderTest.unlimitedTextMetadataIsSuppressedInSqlWithoutChangingEvidenceText(JdbcRuleCheckEvidenceReaderTest.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: org.postgresql.util.PSQLException: 查询结果指标位置不正确，您也许需要呼叫 ResultSet 的 next() 方法。
+	at org.postgresql.jdbc.PgResultSet.getRawValue(PgResultSet.java:3287)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2393)
+	at org.postgresql.jdbc.PgResultSet.getString(PgResultSet.java:2932)
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckEvidenceReader.readLocated(JdbcRuleCheckEvidenceReader.java:75)
+	... 4 more
+]]></error></testcase></testsuite>

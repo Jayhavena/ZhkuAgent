@@ -1,0 +1,55 @@
+package com.zhku.knowledge.controlled;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.filter.OncePerRequestFilter;
+import java.io.IOException;
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import java.io.ByteArrayInputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+
+/** 仅由受控安全链在身份和授权之后调用，不能全局注册。 */
+public final class ControlledRunRequestLimitFilter extends OncePerRequestFilter {
+    private final String route;
+    private final int maxBytes;
+    public ControlledRunRequestLimitFilter() {this("/zhku/controlled-preview/v1/runs",16384);}
+    public ControlledRunRequestLimitFilter(String route,int maxBytes) {
+        if(route==null||!route.startsWith("/")||maxBytes<1||maxBytes>65536)throw new IllegalArgumentException("请求限长配置不合格");
+        this.route=route;this.maxBytes=maxBytes;
+    }
+    @Override protected boolean shouldNotFilter(HttpServletRequest request) {
+        return !"POST".equals(request.getMethod()) || !route.equals(
+                request.getRequestURI().substring(request.getContextPath().length()));
+    }
+    @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException {
+        // Content-Length可缺失或错误；实际最多读上限+1，避免先分配整个不可信body。
+        var bytes = request.getInputStream().readNBytes(maxBytes+1);
+        if (bytes.length > maxBytes) {
+            response.setStatus(413); response.setContentType("application/json"); response.setCharacterEncoding("UTF-8");
+            response.setHeader("Cache-Control", "no-store");
+            response.getWriter().write("{\"code\":\"REQUEST_TOO_LARGE\",\"message\":\"请求内容超过大小限制\"}");
+            return;
+        }
+        chain.doFilter(new HttpServletRequestWrapper(request) {
+            @Override public int getContentLength() { return bytes.length; }
+            @Override public long getContentLengthLong() { return bytes.length; }
+            @Override public ServletInputStream getInputStream() {
+                var input = new ByteArrayInputStream(bytes);
+                return new ServletInputStream() {
+                    @Override public int read() { return input.read(); }
+                    @Override public boolean isFinished() { return input.available() == 0; }
+                    @Override public boolean isReady() { return true; }
+                    @Override public void setReadListener(ReadListener listener) { throw new IllegalStateException("受控JSON入口采用同步读取"); }
+                };
+            }
+            @Override public BufferedReader getReader() { return new BufferedReader(new InputStreamReader(getInputStream(), StandardCharsets.UTF_8)); }
+        }, response);
+    }
+}

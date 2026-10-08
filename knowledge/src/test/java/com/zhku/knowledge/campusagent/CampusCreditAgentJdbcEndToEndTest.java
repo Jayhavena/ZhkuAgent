@@ -40,8 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /** 临时 PostgreSQL 中验证审核发布、五级规则链、受控工具和 HTTP 回答的真实数据边界。 */
 class CampusCreditAgentJdbcEndToEndTest {
-    private static final String URL = System.getProperty(
-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
+    private static final String URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
     private static final String USER = System.getProperty("zhku.db.user", "zhkuagent");
     private static final String PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
     private static final String REQUEST = """
@@ -121,7 +120,9 @@ class CampusCreditAgentJdbcEndToEndTest {
                     return facade.sendMessage(sessionId, question);
                 }, 3);
         var manager = new CampusCreditAgentManager(service, Runnable::run, timer, Duration.ofSeconds(5));
-        return MockMvcBuilders.standaloneSetup(new CampusAgentPreviewController(manager)).build();
+        return MockMvcBuilders.standaloneSetup(new CampusAgentPreviewController(manager,
+                new com.zhku.knowledge.campusagent.CampusAgentResultVisibility(
+                        new DriverManagerDataSource(URL, USER, PASSWORD)))).build();
     }
 
     private static AssistantMessage.ToolCall call(String name, String arguments) {

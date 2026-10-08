@@ -89,7 +89,7 @@ class ZhkuLocalPreviewApplicationTest {
                 .withAllowBeanDefinitionOverriding(true)
                 .withUserConfiguration(ZhkuLocalPreviewApplication.class, TestKeyConfiguration.class)
                 .withPropertyValues("spring.profiles.active=zhku-local-preview",
-                        "zhku.local-preview.enabled=true", "zhku.rag.enabled=true",
+                        "zhku.local-preview.enabled=true", "server.address=127.0.0.1", "zhku.rag.enabled=true",
                         "zhku.campus-agent.enabled=true",
                         "zhku.rag.active-profile=stub", "ZHKU_DB_PASSWORD=test-only",
                         "zhku.rag.profiles.stub.base-url=http://127.0.0.1:19999/v1",

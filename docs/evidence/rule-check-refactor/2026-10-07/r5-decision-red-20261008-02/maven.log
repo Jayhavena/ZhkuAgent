@@ -1,0 +1,252 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] ZhkuAgent                                                          [pom]
+[INFO] ZhkuAgent Shared Runtime                                           [jar]
+[INFO] ZhkuAgent Knowledge                                                [jar]
+[INFO] 
+[INFO] ------------------------< com.zhku:zhku-agent >-------------------------
+[INFO] Building ZhkuAgent 0.0.1-SNAPSHOT                                  [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] -----------------------< com.zhku:agent-runtime >-----------------------
+[INFO] Building ZhkuAgent Shared Runtime 0.0.1-SNAPSHOT                   [2/3]
+[INFO]   from agent-runtime\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ agent-runtime ---
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.0.1-SNAPSHOT                        [3/3]
+[INFO]   from knowledge\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 20 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 2 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[WARNING] file.encoding cannot be set as system property, use <argLine>-Dfile.encoding=...</argLine> instead
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest
+[ERROR] Tests run: 27, Failures: 13, Errors: 0, Skipped: 0, Time elapsed: 0.200 s <<< FAILURE! -- in com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.completeAnswerUsesReviewedTextAndVerifiedOriginalWithRequestAlias -- Time elapsed: 0.011 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.completeAnswerUsesReviewedTextAndVerifiedOriginalWithRequestAlias(RuleCheckDecisionServiceTest.java:33)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.partialAnswerKeepsOnlyIndependentFactsWhenAnotherBindingFails -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: PARTIALLY_ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.partialAnswerKeepsOnlyIndependentFactsWhenAnotherBindingFails(RuleCheckDecisionServiceTest.java:109)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.materialGapCannotBeDisguisedAsAnotherUserQuestion -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: PARTIALLY_ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.materialGapCannotBeDisguisedAsAnotherUserQuestion(RuleCheckDecisionServiceTest.java:71)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.factConditionMustBelongToDeclaredAllowedValues -- Time elapsed: 0.006 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.factConditionMustBelongToDeclaredAllowedValues(RuleCheckDecisionServiceTest.java:191)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.providedConditionIsNotAskedAgainAndOtherBranchIsNotShown -- Time elapsed: 0.003 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.providedConditionIsNotAskedAgainAndOtherBranchIsNotShown(RuleCheckDecisionServiceTest.java:57)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.duplicateConditionsCannotCreateContradictoryPromptDefinitions -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.duplicateConditionsCannotCreateContradictoryPromptDefinitions(RuleCheckDecisionServiceTest.java:186)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.templateDefensivelyCopiesFactsConditionsAndRequirements -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.templateDefensivelyCopiesFactsConditionsAndRequirements(RuleCheckDecisionServiceTest.java:207)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.factsWithoutEvidenceCannotBeApprovedIntoOutput -- Time elapsed: 0.003 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.factsWithoutEvidenceCannotBeApprovedIntoOutput(RuleCheckDecisionServiceTest.java:181)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.approvedTemplateRequiresActualReviewMetadata -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.approvedTemplateRequiresActualReviewMetadata(RuleCheckDecisionServiceTest.java:176)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.duplicateFactIdsCannotHideAnotherConclusion -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.duplicateFactIdsCannotHideAnotherConclusion(RuleCheckDecisionServiceTest.java:195)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.fullySupportedConflictHasPriorityOverMissingCondition -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: CONFLICTING_EVIDENCE
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.fullySupportedConflictHasPriorityOverMissingCondition(RuleCheckDecisionServiceTest.java:144)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.independentInformationMayAccompanyClarification -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: NEED_CLARIFICATION
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.independentInformationMayAccompanyClarification(RuleCheckDecisionServiceTest.java:50)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.missingDecisiveConditionAsksWithoutChoosingAnUnmatchedBranch -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: NEED_CLARIFICATION
+ but was: INSUFFICIENT_EVIDENCE
+	at com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest.missingDecisiveConditionAsksWithoutChoosingAnUnmatchedBranch(RuleCheckDecisionServiceTest.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   RuleCheckDecisionServiceTest.approvedTemplateRequiresActualReviewMetadata:176 
+Expecting code to raise a throwable.
+[ERROR]   RuleCheckDecisionServiceTest.completeAnswerUsesReviewedTextAndVerifiedOriginalWithRequestAlias:33 
+expected: ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+[ERROR]   RuleCheckDecisionServiceTest.duplicateConditionsCannotCreateContradictoryPromptDefinitions:186 
+Expecting code to raise a throwable.
+[ERROR]   RuleCheckDecisionServiceTest.duplicateFactIdsCannotHideAnotherConclusion:195 
+Expecting code to raise a throwable.
+[ERROR]   RuleCheckDecisionServiceTest.factConditionMustBelongToDeclaredAllowedValues:191 
+Expecting code to raise a throwable.
+[ERROR]   RuleCheckDecisionServiceTest.factsWithoutEvidenceCannotBeApprovedIntoOutput:181 
+Expecting code to raise a throwable.
+[ERROR]   RuleCheckDecisionServiceTest.fullySupportedConflictHasPriorityOverMissingCondition:144 
+expected: CONFLICTING_EVIDENCE
+ but was: INSUFFICIENT_EVIDENCE
+[ERROR]   RuleCheckDecisionServiceTest.independentInformationMayAccompanyClarification:50 
+expected: NEED_CLARIFICATION
+ but was: INSUFFICIENT_EVIDENCE
+[ERROR]   RuleCheckDecisionServiceTest.materialGapCannotBeDisguisedAsAnotherUserQuestion:71 
+expected: PARTIALLY_ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+[ERROR]   RuleCheckDecisionServiceTest.missingDecisiveConditionAsksWithoutChoosingAnUnmatchedBranch:43 
+expected: NEED_CLARIFICATION
+ but was: INSUFFICIENT_EVIDENCE
+[ERROR]   RuleCheckDecisionServiceTest.partialAnswerKeepsOnlyIndependentFactsWhenAnotherBindingFails:109 
+expected: PARTIALLY_ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+[ERROR]   RuleCheckDecisionServiceTest.providedConditionIsNotAskedAgainAndOtherBranchIsNotShown:57 
+expected: ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+[ERROR]   RuleCheckDecisionServiceTest.templateDefensivelyCopiesFactsConditionsAndRequirements:207 
+expected: ANSWERED
+ but was: INSUFFICIENT_EVIDENCE
+[INFO] 
+[ERROR] Tests run: 27, Failures: 13, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ZhkuAgent 0.0.1-SNAPSHOT:
+[INFO] 
+[INFO] ZhkuAgent .......................................... SUCCESS [  0.003 s]
+[INFO] ZhkuAgent Shared Runtime ........................... SUCCESS [  1.939 s]
+[INFO] ZhkuAgent Knowledge ................................ FAILURE [  2.836 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  5.270 s
+[INFO] Finished at: 2026-10-08T10:26:31+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: There are test failures.
+[ERROR] 
+[ERROR] See D:\alldesk\Projects\ZhkuAgent\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :knowledge

@@ -1,0 +1,236 @@
+#requires -Version 7.0
+param(
+    [string]$Mode='Unit',
+    [string]$Phase='',
+    [string]$Tests='',
+    [int]$Port=55439,
+    [string]$DatabaseUrl='',
+    [switch]$CheckEnvironment
+)
+$ErrorActionPreference='Stop'
+$runnerUtf8=[Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding=$runnerUtf8; [Console]::OutputEncoding=$runnerUtf8; $OutputEncoding=$runnerUtf8
+
+function Get-RuleCheckVerificationPlan {
+    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='')
+    # 全部准入在任何外部进程与证据写入之前完成，连接失败不能替代目标隔离。
+    if ($Mode -notin @('Unit','Database','Acceptance')) {throw '未知验收模式'}
+    if ($Phase -notmatch '^[a-z0-9][a-z0-9-]{0,79}$') {throw '批次必须是1至80位小写字母、数字或连字符'}
+    if ($Port -lt 1024 -or $Port -gt 65535 -or $Port -eq 54329) {throw '拒绝原演示库端口或非法端口'}
+    if ([string]::IsNullOrWhiteSpace($Tests)) {throw '测试必须显式选类'}
+    $unit=@('HybridRetrievalServiceTest','HybridCandidateFusionTest','GroundedAnswerComposerTest',
+        'RetrievalAugmentedAnswerServiceTest','RetrievalEligibilityFilterTest','ZhkuLocalAdminControllerTest',
+        'ZhkuLocalAdminPageResourceTest','ModelOutputParserTest','AnswerEvidenceGuardTest','CandidateResponseMappingTest',
+        'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest',
+        'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest','RuleCheckDecisionServiceTest',
+        'RuleCheckEvidenceCaptureTest','JdbcRuleCheckCitationAuditTargetTest','RuleCheckApplicationServiceTest',
+        'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest','RuleCheckControllerTest','RuleCheckClarificationStoreTest','BoundedRuleSelectorTest','RuleCheckOriginalEvidenceServiceTest','ZhkuDatabaseTestTargetTest','RuleCheckCitationStoreTest','RuleCheckReleaseGuardTest')
+    $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+        'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
+        'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest','ControlledPreviewConfigurationTest','RuleCheckPreviewHttpTest','RuleCheckOriginalHttpTest','RuleCheckBrowserHttpTest','RuleCheckLegacyBrowserHttpTest',
+        'RetrievalSchemaTest','ZhkuFlywayTestSupportTest','JdbcFeedbackRepositoryTest','JdbcAnonymousTelemetryRepositoryTest',
+        'JdbcCitationAuditRepositoryTest','JdbcKnowledgeGovernanceRepositoryTest','KnowledgeGovernanceSchemaTest','ReviewedKnowledgePublisherTest')
+    # 旧controlled配置类含需要进程数据库凭据的数据源装配，不能冒充无密钥纯单元。
+    $selected=@($Tests.Split(',')|ForEach-Object {$_.Trim()})
+    if (@($selected|Sort-Object -Unique).Count -ne $selected.Count) {throw '测试选择不能重复'}
+    foreach ($selector in $selected) {
+        if ($selector -notmatch '^[A-Za-z][A-Za-z0-9]*Test$' -or $selector -match 'LiveProvider|DashScope|RealModel') {throw '拒绝空项、通配符、方法选择或供应商测试'}
+        if ($selector -notin ($unit+$database)) {throw '未登记测试类'}
+        if ($Mode -eq 'Unit' -and $selector -notin $unit) {throw 'Unit不能选数据库测试'}
+        if ($Mode -eq 'Database' -and $selector -notin $database) {throw 'Database只允许数据库测试'}
+        $found=@(Get-ChildItem -LiteralPath (Join-Path $Root 'knowledge/src/test/java') -Recurse -File -Filter "$selector.java")
+        if ($found.Count -ne 1) {throw '测试源码必须唯一存在'}
+    }
+    $usesDatabase=@($selected|Where-Object {$_ -in $database}).Count -gt 0
+    $target="jdbc:postgresql://127.0.0.1:$Port/zhkuagent_rulecheck_e2e"
+    if ($DatabaseUrl -and (!$usesDatabase -or $DatabaseUrl -cne $target)) {throw 'URL必须与专用临时库、回环host和Port完全一致'}
+    $directory=Join-Path $Root ('docs/evidence/rule-check-refactor/2026-10-07/'+$Phase)
+    if (Test-Path -LiteralPath $directory) {throw '证据批次已存在，禁止覆盖'}
+    [pscustomobject]@{Root=$Root;Mode=$Mode;Phase=$Phase;Selected=$selected;Port=$Port;Database=$usesDatabase;
+        DatabaseUrl=$target;Directory=$directory;Maven=(Join-Path $Root 'mvnw.cmd')}
+}
+
+function Get-RuleCheckSourceSnapshot {
+    param([string]$Root)
+    $paths=@(Get-ChildItem -LiteralPath (Join-Path $Root 'knowledge/src'),(Join-Path $Root 'agent-runtime/src') -Recurse -File|ForEach-Object FullName)
+    $paths+=@('pom.xml','knowledge/pom.xml','agent-runtime/pom.xml','AGENTS.md','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties',
+        'scripts/Import-ZhkuCredentials.ps1','knowledge/scripts/verify-rule-check-refactor.ps1',
+        'knowledge/scripts/verify-rule-check-refactor.cmd','scripts/tests/verify-rule-check-refactor-contract.ps1')|ForEach-Object {Join-Path $Root $_}
+    @($paths|Sort-Object -Unique|ForEach-Object {[ordered]@{path=[IO.Path]::GetRelativePath($Root,$_).Replace('\','/');sha256=(Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()}})
+}
+
+function Save-RuleCheckJson {
+    param($Value,[string]$Path)
+    [IO.File]::WriteAllText($Path,($Value|ConvertTo-Json -Depth 12)+[Environment]::NewLine,[Text.UTF8Encoding]::new($false))
+}
+
+function Protect-RuleCheckText {
+    param([string]$Text,[string[]]$Secrets)
+    foreach ($secretValue in $Secrets) {if ($secretValue) {$Text=$Text.Replace($secretValue,'[REDACTED]')}}
+    $Text -replace '\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}','[REDACTED_HASH]'
+}
+
+function Start-RuleCheckDatabase {
+    param($Plan,[string]$Container)
+    $importer=Join-Path $Plan.Root 'scripts/Import-ZhkuCredentials.ps1'
+    & $importer -RequireDatabase
+    # 口令只通过子进程环境传入；不使用原库、数据卷或固定共享容器。
+    docker run --rm -d --name $Container --pull never --publish "127.0.0.1:$($Plan.Port):5432" `
+        --env POSTGRES_PASSWORD --env POSTGRES_USER=zhkuagent --env POSTGRES_DB=zhkuagent_rulecheck_e2e `
+        pgvector/pgvector:0.8.6-pg16-bookworm 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 0) {throw '专用临时容器启动失败；需已有本机镜像与Docker守护进程'}
+    $ready=$false
+    for ($attempt=0;$attempt -lt 30;$attempt++) {
+        & $importer -RequireDatabase
+        docker exec $Container pg_isready -U zhkuagent -d zhkuagent_rulecheck_e2e 2>$null | Out-Null
+        if ($LASTEXITCODE -eq 0) {$ready=$true;break}
+        Start-Sleep -Seconds 1
+    }
+    if (!$ready) {throw '临时库启动预算耗尽'}
+}
+
+function Get-RuleCheckDatabaseResult {
+    param($Plan,[string]$Container)
+    $importer=Join-Path $Plan.Root 'scripts/Import-ZhkuCredentials.ps1'
+    & $importer -RequireDatabase
+    $version=@(docker exec $Container psql -U zhkuagent -d zhkuagent_rulecheck_e2e -Atc 'SELECT max(version::integer) FROM flyway_schema_history WHERE success AND version IS NOT NULL' 2>$null)
+    if ($LASTEXITCODE -ne 0 -or !$version.Count) {throw '临时库迁移版本读取失败'}
+    $expected=(Get-ChildItem -LiteralPath (Join-Path $Plan.Root 'knowledge/src/main/resources/db/migration') -File|ForEach-Object {if($_.Name -match '^V(\d+)__') {[int]$Matches[1]}}|Measure-Object -Maximum).Maximum
+    & $importer -RequireDatabase
+    $connections=@(docker exec $Container psql -U zhkuagent -d zhkuagent_rulecheck_e2e -Atc "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND backend_type='client backend' AND pid<>pg_backend_pid()" 2>$null)
+    if ($LASTEXITCODE -ne 0 -or !$connections.Count) {throw '临时库连接退出检查失败'}
+    [ordered]@{target=$Plan.DatabaseUrl;container=$Container;synthetic=$true;migration=$version[-1];expectedMigration=$expected;
+        connectionsAfterTests=[int]$connections[-1];verified=($version[-1] -eq [string]$expected -and $connections[-1] -eq '0')}
+}
+
+function Stop-RuleCheckDatabase {
+    param($Plan,[string]$Container)
+    $importer=Join-Path $Plan.Root 'scripts/Import-ZhkuCredentials.ps1'
+    & $importer -RequireDatabase
+    $existing=@(docker ps -a --filter "name=^/$Container$" --format '{{.Names}}' 2>$null)
+    if ($LASTEXITCODE -ne 0) {return $false}
+    if ($existing.Count) {
+        & $importer -RequireDatabase
+        docker stop --time 10 $Container 2>$null | Out-Null
+        if ($LASTEXITCODE -ne 0) {return $false}
+    }
+    & $importer -RequireDatabase
+    $remaining=@(docker ps -a --filter "name=^/$Container$" --format '{{.Names}}' 2>$null)
+    $LASTEXITCODE -eq 0 -and $remaining.Count -eq 0
+}
+
+function Invoke-RuleCheckMaven {
+    param($Plan,[string[]]$Arguments,[string[]]$Secrets)
+    Push-Location $Plan.Root
+    try {
+        & $Plan.Maven @Arguments 2>&1|ForEach-Object {Protect-RuleCheckText $_.ToString() $Secrets}|Tee-Object -FilePath (Join-Path $Plan.Directory 'maven.log')|Out-Null
+        return $LASTEXITCODE
+    } finally {Pop-Location}
+}
+
+function Invoke-RuleCheckVerificationCore {
+    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='')
+    $plan=Get-RuleCheckVerificationPlan @PSBoundParameters -ErrorAction Stop
+    if (!(Test-Path -LiteralPath $plan.Maven)) {throw '根Maven wrapper不可用'}
+    if (!(Get-Command java.exe -ErrorAction SilentlyContinue)) {throw '当前用户终端没有Java'}
+    New-Item -ItemType Directory -Path $plan.Directory -ErrorAction Stop|Out-Null
+    $started=[DateTimeOffset]::Now
+    $before=Get-RuleCheckSourceSnapshot $Root
+    Save-RuleCheckJson $before (Join-Path $plan.Directory 'source-before.json')
+    $headBefore=(git -C $Root rev-parse HEAD)
+    $javaBefore=@(Get-Process java -ErrorAction SilentlyContinue|ForEach-Object Id)
+    $saved=@{}; $secrets=@()
+    foreach ($name in @('ZHKU_DB_PASSWORD','ZHKU_DB_URL','ZHKU_DB_USER','POSTGRES_PASSWORD','DASHSCOPE_API_KEY')) {$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
+    foreach ($name in @('ZHKU_DB_PASSWORD','DASHSCOPE_API_KEY')) {
+        foreach ($scope in @('Process','User','Machine')) {
+            $value=[Environment]::GetEnvironmentVariable($name,$scope)
+            if ($value) {$secrets+=$value}
+        }
+    }
+    $exitCode=1; $failure=$null; $dbResult=$null; $cleanup=$true; $container=$null; $mavenStarted=$false; $databaseReady=$false
+    $arguments=@('-o',"-Dmaven.repo.local=$env:USERPROFILE/.m2/repository",'-Dfile.encoding=UTF-8','-pl','knowledge','-am',
+        "-Dtest=$($plan.Selected -join ',')",'-Dsurefire.failIfNoSpecifiedTests=false',"-Dzhku.db.url=$($plan.DatabaseUrl)",
+        "-Dzhku.rulecheck.evidenceDir=$($plan.Directory)",'-Dzhku.db.user=zhkuagent','test')
+    Save-RuleCheckJson ([ordered]@{mode=$Mode;phase=$Phase;selectedClasses=$plan.Selected;providerAllowed=$false;database=$plan.Database;
+        databaseUrl=$plan.DatabaseUrl;startedAt=$started.ToString('o');maven=$plan.Maven;arguments=$arguments;sourceHead=$headBefore}) (Join-Path $plan.Directory 'command.json')
+    try {
+        # 即便误装配模型也不能继承密钥；原环境在finally恢复。Unit只选无连接测试。
+        [Environment]::SetEnvironmentVariable('DASHSCOPE_API_KEY',$null,'Process')
+        $env:ZHKU_DB_URL=$plan.DatabaseUrl; $env:ZHKU_DB_USER='zhkuagent'
+        if ($plan.Database) {
+            & (Join-Path $Root 'scripts/Import-ZhkuCredentials.ps1') -UseDatabase
+            $temporarySecret=[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(18))
+            $secrets+=$temporarySecret
+            $env:ZHKU_DB_PASSWORD=$temporarySecret; $env:POSTGRES_PASSWORD=$temporarySecret
+            $container='zhku-rulecheck-'+[guid]::NewGuid().ToString('N').Substring(0,12)
+            Save-RuleCheckJson @{container=$container;target=$plan.DatabaseUrl;volumeMounted=$false;stage='START_ATTEMPT'} (Join-Path $plan.Directory 'database-attempt.json')
+            Start-RuleCheckDatabase $plan $container
+            $databaseReady=$true
+        } else {[Environment]::SetEnvironmentVariable('ZHKU_DB_PASSWORD',$null,'Process')}
+        $mavenStarted=$true
+        $exitCode=Invoke-RuleCheckMaven $plan $arguments $secrets
+        if ($plan.Database) {
+            $dbResult=Get-RuleCheckDatabaseResult $plan $container
+            Save-RuleCheckJson $dbResult (Join-Path $plan.Directory 'database.json')
+            if (!$dbResult.verified) {$exitCode=1}
+        }
+    } catch {
+        $exitCode=1; $failure=Protect-RuleCheckText $_.Exception.Message $secrets
+        Save-RuleCheckJson @{exceptionType=$_.Exception.GetType().Name;detail=$failure} (Join-Path $plan.Directory 'environment-failure.json')
+    } finally {
+        if ($container) {try {$cleanup=Stop-RuleCheckDatabase $plan $container} catch {$cleanup=$false}}
+        foreach ($name in $saved.Keys) {[Environment]::SetEnvironmentVariable($name,$saved[$name],'Process')}
+    }
+    $xmlDirectory=Join-Path $plan.Directory 'xml'; New-Item -ItemType Directory -Path $xmlDirectory|Out-Null
+    $suites=@(); $missing=@()
+    foreach ($class in $plan.Selected) {
+        $fresh=@(Get-ChildItem -LiteralPath (Join-Path $Root 'knowledge/target/surefire-reports') -Filter "TEST-*.$class.xml" -File -ErrorAction SilentlyContinue|Where-Object {$_.LastWriteTimeUtc -ge $started.UtcDateTime})
+        if ($fresh.Count -ne 1) {$missing+=$class;continue}
+        [xml]$xml=Protect-RuleCheckText (Get-Content -Raw -LiteralPath $fresh[0].FullName) $secrets
+        # 环境properties与自由stdout不作为必要测试证据，防止夹具泄露配置。
+        foreach ($node in @($xml.SelectNodes('//properties|//system-out|//system-err'))) {[void]$node.ParentNode.RemoveChild($node)}
+        [IO.File]::WriteAllText((Join-Path $xmlDirectory $fresh[0].Name),$xml.OuterXml,[Text.UTF8Encoding]::new($false))
+        $suites+=@{name=[string]$xml.testsuite.name;tests=[int]$xml.testsuite.tests;failures=[int]$xml.testsuite.failures;
+            errors=[int]$xml.testsuite.errors;skipped=[int]$xml.testsuite.skipped;xml=$fresh[0].Name;sha256=(Get-FileHash -LiteralPath (Join-Path $xmlDirectory $fresh[0].Name)).Hash.ToLowerInvariant()}
+    }
+    $after=Get-RuleCheckSourceSnapshot $Root
+    Save-RuleCheckJson $after (Join-Path $plan.Directory 'source-after.json')
+    $beforeMap=@{}; foreach ($entry in $before) {$beforeMap[$entry.path]=$entry.sha256}
+    $drift=@($after|Where-Object {!$beforeMap.ContainsKey($_.path) -or $beforeMap[$_.path] -ne $_.sha256})
+    if ($after.Count -ne $before.Count -or (git -C $Root rev-parse HEAD) -ne $headBefore) {$drift+='FILE_COUNT_OR_HEAD_CHANGED'}
+    $newJava=@(Get-Process java -ErrorAction SilentlyContinue|Where-Object {$_.Id -notin $javaBefore}|ForEach-Object Id)
+    $bad=@($suites|Where-Object {$_.tests -lt 1 -or $_.failures -or $_.errors -or $_.skipped})
+    $passed=$exitCode -eq 0 -and !$missing.Count -and !$bad.Count -and !$drift.Count -and $cleanup -and !$newJava.Count
+    $result=[ordered]@{phase=$Phase;mode=$Mode;passed=$passed;exitCode=$exitCode;testCount=($suites|Measure-Object -Property tests -Sum).Sum;
+        suites=$suites;missingXml=$missing;sourceDrift=$drift.Count;resourcesVerified=($cleanup -and !$newJava.Count);newJavaRemaining=$newJava;
+        mavenStarted=$mavenStarted;database=$plan.Database;databaseReady=$databaseReady;containerName=$container;containerExited=$cleanup;
+        providerAllowed=$false;providerVerification='显式非供应商选类、密钥移除；非网络抓包';failure=$failure;endedAt=[DateTimeOffset]::Now.ToString('o')}
+    Save-RuleCheckJson $result (Join-Path $plan.Directory 'results.json')
+    $result
+}
+
+function Invoke-RuleCheckVerification {
+    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='')
+    $null=Get-RuleCheckVerificationPlan @PSBoundParameters
+    $lockDirectory=Join-Path $Root '.superpowers'
+    New-Item -ItemType Directory -Path $lockDirectory -Force|Out-Null
+    # 同仓入口不能并发写target；用OS文件锁，异常退出后无需手工修改旧BOARD/lease。
+    try {$lease=[IO.File]::Open((Join-Path $lockDirectory 'rule-check-verification.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)}
+    catch {throw '同仓查证验收正在运行，未启动外部进程'}
+    try {Invoke-RuleCheckVerificationCore @PSBoundParameters} finally {$lease.Dispose()}
+}
+
+$runnerRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+try {
+    if ($CheckEnvironment) {
+        $runnerPlan=Get-RuleCheckVerificationPlan -Root $runnerRoot -Mode $Mode -Phase $Phase -Tests $Tests -Port $Port -DatabaseUrl $DatabaseUrl
+        [ordered]@{powerShellVersion=$PSVersionTable.PSVersion.ToString();mavenWrapperAvailable=(Test-Path -LiteralPath $runnerPlan.Maven);
+            javaAvailable=($null -ne (Get-Command java.exe -ErrorAction SilentlyContinue));dockerAvailable=($null -ne (Get-Command docker.exe -ErrorAction SilentlyContinue));
+            mode=$Mode;selectedClasses=$runnerPlan.Selected;databaseUrl=$runnerPlan.DatabaseUrl;consoleCodePage=[Console]::OutputEncoding.CodePage;
+            encodingSample='中文验收：临时库、拒绝原库';requiresRipgrep=$false;externalStarts=0}|ConvertTo-Json
+        exit 0
+    }
+    $runnerResult=Invoke-RuleCheckVerification -Root $runnerRoot -Mode $Mode -Phase $Phase -Tests $Tests -Port $Port -DatabaseUrl $DatabaseUrl
+    Write-Output "RULECHECK phase=$Phase passed=$($runnerResult.passed) tests=$($runnerResult.testCount) database=$($runnerResult.database) resources=$($runnerResult.resourcesVerified)"
+    if (!$runnerResult.passed) {exit 1}
+} catch {Write-Error $_.Exception.Message;exit 1}

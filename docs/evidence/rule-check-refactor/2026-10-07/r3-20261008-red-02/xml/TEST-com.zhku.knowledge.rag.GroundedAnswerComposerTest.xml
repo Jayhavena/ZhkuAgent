@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.187" tests="12" errors="0" skipped="0" failures="2"><testcase name="shouldDeclineImmediatelyWhenNoEvidenceApproved" classname="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.007" /><testcase name="shouldDegradeWhenModelMakesEligibilityClaimBeyondEvidence" classname="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.001" /><testcase name="shouldComposeGroundedAnswerWhenEvidenceSufficient" classname="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.014" /><testcase name="shouldDegradeWhenModelCitesForgedCitationId" classname="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.003" /><testcase name="shouldDegradeWhenModelCallFails" classname="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.001" /><testcase name="shouldDegradeWhenModelTimesOut" classname="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.003" /><testcase name="shouldDeclineDirectResponseWithNaNAndNoCitations" classname="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.011"><failure message="&#xA;expected: DECLINED&#xA; but was: ANSWERED" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: DECLINED
+ but was: ANSWERED
+	at com.zhku.knowledge.rag.GroundedAnswerComposerTest.shouldDeclineDirectResponseWithNaNAndNoCitations(GroundedAnswerComposerTest.java:29)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="shouldDegradeWhenModelOutputMalformed" classname="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.001" /><testcase name="shouldDegradeWhenEvidenceContainsPromptInjection" classname="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.001" /><testcase name="shouldDegradeWhenModelUncertaintyTooLow" classname="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.002" /><testcase name="shouldDeclineParsedResponseWithWrongFieldType" classname="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.134"><failure message="&#xA;expected: DECLINED&#xA; but was: ANSWERED" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: DECLINED
+ but was: ANSWERED
+	at com.zhku.knowledge.rag.GroundedAnswerComposerTest.shouldDeclineParsedResponseWithWrongFieldType(GroundedAnswerComposerTest.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="shouldDegradeWhenModelRateLimited" classname="com.zhku.knowledge.rag.GroundedAnswerComposerTest" time="0.001" /></testsuite>

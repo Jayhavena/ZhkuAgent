@@ -18,7 +18,7 @@ class ZhkuLocalPreviewStreamingConfigurationTest {
                 ).applyTo(context.getEnvironment()))
                 .withPropertyValues(
                         "spring.profiles.active=zhku-local-preview",
-                        "zhku.local-preview.enabled=true",
+                        "zhku.local-preview.enabled=true", "server.address=127.0.0.1",
                         "zhku.streaming.enabled=false"
                 )
                 .withUserConfiguration(
@@ -37,7 +37,7 @@ class ZhkuLocalPreviewStreamingConfigurationTest {
                 ).applyTo(context.getEnvironment()))
                 .withPropertyValues(
                         "spring.profiles.active=zhku-local-preview",
-                        "zhku.local-preview.enabled=true",
+                        "zhku.local-preview.enabled=true", "server.address=127.0.0.1",
                         "zhku.streaming.enabled=true",
                         "zhku.streaming.timeout-millis=30000",
                         "zhku.streaming.worker-threads=2",

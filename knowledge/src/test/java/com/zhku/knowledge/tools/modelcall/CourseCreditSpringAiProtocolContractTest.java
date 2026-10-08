@@ -44,6 +44,7 @@ class CourseCreditSpringAiProtocolContractTest {
             """;
 
     private HttpServer server;
+    private CourseCreditModelTransport transport;
     private RagProviderProfile profile;
     private final AtomicReference<JsonNode> request = new AtomicReference<>();
     private final AtomicInteger executions = new AtomicInteger();
@@ -80,6 +81,10 @@ class CourseCreditSpringAiProtocolContractTest {
 
     @AfterEach
     void tearDown() {
+        if (transport != null) {
+            transport.close();
+            assertThat(transport.isTerminated()).isTrue();
+        }
         server.stop(0);
         springAiLogger.setLevel(previousLogLevel);
     }
@@ -153,8 +158,9 @@ class CourseCreditSpringAiProtocolContractTest {
     }
 
     private ModelCallResult run() {
-        var model = CourseCreditChatModelFactory.create(
+        transport = CourseCreditChatModelFactory.open(
                 profile, new ApiKeyResolver(Map.of(profile.apiKeyEnvVar(), FAKE_KEY)));
+        var model = transport.model();
         CampusTool real = new CourseCreditSummaryTool();
         CampusTool counted = new CampusTool() {
             @Override

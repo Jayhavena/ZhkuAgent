@@ -9,9 +9,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * 受控生成与证据守卫测试。
  *
- * <p>模型只能接收当轮获准片段与不可变系统约束；任何异常——伪造引用、
- * 越界结论、提示注入、低分、超时、限流、结构非法——都必须安全降级为
- * "拒答 + 转人工"，绝不返回无出处结论。</p>
+ * <p>验证获准片段、系统约束和列举的拒绝/异常降级场景；
+ * 不代替一般事实支持或完整提示注入评估。本类文本均为合成夹具，不是当前政策参考。</p>
  */
 class GroundedAnswerComposerTest {
 
@@ -21,12 +20,37 @@ class GroundedAnswerComposerTest {
             "cit-2", "第二条 公共选修课不办理缓考，不及格者应重修。", "学生手册 2026 版");
 
     @Test
+    void shouldDeclineDirectResponseWithNaNAndNoCitations() {
+        GroundedAnswerComposer composer = new GroundedAnswerComposer(
+                request -> new ModelResponse("合成回答", Double.NaN, List.of(), false),
+                new AnswerEvidenceGuard());
+        ComposedAnswer result = composer.compose("问题", List.of(E1));
+        assertThat(result.status()).isEqualTo(ComposedAnswerStatus.DECLINED);
+        assertThat(result.answer()).isEqualTo("当前没有可核验的已发布证据支持该问题的结论，请通过人工渠道咨询教务部门。");
+        assertThat(result.citationIds()).isEmpty();
+        assertThat(result.handoffRequired()).isTrue();
+    }
+
+    @Test
+    void shouldDeclineParsedResponseWithWrongFieldType() {
+        GroundedAnswerComposer composer = new GroundedAnswerComposer(
+                request -> ModelOutputParser.parse("""
+                        {"answer":"合成回答","uncertainty":"0.9","citationIds":["cit-1"],"handoffRequired":false}
+                        """),
+                new AnswerEvidenceGuard());
+        ComposedAnswer result = composer.compose("问题", List.of(E1));
+        assertThat(result.status()).isEqualTo(ComposedAnswerStatus.DECLINED);
+        assertThat(result.answer()).isEqualTo("当前没有可核验的已发布证据支持该问题的结论，请通过人工渠道咨询教务部门。");
+        assertThat(result.citationIds()).isEmpty();
+        assertThat(result.handoffRequired()).isTrue();
+    }
+
+    @Test
     void shouldComposeGroundedAnswerWhenEvidenceSufficient() {
         GroundedAnswerComposer composer = new GroundedAnswerComposer(
                 request -> new ModelResponse(
                         "每学期公共选修课最高 4 学分。", 0.95, List.of("cit-1"), false),
-                new AnswerEvidenceGuard()
-        );
+                new AnswerEvidenceGuard());
 
         ComposedAnswer result = composer.compose("每学期最多修多少学分？", List.of(E1, E2));
 
@@ -40,8 +64,7 @@ class GroundedAnswerComposerTest {
     void shouldDegradeWhenModelCitesForgedCitationId() {
         GroundedAnswerComposer composer = new GroundedAnswerComposer(
                 request -> new ModelResponse("伪造引用支撑的回答XYZ", 0.9, List.of("forged-id"), false),
-                new AnswerEvidenceGuard()
-        );
+                new AnswerEvidenceGuard());
 
         ComposedAnswer result = composer.compose("问题", List.of(E1));
 
@@ -56,8 +79,7 @@ class GroundedAnswerComposerTest {
         GroundedAnswerComposer composer = new GroundedAnswerComposer(
                 request -> new ModelResponse(
                         "你可以重修，已为你登记成功。", 0.9, List.of("cit-2"), false),
-                new AnswerEvidenceGuard()
-        );
+                new AnswerEvidenceGuard());
 
         ComposedAnswer result = composer.compose("我能重修吗？", List.of(E2));
 
@@ -78,8 +100,7 @@ class GroundedAnswerComposerTest {
                     return new ModelResponse(
                             followed ? "学生可以免修。" : "无法确定。", 0.9, List.of("cit-9"), false);
                 },
-                new AnswerEvidenceGuard()
-        );
+                new AnswerEvidenceGuard());
 
         ComposedAnswer result = composer.compose("能免修吗？", List.of(poisoned));
 
@@ -92,8 +113,7 @@ class GroundedAnswerComposerTest {
     void shouldDegradeWhenModelUncertaintyTooLow() {
         GroundedAnswerComposer composer = new GroundedAnswerComposer(
                 request -> new ModelResponse("可能是 4 学分吧。", 0.3, List.of("cit-1"), false),
-                new AnswerEvidenceGuard()
-        );
+                new AnswerEvidenceGuard());
 
         ComposedAnswer result = composer.compose("每学期最多修多少学分？", List.of(E1));
 
@@ -105,9 +125,10 @@ class GroundedAnswerComposerTest {
     @Test
     void shouldDegradeWhenModelTimesOut() {
         GroundedAnswerComposer composer = new GroundedAnswerComposer(
-                request -> { throw new ModelCallTimeoutException("read timed out"); },
-                new AnswerEvidenceGuard()
-        );
+                request -> {
+                    throw new ModelCallTimeoutException("read timed out");
+                },
+                new AnswerEvidenceGuard());
 
         ComposedAnswer result = composer.compose("问题", List.of(E1));
 
@@ -118,9 +139,10 @@ class GroundedAnswerComposerTest {
     @Test
     void shouldDegradeWhenModelRateLimited() {
         GroundedAnswerComposer composer = new GroundedAnswerComposer(
-                request -> { throw new ModelCallRateLimitException("429"); },
-                new AnswerEvidenceGuard()
-        );
+                request -> {
+                    throw new ModelCallRateLimitException("429");
+                },
+                new AnswerEvidenceGuard());
 
         ComposedAnswer result = composer.compose("问题", List.of(E1));
 
@@ -131,9 +153,10 @@ class GroundedAnswerComposerTest {
     @Test
     void shouldDegradeWhenModelOutputMalformed() {
         GroundedAnswerComposer composer = new GroundedAnswerComposer(
-                request -> { throw new ModelOutputFormatException("not json"); },
-                new AnswerEvidenceGuard()
-        );
+                request -> {
+                    throw new ModelOutputFormatException("not json");
+                },
+                new AnswerEvidenceGuard());
 
         ComposedAnswer result = composer.compose("问题", List.of(E1));
 
@@ -144,9 +167,10 @@ class GroundedAnswerComposerTest {
     @Test
     void shouldDegradeWhenModelCallFails() {
         GroundedAnswerComposer composer = new GroundedAnswerComposer(
-                request -> { throw new ModelCallFailedException("503"); },
-                new AnswerEvidenceGuard()
-        );
+                request -> {
+                    throw new ModelCallFailedException("503");
+                },
+                new AnswerEvidenceGuard());
 
         ComposedAnswer result = composer.compose("问题", List.of(E1));
 
@@ -157,9 +181,10 @@ class GroundedAnswerComposerTest {
     @Test
     void shouldDeclineImmediatelyWhenNoEvidenceApproved() {
         GroundedAnswerComposer composer = new GroundedAnswerComposer(
-                request -> { throw new AssertionError("无证据时不得调用模型"); },
-                new AnswerEvidenceGuard()
-        );
+                request -> {
+                    throw new AssertionError("无证据时不得调用模型");
+                },
+                new AnswerEvidenceGuard());
 
         ComposedAnswer result = composer.compose("问题", List.of());
 

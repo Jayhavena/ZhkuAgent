@@ -1,0 +1,147 @@
+{
+  "cases": [
+    {
+      "case": "initial-safe-original-and-page-bound",
+      "observed": {
+        "candidateApproveDisabled": true,
+        "cards": 20,
+        "editor": "<img src=x onerror=alert(1)> 原文必须按字面显示。",
+        "injectedImages": 0,
+        "page": "第 1 / 2 页；筛选结果 25 条",
+        "raw": "<img src=x onerror=alert(1)> 原文必须按字面显示。",
+        "summary": "共 25 条候选片段；待处理 21 条。所有候选片段必须通过或丢弃后才能发布。"
+      },
+      "passed": true
+    },
+    {
+      "case": "last-page-blank-and-final-state-readonly",
+      "observed": {
+        "cards": 5,
+        "page": "第 2 / 2 页；筛选结果 25 条",
+        "readonly": [
+          {
+            "buttons": 0,
+            "enabledFields": 0,
+            "heading": "PDF 第 22—22 页｜已丢弃"
+          },
+          {
+            "buttons": 0,
+            "enabledFields": 0,
+            "heading": "PDF 第 23—23 页｜已通过"
+          },
+          {
+            "buttons": 0,
+            "enabledFields": 0,
+            "heading": "PDF 第 24—24 页｜已通过"
+          },
+          {
+            "buttons": 0,
+            "enabledFields": 0,
+            "heading": "PDF 第 25—25 页｜已丢弃"
+          }
+        ],
+        "warning": true
+      },
+      "passed": true
+    },
+    {
+      "case": "draft-survives-page-change",
+      "observed": {
+        "heading": "PDF 第 1—1 页｜待审核",
+        "note": "翻页草稿备注",
+        "text": "未保存草稿 R2"
+      },
+      "passed": true
+    },
+    {
+      "case": "filtered-view-does-not-change-global-publication-gate",
+      "observed": {
+        "cards": 2,
+        "page": "第 1 / 1 页；筛选结果 2 条",
+        "publishDisabled": true,
+        "summary": "共 25 条候选片段；待处理 21 条。所有候选片段必须通过或丢弃后才能发布。"
+      },
+      "passed": true
+    },
+    {
+      "case": "draft-survives-filter-change",
+      "observed": {
+        "heading": "PDF 第 1—1 页｜待审核",
+        "note": "翻页草稿备注",
+        "text": "未保存草稿 R2"
+      },
+      "passed": true
+    },
+    {
+      "case": "save-separates-original-and-edit-and-keeps-review-note",
+      "observed": {
+        "approveDisabled": false,
+        "edited": "合成规则：请核对原文。已人工确认。",
+        "error": null,
+        "heading": "PDF 第 1—1 页｜待审核",
+        "note": "合成审核说明，非学校认定",
+        "raw": "合成规则：请核对原文。"
+      },
+      "passed": true
+    },
+    {
+      "case": "approved-is-readonly-and-pending-still-blocks-publication",
+      "observed": {
+        "buttons": 0,
+        "enabledFields": 0,
+        "heading": "PDF 第 1—1 页｜已通过",
+        "publishDisabled": true
+      },
+      "passed": true
+    },
+    {
+      "case": "all-candidates-decided-unlocks-publication",
+      "observed": {
+        "headings": [
+          "PDF 第 1—1 页｜已通过",
+          "PDF 第 2—2 页｜已丢弃"
+        ],
+        "publishDisabled": false,
+        "publishStatus": "已满足发布条件，请确认后发布"
+      },
+      "passed": true
+    },
+    {
+      "case": "explicit-publication-completes",
+      "observed": {
+        "error": null,
+        "publishDisabled": true,
+        "rows": [
+          "R2 合成审核发布资料｜TEST ONLY知识范围：R2_WORKFLOW｜当前状态：已发布已发布查看并继续",
+          "R2 合成分页与安全资料｜TEST ONLY知识范围：R2_SYNTHETIC｜当前状态：已提取已提取查看并继续"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "case": "split-clears-parent-draft-and-keeps-both-pending",
+      "observed": {
+        "cards": 20,
+        "error": null,
+        "firstPageTexts": [
+          {
+            "heading": "PDF 第 1—1 页｜待审核",
+            "id": "20000000-0000-0000-0000-000000000001",
+            "raw": "<img src=x onerror=alert(1)> 原文必须按字面显示。",
+            "text": "合成第一段"
+          },
+          {
+            "heading": "PDF 第 1—1 页｜待审核",
+            "id": "882bcca6-423a-4eb0-8090-219837c4e0fd",
+            "raw": "<img src=x onerror=alert(1)> 原文必须按字面显示。",
+            "text": "合成第二段"
+          }
+        ],
+        "summary": "共 26 条候选片段；待处理 22 条。所有候选片段必须通过或丢弃后才能发布。"
+      },
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "selectorRecovery": "严格标签匹配因含选项文字失败，使用已观察select ID恢复；异步保存/拆分完成后重新读取终态"
+}

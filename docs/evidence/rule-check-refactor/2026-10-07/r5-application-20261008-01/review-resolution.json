@@ -1,0 +1,34 @@
+{
+  "reviewer": "/root/r5_application_review",
+  "reviewModel": "gpt-6-astra",
+  "reviewBasis": "source-review.json and changes-review.diff before I1 fix; original verdict preserved in review.md",
+  "criticalFound": 0,
+  "importantFound": 1,
+  "minorFound": 1,
+  "criticalRemaining": 0,
+  "importantRemaining": 0,
+  "fixPasses": 1,
+  "reReviewRun": false,
+  "finalPhase": "r5-application-final-20261008-01",
+  "fixedFindings": [
+    {
+      "id": "I1",
+      "test": "factoryKeepsLexicalEvidenceWhenActualEmbeddingAdapterFailuresOccur",
+      "redPhase": "r5-application-review-red-20261008-01",
+      "implementation": "Factory-local vector retrieval boundary converts supplier/output runtime failures to RetrieverUnavailableException; healthy lexical path still traverses current evidence verification, audit and decision",
+      "verification": "RED22/1 assertion failure, zero errors/skips; final whole related suite must pass before completion; actual ModelCallFailedException and ModelOutputFormatException types are synthetic throws, no supplier call"
+    }
+  ],
+  "deferredMinors": [
+    "M1：切片夹具尚未构造不同chunk、错误版本排名更靠前且预算1的挤占反例；现有SQL过滤顺序正确且双路固定切片真库测试通过，回归保护增强留到检索评估步骤。"
+  ],
+  "rulings": [
+    "合法ID的自然语言相关性不由本批裁定 — 选择接口及替身不证明语义匹配，必须独立路由eval — 代价：不能据白名单宣称问答正确率。",
+    "真实2025条件、例外、审核责任与展示资格不由合成夹具裁定 — 真实草稿仍DRAFT且未激活 — 代价：无法凭本批启用学生资料。",
+    "v2身份、CSRF、页面、最终外发及历史再展示不由内部工厂裁定 — 本批无入口且旧v1合同不扩大 — 代价：浏览器闭环尚未交付。",
+    "跨目录/数据库/多条款原子一致与最终撤回窗口未证明 — 当前仅顺序复核，不作并发线性化承诺 — 代价：外发/重放需追加独立门禁。",
+    "完整有效期、发布清单、原召回entry追踪与历史正文重放保持后续边界 — 当前只验证已有资格字段与固定配置下匹配当前entry — 代价：来源完整生命周期及历史重放仍未完成。",
+    "真实模型效果、费用、报告质量与用户收益不由工程通过裁定 — 未执行供应商或真实参与者验证 — 代价：仍不能证明降低查证成本。",
+    "历史dirty、旧自由RAG风险、原库升级与全仓测试不由白名单验收裁定 — 仅审本批before增量及23类相关回归，原库未操作 — 代价：旧风险不关闭，原库升级未验证。"
+  ]
+}

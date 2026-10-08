@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <parent><groupId>com.yupi</groupId><artifactId>zhku-agent</artifactId><version>0.0.1-SNAPSHOT</version><relativePath>../pom.xml</relativePath></parent>
-  <groupId>com.yupi</groupId><artifactId>knowledge</artifactId><version>0.0.1-SNAPSHOT</version>
+  <parent><groupId>com.zhku</groupId><artifactId>zhku-agent</artifactId><version>0.1.0-rc.1</version><relativePath>../pom.xml</relativePath></parent>
+  <groupId>com.zhku</groupId><artifactId>knowledge</artifactId><version>0.1.0-rc.1</version>
   <name>ZhkuAgent Knowledge</name>
   <properties>
     <zhku.data-root>${project.basedir}</zhku.data-root>
@@ -22,8 +22,10 @@
   </dependencyManagement>
   <dependencies>
     <!-- 只共享运行上下文，不引入 agent 的通用工具与 Alibaba starter。 -->
-    <dependency><groupId>com.yupi</groupId><artifactId>agent-runtime</artifactId><version>${project.version}</version></dependency>
+    <dependency><groupId>com.zhku</groupId><artifactId>agent-runtime</artifactId><version>${project.version}</version></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
+    <!-- 仅新受控入口启用安全链；旧入口显式排除安全自动配置，版本沿用Boot BOM。 -->
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-jdbc</artifactId></dependency>
     <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-core</artifactId></dependency>
     <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-database-postgresql</artifactId></dependency>
@@ -37,15 +39,17 @@
     <dependency><groupId>org.springframework.ai</groupId><artifactId>spring-ai-openai</artifactId></dependency>
     <dependency><groupId>org.springframework.ai</groupId><artifactId>spring-ai-pgvector-store</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-test</artifactId><scope>test</scope></dependency>
   </dependencies>
   <build><plugins>
     <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><configuration><workingDirectory>${zhku.data-root}</workingDirectory></configuration></plugin>
-    <!-- 同一知识库保留两个独立入口，各自打包；普通 jar 供 CLI 使用。 -->
+    <!-- 原入口保留；受控入口独立打包，不让认证配置污染旧单人模式。普通jar供CLI使用。 -->
     <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId><executions>
       <execution><id>repackage</id><configuration><skip>true</skip></configuration></execution>
       <execution><id>preview</id><goals><goal>repackage</goal></goals><configuration><classifier>preview</classifier><mainClass>com.zhku.knowledge.web.ZhkuLocalPreviewApplication</mainClass></configuration></execution>
       <execution><id>admin</id><goals><goal>repackage</goal></goals><configuration><classifier>admin</classifier><mainClass>com.zhku.knowledge.governance.web.ZhkuLocalAdminApplication</mainClass></configuration></execution>
       <execution><id>index</id><goals><goal>repackage</goal></goals><configuration><classifier>index</classifier><mainClass>com.zhku.knowledge.retrieval.IndexPublishedKnowledgeCli</mainClass></configuration></execution>
+      <execution><id>controlled</id><goals><goal>repackage</goal></goals><configuration><classifier>controlled</classifier><mainClass>com.zhku.knowledge.controlled.ControlledPreviewApplication</mainClass></configuration></execution>
     </executions></plugin>
   </plugins></build>
 </project>

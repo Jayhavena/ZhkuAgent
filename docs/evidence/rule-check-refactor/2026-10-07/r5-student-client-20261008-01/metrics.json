@@ -1,0 +1,49 @@
+{
+  "stage": "STUDENT_V2_CLIENT_WORKFLOW_VERIFIED_NOT_PAGE_OR_BROWSER_ASSEMBLED",
+  "nodeTests": 69,
+  "newTests": 23,
+  "legacyTests": 46,
+  "failures": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "buildPassed": true,
+  "pageIntegrated": false,
+  "browserVerified": false,
+  "backendChanged": false,
+  "backendLastTests": 501,
+  "backendRerun": false,
+  "databaseCalled": false,
+  "providerCalled": false,
+  "studentVisible": false,
+  "qualityGatePassed": false,
+  "review": {
+    "reviewer": "/root/r5_student_client_review",
+    "criticalRemaining": 0,
+    "importantRemaining": 0,
+    "verificationStatus": "VERIFIED_FINAL_GREEN",
+    "fixed": [
+      "I1 当前401先检查epoch/round再清身份，固定AUTH_REVOKED不依赖空/HTML解析；旧epoch非JSON401丢弃，current auth错误不被本轮换代误掩盖。",
+      "I2 public me在identityBusy期间拒绝；login内部private readActor；logout pending→me→成功→迟到返回反例不复活身份。",
+      "I3 查证前置CSRF传expectedRound并登记query请求，更新token和处理401前验证；迟到A的JSON/HTML401不清B新题/身份。"
+    ],
+    "red": {
+      "tests": 16,
+      "failures": 3,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "green": {
+      "tests": 69,
+      "passed": 69,
+      "failures": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "deferredMinors": [],
+    "rulings": [
+      "401权限失效以HTTP状态为准，error body仅数据 — 代理/空正文也能返回401 — 成本：401统一固定AUTH_REVOKED，不回显服务端任意错误正文",
+      "public me和login内部身份读取分开 — login自己的identityBusy不能阻止必要的完成核验 — 成本：公开转换时明确AUTH_TRANSITION，不无限排队",
+      "CSRF获取属于调用问题轮次，auth CSRF仍属于身份 — 先请求与主请求必须共享丢弃语义 — 成本：轮次替代会取消前置CSRF，用户显式新题再取"
+    ]
+  }
+}

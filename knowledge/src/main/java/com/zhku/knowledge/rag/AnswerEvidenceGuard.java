@@ -9,23 +9,20 @@ import java.util.Set;
 /**
  * 回答证据守卫：模型输出下发前的最后一道校验。
  *
- * <p>三条确定性校验，任一不过即整答降级：
- * ① 引用白名单——citationIds 必须全部属于本轮获准证据；
- * ② 置信下限——低置信结论不展示给学生；
- * ③ 原子结论支持范围——回答中的办理结果断言必须能在所引证据（剔除注入嫌疑文本后）
- * 中找到同文依据，防止越界资格结论与提示注入驱动回答。</p>
+ * <p>检查正文、分值、非空引用及本轮引用白名单，并保留转人工和特定办理短语的降级规则。
+ * 短语检查仅覆盖列举的表达，不验证一般事实、数字、条件或例外；合法引用不能证明结论正确。</p>
  */
 public final class AnswerEvidenceGuard {
 
-    /** 置信下限：低于该值的结论按"不确定"处理。阈值调整属基线变更，须登记证据账本。 */
+    /** 沿用既有自报分值下限；不是经校准的正确概率。阈值调整须登记证据账本。 */
     static final double MIN_UNCERTAINTY = 0.5;
 
-    /** 提示注入特征：含此类文本的证据失去支持力（不等于资料入库资格，那是过滤器的职责）。 */
+    /** 含这些特征的文本不能支持下列办理短语；不构成完整注入防护或资料入库资格检查。 */
     private static final List<String> INJECTION_PATTERNS = List.of(
             "忽略之前的指令", "忽略以上指令", "ignore previous instructions", "ignore all instructions"
     );
 
-    /** 办理结果断言特征：此类结论直接改变学生状态，证据必须同文支持，不得由模型推断。 */
+    /** 既有办理断言短语表；同文命中仅是窄范围检查，不证明个人资格或办理已完成。 */
     private static final List<String> OUTCOME_ASSERTIONS = List.of(
             "登记成功", "办理成功", "已为你", "可以免修", "已批准", "已通过审核"
     );
@@ -40,6 +37,19 @@ public final class AnswerEvidenceGuard {
     public Optional<String> verify(ModelResponse response, List<ApprovedEvidence> approved) {
         Objects.requireNonNull(response, "模型输出不能为空");
         Objects.requireNonNull(approved, "获准证据列表不能为空");
+
+        // 调用方可以直接构造record，不能把解析器作为唯一边界，否则NaN和空引用仍可绕过。
+        if (response.answer().isBlank()) {
+            return Optional.of("模型回答不能为空白");
+        }
+        double score = response.uncertainty();
+        if (!Double.isFinite(score) || score < 0 || score > 1) {
+            return Optional.of("模型自报分值必须是0至1的有限数");
+        }
+        if (response.citationIds().isEmpty()
+                || response.citationIds().stream().anyMatch(String::isBlank)) {
+            return Optional.of("模型回答必须包含非空白的引用标识");
+        }
 
         Set<String> whitelist = new HashSet<>();
         for (ApprovedEvidence evidence : approved) {

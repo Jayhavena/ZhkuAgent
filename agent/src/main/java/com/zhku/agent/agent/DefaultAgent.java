@@ -28,7 +28,8 @@ public class DefaultAgent extends ToolCallAgent {
                 Based on user needs, proactively select the most appropriate tool or combination of tools.
                 For complex tasks, you can break down the problem and use different tools step by step to solve it.
                 After using each tool, clearly explain the execution results and suggest the next steps.
-                If you want to stop the interaction at any point, use the `terminate` tool/function call.
+                When the request is completed, call doTerminate with outcome COMPLETED.
+                If you cannot proceed, call doTerminate with outcome BLOCKED. Never claim completion just to stop.
                 """;
         this.setNextStepPrompt(NEXT_STEP_PROMPT);
         this.setMaxSteps(20);

@@ -27,7 +27,7 @@ class PublicElectiveRetakeSharedCorpusTest {
 
     @Test
     void shouldAnswerExplicitPublicElectiveRetakeFromApprovedCorpus() throws Exception {
-        String url = System.getProperty("zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
+        String url = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
         String user = System.getProperty("zhku.db.user", "zhkuagent");
         String password = ZhkuDatabaseTestConfig.databasePassword();
         EvaluationDataset dataset = new EvaluationDatasetLoader().loadDataset(

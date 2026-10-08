@@ -1,0 +1,130 @@
+--- before/agent/frontend/src/api/controlled.js
++++ checkpoint/agent/frontend/src/api/controlled.js
+@@ -174,6 +174,7 @@
+ export function errorMessage(error) {
+   if (error.code === 'AUTH_TRANSITION') return '正在切换登录状态，请等待完成后再操作。'
+   if (error.submissionUnknown) return '提交结果暂未确认，请先确认本次提交，不要新建重复任务。'
++  if (error.code === 'SUBMISSION_CONTENT_CONFLICT') return '同一次提交的课程或问题与原提交不一致。请先查看原任务；修改内容时请明确新建任务。'
+   if (error.status === 401) return '登录已失效，请重新登录。'
+   if (error.status === 403) return '暂时无法进行此操作，请确认登录账号或刷新页面后再试。'
+   if (error.status === 404) return '未找到这条记录，或当前账号无法查看。'
+--- before/agent/frontend/src/views/CampusRun.vue
++++ checkpoint/agent/frontend/src/views/CampusRun.vue
+@@ -39,7 +39,9 @@
+       error.value = errorMessage(failure); unknown.value = failure.submissionUnknown === true
+       if (unknown.value) facts.value = submissionFacts({ location: 'UNCONFIRMED', runId: original.runId })
+       // 明确拒绝也保留同次请求；用户可手动再发，不能由网络层暗中重试。
+-      notice.value = '先确认本次提交；重新发送只使用本页保留的原课程。新建会产生新的提交。'
++      notice.value = failure.code === 'SUBMISSION_CONTENT_CONFLICT'
++        ? '请先查看原任务。修改内容时请明确新建另一任务。'
++        : '先确认本次提交；重新发送只使用本页保留的原课程。新建会产生新的提交。'
+     }
+   } finally { if (expected === version) busy.value = false }
+ }
+@@ -99,7 +101,7 @@
+   <header class="page-heading"><h1>学分任务</h1><p>填写课程，查看有出处的学分结果。</p></header>
+   <div class="task-columns"><section class="input-area"><div class="section-heading"><h2>{{ active && !question ? '当前任务' : '课程信息' }}</h2>
+     <button v-if="!active" class="text-button" type="button" @click="fill" :disabled="busy || active || !user">使用示例课程</button></div>
+-    <p v-if="active && !question" class="empty-state">正在确认这次提交。刷新不会恢复原课程，暂未找到记录也不代表从未受理。</p>
++    <p v-if="active && !question" class="empty-state">{{ facts?.state || facts?.archiveStatus === 'FINALIZED' ? '已找到本次任务记录。刷新不会恢复原课程。' : '正在确认这次提交。刷新不会恢复原课程，暂未找到记录也不代表从未受理。' }}</p>
+     <form v-else @submit.prevent="submit"><fieldset :disabled="busy || active || !user"><label for="question">你想核对的问题</label>
+       <textarea id="question" v-model="question" rows="3" required maxlength="500" />
+       <div class="course-heading"><h3>本次课程</h3></div><div class="course-table-wrap"><table class="course-table"><thead><tr><th>课程编号</th><th>类别</th><th>学分</th><th><span class="sr-only">操作</span></th></tr></thead>
+--- before/agent/frontend/tests/controlled-copy.test.mjs
++++ checkpoint/agent/frontend/tests/controlled-copy.test.mjs
+@@ -0,0 +1,40 @@
++import test, { after } from 'node:test'
++import assert from 'node:assert/strict'
++import { createSSRApp } from 'vue'
++import { renderToString } from '@vue/server-renderer'
++import { createRouter, createMemoryHistory } from 'vue-router'
++import { createServer } from 'vite'
++import { fileURLToPath } from 'node:url'
++import { errorMessage, ControlledError } from '../src/api/controlled.js'
++const vite=await createServer({root:fileURLToPath(new URL('..',import.meta.url)),server:{middlewareMode:true,hmr:false},appType:'custom',logLevel:'silent'})
++after(()=>vite.close())
++const component=(await vite.ssrLoadModule('/src/views/CampusRun.vue')).default
++const ID='22222222-2222-4222-8222-222222222222'
++async function render(facts) {
++  // 实际setup和SSR模板；仅在已执行setup后装入合成展示状态，不运行网络或浏览器点击。
++  const app=createSSRApp({...component,setup(props,context){const state=component.setup(props,context);state.facts.value=facts;return state}})
++  const router=createRouter({history:createMemoryHistory(),routes:[{path:'/campus/run',component:{template:'<div />'}}]})
++  app.use(router);await router.push('/campus/run?runId='+ID);await router.isReady();return renderToString(app)
++}
++test('same submission key with different content explains conflict and deliberate new task',()=>{
++  const message=errorMessage(new ControlledError('SUBMISSION_CONTENT_CONFLICT',409))
++  assert.match(message,/内容|课程或问题/);assert.match(message,/不一致/);assert.match(message,/原任务/);assert.match(message,/新建/)
++  assert.doesNotMatch(message,/未受理|重新发送/)
++  assert.match(errorMessage(new ControlledError('NETWORK_UNAVAILABLE',0,{submissionUnknown:true})),/暂未确认/)
++})
++test('completed live and finalized archived tasks never claim still confirming submission',async()=>{
++  for(const facts of [{runId:ID,state:'SUCCEEDED',terminated:true,visibility:'HIDDEN',location:'LIVE'},
++    {runId:ID,state:'SUCCEEDED',archiveStatus:'FINALIZED',visibility:'VISIBLE',location:'ARCHIVED'},
++    {runId:ID,archiveStatus:'FINALIZED',visibility:'HIDDEN',location:'ARCHIVED'}]) {
++    const html=await render(facts);assert.doesNotMatch(html,/正在确认这次提交/);assert.match(html,/已找到本次任务记录/)
++  }
++})
++test('missing or unconfirmed record retains uncertainty without asserting never accepted',async()=>{
++  for(const facts of [null,{runId:ID,location:'UNCONFIRMED',visibility:'UNCONFIRMED'}]) {
++    const html=await render(facts);assert.match(html,/正在确认这次提交/);assert.match(html,/不代表从未受理/)
++  }
++})
++test('known running task is found but not called completed',async()=>{
++  const html=await render({runId:ID,state:'RUNNING',terminated:false,location:'LIVE',visibility:'RUNNING'})
++  assert.match(html,/已找到本次任务记录/);assert.match(html,/正在核对/);assert.doesNotMatch(html,/正在确认这次提交|已完成/)
++})
+--- before/docs/product/rule-check-blockers.md
++++ checkpoint/docs/product/rule-check-blockers.md
+@@ -189,3 +189,7 @@
+ 有效37/3 Cookie RED、16/1 csrf恢复RED→48类503（358纯单元+133临时库含22实际HTTP+12配置）、0fail/error/skip/sourceDrift，V22/18迁移/连接0/退出核对；29合同计数替身。首次37/3并发夹具停在B登录，502回归含调用计数夹具，首次503回归1失败为登录后旧CSRF导致403；全部失败报告保留、不冒称对应行为RED/GREEN。最终[证据](../evidence/rule-check-refactor/2026-10-07/r5-entry-identity-20261008-01/acceptance.md)明确范围。审查C0/I0/M2；合同同步+Controller仅注释scope extension，原9项before保留，实际去注释语义等价，不重跑Java。前端80保护未改未重跑。
+ 
+ 本批仅v2入口身份失败，不解决旧v1、主动logout或匿名CSRF新Session的网络Cookie交付窗口；资料/规则顺序核验非最终交付原子性。A10整链/真实内容B/C/G2仍OPEN，无模型/原库写入。
++
++## 2026-10-08 核心浏览器链检查点（未整体验收通过）
++
++实际合成学生登录→回答→原文高亮、撤回后原文拒绝/缺证、退出清显示已观察。Java字段declaredConditions与前端条件夹具不一致已有效17/1 RED→85/85 GREEN，构建通过；runner合同29项通过。live03六分钟到期未显式STOP，JUnit失败保留，账号B/维护者/其余状态矩阵未验证，A10继续OPEN。专用DB/Java/Nginx与临时浏览器已退出，无真实模型/原库写入。旧v1两处文案已修复，待一次合并审查。[检查点与问题证据](../evidence/rule-check-refactor/2026-10-07/r5-browser-chain-20261008-01/checkpoint.md)。真实资料/B/C/G2不放行。
+--- before/docs/product/rule-check-remaining-tasks-2026-10-08.md
++++ checkpoint/docs/product/rule-check-remaining-tasks-2026-10-08.md
+@@ -26,8 +26,8 @@
+ | A06 | 原文查询与定位入口（HTTP/会话凭据已验收，真实页码/浏览器待续） | 学生点击后到达实际版本/页码/条款；来源元数据与引用绑定；不存在/内部/撤回资料拒绝；资料文本与地址安全展示 | Codex；A01/A03/B01 |
+ | A07 | 最终外发及再次展示边界（HTTP复查及v2入口迟到撤销/身份恢复已验收，网络窗口仍有局限） | 明确从取证到响应、历史再次展示的复查策略；真实HTTP层撤回/版本/hash/身份变化矩阵；阻断或重取证，不用顺序检查宣称全链原子性 | Codex；A03/A06；完整清单时效继续D组 |
+ | A08 | 学生查证页面与产品入口（v2客户端/状态与页面已验收，完整代理浏览器待续） | 提问、五状态、原文、条件/例外、独立确认项/未知项、版本说明；主入口改为规则查证，学分/通用Agent放实验导航；保留旧URL | Codex；可先合成页面，真实使用依赖B组 |
+-| A09 | 页面状态与兼容修复（身份/问题迟到状态已验收，旧v1文案/浏览器待续） | 修RC-11同键内容冲突说明和完成后仍“正在确认”；丢响应不能说未受理，不自动重复执行未知任务；换账号不展示旧正文；沿用实际涉及的3C合同 | Codex；A08，不把只读查证强塞进学分执行循环 |
+-| A10 | 浏览器端到端验收（v2代理夹具已通过，实际Java整链待续） | 实际Vue→Nginx→Java→专用临时库覆盖回答/部分回答/澄清/缺证/冲突、定位、撤回、换账号和旧v1；中文及普通用户终端验证 | Codex；A01–A09；替身效果与供应商效果分开 |
++| A09 | 页面状态与兼容修复（身份/问题迟到状态已验收，旧v1文案已修复待合并审查，完整浏览器待续） | 修RC-11同键内容冲突说明和完成后仍“正在确认”；丢响应不能说未受理，不自动重复执行未知任务；换账号不展示旧正文；沿用实际涉及的3C合同 | Codex；A08，不把只读查证强塞进学分执行循环 |
++| A10 | 浏览器端到端验收（实际合成回答/原文/撤回已观察，完整矩阵未通过） | 实际Vue→Nginx→Java→专用临时库覆盖回答/部分回答/澄清/缺证/冲突、定位、撤回、换账号和旧v1；中文及普通用户终端验证 | Codex；A01–A09；替身效果与供应商效果分开 |
+ 
+ ## B. 真实2025资料与规则门禁：R0遗留 / R5，必须完成
+ 
+@@ -107,7 +107,7 @@
+ |---|---|---|
+ | H01 / P0遗留已处理 | 旧默认入口已guard，完整测试分类仍F06 | 32默认站点统一显式专用目标，静态字段/迁移/子进程启动前拒绝原库；连接入口源审查，额外12旧DB类39项通过；不能据此称全部旧类已执行或完整CI完成 |
+ | H02 / 低优先覆盖 | 三项既有延期测试缺口 | 当前reader别名不同的核验组件正向单测；reader的run/entry跨profile反例；Task2E不同chunk/错误切片高排名/预算1挤占反例。已有集成/审计部分覆盖，补缺失组件反例，不重新实现已正确逻辑 |
+-| H03 / 记录维护 | 同步当前进度索引与发布说明 | 主路线图/问题索引部分摘要仍为较早批次，按最新证据追加当前状态、延期项和回退说明；保留旧记录，不让263工程测试替代质量/用户成绩 |
++| H03 / 记录维护 | 同步当前进度索引与发布说明 | 当前索引已同步至Task2P/3B/3C1；后续按新增证据维护，保留历史记录，不让工程测试替代质量/用户成绩 |
+ 
+ 每批持续要求：问题ID/明确白名单→实际失败→最小改动→定向与必要兼容验证→增量/XML/哈希/退出证据→问题状态。真实数据库、浏览器、供应商与用户证据分开；不按文件数、测试数累加或模型自评分判断价值。
+ 
+--- before/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
++++ checkpoint/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
+@@ -314,3 +314,10 @@
+ 
+ - [x] 主路线/范围/证据索引/47项任务当前503/80/5分别表达，20开发参考已确认；合成、SSR、配置、计数替身和真实资料效果边界完整。
+ - [x] 证据链接/计数对照、before/after/diff/hash；不重跑无变化业务代码，真实B/C/G0/G2不放行。
++
++## Task3C2 / A09–A10 当前检查点
++
++- [x] 实际HTTP响应反例17/1 RED，客户端严格核验declaredConditions后映射页面；Node85/85及构建、runner29合同通过。
++- [x] 实际合成浏览器登录/回答/原文/资料撤回/退出观察已记录，专用资源退出。
++- [ ] 完整浏览器矩阵及普通终端；live03超时失败，不能标整体验收通过。
++- [ ] 旧文案与本批改动的一次合并审查；真实资料和G2另按门禁。
+--- before/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
++++ checkpoint/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
+@@ -552,3 +552,7 @@
+ Task3C1: complete — 实际Nginx→Node代理有效404/403RED→5 GREEN，原v1段逐字相同，C0/I0/M0审查，58480/58184及独立容器/网络退出。仅代理工程，无Java/DB/provider/浏览器身份，完整Task3C2另续。
+ TaskH03: complete — 主路线/范围卡/证据README/任务清单当前状态按实际503/80/5分开更新，20开发参考已确认、真实DRAFT/B/C/G0/G2未放行；旧历史阶段保留，当前链接核验，无业务代码变化。
+ TaskH03: Ruling: 文档不能继续称人工20题待确认或停在R3，也不能用合成测试关闭产品父问题 — 所有完成声明按证据阶段和输入范围 — 成本：持续维护最新索引，历史批次保持原时点。
++
++Task3C2: partial — 实际Java响应字段不一致17/1有效RED→全Node85/85/构建，runner29合同通过。实际浏览器已观察登录/回答/原文高亮/撤回拒绝与缺证/退出清显示；live03六分钟到期、JUnit1fail，账号B/维护者/其他状态与旧v1仍未完成，不宣布A10通过。资源退出，失败日志保留。
++TaskA09: implemented, final-review-pending — 旧v1内容冲突与已有任务文案有效4/3 RED→全Node85/85；尚未最终合并审查。
++Ruling: 用户指出耗时过长后暂停外围整理和逐项审查，以完整可用核心链为下一交付点，不再无新风险重跑503全套 — 当前审查与浏览器矩阵保持未完成 — 成本：未审查改动暂不作最终交付/发布声明。

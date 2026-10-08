@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.162" tests="19" errors="0" skipped="0" failures="17"><testcase name="capturedIneligibleEvidenceCannotCauseRead" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.072"><failure message="&#xA;expected: INELIGIBLE_EVIDENCE&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: INELIGIBLE_EVIDENCE
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectBeforeRead(RuleCheckEvidenceVerifierTest.java:164)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.capturedIneligibleEvidenceCannotCauseRead(RuleCheckEvidenceVerifierTest.java:76)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="resultCannotRepresentSuccessAndFailureTogether" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.003" /><testcase name="validCitationAndRangeCannotChangeFourIntoForty" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.002"><failure message="&#xA;expected: QUOTE_MISMATCH&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: QUOTE_MISMATCH
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectBeforeRead(RuleCheckEvidenceVerifierTest.java:164)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.validCitationAndRangeCannotChangeFourIntoForty(RuleCheckEvidenceVerifierTest.java:44)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="negativeEmptyReversedAndOverflowRangesAreControlled" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.002"><failure message="&#xA;expected: INVALID_SPAN&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: INVALID_SPAN
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectBeforeRead(RuleCheckEvidenceVerifierTest.java:164)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.negativeEmptyReversedAndOverflowRangesAreControlled(RuleCheckEvidenceVerifierTest.java:95)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="validExcerptUsesServerIdentityAndReadsCurrentEvidenceExactlyOnce" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.004"><failure message="&#xA;Expecting value to be true but was false" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.validExcerptUsesServerIdentityAndReadsCurrentEvidenceExactlyOnce(RuleCheckEvidenceVerifierTest.java:36)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="repeatedTextIsVerifiedAtSpecifiedPosition" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.001"><failure message="&#xA;Expecting value to be true but was false" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.repeatedTextIsVerifiedAtSpecifiedPosition(RuleCheckEvidenceVerifierTest.java:116)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="checksumHexCaseDoesNotChangeItsValue" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.002"><failure message="&#xA;Expecting value to be true but was false" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.checksumHexCaseDoesNotChangeItsValue(RuleCheckEvidenceVerifierTest.java:87)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="nullOrBlankProposalIsControlledRejection" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.003" /><testcase name="unknownCitationCannotCauseCurrentRead" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.002"><failure message="&#xA;expected: UNKNOWN_CITATION&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: UNKNOWN_CITATION
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectBeforeRead(RuleCheckEvidenceVerifierTest.java:164)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.unknownCitationCannotCauseCurrentRead(RuleCheckEvidenceVerifierTest.java:48)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="duplicateIdentifiersRejectEvenIfOneWouldMatch" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.026"><failure message="&#xA;expected: DUPLICATE_CITATION&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: DUPLICATE_CITATION
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectBeforeRead(RuleCheckEvidenceVerifierTest.java:164)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.duplicateIdentifiersRejectEvenIfOneWouldMatch(RuleCheckEvidenceVerifierTest.java:62)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="currentIdentityCannotSubstituteAnotherSourceOrChunk" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.001"><failure message="&#xA;expected: CURRENT_EVIDENCE_CHANGED&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: CURRENT_EVIDENCE_CHANGED
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectCurrent(RuleCheckEvidenceVerifierTest.java:157)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.currentIdentityCannotSubstituteAnotherSourceOrChunk(RuleCheckEvidenceVerifierTest.java:137)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="malformedUnicodeSourceCannotBecomeAnExcerpt" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.002"><failure message="&#xA;expected: INVALID_EVIDENCE&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: INVALID_EVIDENCE
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectBeforeRead(RuleCheckEvidenceVerifierTest.java:164)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.malformedUnicodeSourceCannotBecomeAnExcerpt(RuleCheckEvidenceVerifierTest.java:109)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="currentMissingOrReaderFailureCannotLeakProposalText" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.001"><failure message="&#xA;expected: CURRENT_EVIDENCE_UNAVAILABLE&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: CURRENT_EVIDENCE_UNAVAILABLE
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.currentMissingOrReaderFailureCannotLeakProposalText(RuleCheckEvidenceVerifierTest.java:123)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="currentTextOrChecksumChangeIsRejectedEvenWithSameQuote" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.001"><failure message="&#xA;expected: CURRENT_EVIDENCE_CHANGED&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: CURRENT_EVIDENCE_CHANGED
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectCurrent(RuleCheckEvidenceVerifierTest.java:157)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.currentTextOrChecksumChangeIsRejectedEvenWithSameQuote(RuleCheckEvidenceVerifierTest.java:143)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="malformedApprovedListIsRejectedBeforeRead" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.001"><failure message="&#xA;expected: INVALID_EVIDENCE&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: INVALID_EVIDENCE
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectBeforeRead(RuleCheckEvidenceVerifierTest.java:164)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.malformedApprovedListIsRejectedBeforeRead(RuleCheckEvidenceVerifierTest.java:68)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="utf16SpanCannotSplitSurrogatePair" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.002"><failure message="&#xA;expected: INVALID_SPAN&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: INVALID_SPAN
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectBeforeRead(RuleCheckEvidenceVerifierTest.java:164)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.utf16SpanCannotSplitSurrogatePair(RuleCheckEvidenceVerifierTest.java:101)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="currentWithdrawalIsRejected" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.001"><failure message="&#xA;expected: CURRENT_EVIDENCE_CHANGED&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: CURRENT_EVIDENCE_CHANGED
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectCurrent(RuleCheckEvidenceVerifierTest.java:157)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.currentWithdrawalIsRejected(RuleCheckEvidenceVerifierTest.java:129)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="identicalTextDoesNotBypassRevisionChange" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.001"><failure message="&#xA;expected: CURRENT_EVIDENCE_CHANGED&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: CURRENT_EVIDENCE_CHANGED
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectCurrent(RuleCheckEvidenceVerifierTest.java:157)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.identicalTextDoesNotBypassRevisionChange(RuleCheckEvidenceVerifierTest.java:133)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="capturedChecksumMustBeRealUtf8Sha256" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest" time="0.001"><failure message="&#xA;expected: INVALID_CHECKSUM&#xA; but was: INVALID_PROPOSAL" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: INVALID_CHECKSUM
+ but was: INVALID_PROPOSAL
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.assertRejected(RuleCheckEvidenceVerifierTest.java:168)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.rejectBeforeRead(RuleCheckEvidenceVerifierTest.java:164)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest.capturedChecksumMustBeRealUtf8Sha256(RuleCheckEvidenceVerifierTest.java:81)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase></testsuite>

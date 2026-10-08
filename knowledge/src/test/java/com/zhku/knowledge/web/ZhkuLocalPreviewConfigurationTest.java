@@ -57,7 +57,7 @@ class ZhkuLocalPreviewConfigurationTest {
                 ).applyTo(context.getEnvironment()))
                 .withPropertyValues(
                         "spring.profiles.active=zhku-local-preview",
-                        "zhku.local-preview.enabled=true"
+                        "zhku.local-preview.enabled=true", "server.address=127.0.0.1"
                 )
                 .withUserConfiguration(
                         ZhkuLocalPreviewConfiguration.class,
@@ -80,7 +80,7 @@ class ZhkuLocalPreviewConfigurationTest {
                 ).applyTo(context.getEnvironment()))
                 .withPropertyValues(
                         "spring.profiles.active=zhku-local-preview",
-                        "zhku.local-preview.enabled=true",
+                        "zhku.local-preview.enabled=true", "server.address=127.0.0.1",
                         "zhku.local-preview.current-academic-term=2026-2027-1",
                         "zhku.local-preview.course-selection-official-query-url=https://jwc.zhku.edu.cn"
                 )

@@ -25,9 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /** V16 的 JDBC 契约：只清理本测试写入的随机软引用，不重置共享测试库。 */
 class JdbcFeedbackRepositoryTest {
 
-    private static final String DATABASE_URL = System.getProperty(
-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
-    );
+    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
     private static final String DATABASE_USER = System.getProperty("zhku.db.user", "zhkuagent");
     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
     private static final DataSource DATA_SOURCE = new DriverManagerDataSource(

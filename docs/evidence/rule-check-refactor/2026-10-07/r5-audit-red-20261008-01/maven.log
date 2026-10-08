@@ -1,0 +1,236 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] ZhkuAgent                                                          [pom]
+[INFO] ZhkuAgent Shared Runtime                                           [jar]
+[INFO] ZhkuAgent Knowledge                                                [jar]
+[INFO] 
+[INFO] ------------------------< com.zhku:zhku-agent >-------------------------
+[INFO] Building ZhkuAgent 0.0.1-SNAPSHOT                                  [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] -----------------------< com.zhku:agent-runtime >-----------------------
+[INFO] Building ZhkuAgent Shared Runtime 0.0.1-SNAPSHOT                   [2/3]
+[INFO]   from agent-runtime\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ agent-runtime ---
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.0.1-SNAPSHOT                        [3/3]
+[INFO]   from knowledge\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 20 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 284 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 2 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 206 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[WARNING] file.encoding cannot be set as system property, use <argLine>-Dfile.encoding=...</argLine> instead
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+[ERROR] Tests run: 6, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 0.238 s <<< FAILURE! -- in com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest
+[ERROR] com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.databaseFailureCannotBecomeSuccessfulAudit -- Time elapsed: 0.115 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting AtomicInteger(0) to have value:
+  1
+but did not.
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.databaseFailureCannotBecomeSuccessfulAudit(JdbcRuleCheckCitationAuditTargetTest.java:66)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.legacyRepositoryCannotAcceptNewCaptureRoute -- Time elapsed: 0.005 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  java.lang.IllegalArgumentException
+but was:
+  java.lang.IllegalStateException: �޷�д���������
+	at com.zhku.knowledge.rag.JdbcCitationAuditRepository.record(JdbcCitationAuditRepository.java:50)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.lambda$legacyRepositoryCannotAcceptNewCaptureRoute$5(JdbcRuleCheckCitationAuditTargetTest.java:43)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.legacyRepositoryCannotAcceptNewCaptureRoute(JdbcRuleCheckCitationAuditTargetTest.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.legacyRecordWithoutCapturedBindingCannotConnect -- Time elapsed: 0.003 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  java.lang.IllegalArgumentException
+but was:
+  java.lang.IllegalStateException: �������δʵ��
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckCitationAuditRepository.record(JdbcRuleCheckCitationAuditRepository.java:12)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.lambda$legacyRecordWithoutCapturedBindingCannotConnect$6(JdbcRuleCheckCitationAuditTargetTest.java:48)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.legacyRecordWithoutCapturedBindingCannotConnect(JdbcRuleCheckCitationAuditTargetTest.java:49)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.wrongRouteAndMalformedBindingCannotConnect -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  java.lang.IllegalArgumentException
+but was:
+  java.lang.IllegalStateException: �������δʵ��
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckCitationAuditRepository.record(JdbcRuleCheckCitationAuditRepository.java:12)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.lambda$wrongRouteAndMalformedBindingCannotConnect$7(JdbcRuleCheckCitationAuditTargetTest.java:55)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.wrongRouteAndMalformedBindingCannotConnect(JdbcRuleCheckCitationAuditTargetTest.java:56)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.missingFixedScopeConfigCannotConnect -- Time elapsed: 0.015 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.missingFixedScopeConfigCannotConnect(JdbcRuleCheckCitationAuditTargetTest.java:36)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest
+[ERROR] Tests run: 12, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.177 s <<< FAILURE! -- in com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest
+[ERROR] com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.capturesPersistentIdentityWithServerAliasesAndAudit -- Time elapsed: 0.043 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting all elements of:
+  [CitationAuditRecord[citationId=alias-1, chunkId=23bb1fd5-6002-4aeb-98e1-2213aac6fffe, route=RULE_CHECK_CAPTURE, issuedAt=2026-10-08T08:00:00Z, sourceId=null, sourceRevision=null, contentChecksum=null, content=null],
+    CitationAuditRecord[citationId=alias-2, chunkId=ebba4d08-6b92-4d82-a410-e44b7f596f22, route=RULE_CHECK_CAPTURE, issuedAt=2026-10-08T08:00:00Z, sourceId=null, sourceRevision=null, contentChecksum=null, content=null]]
+to satisfy given requirements, but these elements did not:
+
+CitationAuditRecord[citationId=alias-1, chunkId=23bb1fd5-6002-4aeb-98e1-2213aac6fffe, route=RULE_CHECK_CAPTURE, issuedAt=2026-10-08T08:00:00Z, sourceId=null, sourceRevision=null, contentChecksum=null, content=null]
+error: 
+expected: 3f7f9085-a298-4c8c-a854-b4a6575fec50
+ but was: null
+
+CitationAuditRecord[citationId=alias-2, chunkId=ebba4d08-6b92-4d82-a410-e44b7f596f22, route=RULE_CHECK_CAPTURE, issuedAt=2026-10-08T08:00:00Z, sourceId=null, sourceRevision=null, contentChecksum=null, content=null]
+error: 
+expected: 3f7f9085-a298-4c8c-a854-b4a6575fec50
+ but was: null
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.capturesPersistentIdentityWithServerAliasesAndAudit(RuleCheckEvidenceCaptureTest.java:62)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   JdbcRuleCheckCitationAuditTargetTest.databaseFailureCannotBecomeSuccessfulAudit:66 
+Expecting AtomicInteger(0) to have value:
+  1
+but did not.
+[ERROR]   JdbcRuleCheckCitationAuditTargetTest.legacyRecordWithoutCapturedBindingCannotConnect:49 
+Expecting actual throwable to be an instance of:
+  java.lang.IllegalArgumentException
+but was:
+  java.lang.IllegalStateException: �������δʵ��
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckCitationAuditRepository.record(JdbcRuleCheckCitationAuditRepository.java:12)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.lambda$legacyRecordWithoutCapturedBindingCannotConnect$6(JdbcRuleCheckCitationAuditTargetTest.java:48)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+[ERROR]   JdbcRuleCheckCitationAuditTargetTest.legacyRepositoryCannotAcceptNewCaptureRoute:43 
+Expecting actual throwable to be an instance of:
+  java.lang.IllegalArgumentException
+but was:
+  java.lang.IllegalStateException: �޷�д���������
+	at com.zhku.knowledge.rag.JdbcCitationAuditRepository.record(JdbcCitationAuditRepository.java:50)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.lambda$legacyRepositoryCannotAcceptNewCaptureRoute$5(JdbcRuleCheckCitationAuditTargetTest.java:43)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+[ERROR]   JdbcRuleCheckCitationAuditTargetTest.missingFixedScopeConfigCannotConnect:36 
+Expecting code to raise a throwable.
+[ERROR]   JdbcRuleCheckCitationAuditTargetTest.wrongRouteAndMalformedBindingCannotConnect:56 
+Expecting actual throwable to be an instance of:
+  java.lang.IllegalArgumentException
+but was:
+  java.lang.IllegalStateException: �������δʵ��
+	at com.zhku.knowledge.rulecheck.JdbcRuleCheckCitationAuditRepository.record(JdbcRuleCheckCitationAuditRepository.java:12)
+	at com.zhku.knowledge.retrieval.JdbcRuleCheckCitationAuditTargetTest.lambda$wrongRouteAndMalformedBindingCannotConnect$7(JdbcRuleCheckCitationAuditTargetTest.java:55)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:63)
+	...(73 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+[ERROR]   RuleCheckEvidenceCaptureTest.capturesPersistentIdentityWithServerAliasesAndAudit:62 
+Expecting all elements of:
+  [CitationAuditRecord[citationId=alias-1, chunkId=23bb1fd5-6002-4aeb-98e1-2213aac6fffe, route=RULE_CHECK_CAPTURE, issuedAt=2026-10-08T08:00:00Z, sourceId=null, sourceRevision=null, contentChecksum=null, content=null],
+    CitationAuditRecord[citationId=alias-2, chunkId=ebba4d08-6b92-4d82-a410-e44b7f596f22, route=RULE_CHECK_CAPTURE, issuedAt=2026-10-08T08:00:00Z, sourceId=null, sourceRevision=null, contentChecksum=null, content=null]]
+to satisfy given requirements, but these elements did not:
+
+CitationAuditRecord[citationId=alias-1, chunkId=23bb1fd5-6002-4aeb-98e1-2213aac6fffe, route=RULE_CHECK_CAPTURE, issuedAt=2026-10-08T08:00:00Z, sourceId=null, sourceRevision=null, contentChecksum=null, content=null]
+error: 
+expected: 3f7f9085-a298-4c8c-a854-b4a6575fec50
+ but was: null
+
+CitationAuditRecord[citationId=alias-2, chunkId=ebba4d08-6b92-4d82-a410-e44b7f596f22, route=RULE_CHECK_CAPTURE, issuedAt=2026-10-08T08:00:00Z, sourceId=null, sourceRevision=null, contentChecksum=null, content=null]
+error: 
+expected: 3f7f9085-a298-4c8c-a854-b4a6575fec50
+ but was: null
+[INFO] 
+[ERROR] Tests run: 18, Failures: 6, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ZhkuAgent 0.0.1-SNAPSHOT:
+[INFO] 
+[INFO] ZhkuAgent .......................................... SUCCESS [  0.003 s]
+[INFO] ZhkuAgent Shared Runtime ........................... SUCCESS [  2.954 s]
+[INFO] ZhkuAgent Knowledge ................................ FAILURE [ 39.853 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  43.369 s
+[INFO] Finished at: 2026-10-08T12:30:27+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: There are test failures.
+[ERROR] 
+[ERROR] See D:\alldesk\Projects\ZhkuAgent\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :knowledge

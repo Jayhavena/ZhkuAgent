@@ -2,6 +2,10 @@ package com.zhku.agent.agent.runtime;
 
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import com.zhku.agent.agent.runtime.contract.*;
+import com.zhku.agent.agent.runtime.contract.AgentRunSnapshot.EndReason;
+import java.time.Instant;
+import java.util.function.Consumer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *     <li>工作线程负责推进步骤、追加消息和设置最终结果；</li>
  *     <li>SSE 回调线程可以请求停止；</li>
  *     <li>所有线程都可以读取状态快照；</li>
- *     <li>真正的终止信号只能在工作线程退出并完成清理后发出。</li>
+ *     <li>终止信号在业务与清理收敛后发出；任务包装器随后仍需返回，不代表池线程销毁。</li>
  * </ul>
  */
 public final class AgentRunContext {
@@ -35,6 +39,11 @@ public final class AgentRunContext {
      * <p>后续可以把它加入日志，帮助我们区分并发运行。</p>
      */
     private final UUID runId;
+    private final AgentRunObservationDispatcher observationDispatcher;
+    private final AgentRunObservationDispatcher.Subscription observation;
+    private final Object eventLock = new Object();
+    private long eventSequence;
+    private volatile boolean resultPublished;
 
     /**
      * 消息列表的专用锁。
@@ -58,13 +67,10 @@ public final class AgentRunContext {
      * STOP_REQUESTED 状态，却仍然读到 NONE 原因。将两者一起替换，
      * 可以保证一次读取获得一致的数据。</p>
      */
-    private final AtomicReference<Lifecycle> lifecycle =
-            new AtomicReference<>(
-                    new Lifecycle(
-                            AgentRunState.CREATED,
-                            AgentStopReason.NONE
-                    )
-            );
+    private final AtomicReference<Lifecycle> lifecycle = new AtomicReference<>(
+            new Lifecycle(
+                    AgentRunState.CREATED,
+                    AgentStopReason.NONE));
 
     /**
      * 当前已经开始的步骤数量。
@@ -77,8 +83,7 @@ public final class AgentRunContext {
      * <p>Future 用于发出最佳努力的中断请求，但不能作为
      * “工作线程已经退出”的判断依据。</p>
      */
-    private final AtomicReference<Future<?>> taskHandle =
-            new AtomicReference<>();
+    private final AtomicReference<Future<?>> taskHandle = new AtomicReference<>();
 
     /**
      * 标记工作线程是否已经真正进入任务包装器。
@@ -89,40 +94,130 @@ public final class AgentRunContext {
      * 保证真正的清理动作最多执行一次。
      */
     private final AtomicBoolean cleanupStarted = new AtomicBoolean();
+    private final AtomicBoolean cleanupFinished = new AtomicBoolean();
+    private volatile boolean cleanupFailure;
 
     /**
-     * 只有工作线程退出并完成清理后才完成该 Future。
+     * 只有业务结果与清理收敛后才完成该 Future。
      *
      * <p>它与 taskHandle.isDone() 的语义不同：
      * taskHandle 被取消，不代表底层阻塞调用已经停止。</p>
      */
-    private final CompletableFuture<AgentRunState> termination =
-            new CompletableFuture<>();
+    private final CompletableFuture<AgentRunState> termination = new CompletableFuture<>();
 
     /**
      * 创建一次新的运行上下文。
      *
      * @param userPrompt 本次运行的用户输入
      */
-    private AgentRunContext(String userPrompt) {
-        if (userPrompt == null || userPrompt.isBlank()) {
-            throw new IllegalArgumentException("userPrompt 不能为空");
-        }
-
-        this.runId = UUID.randomUUID();
-
-        // 用户的初始输入天然属于本次运行，因此在创建上下文时写入。
+    private AgentRunContext(String userPrompt, Consumer<AgentRunEvent> observer,
+            AgentRunObservationDispatcher dispatcher) {
+        this(UUID.randomUUID(), userPrompt, observer, dispatcher);
+    }
+    private AgentRunContext(UUID runId, String userPrompt, Consumer<AgentRunEvent> observer,
+            AgentRunObservationDispatcher dispatcher) {
+        validatePrompt(userPrompt);
+        this.runId = Objects.requireNonNull(runId, "运行编号不能为空");
+        this.observationDispatcher = dispatcher;
+        this.observation = dispatcher == null ? null : dispatcher.subscribe(runId, observer);
         this.messageList.add(new UserMessage(userPrompt));
     }
 
-    /**
-     * 创建新的运行上下文。
-     *
-     * @param userPrompt 本次运行的用户输入
-     * @return 全新的、未启动的运行上下文
-     */
+    private static void validatePrompt(String userPrompt) {
+        if (userPrompt == null || userPrompt.isBlank())
+            throw new IllegalArgumentException("userPrompt 不能为空");
+    }
+
+    /** 无观察模式不会初始化默认资源，也不会占登记名额。 */
     public static AgentRunContext create(String userPrompt) {
-        return new AgentRunContext(userPrompt);
+        return new AgentRunContext(userPrompt, null, null);
+    }
+    /** 已确认受理的宿主提供原ID；该重载不承诺任务恢复，也不改变清理/发布语义。 */
+    public static AgentRunContext create(UUID runId, String userPrompt) { return new AgentRunContext(runId,userPrompt,null,null); }
+    public static AgentRunContext create(UUID runId, String userPrompt, Consumer<AgentRunEvent> observer) {
+        validatePrompt(userPrompt); Objects.requireNonNull(runId); Objects.requireNonNull(observer);
+        return new AgentRunContext(runId,userPrompt,observer,AgentRunObservationDispatcher.processDefault());
+    }
+    public static AgentRunContext create(UUID runId, String userPrompt, Consumer<AgentRunEvent> observer,
+            AgentRunObservationDispatcher dispatcher) {
+        return new AgentRunContext(runId,userPrompt,Objects.requireNonNull(observer),Objects.requireNonNull(dispatcher));
+    }
+
+    /** 借用JVM默认资源；Context及宿主均不拥有其关闭权。 */
+    public static AgentRunContext create(String userPrompt, Consumer<AgentRunEvent> observer) {
+        validatePrompt(userPrompt);
+        Objects.requireNonNull(observer);
+        return new AgentRunContext(userPrompt, observer, AgentRunObservationDispatcher.processDefault());
+    }
+
+    public static AgentRunContext create(String userPrompt, Consumer<AgentRunEvent> observer,
+            AgentRunObservationDispatcher dispatcher) {
+        return new AgentRunContext(userPrompt, Objects.requireNonNull(observer),
+                Objects.requireNonNull(dispatcher));
+    }
+
+    /** 交付状态不是运行终态；DETACHED也不能证明观察线程已退出。 */
+    public AgentRunObservationDispatcher.ObservationStatus observationStatus() {
+        return observation == null ? AgentRunObservationDispatcher.disabledStatus()
+                : observationDispatcher.observationStatus(observation);
+    }
+
+    /** 先读取发布标记再读生命周期，避免将收尾前的旧状态标成已终止。 */
+    public AgentRunSnapshot snapshot() {
+        boolean published = resultPublished;
+        Lifecycle value = lifecycle.get();
+        return snapshot(value, published);
+    }
+
+    private AgentRunSnapshot snapshot(Lifecycle value, boolean published) {
+        return new AgentRunSnapshot(runId, value.state(), value.stopReason(), currentStep.get(),
+                published, value.endReason(), value.error());
+    }
+
+    /**
+     * 宿主保存完整结果后显式发布唯一终止事实。
+     * termination Future 只证明清理收敛；发布标记不证明观察器已返回或线程已退出。
+     */
+    public boolean publishTermination() {
+        synchronized (eventLock) {
+            if (!termination.isDone())
+                throw new IllegalStateException("清理尚未收敛");
+            if (resultPublished)
+                return false;
+            resultPublished = true;
+            deliver(AgentRunEvent.Type.RUN_TERMINATED, null, null, snapshot(), null);
+            return true;
+        }
+    }
+
+    public AgentToolCall proposeToolCall(String providerId, String name, String arguments) {
+        AgentToolCall call = new AgentToolCall(runId, UUID.randomUUID().toString(), providerId,
+                currentStep.get(), name, arguments, null);
+        emit(AgentRunEvent.Type.TOOL_CALL_PROPOSED, call.step(), call, null, null);
+        return call;
+    }
+
+    public void recordToolResult(AgentToolCall call, AgentToolCall.Result result) {
+        if (!runId.equals(call.runId()))
+            throw new IllegalArgumentException("工具调用不属于当前运行");
+        emit(AgentRunEvent.Type.TOOL_CALL_RESULT, call.step(), call.withResult(result), null, null);
+    }
+
+    private void emit(AgentRunEvent.Type type, Integer step, AgentToolCall call,
+            AgentRunSnapshot snapshot, AgentRuntimeError error) {
+        synchronized (eventLock) {
+            // 最终发布后不追加迟到事件；不缓存历史，避免长任务无限增长。
+            if (!resultPublished)
+                deliver(type, step, call, snapshot, error);
+        }
+    }
+
+    private void deliver(AgentRunEvent.Type type, Integer step, AgentToolCall call,
+            AgentRunSnapshot snapshot, AgentRuntimeError error) {
+        AgentRunEvent event = new AgentRunEvent(runId, ++eventSequence, Instant.now(), type, step, call, snapshot,
+                error);
+        // E只向D提交有界诊断；事实序号不承诺观察回调已开始或已返回。
+        if (observation != null) observationDispatcher.offer(observation, event);
     }
 
     /**
@@ -161,18 +256,23 @@ public final class AgentRunContext {
      * @return 本次调用是否成功启动了运行
      */
     public boolean start() {
-        Lifecycle current = lifecycle.get();
+        // 生命周期提交与对应事件共用顺序边界，防止最终发布吞掉已接受的事实。
+        synchronized (eventLock) {
+            Lifecycle current = lifecycle.get();
 
-        if (current.state() != AgentRunState.CREATED) {
-            return false;
+            if (current.state() != AgentRunState.CREATED) {
+                return false;
+            }
+
+            Lifecycle running = new Lifecycle(
+                    AgentRunState.RUNNING,
+                    AgentStopReason.NONE);
+
+            boolean started = lifecycle.compareAndSet(current, running);
+            if (started)
+                emit(AgentRunEvent.Type.RUN_STARTED, null, null, snapshot(running, false), null);
+            return started;
         }
-
-        Lifecycle running = new Lifecycle(
-                AgentRunState.RUNNING,
-                AgentStopReason.NONE
-        );
-
-        return lifecycle.compareAndSet(current, running);
     }
 
     /**
@@ -182,8 +282,13 @@ public final class AgentRunContext {
      * @throws IllegalStateException 当前不处于 RUNNING 状态时抛出
      */
     public int advanceStep() {
-        ensureRunning("只有 RUNNING 状态才能开始新步骤");
-        return currentStep.incrementAndGet();
+        // 生命周期提交与对应事件共用顺序边界，防止最终发布吞掉已接受的事实。
+        synchronized (eventLock) {
+            ensureRunning("只有 RUNNING 状态才能开始新步骤");
+            int number = currentStep.incrementAndGet();
+            emit(AgentRunEvent.Type.STEP_STARTED, number, null, null, null);
+            return number;
+        }
     }
 
     /**
@@ -246,42 +351,45 @@ public final class AgentRunContext {
      * @return 本次调用是否成为第一个有效停止请求
      */
     public boolean requestStop(AgentStopReason reason) {
-        Objects.requireNonNull(reason, "reason 不能为空");
+        // 生命周期提交与对应事件共用顺序边界，防止最终发布吞掉已接受的事实。
+        synchronized (eventLock) {
+            Objects.requireNonNull(reason, "reason 不能为空");
 
-        if (reason == AgentStopReason.NONE) {
-            throw new IllegalArgumentException(
-                    "停止原因不能是 AgentStopReason.NONE"
-            );
+            if (reason == AgentStopReason.NONE) {
+                throw new IllegalArgumentException(
+                        "停止原因不能是 AgentStopReason.NONE");
+            }
+
+            while (true) {
+                Lifecycle current = lifecycle.get();
+
+                if (current.state().isTerminal()
+                        || current.state() == AgentRunState.STOP_REQUESTED) {
+                    return false;
+                }
+
+                if (current.state() != AgentRunState.CREATED
+                        && current.state() != AgentRunState.RUNNING) {
+                    throw new IllegalStateException(
+                            "当前状态不能请求停止：" + current.state());
+                }
+
+                Lifecycle stopping = new Lifecycle(
+                        AgentRunState.STOP_REQUESTED,
+                        reason);
+
+                if (lifecycle.compareAndSet(current, stopping)) {
+                    emit(AgentRunEvent.Type.STOP_REQUESTED, null, null, snapshot(stopping, false), null);
+                    break;
+                }
+
+                // CAS 失败说明其他线程刚刚修改了生命周期。
+                // 重新读取最新状态后再次判断。
+            }
         }
-
-        while (true) {
-            Lifecycle current = lifecycle.get();
-
-            if (current.state().isTerminal()
-                    || current.state() == AgentRunState.STOP_REQUESTED) {
-                return false;
-            }
-
-            if (current.state() != AgentRunState.CREATED
-                    && current.state() != AgentRunState.RUNNING) {
-                throw new IllegalStateException(
-                        "当前状态不能请求停止：" + current.state()
-                );
-            }
-
-            Lifecycle stopping = new Lifecycle(
-                    AgentRunState.STOP_REQUESTED,
-                    reason
-            );
-
-            if (lifecycle.compareAndSet(current, stopping)) {
-                cancelRunningTaskIfNecessary();
-                return true;
-            }
-
-            // CAS 失败说明其他线程刚刚修改了生命周期。
-            // 重新读取最新状态后再次判断。
-        }
+        // Future取消可能执行用户回调，因此必须离开事实锁后再传播业务中断。
+        cancelRunningTaskIfNecessary();
+        return true;
     }
 
     /**
@@ -304,8 +412,7 @@ public final class AgentRunContext {
 
         if (!taskHandle.compareAndSet(null, future)) {
             throw new IllegalStateException(
-                    "一个 AgentRunContext 只能绑定一个任务"
-            );
+                    "一个 AgentRunContext 只能绑定一个任务");
         }
     }
 
@@ -324,37 +431,57 @@ public final class AgentRunContext {
     /**
      * 设置本次运行的最终业务状态。
      *
-     * @param terminalState SUCCEEDED、FAILED 或 CANCELLED
+     * @param terminalState SUCCEEDED、INCOMPLETE、FAILED 或 CANCELLED
      * @return 本次调用是否成功设置了最终状态
      */
     public boolean finish(AgentRunState terminalState) {
-        Objects.requireNonNull(
-                terminalState,
-                "terminalState 不能为空"
-        );
+        EndReason reason = switch (terminalState) {
+            case SUCCEEDED -> EndReason.COMPLETED;
+            case INCOMPLETE -> EndReason.DOMAIN_DECISION;
+            case CANCELLED -> EndReason.STOPPED;
+            default -> EndReason.ERROR;
+        };
+        return finish(terminalState, reason, terminalState == AgentRunState.FAILED
+                ? AgentRuntimeError.of(AgentRuntimeError.Category.EXECUTION_FAILURE)
+                : null);
+    }
 
-        if (!terminalState.isTerminal()) {
-            throw new IllegalArgumentException(
-                    "finish 只能接收最终状态：" + terminalState
-            );
-        }
+    public boolean finish(AgentRunState terminalState, EndReason endReason, AgentRuntimeError error) {
+        // 生命周期提交与对应事件共用顺序边界，防止最终发布吞掉已接受的事实。
+        synchronized (eventLock) {
+            Objects.requireNonNull(
+                    terminalState,
+                    "terminalState 不能为空");
 
-        while (true) {
-            Lifecycle current = lifecycle.get();
-
-            if (current.state().isTerminal()) {
-                return false;
+            if (!terminalState.isTerminal()) {
+                throw new IllegalArgumentException(
+                        "finish 只能接收最终状态：" + terminalState);
             }
 
-            validateFinishTransition(current.state(), terminalState);
+            while (true) {
+                Lifecycle current = lifecycle.get();
 
-            Lifecycle finished = new Lifecycle(
-                    terminalState,
-                    current.stopReason()
-            );
+                if (current.state().isTerminal()) {
+                    return false;
+                }
 
-            if (lifecycle.compareAndSet(current, finished)) {
-                return true;
+                // 停止先赢得 CAS 后，正常完成只能让步，不能把取消竞态变成执行异常。
+                if (current.state() == AgentRunState.STOP_REQUESTED
+                        && (terminalState == AgentRunState.SUCCEEDED
+                                || terminalState == AgentRunState.INCOMPLETE))
+                    return false;
+                validateFinishTransition(current.state(), terminalState);
+
+                Lifecycle finished = new Lifecycle(
+                        terminalState,
+                        current.stopReason(), endReason, error);
+                snapshot(finished, false); // 同一 CAS 发布状态及结束事实，不能分开写入。
+
+                if (lifecycle.compareAndSet(current, finished)) {
+                    if (error != null)
+                        emit(AgentRunEvent.Type.ERROR_RECORDED, null, null, null, error);
+                    return true;
+                }
             }
         }
     }
@@ -372,38 +499,51 @@ public final class AgentRunContext {
     public boolean cleanupOnce(Runnable cleanupAction) {
         Objects.requireNonNull(
                 cleanupAction,
-                "cleanupAction 不能为空"
-        );
+                "cleanupAction 不能为空");
 
         if (!cleanupStarted.compareAndSet(false, true)) {
             return false;
         }
 
-        cleanupAction.run();
-        return true;
+        try {
+            cleanupAction.run();
+            return true;
+        } catch (RuntimeException | Error exception) {
+            // 只有收尾期间允许降级终态；标记必须先于 cleanupFinished 发布。
+            cleanupFailure = true;
+            AgentRuntimeError error = AgentRuntimeError.of(AgentRuntimeError.Category.CLEANUP_FAILURE);
+            lifecycle.updateAndGet(
+                    current -> new Lifecycle(AgentRunState.FAILED, current.stopReason(), EndReason.ERROR, error));
+            emit(AgentRunEvent.Type.ERROR_RECORDED, null, null, null, error);
+            throw exception;
+        } finally {
+            cleanupFinished.set(true);
+        }
+    }
+
+    public boolean hasCleanupFailure() {
+        return cleanupFailure;
     }
 
     /**
      * 发出“运行已经真正终止”的信号。
      *
-     * <p>调用方必须先设置最终状态并完成 cleanup。
-     * 该顺序防止系统在资源尚未释放时就宣布运行已经结束。</p>
+     * <p>调用方必须先设置最终状态并结束 cleanup。清理抛错时也可终止，
+     * 但状态已降级 FAILED；终止不承诺所有资源都成功释放。</p>
      *
      * @return 是否由本次调用首次完成终止信号
      */
     public boolean signalTermination() {
+        // 先观察清理完成的发布，再读取终态，否则可能在清理抛错前读到旧的成功状态。
+        if (!cleanupFinished.get()) {
+            throw new IllegalStateException(
+                    "必须完成 cleanup 后才能发送 termination 信号");
+        }
         AgentRunState finalState = state();
 
         if (!finalState.isTerminal()) {
             throw new IllegalStateException(
-                    "只有最终状态才能发送 termination 信号"
-            );
-        }
-
-        if (!cleanupStarted.get()) {
-            throw new IllegalStateException(
-                    "必须完成 cleanup 后才能发送 termination 信号"
-            );
+                    "只有最终状态才能发送 termination 信号");
         }
 
         return termination.complete(finalState);
@@ -442,33 +582,31 @@ public final class AgentRunContext {
 
         if (currentState != AgentRunState.RUNNING) {
             throw new IllegalStateException(
-                    message + "，当前状态为：" + currentState
-            );
+                    message + "，当前状态为：" + currentState);
         }
     }
 
     /**
      * 校验最终状态迁移是否合法。
      *
-     * <p>正常运行可以成功或失败；收到停止请求后应当取消，
+     * <p>正常运行可以成功、未完成或失败；收到停止请求后应当取消，
      * 也允许在终止过程中因为额外异常进入 FAILED；
      * 尚未启动的任务只有在提交失败等情况下才能直接 FAILED。</p>
      */
     private static void validateFinishTransition(
             AgentRunState currentState,
-            AgentRunState terminalState
-    ) {
+            AgentRunState terminalState) {
         boolean allowed = switch (terminalState) {
-            case SUCCEEDED ->
-                    currentState == AgentRunState.RUNNING;
+            case SUCCEEDED, INCOMPLETE ->
+                currentState == AgentRunState.RUNNING;
 
             case CANCELLED ->
-                    currentState == AgentRunState.STOP_REQUESTED;
+                currentState == AgentRunState.STOP_REQUESTED;
 
             case FAILED ->
-                    currentState == AgentRunState.CREATED
-                            || currentState == AgentRunState.RUNNING
-                            || currentState == AgentRunState.STOP_REQUESTED;
+                currentState == AgentRunState.CREATED
+                        || currentState == AgentRunState.RUNNING
+                        || currentState == AgentRunState.STOP_REQUESTED;
 
             default -> false;
         };
@@ -478,8 +616,7 @@ public final class AgentRunContext {
                     "非法状态迁移："
                             + currentState
                             + " -> "
-                            + terminalState
-            );
+                            + terminalState);
         }
     }
 
@@ -491,15 +628,19 @@ public final class AgentRunContext {
      */
     private record Lifecycle(
             AgentRunState state,
-            AgentStopReason stopReason
-    ) {
+            AgentStopReason stopReason,
+            EndReason endReason,
+            AgentRuntimeError error) {
+
+        private Lifecycle(AgentRunState state, AgentStopReason stopReason) {
+            this(state, stopReason, null, null);
+        }
 
         private Lifecycle {
             Objects.requireNonNull(state, "state 不能为空");
             Objects.requireNonNull(
                     stopReason,
-                    "stopReason 不能为空"
-            );
+                    "stopReason 不能为空");
         }
     }
 }

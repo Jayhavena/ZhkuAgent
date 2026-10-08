@@ -1,0 +1,68 @@
+package com.zhku.knowledge.rulecheck.web;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.zhku.knowledge.rulecheck.RuleCheckApplicationService;
+import com.zhku.knowledge.rulecheck.RuleCheckRuntimeSettings;
+import com.zhku.knowledge.rulecheck.RuleCheckDecision;
+import com.zhku.knowledge.rulecheck.RuleCheckVerifiedExcerpt;
+import java.util.*;
+import java.util.Map;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+
+/** 仅接受显式声明；身份和资料资格由安全链/应用服务决定，不由请求字段自证。 */
+@RestController
+@RequestMapping("/zhku/controlled-preview/v2/rule-check")
+public final class RuleCheckController {
+    private final RuleCheckApplicationService service;
+    private final RuleCheckRuntimeSettings settings;
+    public RuleCheckController(RuleCheckApplicationService service,RuleCheckRuntimeSettings settings) {this.service=service;this.settings=settings;}
+    @PostMapping public ResponseEntity<?> check(@RequestBody JsonNode payload) {
+        var input=request(payload);
+        try {
+            var decision=service.check(input.question(),input.confirmedConditions());
+            var reply=new Reply(decision.status(),decision.referenceRevision(),settings.requiredScope(),"USER_DECLARED",
+                input.confirmedConditions(),decision.confirmedFacts().stream().map(RuleCheckController::fact).toList(),
+                decision.clarificationQuestions(),decision.unknownItems(),
+                decision.conflicts().stream().map(c->new ConflictReply(c.issue(),c.sides().stream().map(RuleCheckController::fact).toList())).toList());
+            return ResponseEntity.ok().header("Cache-Control","no-store").body(reply);
+        } catch(RuntimeException unavailable) {
+            // 应用或映射异常不回显cause；不能把接口故障包装成有依据的政策结论。
+            return ResponseEntity.status(503).header("Cache-Control","no-store").body(new ErrorReply("RULE_CHECK_UNAVAILABLE","查证服务暂不可用"));
+        }
+    }
+    @ExceptionHandler({HttpMessageNotReadableException.class,IllegalArgumentException.class})
+    public ResponseEntity<ErrorReply> invalidRequest() {
+        return ResponseEntity.badRequest().header("Cache-Control","no-store").body(new ErrorReply("INVALID_RULE_CHECK_REQUEST","问题或条件格式不符合要求"));
+    }
+    private static Request request(JsonNode payload) {
+        if(payload==null||!payload.isObject()||payload.size()!=2||!payload.has("question")||!payload.has("confirmedConditions"))throw invalid();
+        var question=payload.get("question");var conditions=payload.get("confirmedConditions");
+        // 明确检查JSON类型，不允许数字/布尔/数组被Jackson默默转换为条件字符串。
+        if(!question.isTextual()||question.textValue().isBlank()||question.textValue().length()>2048
+                ||!conditions.isObject()||conditions.size()>16)throw invalid();
+        var values=new LinkedHashMap<String,String>();
+        conditions.fields().forEachRemaining(entry->{
+            String key=entry.getKey();var value=entry.getValue();
+            if(key.isBlank()||key.length()>64||!value.isTextual()||value.textValue().length()>128)throw invalid();
+            values.put(key,value.textValue());
+        });
+        return new Request(question.textValue(),Map.copyOf(values));
+    }
+    private static IllegalArgumentException invalid() {return new IllegalArgumentException("无效查证输入");}
+    private static FactReply fact(RuleCheckDecision.SupportedFact fact) {
+        return new FactReply(fact.id(),fact.text(),fact.evidence().stream().map(RuleCheckController::citation).toList());
+    }
+    private static CitationReply citation(RuleCheckVerifiedExcerpt quote) {
+        return new CitationReply(quote.citationId(),quote.sourceId(),quote.chunkId(),quote.revision(),quote.startInclusive(),quote.endExclusive(),quote.text());
+    }
+    private record Request(String question,Map<String,String> confirmedConditions) {}
+    public record Reply(RuleCheckDecision.Status status,String referenceRevision,String knowledgeScope,String conditionSource,
+        Map<String,String> confirmedConditions,List<FactReply> confirmedFacts,List<RuleCheckDecision.Clarification> clarificationQuestions,
+        List<String> unknownItems,List<ConflictReply> conflicts) {}
+    public record FactReply(String id,String text,List<CitationReply> citations) {}
+    public record CitationReply(String citationId,UUID sourceId,UUID chunkId,String revision,int startInclusive,int endExclusive,String text) {}
+    public record ConflictReply(String issue,List<FactReply> sides) {}
+    public record ErrorReply(String code,String message) {}
+}

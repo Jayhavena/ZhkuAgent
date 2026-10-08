@@ -42,9 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class RetrievalAcceptanceEvalTest {
 
-    private static final String DATABASE_URL = System.getProperty(
-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
-    );
+    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
     private static final String DATABASE_USER = System.getProperty(
             "zhku.db.user", "zhkuagent"
     );
@@ -77,7 +75,7 @@ class RetrievalAcceptanceEvalTest {
         RetrievalEligibilityFilter filter = new RetrievalEligibilityFilter(
                 Clock.fixed(Instant.parse("2026-09-17T00:00:00Z"), ZoneOffset.UTC));
         HybridRetrievalService hybrid = new HybridRetrievalService(new HybridCandidateFuser());
-        JdbcLexicalCandidateRetriever lexical = new JdbcLexicalCandidateRetriever(
+        JdbcLexicalCandidateRetriever lexical = JdbcLexicalCandidateRetriever.forOfflineEvaluation(
                 dataSource, filter, PROFILE, "PUBLIC_ELECTIVE");
         // 向量路：本机无真实 embedding profile → 明确不可用（降级），而不是用假向量凑分。
         var vectorUnavailable = (com.zhku.knowledge.retrieval.ChunkCandidateRetriever)

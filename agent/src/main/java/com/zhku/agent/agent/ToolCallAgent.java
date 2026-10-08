@@ -1,158 +1,124 @@
 package com.zhku.agent.agent;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zhku.agent.agent.model.AgentExecutionFailure;
 import com.zhku.agent.agent.model.ToolCallDecision;
 import com.zhku.agent.agent.runtime.AgentRunContext;
 import com.zhku.agent.agent.runtime.AgentRunState;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.messages.AssistantMessage;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.ToolResponseMessage;
-import org.springframework.ai.chat.messages.UserMessage;
+import com.zhku.agent.agent.runtime.contract.AgentToolCall;
+import com.zhku.agent.agent.runtime.contract.AgentRunSnapshot.EndReason;
+import org.springframework.ai.chat.messages.*;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.model.tool.ToolCallingChatOptions;
 import org.springframework.ai.model.tool.ToolCallingManager;
-import org.springframework.ai.model.tool.ToolExecutionResult;
 import org.springframework.ai.tool.ToolCallback;
-
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
-/**
- * 实现模型思考和工具执行的 Agent 基类。
- *
- * <p>该类只保存可复用工具配置。ChatResponse 通过 ToolCallDecision 在当前步骤
- * 内传递，不再保存在 Agent 实例字段中。</p>
- */
-@Slf4j
+/** 模型与工具结果只在当前步骤传递，不保存跨运行可变决策。 */
 public class ToolCallAgent extends ReActAgent<ToolCallDecision> {
-
-    /** 可复用的工具定义。 */
+    private static final ObjectMapper JSON = new ObjectMapper();
     private final ToolCallback[] availableTools;
-
-    /** 工具调用管理器，本身不表示某一次运行。 */
     private final ToolCallingManager toolCallingManager;
-
-    /** 禁用框架内部自动工具执行后的可复用选项。 */
     private final ChatOptions chatOptions;
 
-    public ToolCallAgent(
-            ToolCallback[] availableTools,
-            Executor streamExecutor
-    ) {
+    public ToolCallAgent(ToolCallback[] availableTools, Executor streamExecutor) {
         super(streamExecutor);
-        this.availableTools = availableTools;
-        this.toolCallingManager = ToolCallingManager.builder().build();
-        this.chatOptions = DashScopeChatOptions.builder()
-                .withInternalToolExecutionEnabled(false)
-                .build();
+        this.availableTools = availableTools.clone();
+        // 框架默认会把工具异常转换成普通文本；本路径必须抛出，才能阻止同批终止声明误报成功。
+        this.toolCallingManager = ToolCallingManager.builder().toolExecutionExceptionProcessor(exception -> {
+            throw new AgentExecutionFailure(AgentExecutionFailure.Category.TOOL_FAILURE);
+        }).build();
+        // 执行阶段也必须携带同一组回调；只在模型提示中声明工具不足以让执行管理器解析工具。
+        this.chatOptions = ToolCallingChatOptions.builder().toolCallbacks(this.availableTools)
+                // 工具由当前步骤显式执行，避免模型调用阶段自动执行后再被 act 重复执行。
+                .internalToolExecutionEnabled(false).build();
     }
 
-    /**
-     * 调用模型，生成当前步骤的工具决策。
-     */
     @Override
     protected ToolCallDecision think(AgentRunContext context) {
-        // 下一步提示词只追加到本次 context，不影响其他运行。
-        if (StrUtil.isNotBlank(getNextStepPrompt())) {
+        if (StrUtil.isNotBlank(getNextStepPrompt()))
             context.appendMessage(new UserMessage(getNextStepPrompt()));
+        try {
+            ChatResponse response = getChatClient().prompt(new Prompt(context.messageSnapshot(), chatOptions))
+                    .system(getSystemPrompt()).toolCallbacks(availableTools).call().chatResponse();
+            if (response == null || response.getResult() == null || response.getResult().getOutput() == null)
+                throw new IllegalStateException("模型无有效输出");
+            AssistantMessage message = response.getResult().getOutput();
+            List<AssistantMessage.ToolCall> calls = message.getToolCalls();
+            if (calls == null)
+                throw new IllegalStateException("模型工具结果无效");
+            if (!context.isStopRequested() && calls.isEmpty())
+                context.appendMessage(message);
+            return new ToolCallDecision(response, !calls.isEmpty());
+        } catch (RuntimeException exception) {
+            // 不保留供应商原始因果链，避免凭据随框架异常进入日志或 HTTP/SSE。
+            throw new AgentExecutionFailure(AgentExecutionFailure.Category.MODEL_FAILURE);
         }
-
-        // messageSnapshot 返回不可修改副本，Prompt 无法反向修改内部消息集合。
-        List<Message> messages = context.messageSnapshot();
-        Prompt prompt = new Prompt(messages, chatOptions);
-
-        // 模型异常不在这里转换成普通返回值，让 BaseAgent 边界统一处理 FAILED。
-        ChatResponse response = getChatClient()
-                .prompt(prompt)
-                .system(getSystemPrompt())
-                .tools(availableTools)
-                .call()
-                .chatResponse();
-
-        AssistantMessage assistantMessage =
-                response.getResult().getOutput();
-        List<AssistantMessage.ToolCall> toolCalls =
-                assistantMessage.getToolCalls();
-
-        String text = assistantMessage.getText();
-        log.info("{} 的思考：{}", getName(), text);
-        log.info("{} 选择了 {} 个工具", getName(), toolCalls.size());
-
-        String toolCallInfo = toolCalls.stream()
-                .map(toolCall -> String.format(
-                        "工具名称：%s，参数：%s",
-                        toolCall.name(),
-                        toolCall.arguments()
-                ))
-                .collect(Collectors.joining("\n"));
-        log.info(toolCallInfo);
-
-        boolean shouldAct = !toolCalls.isEmpty();
-
-        if (!shouldAct) {
-            // 不调用工具时，框架不会自动补充助手消息，因此手动写入当前 context。
-            context.appendMessage(assistantMessage);
-        }
-
-        // response 与 shouldAct 一起返回，生命周期只覆盖当前 step。
-        return new ToolCallDecision(response, shouldAct);
     }
 
-    /**
-     * 执行当前 think 阶段选择的工具。
-     */
     @Override
-    protected String act(
-            AgentRunContext context,
-            ToolCallDecision decision
-    ) {
-        ChatResponse response = decision.response();
-
-        if (!response.hasToolCalls()) {
-            return "没有工具需要调用";
+    protected String act(AgentRunContext context, ToolCallDecision decision) {
+        if (context.isStopRequested())
+            return "运行已请求停止";
+        try {
+            if (!decision.response().hasToolCalls())
+                return "没有工具需要调用";
+            List<AgentToolCall> proposed = decision.response().getResult().getOutput().getToolCalls().stream()
+                    .map(call -> context.proposeToolCall(call.id(), call.name(), call.arguments())).toList();
+            var result = toolCallingManager.executeToolCalls(
+                    new Prompt(context.messageSnapshot(), chatOptions), decision.response());
+            var history = result.conversationHistory();
+            if (history.isEmpty() || !(history.get(history.size() - 1) instanceof ToolResponseMessage message))
+                throw new IllegalStateException("工具返回格式无效");
+            AgentRunState declaredState = null;
+            // 全部工具执行与返回校验通过以后，才接受终止声明，避免同批失败被成功掩盖。
+            for (var response : message.getResponses()) {
+                if ("doTerminate".equals(response.name())) {
+                    var payload = JSON.readTree(response.responseData());
+                    if (!payload.isObject() || payload.size() != 1 || !payload.path("outcome").isTextual())
+                        throw new IllegalStateException("终止结果无效");
+                    var outcome = payload.path("outcome").asText();
+                    AgentRunState state = switch (outcome) {
+                        case "COMPLETED" -> AgentRunState.SUCCEEDED;
+                        case "BLOCKED" -> AgentRunState.INCOMPLETE;
+                        default -> throw new IllegalStateException("终止结果无效");
+                    };
+                    if (declaredState != null && declaredState != state)
+                        throw new IllegalStateException("终止声明冲突");
+                    declaredState = state;
+                }
+            }
+            // 只关联唯一、已观测的响应；批次抛错或供应商 ID 歧义时不猜测逐工具结果。
+            for (var response : message.getResponses()) {
+                var matching = proposed.stream()
+                        .filter(call -> java.util.Objects.equals(call.providerCallId(), response.id())
+                                && java.util.Objects.equals(call.toolName(), response.name()))
+                        .toList();
+                long responses = message.getResponses().stream()
+                        .filter(other -> java.util.Objects.equals(other.id(), response.id())
+                                && other.name().equals(response.name()))
+                        .count();
+                if (matching.size() == 1 && responses == 1) {
+                    context.recordToolResult(matching.get(0), new AgentToolCall.Result(AgentToolCall.Status.SUCCEEDED,
+                            response.responseData(), AgentToolCall.PayloadFormat.TEXT, null));
+                }
+            }
+            if (context.isStopRequested())
+                return "运行已请求停止";
+            context.replaceMessages(history);
+            if (declaredState != null)
+                context.finish(declaredState,
+                        declaredState == AgentRunState.SUCCEEDED ? EndReason.COMPLETED : EndReason.BLOCKED, null);
+            return message.getResponses().stream()
+                    .map(response -> "工具 " + response.name() + " 返回的结果：" + response.responseData())
+                    .collect(Collectors.joining("\n"));
+        } catch (Exception exception) {
+            throw new AgentExecutionFailure(AgentExecutionFailure.Category.TOOL_FAILURE);
         }
-
-        Prompt prompt = new Prompt(
-                context.messageSnapshot(),
-                chatOptions
-        );
-        ToolExecutionResult executionResult =
-                toolCallingManager.executeToolCalls(prompt, response);
-
-        // conversationHistory 已包含助手工具请求和工具返回消息。
-        // 使用受控方法整体替换当前运行的消息历史。
-        context.replaceMessages(executionResult.conversationHistory());
-
-        ToolResponseMessage toolResponseMessage =
-                (ToolResponseMessage) CollUtil.getLast(
-                        executionResult.conversationHistory()
-                );
-
-        boolean terminateToolCalled = toolResponseMessage.getResponses()
-                .stream()
-                .anyMatch(toolResponse ->
-                        toolResponse.name().equals("doTerminate")
-                );
-
-        if (terminateToolCalled) {
-            // 终止工具只结束当前 context，不修改可复用 Agent 实例。
-            context.finish(AgentRunState.SUCCEEDED);
-        }
-
-        String results = toolResponseMessage.getResponses().stream()
-                .map(toolResponse -> String.format(
-                        "工具 %s 返回的结果：%s",
-                        toolResponse.name(),
-                        toolResponse.responseData()
-                ))
-                .collect(Collectors.joining("\n"));
-        log.info(results);
-
-        return results;
     }
 }

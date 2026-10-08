@@ -1,0 +1,41 @@
+server:
+  address: 127.0.0.1
+  port: 8124
+  servlet:
+    context-path: /api
+    session:
+      timeout: 15m
+      persistent: false
+      tracking-modes: cookie
+      cookie:
+        name: ZHKU_RULE_CHECK_SESSION
+        path: /api/zhku/controlled-preview/v2
+        http-only: true
+        secure: false
+        same-site: strict
+spring:
+  flyway:
+    enabled: false
+    out-of-order: false
+zhku:
+  rule-check-preview:
+    enabled: false
+    # 显式initialize仅允许验收库；真实资料/规则目录没有隐式放行选项。
+    initialize: false
+    catalogue-mode: CLOSED
+  controlled-preview:
+    enabled: false
+    conversations:
+      enabled: false
+  local-preview:
+    enabled: false
+  local-admin:
+    enabled: false
+  rag:
+    enabled: false
+  streaming:
+    enabled: false
+  campus-agent:
+    enabled: false
+    archive:
+      enabled: false

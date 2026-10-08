@@ -24,7 +24,7 @@ public class SdkAiInvoke {
                 .build();
         Message userMsg = Message.builder()
                 .role(Role.USER.getValue())
-                .content("你好，我是程序员鱼皮，正在带大家开发编程导航 codefather.cn 最新的原创项目 - AI 超级智能体")
+                .content("你好，请简要介绍你的能力。")
                 .build();
         GenerationParam param = GenerationParam.builder()
                 // 若没有配置环境变量，请用百炼API Key将下行替换为：.apiKey("sk-xxx")

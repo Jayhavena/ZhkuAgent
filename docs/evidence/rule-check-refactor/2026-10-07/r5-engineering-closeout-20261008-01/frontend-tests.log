@@ -1,0 +1,492 @@
+TAP version 13
+# Subtest: login uses form protocol then renews CSRF and confirms current actor
+ok 1 - login uses form protocol then renews CSRF and confirms current actor
+  ---
+  duration_ms: 48.7341
+  type: 'test'
+  ...
+# Subtest: 503 accepted preserves runId without repeating POST
+ok 2 - 503 accepted preserves runId without repeating POST
+  ---
+  duration_ms: 1.7072
+  type: 'test'
+  ...
+# Subtest: lost POST response is unknown and is never retried
+ok 3 - lost POST response is unknown and is never retried
+  ---
+  duration_ms: 0.8906
+  type: 'test'
+  ...
+# Subtest: 401 clears identity whereas 403 preserves it
+ok 4 - 401 clears identity whereas 403 preserves it
+  ---
+  duration_ms: 1.2422
+  type: 'test'
+  ...
+# Subtest: late old identity response cannot overwrite new actor even when transport ignores abort
+ok 5 - late old identity response cannot overwrite new actor even when transport ignores abort
+  ---
+  duration_ms: 0.7869
+  type: 'test'
+  ...
+# Subtest: deadline during anonymous CSRF is network failure, not identity change
+ok 6 - deadline during anonymous CSRF is network failure, not identity change
+  ---
+  duration_ms: 11.5359
+  type: 'test'
+  ...
+# Subtest: malformed successful POST is unknown and malformed GET hides result
+ok 7 - malformed successful POST is unknown and malformed GET hides result
+  ---
+  duration_ms: 1.6827
+  type: 'test'
+  ...
+# Subtest: late 401 from previous identity cannot clear new identity
+ok 8 - late 401 from previous identity cannot clear new identity
+  ---
+  duration_ms: 1.1113
+  type: 'test'
+  ...
+# Subtest: late logout completion cannot erase a newly logged identity
+ok 9 - late logout completion cannot erase a newly logged identity
+  ---
+  duration_ms: 1.3181
+  type: 'test'
+  ...
+# Subtest: login cannot overlap pending logout and race server Cookie changes
+ok 10 - login cannot overlap pending logout and race server Cookie changes
+  ---
+  duration_ms: 0.6527
+  type: 'test'
+  ...
+# Subtest: conversation four APIs send only actual fields with CSRF and explicit revision
+ok 11 - conversation four APIs send only actual fields with CSRF and explicit revision
+  ---
+  duration_ms: 47.2401
+  type: 'test'
+  ...
+# Subtest: unknown create and write are distinct and never automatically POST again
+ok 12 - unknown create and write are distinct and never automatically POST again
+  ---
+  duration_ms: 0.6306
+  type: 'test'
+  ...
+# Subtest: restore only exact control snapshot; malformed revisions and pending pairs rejected
+ok 13 - restore only exact control snapshot; malformed revisions and pending pairs rejected
+  ---
+  duration_ms: 0.4879
+  type: 'test'
+  ...
+# Subtest: evidence unavailable and non-answer types never project a supplied stale answer
+ok 14 - evidence unavailable and non-answer types never project a supplied stale answer
+  ---
+  duration_ms: 0.3854
+  type: 'test'
+  ...
+# Subtest: message confirms new revision with GET before publishing current exchange
+ok 15 - message confirms new revision with GET before publishing current exchange
+  ---
+  duration_ms: 1.4533
+  type: 'test'
+  ...
+# Subtest: conflict needs explicit read and confirmation, never automatic resubmission
+ok 16 - conflict needs explicit read and confirmation, never automatic resubmission
+  ---
+  duration_ms: 0.8024
+  type: 'test'
+  ...
+# Subtest: confirmed POST but follow-up GET failure shows no answer and locks writes
+ok 17 - confirmed POST but follow-up GET failure shows no answer and locks writes
+  ---
+  duration_ms: 0.5632
+  type: 'test'
+  ...
+# Subtest: expired or cancelled control state cannot be revived by send
+ok 18 - expired or cancelled control state cannot be revived by send
+  ---
+  duration_ms: 0.5007
+  type: 'test'
+  ...
+# Subtest: cancel clears current body and preserves returned revision and expiry
+ok 19 - cancel clears current body and preserves returned revision and expiry
+  ---
+  duration_ms: 0.5975
+  type: 'test'
+  ...
+# Subtest: unknown creation stays locked until explicit acknowledgement, no fabricated ID
+ok 20 - unknown creation stays locked until explicit acknowledgement, no fabricated ID
+  ---
+  duration_ms: 0.5696
+  type: 'test'
+  ...
+# Subtest: dispose and route change discard late reply even if transport ignores abort
+ok 21 - dispose and route change discard late reply even if transport ignores abort
+  ---
+  duration_ms: 0.6364
+  type: 'test'
+  ...
+# Subtest: explicit refresh clears old exchange and restores pending without chat history
+ok 22 - explicit refresh clears old exchange and restores pending without chat history
+  ---
+  duration_ms: 0.513
+  type: 'test'
+  ...
+# Subtest: recovery GET failure cannot remove the explicit confirmation gate
+ok 23 - recovery GET failure cannot remove the explicit confirmation gate
+  ---
+  duration_ms: 0.6334
+  type: 'test'
+  ...
+# Subtest: late conversation GET after identity invalidation is discarded by real client
+ok 24 - late conversation GET after identity invalidation is discarded by real client
+  ---
+  duration_ms: 1.3221
+  type: 'test'
+  ...
+# Subtest: withdrawn evidence replaces prior answer without preserving source
+ok 25 - withdrawn evidence replaces prior answer without preserving source
+  ---
+  duration_ms: 0.3178
+  type: 'test'
+  ...
+# node:internal/test_runner/harness:124
+#       throw err;
+#       ^
+# Error: EPERM: operation not permitted, realpath 'D:\\alldesk\\Projects\\ZhkuAgent\\agent\\frontend\\src\\views\\CampusRun.vue'
+#     at node:fs:2910:18
+#     at getRealPath (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:28861:20)
+#     at tryCleanFsResolve (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:28340:16)
+#     at tryFsResolve (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:28329:17)
+#     at Context.resolveId (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:28124:28)
+#     at Object.resolveId (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:44280:64)
+#     at async ModuleGraph._resolveUrl (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:65306:46)
+#     at async file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:65224:45
+#     at async instantiateModule (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:56005:17) {
+#   errno: -4048,
+#   code: 'EPERM',
+#   syscall: 'realpath',
+#   path: 'D:\\\\alldesk\\\\Projects\\\\ZhkuAgent\\\\agent\\\\frontend\\\\src\\\\views\\\\CampusRun.vue'
+# }
+# Node.js v24.19.0
+# Subtest: D:\\alldesk\\Projects\\ZhkuAgent\\agent\\frontend\\tests\\controlled-copy.test.mjs
+not ok 3 - D:\\alldesk\\Projects\\ZhkuAgent\\agent\\frontend\\tests\\controlled-copy.test.mjs
+  ---
+  duration_ms: 755.3966
+  type: 'test'
+  location: 'D:\\alldesk\\Projects\\ZhkuAgent\\agent\\frontend\\tests\\controlled-copy.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 7
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: submission projection matches actual live/archived contract and hides unconfirmed cached body
+ok 27 - submission projection matches actual live/archived contract and hides unconfirmed cached body
+  ---
+  duration_ms: 1.7045
+  type: 'test'
+  ...
+# Subtest: interrupted and admitted archive facts do not invent Runtime termination or running state
+ok 28 - interrupted and admitted archive facts do not invent Runtime termination or running state
+  ---
+  duration_ms: 0.5005
+  type: 'test'
+  ...
+# Subtest: online hidden or unconfirmed never renders cached body despite SUCCEEDED
+ok 29 - online hidden or unconfirmed never renders cached body despite SUCCEEDED
+  ---
+  duration_ms: 0.2987
+  type: 'test'
+  ...
+# Subtest: cancelled response with terminated false is not finished cleanup
+ok 30 - cancelled response with terminated false is not finished cleanup
+  ---
+  duration_ms: 0.1829
+  type: 'test'
+  ...
+# Subtest: history requires confirmed final archive and current visible permission
+ok 31 - history requires confirmed final archive and current visible permission
+  ---
+  duration_ms: 0.2226
+  type: 'test'
+  ...
+# Subtest: visible real response is text plus response source, without fabricated total
+ok 32 - visible real response is text plus response source, without fabricated total
+  ---
+  duration_ms: 1.2215
+  type: 'test'
+  ...
+# Subtest: return route permits only internal campus pages
+ok 33 - return route permits only internal campus pages
+  ---
+  duration_ms: 0.9401
+  type: 'test'
+  ...
+# Subtest: cancel and timeout labels wait for termination instead of promising completion
+ok 34 - cancel and timeout labels wait for termination instead of promising completion
+  ---
+  duration_ms: 0.1973
+  type: 'test'
+  ...
+# Subtest: generated online result and finalized history do not invent the same cleanup signal
+ok 35 - generated online result and finalized history do not invent the same cleanup signal
+  ---
+  duration_ms: 0.195
+  type: 'test'
+  ...
+# Subtest: hidden and unconfirmed results explain access without calling execution a failure
+ok 36 - hidden and unconfirmed results explain access without calling execution a failure
+  ---
+  duration_ms: 0.2274
+  type: 'test'
+  ...
+# Subtest: cancelled and incomplete tasks offer relevant next actions rather than waiting for an answer
+ok 37 - cancelled and incomplete tasks offer relevant next actions rather than waiting for an answer
+  ---
+  duration_ms: 0.2782
+  type: 'test'
+  ...
+# Subtest: identity invalidation clears actor and token and advances generation
+ok 38 - identity invalidation clears actor and token and advances generation
+  ---
+  duration_ms: 1.8755
+  type: 'test'
+  ...
+# Subtest: clear aborts registered readers and invalidates delivery ticket
+ok 39 - clear aborts registered readers and invalidates delivery ticket
+  ---
+  duration_ms: 0.4878
+  type: 'test'
+  ...
+# Subtest: freeze original request, manual resend retains key and body, refresh persists metadata only
+ok 40 - freeze original request, manual resend retains key and body, refresh persists metadata only
+  ---
+  duration_ms: 4.3169
+  type: 'test'
+  ...
+# Subtest: at most five hints, new task new key, logout and switch erase old identity hints
+ok 41 - at most five hints, new task new key, logout and switch erase old identity hints
+  ---
+  duration_ms: 0.6091
+  type: 'test'
+  ...
+# Subtest: confirmed expiry and runId survive refresh, stale owner cannot attach reply
+ok 42 - confirmed expiry and runId survive refresh, stale owner cannot attach reply
+  ---
+  duration_ms: 1.3114
+  type: 'test'
+  ...
+# Subtest: no insecure UUID fallback; corrupt storage cannot restore request or results
+ok 43 - no insecure UUID fallback; corrupt storage cannot restore request or results
+  ---
+  duration_ms: 0.5782
+  type: 'test'
+  ...
+# Subtest: one POST with original key, loss followed by GET confirmation never automatic resend
+ok 44 - one POST with original key, loss followed by GET confirmation never automatic resend
+  ---
+  duration_ms: 30.0084
+  type: 'test'
+  ...
+# Subtest: invalid/missing key performs zero HTTP; late confirmation cannot affect new identity
+ok 45 - invalid/missing key performs zero HTTP; late confirmation cannot affect new identity
+  ---
+  duration_ms: 1.7635
+  type: 'test'
+  ...
+# Subtest: explicit retry uses frozen original and the same header, not edited form content
+ok 46 - explicit retry uses frozen original and the same header, not edited form content
+  ---
+  duration_ms: 1.629
+  type: 'test'
+  ...
+# Subtest: 401 keeps confirmation metadata for same-user reauthentication; explicit logout removes it
+ok 47 - 401 keeps confirmation metadata for same-user reauthentication; explicit logout removes it
+  ---
+  duration_ms: 3.0646
+  type: 'test'
+  ...
+# Subtest: actual Java HTTP answer accepts declaredConditions and normalizes UI conditions
+ok 48 - actual Java HTTP answer accepts declaredConditions and normalizes UI conditions
+  ---
+  duration_ms: 42.7699
+  type: 'test'
+  ...
+# Subtest: v2 login renews CSRF and reads independent actor without v1 calls
+ok 49 - v2 login renews CSRF and reads independent actor without v1 calls
+  ---
+  duration_ms: 2.9749
+  type: 'test'
+  ...
+# Subtest: check sends only explicit conditions and server continuation token
+ok 50 - check sends only explicit conditions and server continuation token
+  ---
+  duration_ms: 1.0512
+  type: 'test'
+  ...
+# Subtest: new question discards late successful answer even when abort ignored
+ok 51 - new question discards late successful answer even when abort ignored
+  ---
+  duration_ms: 3.1787
+  type: 'test'
+  ...
+# Subtest: late old epoch 401 cannot clear new logged in actor
+ok 52 - late old epoch 401 cannot clear new logged in actor
+  ---
+  duration_ms: 0.9212
+  type: 'test'
+  ...
+# Subtest: all five statuses pass contract but contradictory fact shapes are refused
+ok 53 - all five statuses pass contract but contradictory fact shapes are refused
+  ---
+  duration_ms: 3.9927
+  type: 'test'
+  ...
+# Subtest: original rejects invalid context spans and unsafe links without showing old text
+ok 54 - original rejects invalid context spans and unsafe links without showing old text
+  ---
+  duration_ms: 1.7874
+  type: 'test'
+  ...
+# Subtest: invalid request or original handle never invokes transport
+ok 55 - invalid request or original handle never invokes transport
+  ---
+  duration_ms: 0.4743
+  type: 'test'
+  ...
+# Subtest: network loss does not retry and does not claim not accepted
+ok 56 - network loss does not retry and does not claim not accepted
+  ---
+  duration_ms: 0.3716
+  type: 'test'
+  ...
+# Subtest: new question discards original response from earlier round
+ok 57 - new question discards original response from earlier round
+  ---
+  duration_ms: 1.8714
+  type: 'test'
+  ...
+# Subtest: identity changes are serialized and me detects changed auth revision
+ok 58 - identity changes are serialized and me detects changed auth revision
+  ---
+  duration_ms: 2.0477
+  type: 'test'
+  ...
+# Subtest: current 401 clears its own identity but preserves actionable auth error
+ok 59 - current 401 clears its own identity but preserves actionable auth error
+  ---
+  duration_ms: 0.4474
+  type: 'test'
+  ...
+# Subtest: half surrogate quote and context boundary are rejected
+ok 60 - half surrogate quote and context boundary are rejected
+  ---
+  duration_ms: 0.5376
+  type: 'test'
+  ...
+# Subtest: current empty or HTML 401 clears identity independently of error body parsing
+ok 61 - current empty or HTML 401 clears identity independently of error body parsing
+  ---
+  duration_ms: 0.3928
+  type: 'test'
+  ...
+# Subtest: old epoch non JSON 401 never clears new current actor
+ok 62 - old epoch non JSON 401 never clears new current actor
+  ---
+  duration_ms: 1.1376
+  type: 'test'
+  ...
+# Subtest: public me during logout cannot refill actor with late success
+ok 63 - public me during logout cannot refill actor with late success
+  ---
+  duration_ms: 0.84
+  type: 'test'
+  ...
+# Subtest: old question CSRF preflight 401 cannot erase new successful question
+ok 64 - old question CSRF preflight 401 cannot erase new successful question
+  ---
+  duration_ms: 0.9297
+  type: 'test'
+  ...
+# node:internal/test_runner/harness:124
+#       throw err;
+#       ^
+# Error: EPERM: operation not permitted, realpath 'D:\\alldesk\\Projects\\ZhkuAgent\\agent\\frontend\\src\\views\\RuleCheckView.vue'
+#     at node:fs:2910:18
+#     at getRealPath (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:28861:20)
+#     at tryCleanFsResolve (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:28340:16)
+#     at tryFsResolve (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:28329:17)
+#     at Context.resolveId (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:28124:28)
+#     at Object.resolveId (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:44280:64)
+#     at async ModuleGraph._resolveUrl (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:65306:46)
+#     at async file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:65224:45
+#     at async instantiateModule (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:56005:17) {
+#   errno: -4048,
+#   code: 'EPERM',
+#   syscall: 'realpath',
+#   path: 'D:\\\\alldesk\\\\Projects\\\\ZhkuAgent\\\\agent\\\\frontend\\\\src\\\\views\\\\RuleCheckView.vue'
+# }
+# Node.js v24.19.0
+# Subtest: D:\\alldesk\\Projects\\ZhkuAgent\\agent\\frontend\\tests\\rule-check-page.test.mjs
+not ok 8 - D:\\alldesk\\Projects\\ZhkuAgent\\agent\\frontend\\tests\\rule-check-page.test.mjs
+  ---
+  duration_ms: 685.0321
+  type: 'test'
+  location: 'D:\\alldesk\\Projects\\ZhkuAgent\\agent\\frontend\\tests\\rule-check-page.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 7
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: busy execution is separate from business decision and no retry on unknown outcome
+ok 66 - busy execution is separate from business decision and no retry on unknown outcome
+  ---
+  duration_ms: 3.019
+  type: 'test'
+  ...
+# Subtest: clarification sends only current allowed delta and never guesses unknown conditions
+ok 67 - clarification sends only current allowed delta and never guesses unknown conditions
+  ---
+  duration_ms: 1.5256
+  type: 'test'
+  ...
+# Subtest: new question clears previous answer and original before pending query completes
+ok 68 - new question clears previous answer and original before pending query completes
+  ---
+  duration_ms: 0.6675
+  type: 'test'
+  ...
+# Subtest: identity epoch change immediately clears displayed content and old async response
+ok 69 - identity epoch change immediately clears displayed content and old async response
+  ---
+  duration_ms: 1.0244
+  type: 'test'
+  ...
+# Subtest: reset and disposal reject late original response even if transport resolves
+ok 70 - reset and disposal reject late original response even if transport resolves
+  ---
+  duration_ms: 0.5123
+  type: 'test'
+  ...
+# Subtest: failed original retrieval clears old original and outcome remains explicit
+ok 71 - failed original retrieval clears old original and outcome remains explicit
+  ---
+  duration_ms: 0.804
+  type: 'test'
+  ...
+# Subtest: connection loss records unconfirmed result and never automatically resubmits
+ok 72 - connection loss records unconfirmed result and never automatically resubmits
+  ---
+  duration_ms: 0.5939
+  type: 'test'
+  ...
+1..72
+# tests 72
+# suites 0
+# pass 70
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 810.7148

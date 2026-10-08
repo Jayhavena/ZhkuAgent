@@ -1,13 +1,17 @@
 package com.zhku.knowledge.conversation;
 
 import javax.sql.DataSource;
+import com.zhku.knowledge.security.TrustedActor;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -15,14 +19,50 @@ import java.util.UUID;
 public final class JdbcConversationStore implements ConversationStore {
 
     private final DataSource dataSource;
+    private final ConversationJdbcAccess access;
+    private final TrustedActor actor;
+    private final Clock createClock;
+    private final ConversationOperationBudget requestBudget;
+    private static final Duration OWNED_TTL = Duration.ofMinutes(10);
+    private static final String COLUMNS = "session_id, status, pending_intent, pending_field, expires_at, revision";
+    private static final String OWNED_PERMISSION = """
+            owner_user_id = ? AND EXISTS (
+                SELECT 1 FROM preview_identity i WHERE i.user_id = ?
+                  AND i.enabled AND i.role = 'USER' AND i.auth_revision = ?
+            )
+            """;
 
     public JdbcConversationStore(DataSource dataSource) {
         this.dataSource = Objects.requireNonNull(dataSource, "数据源不能为空");
+        access = null;
+        actor = null;
+        createClock = null;
+        requestBudget = null;
+    }
+
+    public JdbcConversationStore(ConversationJdbcAccess access, TrustedActor actor, Clock createClock) {
+        this(access, actor, createClock, null, false);
+    }
+
+    public JdbcConversationStore(ConversationJdbcAccess access, TrustedActor actor, Clock createClock,
+            ConversationOperationBudget budget) {
+        this(access, actor, createClock, Objects.requireNonNull(budget, "请求预算不能为空"), true);
+    }
+
+    private JdbcConversationStore(ConversationJdbcAccess access, TrustedActor actor, Clock createClock,
+            ConversationOperationBudget budget, boolean sharedBudget) {
+        dataSource = null;
+        this.access = Objects.requireNonNull(access, "受控数据库资源不能为空");
+        this.actor = Objects.requireNonNull(actor, "可信主体不能为空");
+        this.createClock = Objects.requireNonNull(createClock, "创建时钟不能为空");
+        // 消息入口传入同一budget；无budget重载仅为单次独立Store调用提供预算。
+        requestBudget = sharedBudget ? budget : null;
     }
 
     @Override
     public StoreResult create(ConversationState initialState) {
         Objects.requireNonNull(initialState, "初始会话不能为空");
+        if (access != null) return ownedCreate(initialState);
         try (Connection connection = dataSource.getConnection()) {
             if (insert(connection, initialState) == 1) {
                 return new StoreResult(StoreResult.Outcome.CREATED, initialState);
@@ -40,6 +80,10 @@ public final class JdbcConversationStore implements ConversationStore {
     public StoreResult find(UUID sessionId, Clock clock) {
         Objects.requireNonNull(sessionId, "会话编号不能为空");
         Objects.requireNonNull(clock, "时钟不能为空");
+        if (access != null) return owned(ConversationJdbcAccess.WriteKind.NONE, transaction -> {
+            requireCurrentUser(transaction);
+            return visibleResult(ownedState(transaction, sessionId, false), clock);
+        });
         try (Connection connection = dataSource.getConnection()) {
             ConversationState state = findState(connection, sessionId);
             return visibleResult(state, clock);
@@ -61,6 +105,7 @@ public final class JdbcConversationStore implements ConversationStore {
         Objects.requireNonNull(pendingField, "待补字段不能为空");
         Objects.requireNonNull(nextExpiresAt, "过期时间不能为空");
         validateWriteArguments(sessionId, expectedRevision, clock);
+        if (access != null) return ownedUpdate(sessionId, expectedRevision, pendingIntent, pendingField, clock, Mutation.SAVE);
         return updateActive(
                 sessionId,
                 expectedRevision,
@@ -69,7 +114,7 @@ public final class JdbcConversationStore implements ConversationStore {
                         UPDATE conversation_session
                         SET pending_intent = ?, pending_field = ?, expires_at = ?,
                             revision = revision + 1
-                        WHERE session_id = ? AND status = 'ACTIVE'
+                        WHERE session_id = ? AND owner_user_id IS NULL AND status = 'ACTIVE'
                           AND revision = ? AND expires_at > ?
                         RETURNING session_id, status, pending_intent, pending_field, expires_at, revision
                         """,
@@ -93,6 +138,7 @@ public final class JdbcConversationStore implements ConversationStore {
     ) {
         Objects.requireNonNull(nextExpiresAt, "过期时间不能为空");
         validateWriteArguments(sessionId, expectedRevision, clock);
+        if (access != null) return ownedUpdate(sessionId, expectedRevision, null, null, clock, Mutation.CLEAR);
         StoreResult result = updateActive(
                 sessionId,
                 expectedRevision,
@@ -101,7 +147,7 @@ public final class JdbcConversationStore implements ConversationStore {
                         UPDATE conversation_session
                         SET pending_intent = NULL, pending_field = NULL, expires_at = ?,
                             revision = revision + 1
-                        WHERE session_id = ? AND status = 'ACTIVE' AND pending_intent IS NOT NULL
+                        WHERE session_id = ? AND owner_user_id IS NULL AND status = 'ACTIVE' AND pending_intent IS NOT NULL
                           AND revision = ? AND expires_at > ?
                         RETURNING session_id, status, pending_intent, pending_field, expires_at, revision
                         """,
@@ -123,6 +169,7 @@ public final class JdbcConversationStore implements ConversationStore {
     @Override
     public StoreResult cancel(UUID sessionId, long expectedRevision, Clock clock) {
         validateWriteArguments(sessionId, expectedRevision, clock);
+        if (access != null) return ownedUpdate(sessionId, expectedRevision, null, null, clock, Mutation.CANCEL);
         return updateActive(
                 sessionId,
                 expectedRevision,
@@ -131,7 +178,7 @@ public final class JdbcConversationStore implements ConversationStore {
                         UPDATE conversation_session
                         SET status = 'CANCELLED', pending_intent = NULL, pending_field = NULL,
                             revision = revision + 1
-                        WHERE session_id = ? AND status = 'ACTIVE'
+                        WHERE session_id = ? AND owner_user_id IS NULL AND status = 'ACTIVE'
                           AND revision = ? AND expires_at > ?
                         RETURNING session_id, status, pending_intent, pending_field, expires_at, revision
                         """,
@@ -146,15 +193,182 @@ public final class JdbcConversationStore implements ConversationStore {
     @Override
     public int clearExpired(Clock clock) {
         Objects.requireNonNull(clock, "时钟不能为空");
+        if (access != null) return ownedClearExpired(clock);
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "DELETE FROM conversation_session WHERE expires_at <= ?"
+                     "DELETE FROM conversation_session WHERE owner_user_id IS NULL AND expires_at <= ?"
              )) {
             statement.setTimestamp(1, Timestamp.from(clock.instant()));
             return statement.executeUpdate();
         } catch (SQLException exception) {
             throw databaseFailure("清理过期会话", exception);
         }
+    }
+
+    private StoreResult ownedCreate(ConversationState initial) {
+        if (initial.status() != ConversationStatus.ACTIVE || initial.revision() != 0 || initial.pendingIntent() != null)
+            throw new IllegalArgumentException("受控创建只允许空的ACTIVE初始状态");
+        return owned(ConversationJdbcAccess.WriteKind.CREATE, transaction -> {
+            requireCurrentUser(transaction);
+            // TTL只取服务端时钟，不能借Store输入或客户端字段扩展持久会话的寿命。
+            ConversationState candidate = ConversationState.active(initial.sessionId(), createClock.instant().plus(OWNED_TTL));
+            try (PreparedStatement statement = transaction.prepare("""
+                    INSERT INTO conversation_session (
+                        session_id, status, pending_intent, pending_field, expires_at, revision, owner_user_id
+                    ) SELECT ?, ?, ?, ?, ?, ?, i.user_id FROM preview_identity i
+                    WHERE i.user_id = ? AND i.enabled AND i.role = 'USER' AND i.auth_revision = ?
+                    ON CONFLICT (session_id) DO NOTHING
+                    RETURNING session_id, status, pending_intent, pending_field, expires_at, revision
+                    """)) {
+                statement.setObject(1, candidate.sessionId());
+                statement.setString(2, candidate.status().name());
+                statement.setString(3, null);
+                statement.setString(4, null);
+                statement.setTimestamp(5, Timestamp.from(candidate.expiresAt()));
+                statement.setLong(6, candidate.revision());
+                statement.setObject(7, actor.userId());
+                statement.setLong(8, actor.authRevision());
+                transaction.writeIssued();
+                try (ResultSet result = statement.executeQuery()) {
+                    if (result.next()) return new StoreResult(StoreResult.Outcome.CREATED, stateOf(result));
+                }
+            }
+            // 冲突可能是他人/无主行，诊断仍先过滤本人许可；不换UUID、不认领、不续期。
+            ConversationState existing = ownedState(transaction, initial.sessionId(), false);
+            if (existing != null && (existing.isExpired(createClock) || existing.status() != ConversationStatus.ACTIVE))
+                existing = null;
+            return new StoreResult(StoreResult.Outcome.ALREADY_EXISTS, existing);
+        });
+    }
+
+    private enum Mutation { SAVE, CLEAR, CANCEL }
+
+    private StoreResult ownedUpdate(UUID id, long expectedRevision, PendingIntent intent, PendingField field,
+            Clock clock, Mutation mutation) {
+        return owned(ConversationJdbcAccess.WriteKind.WRITE, transaction -> {
+            requireCurrentUser(transaction);
+            ConversationState locked = ownedState(transaction, id, true);
+            // 锁等待可能跨过TTL，必须锁成功后重新取时间；身份锁固定在Session行锁之前。
+            Instant now = clock.instant();
+            StoreResult visible = visibleResult(locked, Clock.fixed(now, clock.getZone()));
+            if (visible.outcome() != StoreResult.Outcome.FOUND) return visible;
+            if (locked.revision() != expectedRevision || expectedRevision == Long.MAX_VALUE
+                    || (mutation == Mutation.CLEAR && locked.pendingIntent() == null))
+                return new StoreResult(StoreResult.Outcome.STALE_WRITE, locked);
+
+            String assignments = switch (mutation) {
+                case SAVE -> "pending_intent = ?, pending_field = ?, expires_at = ?, revision = revision + 1";
+                case CLEAR -> "pending_intent = NULL, pending_field = NULL, expires_at = ?, revision = revision + 1";
+                case CANCEL -> "status = 'CANCELLED', pending_intent = NULL, pending_field = NULL, revision = revision + 1";
+            };
+            String sql = "UPDATE conversation_session SET " + assignments + " WHERE session_id = ? AND "
+                    + OWNED_PERMISSION + " AND status = 'ACTIVE' AND revision = ? AND expires_at > ?"
+                    + " AND revision < 9223372036854775807"
+                    + (mutation == Mutation.CLEAR ? " AND pending_intent IS NOT NULL" : "")
+                    + " RETURNING " + COLUMNS;
+            try (PreparedStatement statement = transaction.prepare(sql)) {
+                int parameter = 1;
+                if (mutation == Mutation.SAVE) {
+                    statement.setString(parameter++, intent.name());
+                    statement.setString(parameter++, field.name());
+                }
+                // 原接口保留nextExpiresAt参数；owned路径固定由锁后服务端时钟滑动10分钟。
+                if (mutation != Mutation.CANCEL) statement.setTimestamp(parameter++, Timestamp.from(now.plus(OWNED_TTL)));
+                statement.setObject(parameter++, id);
+                parameter = bindPermission(statement, parameter);
+                statement.setLong(parameter++, expectedRevision);
+                statement.setTimestamp(parameter, Timestamp.from(now));
+                transaction.writeIssued();
+                try (ResultSet result = statement.executeQuery()) {
+                    if (result.next()) return new StoreResult(mutation == Mutation.CANCEL
+                            ? StoreResult.Outcome.CANCELLED : StoreResult.Outcome.UPDATED, stateOf(result));
+                }
+            }
+            ConversationState current = ownedState(transaction, id, false);
+            StoreResult diagnostic = visibleResult(current, clock);
+            return diagnostic.outcome() == StoreResult.Outcome.FOUND
+                    ? new StoreResult(StoreResult.Outcome.STALE_WRITE, current) : diagnostic;
+        });
+    }
+
+    private int ownedClearExpired(Clock clock) {
+        return owned(ConversationJdbcAccess.WriteKind.WRITE, transaction -> {
+            requireCurrentUser(transaction);
+            List<ConversationState> candidates = new ArrayList<>();
+            try (PreparedStatement statement = transaction.prepare("SELECT " + COLUMNS
+                    + " FROM conversation_session WHERE " + OWNED_PERMISSION
+                    + " AND expires_at <= ? ORDER BY session_id LIMIT 100 FOR UPDATE SKIP LOCKED")) {
+                int parameter = bindPermission(statement, 1);
+                statement.setTimestamp(parameter, Timestamp.from(clock.instant()));
+                try (ResultSet rows = statement.executeQuery()) {
+                    while (rows.next()) {
+                        if (candidates.size() == 100) throw new ConversationStoreFailure(ConversationStoreFailure.Code.STORE_UNAVAILABLE);
+                        candidates.add(stateOf(rows));
+                    }
+                }
+            }
+            if (candidates.isEmpty()) return 0;
+            Instant afterLockNow = clock.instant();
+            // VALUES脱离列赋值上下文，未知时间参数会被推断为text，必须明确候选列类型。
+            String tuples = String.join(",", java.util.Collections.nCopies(candidates.size(),
+                    "(?::uuid, ?::bigint, ?::varchar, ?::timestamptz)"));
+            String sql = "DELETE FROM conversation_session WHERE " + OWNED_PERMISSION
+                    + " AND expires_at <= ? AND (session_id, revision, status, expires_at) IN (VALUES " + tuples + ")";
+            try (PreparedStatement statement = transaction.prepare(sql)) {
+                int parameter = bindPermission(statement, 1);
+                statement.setTimestamp(parameter++, Timestamp.from(afterLockNow));
+                // 删除重新核对候选版本、终态和到期时间；不能扫到他人或刚被刷新过的记录。
+                for (ConversationState candidate : candidates) {
+                    statement.setObject(parameter++, candidate.sessionId());
+                    statement.setLong(parameter++, candidate.revision());
+                    statement.setString(parameter++, candidate.status().name());
+                    statement.setTimestamp(parameter++, Timestamp.from(candidate.expiresAt()));
+                }
+                transaction.writeIssued();
+                return statement.executeUpdate();
+            }
+        });
+    }
+
+    private <T> T owned(ConversationJdbcAccess.WriteKind kind, ConversationJdbcAccess.Job<T> job) {
+        if (actor.role() != TrustedActor.Role.USER)
+            throw new ConversationStoreFailure(ConversationStoreFailure.Code.ROLE_DENIED);
+        return access.execute(requestBudget == null ? new ConversationOperationBudget() : requestBudget, kind, job);
+    }
+
+    private void requireCurrentUser(ConversationJdbcAccess.Transaction transaction) throws SQLException {
+        // 在取identity锁之前设置有限锁等待；配置是事务局部，不污染下一请求的连接。
+        try (PreparedStatement settings = transaction.prepare("""
+                SELECT set_config('lock_timeout', '500ms', true), set_config('statement_timeout', '1000ms', true)
+                """)) { settings.execute(); }
+        try (PreparedStatement statement = transaction.prepare("""
+                SELECT role, auth_revision, enabled FROM preview_identity WHERE user_id = ? FOR SHARE
+                """)) {
+            statement.setObject(1, actor.userId());
+            try (ResultSet row = statement.executeQuery()) {
+                if (!row.next() || !row.getBoolean("enabled") || row.getLong("auth_revision") != actor.authRevision()
+                        || !actor.role().name().equals(row.getString("role")))
+                    throw new ConversationStoreFailure(ConversationStoreFailure.Code.AUTH_REVOKED);
+            }
+        }
+    }
+
+    private ConversationState ownedState(ConversationJdbcAccess.Transaction transaction, UUID id, boolean lock)
+            throws SQLException {
+        try (PreparedStatement statement = transaction.prepare("SELECT " + COLUMNS
+                + " FROM conversation_session WHERE session_id = ? AND " + OWNED_PERMISSION
+                + (lock ? " FOR UPDATE" : ""))) {
+            statement.setObject(1, id);
+            bindPermission(statement, 2);
+            try (ResultSet row = statement.executeQuery()) { return row.next() ? stateOf(row) : null; }
+        }
+    }
+
+    private int bindPermission(PreparedStatement statement, int parameter) throws SQLException {
+        statement.setObject(parameter++, actor.userId());
+        statement.setObject(parameter++, actor.userId());
+        statement.setLong(parameter++, actor.authRevision());
+        return parameter;
     }
 
     private StoreResult updateActive(
@@ -212,17 +426,14 @@ public final class JdbcConversationStore implements ConversationStore {
     }
 
     private ConversationState requireState(Connection connection, UUID sessionId) throws SQLException {
-        ConversationState state = findState(connection, sessionId);
-        if (state == null) {
-            throw new IllegalStateException("创建冲突后未找到已有会话");
-        }
-        return state;
+        // UUID冲突不代表匿名调用者有权查看该行；私有/已消失行只返回空状态。
+        return findState(connection, sessionId);
     }
 
     private ConversationState findState(Connection connection, UUID sessionId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("""
                 SELECT session_id, status, pending_intent, pending_field, expires_at, revision
-                FROM conversation_session WHERE session_id = ?
+                FROM conversation_session WHERE session_id = ? AND owner_user_id IS NULL
                 """)) {
             statement.setObject(1, sessionId);
             try (ResultSet result = statement.executeQuery()) {

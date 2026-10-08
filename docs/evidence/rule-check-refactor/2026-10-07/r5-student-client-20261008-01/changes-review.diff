@@ -1,0 +1,402 @@
+--- before/agent/frontend/src/api/rule-check.js
++++ after/agent/frontend/src/api/rule-check.js
+@@ -0,0 +1,179 @@
++import { ruleCheckSession } from '../state/rule-check-session.js'
++export const PREFIX = '/api/zhku/controlled-preview/v2'
++export class RuleCheckError extends Error {
++  constructor(code, status = 0) { super(code); this.code = code; this.status = status }
++}
++const id = value => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value)
++const object = value => value !== null && typeof value === 'object' && !Array.isArray(value)
++const unicode = value => {
++  for (let i = 0; i < value.length; i++) {
++    const unit = value.charCodeAt(i)
++    if (unit >= 0xd800 && unit <= 0xdbff) {
++      const next = value.charCodeAt(++i); if (!(next >= 0xdc00 && next <= 0xdfff)) return false
++    } else if (unit >= 0xdc00 && unit <= 0xdfff) return false
++  }
++  return true
++}
++const text = (value, limit = 2048, blank = false) => typeof value === 'string' && value.length <= limit && (blank || value.trim()) && unicode(value)
++const splits = (value, offset) => offset > 0 && offset < value.length && /[\ud800-\udbff]/.test(value[offset - 1]) && /[\udc00-\udfff]/.test(value[offset])
++const list = (value, check, limit = 64) => Array.isArray(value) && value.length <= limit && value.every(check)
++const claims = value => object(value) && Object.keys(value).length <= 16 && Object.entries(value).every(([key, value]) => text(key, 64) && text(value, 128, true))
++const span = (start, end, value) => Number.isSafeInteger(start) && start >= 0 && Number.isSafeInteger(end) && end > start && end - start === value.length
++const condition = value => object(value) && text(value.key, 64) && text(value.question) && list(value.allowedValues, v => text(v, 128), 32) && value.allowedValues.length > 0
++const citation = value => object(value) && text(value.citationId, 128) && id(value.sourceId) && id(value.chunkId) && value.revision === '2025.9.2'
++  && text(value.text, 4096) && span(value.startInclusive, value.endExclusive, value.text) && id(value.originalToken)
++const fact = value => object(value) && text(value.id, 128) && text(value.text, 8192) && claims(value.when)
++  && list(value.citations, citation, 32) && value.citations.length > 0
++function reply(value) {
++  if (!object(value) || value.referenceRevision !== '2025.9.2' || !text(value.knowledgeScope, 128) || value.conditionSource !== 'USER_DECLARED'
++    || !claims(value.confirmedConditions) || !list(value.confirmedFacts, fact, 32) || !list(value.clarificationQuestions, condition, 16)
++    || !list(value.unknownItems, v => text(v)) || !list(value.conflicts, c => object(c) && text(c.issue) && list(c.sides, fact, 32) && c.sides.length >= 2, 16)) return false
++  const { confirmedFacts: facts, unknownItems: unknown, clarificationQuestions: questions, conflicts } = value
++  if (value.status !== 'INSUFFICIENT_EVIDENCE' && (!object(value.scope) || !text(value.scope.ruleId, 128)
++    || !text(value.scope.questionScope, 8192) || !list(value.scope.conditions, condition, 16) || !object(value.scope.factPreconditions))) return false
++  if (value.status === 'NEED_CLARIFICATION') {
++    // 当前协议逐轮只问一个会影响判断的条件；不把多项歧义问题自动猜成声明。
++    return questions.length === 1 && conflicts.length === 0 && id(value.clarificationToken)
++  }
++  if (value.clarificationToken != null || questions.length) return false
++  switch (value.status) {
++    case 'ANSWERED': return facts.length > 0 && !unknown.length && !conflicts.length
++    case 'PARTIALLY_ANSWERED': return facts.length > 0 && unknown.length > 0 && !conflicts.length
++    case 'INSUFFICIENT_EVIDENCE': return !facts.length && unknown.length > 0 && !conflicts.length && value.scope == null
++    case 'CONFLICTING_EVIDENCE': return !facts.length && conflicts.length > 0
++    default: return false
++  }
++}
++function located(value) {
++  if (!object(value) || !text(value.citationId, 128) || !id(value.sourceId) || !id(value.chunkId) || value.revision !== '2025.9.2'
++    || !text(value.contextText, 8192) || !Number.isSafeInteger(value.contextStartInclusive) || value.contextStartInclusive < 0
++    || !Number.isSafeInteger(value.quoteStartInclusive) || !Number.isSafeInteger(value.quoteEndExclusive)
++    || value.quoteStartInclusive < value.contextStartInclusive || value.quoteEndExclusive <= value.quoteStartInclusive
++    || value.quoteEndExclusive - value.contextStartInclusive > value.contextText.length || !list(value.unknownItems, v => text(v))) return false
++  if (splits(value.contextText, value.quoteStartInclusive - value.contextStartInclusive)
++    || splits(value.contextText, value.quoteEndExclusive - value.contextStartInclusive)) return false
++  if (![ ['title', 300], ['sourceLocator', 500], ['sectionTitle', 2048] ].every(([key, limit]) => value[key] == null || text(value[key], limit))) return false
++  if (value.pageNumberKind === 'UNKNOWN' ? value.recordedPageNumber != null
++    : value.pageNumberKind !== 'RECORDED_SOURCE_PAGE' || !Number.isSafeInteger(value.recordedPageNumber) || value.recordedPageNumber < 1) return false
++  if (value.safeSourceUrl != null) {
++    try {
++      if (!text(value.safeSourceUrl, 2048)) return false
++      const url = new URL(value.safeSourceUrl)
++      if (url.protocol !== 'https:' || url.username || url.password || url.port && url.port !== '443') return false
++    } catch { return false }
++  }
++  return true
++}
++export function createRuleCheckClient({ session = ruleCheckSession, fetchImpl = (...args) => fetch(...args), timeoutMs = 10000 } = {}) {
++  if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0 || timeoutMs > 60000) throw new RuleCheckError('INVALID_TIMEOUT')
++  let round = 0
++  const resultRequests = new Set()
++  const current = (epoch, expectedRound) => {
++    if (session.state.epoch !== epoch || expectedRound != null && expectedRound !== round) throw new RuleCheckError('STALE_RESPONSE')
++  }
++  const cancelResults = () => { round++; for (const controller of resultRequests) controller.abort(); resultRequests.clear() }
++  async function request(method, path, body, { token = session.csrf, form = false, expectedRound } = {}) {
++    const scope = session.acquire()
++    if (expectedRound != null) resultRequests.add(scope.controller)
++    const timer = setTimeout(() => scope.controller.abort(), timeoutMs)
++    let ownRevocationEpoch = null
++    try {
++      current(scope.epoch, expectedRound)
++      const headers = { Accept: 'application/json' }
++      if (method !== 'GET') {
++        if (!text(token?.headerName, 128) || !text(token?.token, 512)) throw new RuleCheckError('CSRF_UNAVAILABLE')
++        headers[token.headerName] = token.token
++        headers['Content-Type'] = form ? 'application/x-www-form-urlencoded;charset=UTF-8' : 'application/json; charset=UTF-8'
++      }
++      const response = await fetchImpl(PREFIX + path, { method, headers, credentials: 'same-origin', cache: 'no-store', signal: scope.controller.signal,
++        ...(body === undefined ? {} : { body: form ? body : JSON.stringify(body) }) })
++      let data = null
++      if (response.status !== 204) {
++        try { data = await response.json() } catch { current(scope.epoch, expectedRound); throw new RuleCheckError('BAD_RESPONSE', response.status) }
++      }
++      // Abort并不保证物理请求结束；旧身份/旧问题的成功和401都必须在改状态前丢弃。
++      current(scope.epoch, expectedRound)
++      if (scope.controller.signal.aborted) throw new RuleCheckError('NETWORK_UNAVAILABLE')
++      if (!response.ok) {
++        if (response.status === 401) { session.clear('AUTH_EXPIRED'); ownRevocationEpoch = session.state.epoch }
++        const code = typeof data?.code === 'string' && /^[A-Z_]{1,80}$/.test(data.code) ? data.code : `HTTP_${response.status}`
++        throw new RuleCheckError(code, response.status)
++      }
++      if (response.status !== 204 && !object(data)) throw new RuleCheckError('BAD_RESPONSE', response.status)
++      return data
++    } catch (error) {
++      // 当前401主动清身份会换代，不应把自己的登录提示误判成迟到响应；新身份仍不接收旧错误。
++      if (error instanceof RuleCheckError && error.status === 401 && ownRevocationEpoch === session.state.epoch) throw error
++      current(scope.epoch, expectedRound)
++      if (error instanceof RuleCheckError) throw error
++      throw new RuleCheckError('NETWORK_UNAVAILABLE')
++    } finally { clearTimeout(timer); resultRequests.delete(scope.controller); scope.release() }
++  }
++  async function csrf() {
++    const epoch = session.state.epoch, value = await request('GET', '/auth/csrf')
++    current(epoch)
++    if (!text(value?.headerName, 128) || !text(value?.token, 512)) throw new RuleCheckError('BAD_RESPONSE')
++    session.csrf = value; return value
++  }
++  async function write(path, body, options = {}) {
++    const epoch = session.state.epoch, token = session.csrf || await csrf()
++    current(epoch, options.expectedRound); return request('POST', path, body, { ...options, token })
++  }
++  async function me() {
++    const epoch = session.state.epoch, actor = await request('GET', '/auth/me')
++    current(epoch)
++    if (!id(actor?.userId) || !['USER', 'MAINTAINER'].includes(actor.role) || !Number.isSafeInteger(actor.authRevision) || actor.authRevision < 0) throw new RuleCheckError('BAD_RESPONSE')
++    const old = session.state.actor
++    if (old && (old.userId !== actor.userId || old.role !== actor.role || old.authRevision !== actor.authRevision)) session.clear('IDENTITY_CHANGED')
++    session.state.actor = actor; session.state.checked = true; return actor
++  }
++  return {
++    csrf, me, cancelResults,
++    async login(username, password) {
++      if (session.state.identityBusy) throw new RuleCheckError('AUTH_TRANSITION')
++      session.state.identityBusy = true
++      try {
++        session.clear(); cancelResults(); const epoch = session.state.epoch
++        const token = await csrf(); current(epoch)
++        await request('POST', '/auth/login', new URLSearchParams({ username, password }).toString(), { form: true, token })
++        current(epoch); session.csrf = null; await csrf(); return await me()
++      } finally { session.state.identityBusy = false }
++    },
++    async logout() {
++      if (session.state.identityBusy) throw new RuleCheckError('AUTH_TRANSITION')
++      session.state.identityBusy = true
++      try {
++        const token = session.csrf; session.clear(); cancelResults()
++        await request('POST', '/auth/logout', undefined, { token: token || await csrf() })
++      } catch (error) { session.clear('LOGOUT_UNCONFIRMED'); throw error }
++      finally { session.state.identityBusy = false }
++    },
++    async check(question, confirmedConditions, clarificationToken) {
++      if (!text(question, 2048) || !claims(confirmedConditions) || clarificationToken != null && !id(clarificationToken)) throw new RuleCheckError('INVALID_RULE_CHECK_REQUEST')
++      if (session.state.identityBusy) throw new RuleCheckError('AUTH_TRANSITION')
++      cancelResults(); const expectedRound = round
++      const body = { question, confirmedConditions, ...(clarificationToken == null ? {} : { clarificationToken }) }
++      const value = await write('/rule-check', body, { expectedRound })
++      if (!reply(value)) throw new RuleCheckError('BAD_RESPONSE')
++      return value
++    },
++    async original(token) {
++      if (!id(token)) throw new RuleCheckError('INVALID_ORIGINAL_TOKEN')
++      if (session.state.identityBusy) throw new RuleCheckError('AUTH_TRANSITION')
++      const value = await request('GET', `/rule-check/originals/${token}`, undefined, { expectedRound: round })
++      if (!located(value)) throw new RuleCheckError('BAD_RESPONSE')
++      return value
++    }
++  }
++}
++export const ruleCheckClient = createRuleCheckClient()
++export function ruleCheckErrorMessage(error) {
++  if (error.code === 'NETWORK_UNAVAILABLE' || error.code === 'BAD_RESPONSE') return '本次查证结果未确认，请主动重新查证。'
++  if (error.code === 'AUTH_TRANSITION') return '正在切换登录状态，请稍后操作。'
++  if (error.status === 401) return '登录已失效，请重新登录。'
++  if (error.status === 403) return '当前账号或登录状态无法查证，请重新登录。'
++  if (error.status === 404 || error.status === 409) return '引用或资料已变化、过期或被新问题替代，请重新查证。'
++  if (error.status === 400 || error.code === 'INVALID_RULE_CHECK_REQUEST') return '请填写问题，并只确认本轮要求的条件。'
++  if (error.status === 429) return '查证过于频繁，请稍后再试。'
++  return '暂时无法查证，请稍后再试。'
++}
+--- before/agent/frontend/src/state/rule-check-session.js
++++ after/agent/frontend/src/state/rule-check-session.js
+@@ -0,0 +1,3 @@
++import { createControlledSession } from './controlled-session.js'
++// 复用换代机制，不共享旧学分入口的主体、Cookie资格或任务持久化。
++export const ruleCheckSession = createControlledSession()
+--- before/agent/frontend/src/state/rule-check-workflow.js
++++ after/agent/frontend/src/state/rule-check-workflow.js
+@@ -0,0 +1,44 @@
++import { reactive, watch } from 'vue'
++import { ruleCheckClient, ruleCheckErrorMessage } from '../api/rule-check.js'
++import { ruleCheckSession } from './rule-check-session.js'
++export function createRuleCheckWorkflow({ client = ruleCheckClient, session = ruleCheckSession } = {}) {
++  const state = reactive({ question: '', result: null, original: null, busy: false, originalBusy: false, error: '' })
++  let generation = 0, originalGeneration = 0, alive = true
++  function reset() {
++    generation++; originalGeneration++; client.cancelResults()
++    state.question = ''; state.result = null; state.original = null; state.busy = false; state.originalBusy = false; state.error = ''
++  }
++  // 同步清除才能保证换账号后的下一帧不显示旧正文；请求完成还须比对本地轮次。
++  const stop = watch(() => session.state.epoch, reset, { flush: 'sync' })
++  async function execute(question, conditions, token) {
++    if (!alive || state.busy || session.state.identityBusy || session.state.actor?.role !== 'USER') return
++    const expected = ++generation, epoch = session.state.epoch
++    originalGeneration++; state.question = question; state.result = null; state.original = null; state.originalBusy = false; state.error = ''; state.busy = true
++    const current = () => alive && expected === generation && epoch === session.state.epoch
++    try { const result = await client.check(question, conditions, token); if (current()) state.result = result }
++    catch (error) { if (current() && error.code !== 'STALE_RESPONSE') state.error = ruleCheckErrorMessage(error) }
++    finally { if (current()) state.busy = false }
++  }
++  return {
++    state,
++    start: question => execute(question, {}),
++    async clarify(key, value) {
++      const reply = state.result, condition = reply?.clarificationQuestions?.[0]
++      if (reply?.status !== 'NEED_CLARIFICATION' || !condition || condition.key !== key || !condition.allowedValues.includes(value)) {
++        state.error = '请只确认本轮要求的条件。'; return
++      }
++      await execute(state.question, { [key]: value }, reply.clarificationToken)
++    },
++    async openOriginal(token) {
++      if (!alive || state.busy || !state.result || session.state.identityBusy) return
++      const expected = generation, epoch = session.state.epoch, originalRound = ++originalGeneration
++      state.original = null; state.originalBusy = true; state.error = ''
++      const current = () => alive && expected === generation && originalRound === originalGeneration && epoch === session.state.epoch
++      try { const original = await client.original(token); if (current()) state.original = original }
++      catch (error) { if (current() && error.code !== 'STALE_RESPONSE') state.error = ruleCheckErrorMessage(error) }
++      finally { if (current()) state.originalBusy = false }
++    },
++    reset,
++    dispose() { alive = false; stop(); reset() }
++  }
++}
+--- before/agent/frontend/tests/rule-check-api.test.mjs
++++ after/agent/frontend/tests/rule-check-api.test.mjs
+@@ -0,0 +1,93 @@
++import test from 'node:test'
++import assert from 'node:assert/strict'
++import { createRuleCheckClient, PREFIX } from '../src/api/rule-check.js'
++import { createControlledSession } from '../src/state/controlled-session.js'
++const ID='22222222-2222-4222-8222-222222222222', HANDLE='33333333-3333-4333-8333-333333333333'
++const json=(body,status=200)=>new Response(JSON.stringify(body),{status})
++const actor=(revision=0)=>({userId:ID,role:'USER',authRevision:revision})
++const session=()=>{const s=createControlledSession();s.state.actor=actor();s.csrf={headerName:'X-CSRF-TOKEN',token:'synthetic'};return s}
++export const answered=()=>({status:'ANSWERED',referenceRevision:'2025.9.2',knowledgeScope:'SYNTHETIC',conditionSource:'USER_DECLARED',confirmedConditions:{},
++  confirmedFacts:[{id:'limit',text:'合成事实',when:{},citations:[{citationId:'c',sourceId:ID,chunkId:ID,revision:'2025.9.2',startInclusive:2,endExclusive:4,text:'原文',originalToken:HANDLE}]}],
++  clarificationQuestions:[],unknownItems:[],conflicts:[],scope:{ruleId:'fixture',questionScope:'合成范围',conditions:[],factPreconditions:{limit:{}}},clarificationToken:null})
++const original=()=>({citationId:'c',sourceId:ID,chunkId:ID,revision:'2025.9.2',title:'合成标题',sourceLocator:'合成定位',recordedPageNumber:1,pageNumberKind:'RECORDED_SOURCE_PAGE',sectionTitle:null,safeSourceUrl:null,
++  contextText:'前文原文后文',contextStartInclusive:0,quoteStartInclusive:2,quoteEndExclusive:4,unknownItems:['映射未知']})
++const tick=()=>new Promise(resolve=>setImmediate(resolve))
++test('v2 login renews CSRF and reads independent actor without v1 calls',async()=>{
++  const seen=[],s=createControlledSession();let count=0
++  const client=createRuleCheckClient({session:s,fetchImpl:async(url,options)=>{
++    seen.push({url,options});return url.endsWith('/csrf')?json({headerName:'X-CSRF-TOKEN',token:`t${++count}`}):json(actor())
++  }})
++  await client.login('user-a','Synthetic-password')
++  assert.deepEqual(seen.map(x=>x.url),['/auth/csrf','/auth/login','/auth/csrf','/auth/me'].map(x=>PREFIX+x))
++  assert.equal(new URLSearchParams(seen[1].options.body).get('username'),'user-a')
++  assert.equal(seen.every(x=>x.options.credentials==='same-origin'&&x.options.cache==='no-store'),true)
++  assert.equal(s.state.actor.userId,ID)
++})
++test('check sends only explicit conditions and server continuation token',async()=>{
++  const seen=[];const c=createRuleCheckClient({session:session(),fetchImpl:async(url,options)=>{seen.push({url,options});return json(answered())}})
++  assert.equal((await c.check('合成问题',{year:'A'},HANDLE))?.status,'ANSWERED')
++  assert.deepEqual(JSON.parse(seen[0].options.body),{question:'合成问题',confirmedConditions:{year:'A'},clarificationToken:HANDLE})
++  assert.equal(seen[0].url,PREFIX+'/rule-check');assert.equal(seen[0].options.headers['X-CSRF-TOKEN'],'synthetic')
++})
++test('new question discards late successful answer even when abort ignored',async()=>{
++  const pending=[];const c=createRuleCheckClient({session:session(),fetchImpl:()=>new Promise(r=>pending.push(r))})
++  const first=c.check('first',{});const rejected=assert.rejects(first,e=>e.code==='STALE_RESPONSE');await tick();assert.equal(pending.length,1)
++  const next=c.check('next',{});await tick();assert.equal(pending.length,2)
++  pending[1](json(answered()));assert.equal((await next).status,'ANSWERED');pending[0](json(answered()));await rejected
++})
++test('late old epoch 401 cannot clear new logged in actor',async()=>{
++  const s=session();let resolve;const c=createRuleCheckClient({session:s,fetchImpl:()=>new Promise(r=>resolve=r)})
++  const first=c.check('first',{});const rejected=assert.rejects(first,e=>e.code==='STALE_RESPONSE');await tick();assert.equal(typeof resolve,'function')
++  s.clear();s.state.actor=actor(1);resolve(json({code:'AUTH_REVOKED'},401));await rejected;assert.equal(s.state.actor.authRevision,1)
++})
++test('all five statuses pass contract but contradictory fact shapes are refused',async()=>{
++  const fixtures=[answered()];const base=answered()
++  fixtures.push({...base,status:'PARTIALLY_ANSWERED',unknownItems:['未知项']})
++  fixtures.push({...base,status:'NEED_CLARIFICATION',confirmedFacts:[],clarificationQuestions:[{key:'year',question:'合成年级',allowedValues:['A','B']}],clarificationToken:HANDLE})
++  fixtures.push({...base,status:'INSUFFICIENT_EVIDENCE',confirmedFacts:[],scope:null,unknownItems:['无证据']})
++  fixtures.push({...base,status:'CONFLICTING_EVIDENCE',confirmedFacts:[],conflicts:[{issue:'合成冲突',sides:[base.confirmedFacts[0],{...base.confirmedFacts[0],id:'other'}]}]})
++  for(const value of fixtures){const c=createRuleCheckClient({session:session(),fetchImpl:async()=>json(value)});assert.equal((await c.check('q',{}))?.status,value.status)}
++  const bad=[{...base,status:'SUCCESS'}, {...base,referenceRevision:'2025'}, {...base,confirmedFacts:[]}, {...base,status:'INSUFFICIENT_EVIDENCE'},
++    {...base,confirmedFacts:[{...base.confirmedFacts[0],citations:[]}]}, {...base,conditionSource:'INFERRED'}]
++  for(const value of bad){const c=createRuleCheckClient({session:session(),fetchImpl:async()=>json(value)});await assert.rejects(c.check('q',{}),e=>e.code==='BAD_RESPONSE')}
++})
++test('original rejects invalid context spans and unsafe links without showing old text',async()=>{
++  const c=createRuleCheckClient({session:session(),fetchImpl:async()=>json(original())});assert.equal((await c.original(HANDLE))?.contextText,'前文原文后文')
++  for(const value of [{...original(),quoteEndExclusive:99},{...original(),contextStartInclusive:3},{...original(),safeSourceUrl:'javascript:alert(1)'},{...original(),safeSourceUrl:'https://user:pass@example.com/'}]) {
++    const bad=createRuleCheckClient({session:session(),fetchImpl:async()=>json(value)});await assert.rejects(bad.original(HANDLE),e=>e.code==='BAD_RESPONSE')
++  }
++})
++test('invalid request or original handle never invokes transport',async()=>{
++  let calls=0;const c=createRuleCheckClient({session:session(),fetchImpl:async()=>{calls++;return json(answered())}})
++  for(const input of [[' ',{}],['q',{year:3}],['q',{},'fake'],['x'.repeat(2049),{}]])await assert.rejects(c.check(...input),e=>e.code==='INVALID_RULE_CHECK_REQUEST')
++  await assert.rejects(c.original('../private'),e=>e.code==='INVALID_ORIGINAL_TOKEN');assert.equal(calls,0)
++})
++test('network loss does not retry and does not claim not accepted',async()=>{
++  let calls=0;const c=createRuleCheckClient({session:session(),fetchImpl:async()=>{calls++;throw new Error('do-not-echo')}})
++  await assert.rejects(c.check('q',{}),e=>e.code==='NETWORK_UNAVAILABLE'&&!e.message.includes('do-not-echo'));assert.equal(calls,1)
++})
++test('new question discards original response from earlier round',async()=>{
++  let resolve;const c=createRuleCheckClient({session:session(),fetchImpl:url=>url.includes('/originals/')?new Promise(r=>resolve=r):Promise.resolve(json(answered()))})
++  const old=c.original(HANDLE);const rejected=assert.rejects(old,e=>e.code==='STALE_RESPONSE');await tick();assert.equal(typeof resolve,'function')
++  await c.check('next',{});resolve(json(original()));await rejected
++})
++test('identity changes are serialized and me detects changed auth revision',async()=>{
++  const s=createControlledSession();let resolve
++  const c=createRuleCheckClient({session:s,fetchImpl:url=>url.endsWith('/csrf')&&!resolve?new Promise(r=>resolve=r):Promise.resolve(url.endsWith('/csrf')?json({headerName:'X-CSRF-TOKEN',token:'next'}):json(actor(1)))})
++  const login=c.login('user-a','Synthetic-password');await tick();assert.equal(s.state.identityBusy,true)
++  await assert.rejects(c.login('user-b','Synthetic-password'),e=>e.code==='AUTH_TRANSITION');resolve(json({headerName:'X-CSRF-TOKEN',token:'first'}));await login
++  s.state.actor=actor(0);const epoch=s.state.epoch;await c.me();assert.ok(s.state.epoch>epoch);assert.equal(s.state.actor.authRevision,1)
++})
++test('current 401 clears its own identity but preserves actionable auth error',async()=>{
++  const s=session(),c=createRuleCheckClient({session:s,fetchImpl:async()=>json({code:'AUTH_REVOKED'},401)})
++  await assert.rejects(c.check('q',{}),e=>e.code==='AUTH_REVOKED'&&e.status===401)
++  assert.equal(s.state.actor,null);assert.equal(s.state.reason,'AUTH_EXPIRED')
++})
++test('half surrogate quote and context boundary are rejected',async()=>{
++  const broken=answered();broken.confirmedFacts[0].citations[0].text='\ud83d';broken.confirmedFacts[0].citations[0].endExclusive=3
++  const c=createRuleCheckClient({session:session(),fetchImpl:async()=>json(broken)})
++  await assert.rejects(c.check('q',{}),e=>e.code==='BAD_RESPONSE')
++  const bad={...original(),contextText:'前😀后',quoteStartInclusive:2,quoteEndExclusive:3}
++  const d=createRuleCheckClient({session:session(),fetchImpl:async()=>json(bad)})
++  await assert.rejects(d.original(HANDLE),e=>e.code==='BAD_RESPONSE')
++})
+--- before/agent/frontend/tests/rule-check-workflow.test.mjs
++++ after/agent/frontend/tests/rule-check-workflow.test.mjs
+@@ -0,0 +1,41 @@
++import test from 'node:test'
++import assert from 'node:assert/strict'
++import { createControlledSession } from '../src/state/controlled-session.js'
++import { createRuleCheckWorkflow } from '../src/state/rule-check-workflow.js'
++const ID='22222222-2222-4222-8222-222222222222'
++const setup=client=>{const session=createControlledSession();session.state.actor={userId:ID,role:'USER',authRevision:0};return {session,flow:createRuleCheckWorkflow({client,session})}}
++const need=()=>({status:'NEED_CLARIFICATION',clarificationToken:ID,clarificationQuestions:[{key:'year',question:'哪一年级',allowedValues:['A','B']}],confirmedConditions:{}})
++test('busy execution is separate from business decision and no retry on unknown outcome',async()=>{
++  let resolve,calls=0;const {flow}=setup({check:()=>{calls++;return new Promise(r=>resolve=r)},cancelResults(){}})
++  const promise=flow.start('q');assert.equal(flow.state.busy,true);assert.equal(flow.state.result,null)
++  resolve({status:'INSUFFICIENT_EVIDENCE'});await promise;assert.equal(flow.state.busy,false);assert.equal(flow.state.result.status,'INSUFFICIENT_EVIDENCE');assert.equal(calls,1);flow.dispose()
++})
++test('clarification sends only current allowed delta and never guesses unknown conditions',async()=>{
++  const seen=[];const {flow}=setup({check:async(...args)=>{seen.push(args);return need()},cancelResults(){}})
++  await flow.start('q');await flow.clarify('year','C');assert.equal(seen.length,1)
++  await flow.clarify('year','A');assert.deepEqual(seen[1],['q',{year:'A'},ID]);flow.dispose()
++})
++test('new question clears previous answer and original before pending query completes',async()=>{
++  let resolve;const {flow}=setup({check:async()=>({status:'ANSWERED'}),original:async()=>({contextText:'旧原文'}),cancelResults(){}})
++  await flow.start('old');await flow.openOriginal(ID);assert.equal(flow.state.original.contextText,'旧原文')
++  flow.reset();assert.equal(flow.state.result,null);assert.equal(flow.state.original,null);flow.dispose()
++})
++test('identity epoch change immediately clears displayed content and old async response',async()=>{
++  let resolve;const {flow,session}=setup({check:()=>new Promise(r=>resolve=r),cancelResults(){}})
++  const first=flow.start('q');assert.equal(flow.state.busy,true);session.clear();resolve({status:'ANSWERED'});await first
++  assert.equal(flow.state.result,null);assert.equal(flow.state.question,'');assert.equal(flow.state.busy,false);flow.dispose()
++})
++test('reset and disposal reject late original response even if transport resolves',async()=>{
++  let resolve;const {flow}=setup({check:async()=>({status:'ANSWERED'}),original:()=>new Promise(r=>resolve=r),cancelResults(){}})
++  await flow.start('q');const promise=flow.openOriginal(ID);assert.equal(flow.state.originalBusy,true);flow.reset();resolve({contextText:'旧原文'});await promise
++  assert.equal(flow.state.original,null);flow.dispose()
++})
++test('failed original retrieval clears old original and outcome remains explicit',async()=>{
++  let fail=false;const {flow}=setup({check:async()=>({status:'ANSWERED'}),original:async()=>{if(fail)throw {status:409,code:'ORIGINAL_CHANGED'};return {contextText:'旧原文'}},cancelResults(){}})
++  await flow.start('q');await flow.openOriginal(ID);fail=true;await flow.openOriginal(ID)
++  assert.equal(flow.state.original,null);assert.match(flow.state.error,/变化|重新查证/);flow.dispose()
++})
++test('connection loss records unconfirmed result and never automatically resubmits',async()=>{
++  let calls=0;const {flow}=setup({check:async()=>{calls++;throw {code:'NETWORK_UNAVAILABLE'}},cancelResults(){}})
++  await flow.start('q');assert.equal(flow.state.result,null);assert.equal(calls,1);assert.match(flow.state.error,/未确认/);assert.doesNotMatch(flow.state.error,/未受理|已受理/);flow.dispose()
++})
+--- before/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
++++ after/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
+@@ -273,3 +273,13 @@
+ - [x] 原A04实际HTTP协议替身正向只显式mock isCurrent，不伪称该组完整政策链；新真实RuntimeFactory单独验收。旧v1/strictJSON/CSRF/32KiB/编码路径/澄清全部兼容，全相关回归/29合同/增量审查/哈希/XML/退出证据。
+ 
+ Expected：新的Spring beans虽装配，默认仍只有CLOSED拒答与未知引用404；无真实model/资料放行开关。角色/身份/CSRF入口过滤不替代末端再次查询。midrequest旧actor401不无条件删除Session/清Cookie，以免迟到响应损害新登录；后续请求过滤链仍按当前许可拒绝并清旧Cookie。浏览器旧响应丢弃与中文/代理验收A08–A10仍另后段。A06真实页码/B01及A07全链发布并发窗口仍有显式局限。
++
++## Task3A / A08–A09学生客户端与状态（2026-10-08）
++
++沿已授权Task3/Vue现有流程，10项before白名单见r5-student-client-20261008-01。先独立v2 auth/查证/原文客户端与状态，不修改旧v1/Java；页面Task3B、真实浏览器/代理Task3C另批。
++
++- [ ] RED：v2独立cookie协议/CSRF/登录串行、身份epoch和新问题轮次迟到成功/401丢弃、错误结构/五状态字段/伪原文跨度拒绝、未知结果不自动重试。
++- [ ] GREEN：复用Session工厂独立实例；no-store同源请求、身份/问题换代；strict网络合同、安全纯文本信息，Workflow必要澄清只显式当前allowed delta、不重用旧正文/原文。
++- [ ] 全部既有Node测试及Vue构建、源码保护/哈希/日志/一次增量审查；无供应商/数据库/真实资料授权，B/C/G2保持OPEN。
++
++Expected：仅API/状态工程，不将测试替身叫真实浏览器，也不提前标A08–A10完成；界面档案查阅台风格和实际浏览器覆盖在Task3B/C，原有v1文案RC-11另按实际旧页面问题处理。
+--- before/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
++++ after/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
+@@ -486,3 +486,8 @@
+ Final: fixed M1: 审查包端口更正为实测55439；修复最终验收显式Port55470，保留原command/database报告。
+ 
+ 接续Task3学生Vue页面/迟到响应丢弃/真实浏览器与普通终端验收；B/C/G2不变。
++
++Task3A: start — 10项before/保护Java和旧前端；已授权Task3缩分API/状态、页面、真实浏览器三批，避免框架/入口重写。
++Task3A: Ruling: v2独立Session实例，复用已有工厂不共用v1主体/任务存储 — 旧实验登录不自动等于新查证身份 — 成本：两入口可分别登录，导航明确实验。
++Task3A: Ruling: 身份epoch+本地问题round双校验，Abort不当证明 — 同账号新问题也会使原文凭据/旧回答失效 — 成本：当前问题替代旧结果，不扩建历史；跨tab仅me/401检测。
++Task3A: Ruling: 本批只API/状态，不上新UI/真实数据 — 原计划已批准现有Vue任务，采用读证据的布局/五状态，不另索批次批准 — 成本：页面/浏览器后批，不将单元效果称产品闭环。

@@ -34,16 +34,36 @@ public final class HybridRetrievalService {
             ChunkCandidateRetriever lexical,
             ChunkCandidateRetriever vector
     ) {
+        // 20 只是待评估的候选预算起点；旧调用方仍只指定最终返回上限。
+        return retrieve(query, Math.max(limit, 20), limit, lexical, vector);
+    }
+
+    /**
+     * 分开每路候选预算与融合后返回上限，供评估时比较不同候选深度。
+     *
+     * @param candidateLimit 每路检索的候选上限，必须不小于返回上限
+     * @param resultLimit 融合后返回的候选上限
+     */
+    public RetrievalOutcome retrieve(
+            String query,
+            int candidateLimit,
+            int resultLimit,
+            ChunkCandidateRetriever lexical,
+            ChunkCandidateRetriever vector
+    ) {
         Objects.requireNonNull(query, "查询不能为空");
         Objects.requireNonNull(lexical, "词法检索器不能为空");
         Objects.requireNonNull(vector, "向量检索器不能为空");
-        if (limit <= 0) {
+        if (resultLimit <= 0) {
             throw new IllegalArgumentException("返回上限必须为正数");
         }
+        if (candidateLimit < resultLimit) {
+            throw new IllegalArgumentException("候选上限必须不小于返回上限");
+        }
 
-        // 两路各自最多取 limit 条：融合后的前 limit 名不可能来自单路更靠后的位置。
-        PathResult lexicalResult = invoke(lexical, query, limit);
-        PathResult vectorResult = invoke(vector, query, limit);
+        // 双路都靠后的共同候选可能在 RRF 中胜出，必须融合后再按返回上限截断。
+        PathResult lexicalResult = invoke(lexical, query, candidateLimit);
+        PathResult vectorResult = invoke(vector, query, candidateLimit);
 
         Map<String, RetrievedChunk> byChunkId = new LinkedHashMap<>();
         lexicalResult.chunks().forEach(chunk -> byChunkId.put(chunk.chunkId().toString(), chunk));
@@ -56,7 +76,7 @@ public final class HybridRetrievalService {
             if (chunk != null) {
                 chunks.add(chunk);
             }
-            if (chunks.size() == limit) {
+            if (chunks.size() == resultLimit) {
                 break;
             }
         }

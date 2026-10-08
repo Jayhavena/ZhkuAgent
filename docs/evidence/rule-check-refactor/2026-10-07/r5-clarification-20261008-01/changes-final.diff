@@ -1,0 +1,961 @@
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckApplicationService.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckApplicationService.java
+@@ -7,7 +7,7 @@
+ import java.util.Objects;
+ import java.util.function.Supplier;
+ 
+-/** 内部编排接口，尚未暴露HTTP；审核目录必须由服务端维护。 */
++/** 统一查证编排；HTTP只投影结果，审核目录与续答规则绑定必须由服务端维护。 */
+ public final class RuleCheckApplicationService {
+     private final RuleCheckRuntimeSettings settings;
+     private final Supplier<List<CatalogEntry>> catalogue;
+@@ -27,31 +27,75 @@
+         this.capture=Objects.requireNonNull(capture);this.decisions=Objects.requireNonNull(decisions);
+     }
+     public RuleCheckDecision check(String question, Map<String,String> confirmedConditions) {
+-        var values=validatedConditions(question,confirmedConditions);
++        return checkWithContext(question,confirmedConditions).decision();
++    }
++    public RuleCheckScopedResult checkWithContext(String question,Map<String,String> confirmedConditions) {
++        return execute(question,validatedConditions(question,confirmedConditions),null);
++    }
++    public RuleCheckScopedResult resume(RuleCheckScopedResult.Continuation context,Map<String,String> delta) {
++        if (context==null) throw new IllegalArgumentException("澄清上下文缺失");
++        if (!settings.equals(context.settings()) || !context.entry().template().conditions().contains(context.nextCondition()))
++            return rejected("澄清运行边界已变化，请重新查证");
++        String key=context.nextCondition().key();
++        if (delta==null || delta.size()!=1 || !delta.containsKey(key)
++                || !context.nextCondition().allowedValues().contains(delta.get(key)))
++            throw new IllegalArgumentException("只允许补充本轮待问条件的声明值");
++        String previous=context.confirmedConditions().get(key);
++        if (previous!=null && !previous.isBlank()) throw new IllegalArgumentException("更改已声明条件须重新查证");
++        var values=new LinkedHashMap<>(context.confirmedConditions());values.put(key,delta.get(key));
++        // 续答不重新选题，也不能沿用旧证据；配置/目录复核后仍走完整捕获与当前核验。
++        return execute(context.question(),validatedConditions(context.question(),values),context);
++    }
++    private RuleCheckScopedResult execute(String question, Map<String,String> values, RuleCheckScopedResult.Continuation expected) {
+         try {
+             var approved=approvedCatalogue();
+-            if (approved.isEmpty()) return refused("当前引用版本没有可用的已审核规则");
++            if (approved.isEmpty()) return rejected("当前引用版本没有可用的已审核规则");
+             var options=approved.values().stream().map(e->new RuleOption(e.template().ruleId(),e.questionScope())).toList();
+             // 选择器只能选目录ID，不能回传规则正文、引用资格或猜测学生个人条件。
+-            String id=selector.select(question,options);
++            String id;
++            if (expected==null) id=selector.select(question,options);
++            else {
++                id=expected.entry().template().ruleId();
++                if (!expected.entry().equals(approved.get(id))) return rejected("澄清所用规则已变化或退役，请重新查证");
++            }
+             var entry=approved.get(id);
+-            if (entry==null) return refused("尚不能确定该问题对应的已审核规则");
++            if (entry==null) return rejected("尚不能确定该问题对应的已审核规则");
+             var declared=entry.template().conditions().stream().map(RuleCheckRuleTemplate.Condition::key).toList();
+-            if (!declared.containsAll(values.keySet())) return refused("输入包含本规则未声明的条件");
++            if (!declared.containsAll(values.keySet())) return rejected("输入包含本规则未声明的条件");
+             var outcome=retrieval.retrieve(question,settings.candidateLimit(),settings.resultLimit(),lexical,vector);
+-            if (outcome.fullyDegraded()) return refused("检索暂不可用，尚不能取得可靠依据");
+-            if (outcome.chunks().isEmpty()) return refused("当前检索没有取得可核验依据");
++            if (outcome.fullyDegraded()) return rejected("检索暂不可用，尚不能取得可靠依据");
++            if (outcome.chunks().isEmpty()) return rejected("当前检索没有取得可核验依据");
+             var captured=capture.capture(outcome.chunks());
+-            if (!captured.accepted()) return refused("本轮证据捕获或审计未通过");
++            if (!captured.accepted()) return rejected("本轮证据捕获或审计未通过");
+             // 捕获可能耗时；审核目录变化时不能用旧模板回答。资料资格另由决策reader再读。
+             // 这仍是顺序复核，不代表目录、数据库与最终HTTP外发的原子提交。
+-            if (!entry.equals(approvedCatalogue().get(id))) return refused("规则在处理过程中发生变化，请重新查证");
+-            return decisions.decide(entry.template(),values,captured.snapshots());
++            if (!entry.equals(approvedCatalogue().get(id))) return rejected("规则在处理过程中发生变化，请重新查证");
++            return scoped(decisions.decide(entry.template(),values,captured.snapshots()),entry,question,values);
+         } catch (RuntimeException unavailable) {
+             // 供应商或目录异常文本可能含敏感内容，不能作为学生回答正文返回。
+-            return refused("查证链路暂不可用，尚不能确认结论");
++            return rejected("查证链路暂不可用，尚不能确认结论");
+         }
+     }
++    private RuleCheckScopedResult scoped(RuleCheckDecision decision,CatalogEntry entry,String question,Map<String,String> values) {
++        if (decision.status()==RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE)
++            return new RuleCheckScopedResult(decision,null,null);
++        var rule=entry.template();var when=new LinkedHashMap<String,Map<String,String>>();
++        rule.facts().forEach(fact->when.put(fact.id(),fact.when()));
++        var scope=new RuleCheckScopedResult.Scope(rule.ruleId(),entry.questionScope(),rule.conditions(),when);
++        RuleCheckScopedResult.Continuation continuation=null;
++        if (decision.status()==RuleCheckDecision.Status.NEED_CLARIFICATION) {
++            var questionItem=decision.clarificationQuestions().getFirst();
++            var condition=rule.conditions().stream().filter(c->c.key().equals(questionItem.key())).findFirst().orElseThrow();
++            // 接口有输入上限；不能发出用户按合同永远无法回答的条件选项。
++            if (condition.key().length()>64 || condition.allowedValues().stream().anyMatch(v->v.length()>128)
++                    // 已有空白key只补值；新增第17项会让合法续答永久违反输入合同。
++                    || (!values.containsKey(condition.key()) && values.size()>=16))
++                return rejected("本规则的澄清字段超出支持范围");
++            continuation=new RuleCheckScopedResult.Continuation(settings,entry,question,values,condition);
++        }
++        return new RuleCheckScopedResult(decision,scope,continuation);
++    }
++    private RuleCheckScopedResult rejected(String reason) {return new RuleCheckScopedResult(refused(reason),null,null);}
+     private Map<String,CatalogEntry> approvedCatalogue() {
+         var entries=List.copyOf(catalogue.get());
+         var approved=new LinkedHashMap<String,CatalogEntry>();
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckScopedResult.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckScopedResult.java
+@@ -0,0 +1,20 @@
++package com.zhku.knowledge.rulecheck;
++
++import java.util.*;
++
++/** 服务端选择产物；Continuation不是请求DTO，公开构造器也不是真实性证明。 */
++public record RuleCheckScopedResult(RuleCheckDecision decision,Scope scope,Continuation continuation) {
++    public RuleCheckScopedResult {Objects.requireNonNull(decision);}
++    public record Scope(String ruleId,String questionScope,List<RuleCheckRuleTemplate.Condition> declaredConditions,
++                        Map<String,Map<String,String>> factPreconditions) {
++        public Scope {
++            declaredConditions=List.copyOf(declaredConditions);
++            var copy=new LinkedHashMap<String,Map<String,String>>();factPreconditions.forEach((key,value)->copy.put(key,Map.copyOf(value)));
++            factPreconditions=Map.copyOf(copy);
++        }
++    }
++    public record Continuation(RuleCheckRuntimeSettings settings,RuleCheckApplicationService.CatalogEntry entry,
++                               String question,Map<String,String> confirmedConditions,RuleCheckRuleTemplate.Condition nextCondition) {
++        public Continuation {Objects.requireNonNull(settings);Objects.requireNonNull(entry);Objects.requireNonNull(question);Objects.requireNonNull(nextCondition);confirmedConditions=Map.copyOf(confirmedConditions);}
++    }
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckClarificationStore.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckClarificationStore.java
+@@ -0,0 +1,81 @@
++package com.zhku.knowledge.rulecheck.web;
++
++import com.zhku.knowledge.rulecheck.RuleCheckScopedResult.Continuation;
++import com.zhku.knowledge.security.TrustedActor;
++import jakarta.servlet.http.HttpSession;
++import java.time.Clock;
++import java.time.Duration;
++import java.time.Instant;
++import java.util.Map;
++import java.util.UUID;
++import java.util.Objects;
++
++/** 每个登录Session只保存一个必要上下文，不保存回复正文或完整咨询历史。 */
++public final class RuleCheckClarificationStore {
++    public static final class Failure extends RuntimeException {public Failure(){super("需要重新查证",null,false,false);}}
++    private static final String ATTRIBUTE=RuleCheckClarificationStore.class.getName()+".active";
++    private static final Duration TTL=Duration.ofMinutes(5);
++    private final Clock clock;
++    private record Stored(String token,TrustedActor owner,Instant expiresAt,Continuation context) {}
++    public RuleCheckClarificationStore(Clock clock) {this.clock=Objects.requireNonNull(clock);}
++    public record Ticket(Continuation context,String generation) {}
++    public String begin(HttpSession session,TrustedActor actor) {
++        if(session==null||actor==null||actor.role()!=TrustedActor.Role.USER)throw new Failure();
++        String generation=UUID.randomUUID().toString();
++        try {synchronized(session){session.setAttribute(ATTRIBUTE,new Stored(generation,actor,clock.instant().plus(TTL),null));}return generation;}
++        catch(IllegalStateException invalidSession){throw new Failure();}
++    }
++    public Ticket consumeAndBegin(HttpSession session,TrustedActor actor,String token,String question,Map<String,String> delta) {
++        if(session==null)throw new Failure();
++        // 消费旧轮与占据下一轮slot必须同一锁，否则新问题可能插入交接窗口被旧续答覆盖。
++        synchronized(session){var context=consume(session,actor,token,question,delta);return new Ticket(context,begin(session,actor));}
++    }
++    public String finish(HttpSession session,TrustedActor actor,String generation,Continuation context) {
++        if(session==null||actor==null)throw new Failure();
++        try {
++            synchronized(session) {
++                Object item=session.getAttribute(ATTRIBUTE);
++                if(!(item instanceof Stored saved)||!saved.token().equals(generation)||!saved.owner().equals(actor))throw new Failure();
++                if(!clock.instant().isBefore(saved.expiresAt())){session.removeAttribute(ATTRIBUTE);throw new Failure();}
++                if(saved.context()!=null)throw new Failure();
++                // 较早慢请求既不能发布旧上下文，也不能在终态/异常时清掉较新问题。
++                if(context==null){session.removeAttribute(ATTRIBUTE);return null;}
++                session.setAttribute(ATTRIBUTE,new Stored(generation,actor,saved.expiresAt(),context));return generation;
++            }
++        } catch(IllegalStateException invalidSession){throw new Failure();}
++    }
++    public String put(HttpSession session,TrustedActor actor,Continuation context) {
++        if(session==null||actor==null||actor.role()!=TrustedActor.Role.USER||context==null)throw new Failure();
++        synchronized(session){String generation=begin(session,actor);return finish(session,actor,generation,context);}
++    }
++    public Continuation consume(HttpSession session,TrustedActor actor,String token,String question,Map<String,String> delta) {
++        if(session==null||actor==null)throw new Failure();
++        try {
++            synchronized(session) {
++                Object item=session.getAttribute(ATTRIBUTE);
++                if(!(item instanceof Stored saved))throw new Failure();
++                if(!clock.instant().isBefore(saved.expiresAt())) {
++                    session.removeAttribute(ATTRIBUTE);throw new Failure();
++                }
++                if(!saved.owner().equals(actor)) {
++                    // 只清被本token指向的旧身份上下文，迟到的旧账号请求不能清新账号的新问题。
++                    if(saved.token().equals(token))session.removeAttribute(ATTRIBUTE);throw new Failure();
++                }
++                if(saved.context()==null)throw new Failure();
++                // 错误旧token不清除同账户的新问题；期限绝不因错误尝试延长。
++                if(!saved.token().equals(token))throw new Failure();
++                var context=saved.context();String key=context.nextCondition().key();
++                if(!context.question().equals(question)||delta==null||delta.size()!=1||!delta.containsKey(key)
++                        ||!context.nextCondition().allowedValues().contains(delta.get(key)))
++                    throw new IllegalArgumentException("请只声明本轮待问条件，其他更改须重新查证");
++                // 校验后在同一Session锁内一次消费；并发不能复用nonce混合两轮条件。
++                session.removeAttribute(ATTRIBUTE);return context;
++            }
++        } catch(IllegalStateException invalidSession) {throw new Failure();}
++    }
++    public void clear(HttpSession session) {
++        if(session==null)return;
++        try {synchronized(session){session.removeAttribute(ATTRIBUTE);}}
++        catch(IllegalStateException invalidSession) { }
++    }
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckController.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckController.java
+@@ -5,6 +5,11 @@
+ import com.zhku.knowledge.rulecheck.RuleCheckRuntimeSettings;
+ import com.zhku.knowledge.rulecheck.RuleCheckDecision;
+ import com.zhku.knowledge.rulecheck.RuleCheckVerifiedExcerpt;
++import com.zhku.knowledge.rulecheck.RuleCheckScopedResult;
++import com.zhku.knowledge.security.PreviewPrincipal;
++import com.zhku.knowledge.security.TrustedActor;
++import jakarta.servlet.http.HttpServletRequest;
++import org.springframework.security.core.annotation.AuthenticationPrincipal;
+ import java.util.*;
+ import java.util.Map;
+ import org.springframework.web.bind.annotation.*;
+@@ -17,27 +22,68 @@
+ public final class RuleCheckController {
+     private final RuleCheckApplicationService service;
+     private final RuleCheckRuntimeSettings settings;
+-    public RuleCheckController(RuleCheckApplicationService service,RuleCheckRuntimeSettings settings) {this.service=service;this.settings=settings;}
+-    @PostMapping public ResponseEntity<?> check(@RequestBody JsonNode payload) {
++    private final RuleCheckClarificationStore store;
++    public RuleCheckController(RuleCheckApplicationService service,RuleCheckRuntimeSettings settings,RuleCheckClarificationStore store) {
++        this.service=service;this.settings=settings;this.store=store;
++    }
++    @PostMapping public ResponseEntity<?> check(@RequestBody JsonNode payload,
++            @AuthenticationPrincipal PreviewPrincipal principal,HttpServletRequest request) {
+         var input=request(payload);
++        if(principal==null||principal.actor().role()!=TrustedActor.Role.USER)
++            return error(401,"AUTHENTICATION_REQUIRED","请先以学生查证身份登录");
++        var actor=principal.actor();var session=request.getSession(false);String generation=null;
+         try {
+-            var decision=service.check(input.question(),input.confirmedConditions());
++            Map<String,String> conditions=input.confirmedConditions();RuleCheckScopedResult result;
++            if(input.clarificationToken()==null) {
++                generation=store.begin(session,actor);
++                result=service.checkWithContext(input.question(),conditions);
++            } else {
++                // token只定位本Session的服务端上下文；请求不能自带规则、旧声明或可信证据。
++                var ticket=store.consumeAndBegin(session,actor,input.clarificationToken(),input.question(),conditions);
++                generation=ticket.generation();var merged=new LinkedHashMap<>(ticket.context().confirmedConditions());
++                merged.putAll(conditions);conditions=Map.copyOf(merged);
++                result=service.resume(ticket.context(),input.confirmedConditions());
++            }
++            var decision=result.decision();
++            if(!settings.referenceRevision().equals(decision.referenceRevision()))throw new IllegalStateException("引用版本不一致");
++            String token=store.finish(session,actor,generation,result.continuation());
+             var reply=new Reply(decision.status(),decision.referenceRevision(),settings.requiredScope(),"USER_DECLARED",
+-                input.confirmedConditions(),decision.confirmedFacts().stream().map(RuleCheckController::fact).toList(),
++                conditions,decision.confirmedFacts().stream().map(f->fact(f,result.scope())).toList(),
+                 decision.clarificationQuestions(),decision.unknownItems(),
+-                decision.conflicts().stream().map(c->new ConflictReply(c.issue(),c.sides().stream().map(RuleCheckController::fact).toList())).toList());
++                decision.conflicts().stream().map(c->new ConflictReply(c.issue(),c.sides().stream().map(f->fact(f,null)).toList())).toList(),
++                result.scope(),token);
+             return ResponseEntity.ok().header("Cache-Control","no-store").body(reply);
++        } catch(RuleCheckClarificationStore.Failure expiredOrChanged) {
++            return error(409,"CLARIFICATION_EXPIRED_OR_CHANGED","澄清已过期、被替代或身份已变化，请重新查证");
++        } catch(IllegalArgumentException invalidInput) {
++            discardOwnGeneration(session,actor,generation);throw invalidInput;
+         } catch(RuntimeException unavailable) {
+             // 应用或映射异常不回显cause；不能把接口故障包装成有依据的政策结论。
+-            return ResponseEntity.status(503).header("Cache-Control","no-store").body(new ErrorReply("RULE_CHECK_UNAVAILABLE","查证服务暂不可用"));
++            discardOwnGeneration(session,actor,generation);
++            return error(503,"RULE_CHECK_UNAVAILABLE","查证服务暂不可用");
+         }
++    }
++    private void discardOwnGeneration(jakarta.servlet.http.HttpSession session,TrustedActor actor,String generation) {
++        if(generation==null)return;
++        // 异常清理也必须匹配本轮generation，不能删掉并发新问题的续答资格。
++        try {store.finish(session,actor,generation,null);}catch(RuleCheckClarificationStore.Failure ignored) { }
++    }
++    private static ResponseEntity<ErrorReply> error(int status,String code,String message) {
++        return ResponseEntity.status(status).header("Cache-Control","no-store").body(new ErrorReply(code,message));
+     }
+     @ExceptionHandler({HttpMessageNotReadableException.class,IllegalArgumentException.class})
+     public ResponseEntity<ErrorReply> invalidRequest() {
+         return ResponseEntity.badRequest().header("Cache-Control","no-store").body(new ErrorReply("INVALID_RULE_CHECK_REQUEST","问题或条件格式不符合要求"));
+     }
+     private static Request request(JsonNode payload) {
+-        if(payload==null||!payload.isObject()||payload.size()!=2||!payload.has("question")||!payload.has("confirmedConditions"))throw invalid();
++        if(payload==null||!payload.isObject()||!payload.has("question")||!payload.has("confirmedConditions")
++                ||payload.size()!=(payload.has("clarificationToken")?3:2))throw invalid();
++        String token=null;
++        if(payload.has("clarificationToken")) {
++            var value=payload.get("clarificationToken");
++            if(!value.isTextual()||value.textValue().length()!=36)throw invalid();
++            token=value.textValue();if(!UUID.fromString(token).toString().equals(token))throw invalid();
++        }
+         var question=payload.get("question");var conditions=payload.get("confirmedConditions");
+         // 明确检查JSON类型，不允许数字/布尔/数组被Jackson默默转换为条件字符串。
+         if(!question.isTextual()||question.textValue().isBlank()||question.textValue().length()>2048
+@@ -48,20 +94,21 @@
+             if(key.isBlank()||key.length()>64||!value.isTextual()||value.textValue().length()>128)throw invalid();
+             values.put(key,value.textValue());
+         });
+-        return new Request(question.textValue(),Map.copyOf(values));
++        return new Request(question.textValue(),Map.copyOf(values),token);
+     }
+     private static IllegalArgumentException invalid() {return new IllegalArgumentException("无效查证输入");}
+-    private static FactReply fact(RuleCheckDecision.SupportedFact fact) {
+-        return new FactReply(fact.id(),fact.text(),fact.evidence().stream().map(RuleCheckController::citation).toList());
++    private static FactReply fact(RuleCheckDecision.SupportedFact fact,RuleCheckScopedResult.Scope scope) {
++        return new FactReply(fact.id(),fact.text(),scope==null?Map.of():scope.factPreconditions().getOrDefault(fact.id(),Map.of()),
++            fact.evidence().stream().map(RuleCheckController::citation).toList());
+     }
+     private static CitationReply citation(RuleCheckVerifiedExcerpt quote) {
+         return new CitationReply(quote.citationId(),quote.sourceId(),quote.chunkId(),quote.revision(),quote.startInclusive(),quote.endExclusive(),quote.text());
+     }
+-    private record Request(String question,Map<String,String> confirmedConditions) {}
++    private record Request(String question,Map<String,String> confirmedConditions,String clarificationToken) {}
+     public record Reply(RuleCheckDecision.Status status,String referenceRevision,String knowledgeScope,String conditionSource,
+         Map<String,String> confirmedConditions,List<FactReply> confirmedFacts,List<RuleCheckDecision.Clarification> clarificationQuestions,
+-        List<String> unknownItems,List<ConflictReply> conflicts) {}
+-    public record FactReply(String id,String text,List<CitationReply> citations) {}
++        List<String> unknownItems,List<ConflictReply> conflicts,RuleCheckScopedResult.Scope scope,String clarificationToken) {}
++    public record FactReply(String id,String text,Map<String,String> when,List<CitationReply> citations) {}
+     public record CitationReply(String citationId,UUID sourceId,UUID chunkId,String revision,int startInclusive,int endExclusive,String text) {}
+     public record ConflictReply(String issue,List<FactReply> sides) {}
+     public record ErrorReply(String code,String message) {}
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckPreviewConfiguration.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckPreviewConfiguration.java
+@@ -88,6 +88,7 @@
+         return new PreviewIdentityRepository(ruleCheckDataSource);
+     }
+     @Bean public Clock ruleCheckClock() {return Clock.systemUTC();}
++    @Bean public RuleCheckClarificationStore ruleCheckClarificationStore(Clock ruleCheckClock) {return new RuleCheckClarificationStore(ruleCheckClock);}
+     @Bean public RuleCheckRuntimeSettings ruleCheckRuntimeSettings(Environment environment) {return runtimeSettings(environment);}
+     @Bean public RuleCheckApplicationService ruleCheckApplicationService(DataSource ruleCheckDataSource,Flyway ruleCheckMigration,
+             RuleCheckRuntimeSettings settings,Clock ruleCheckClock) {
+--- before/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckApplicationServiceTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckApplicationServiceTest.java
+@@ -155,5 +155,86 @@
+         assertThatThrownBy(()->new RuleCheckRuntimeSettings("fixture","cut","SCOPE","v1",201,5)).isInstanceOf(IllegalArgumentException.class);
+         assertThatThrownBy(()->new RuleCheckRuntimeSettings("fixture","cut","SCOPE","v1",20,0)).isInstanceOf(IllegalArgumentException.class);
+     }
++    private RuleCheckRuleTemplate conditional() {
++        return rule(ReviewState.APPROVED,List.of(fact("limit",false,Map.of("type","ordinary"))),
++                List.of(new Condition("type","请选择类型",List.of("ordinary","other"))),List.of(),List.of());
++    }
++    private RuleCheckScopedResult.Continuation context(RuleCheckApplicationService service) {
++        var result=service.checkWithContext("合成条款",Map.of());assertThat(result.continuation()).isNotNull();return result.continuation();
++    }
++    @Test void scopedClarificationKeepsOnlyServerApprovedRuleAndScope() {
++        var result=app(conditional()).checkWithContext("合成条款",Map.of());
++        assertThat(result.scope()).isNotNull();assertThat(result.scope().ruleId()).isEqualTo("test-only");
++        assertThat(result.scope().questionScope()).isEqualTo("合成规则查询范围");
++        assertThat(result.scope().factPreconditions().get("limit")).containsEntry("type","ordinary");
++        assertThat(result.continuation()).isNotNull();assertThat(result.continuation().confirmedConditions()).isEmpty();
++        assertThat(result.continuation().nextCondition().key()).isEqualTo("type");
++    }
++    @Test void continuationSkipsSelectorButRetrievesAuditsAndRevalidatesAgain() {
++        var service=app(conditional());var saved=context(service);
++        var result=service.resume(saved,Map.of("type","ordinary"));
++        assertThat(result.decision().status()).isEqualTo(ANSWERED);assertThat(result.continuation()).isNull();
++        assertThat(selected).hasValue(1);assertThat(retrieved).hasValue(2);assertThat(audited).hasValue(2);assertThat(reads).hasValue(4);
++    }
++    @Test void retiredOrChangedCatalogueCannotReuseContinuation() {
++        var service=app(conditional());var saved=context(service);catalogue.set(List.of());
++        assertThat(service.resume(saved,Map.of("type","ordinary")).decision().status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        catalogue.set(List.of(new RuleCheckApplicationService.CatalogEntry(saved.entry().template(),"范围已变")));
++        assertThat(service.resume(saved,Map.of("type","ordinary")).decision().status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(retrieved).hasValue(1);assertThat(selected).hasValue(1);
++    }
++    @Test void continuationCannotCrossRuntimeSettings() {
++        var service=app(conditional());var saved=context(service);
++        var changed=new RuleCheckScopedResult.Continuation(new RuleCheckRuntimeSettings("fixture","other-cut","SCOPE","v1",20,5),saved.entry(),saved.question(),saved.confirmedConditions(),saved.nextCondition());
++        assertThat(service.resume(changed,Map.of("type","ordinary")).decision().status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(retrieved).hasValue(1);
++    }
++    @Test void continuationOnlyAcceptsOnePendingAllowedCondition() {
++        var service=app(conditional());var entry=catalogue.get().getFirst();
++        var saved=new RuleCheckScopedResult.Continuation(settings,entry,"合成条款",Map.of(),entry.template().conditions().getFirst());
++        for(var delta:List.of(Map.<String,String>of(),Map.of("other","ordinary"),Map.of("type","invalid"),Map.of("type","ordinary","other","v")))
++            assertThatThrownBy(()->service.resume(saved,delta)).isInstanceOf(IllegalArgumentException.class);
++        assertThat(selected).hasValue(0);assertThat(retrieved).hasValue(0);
++    }
++    @Test void withdrawalBetweenRoundsDoesNotReuseOldEvidence() {
++        var service=app(conditional());var saved=context(service);eligible.set(false);
++        var result=service.resume(saved,Map.of("type","ordinary"));assertThat(result.decision().status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(result.decision().confirmedFacts()).isEmpty();assertThat(result.continuation()).isNull();
++        assertThat(retrieved).hasValue(2);assertThat(audited).hasValue(1);
++    }
++    @Test void branchContinuationDoesNotAskAlreadyExcludedOrConfirmedCondition() {
++        var r=rule(ReviewState.APPROVED,List.of(fact("ordinary",false,Map.of("type","ordinary")),
++            fact("retake",false,Map.of("type","retake","year","first"))),
++            List.of(new Condition("type","类型",List.of("ordinary","retake")),new Condition("year","年级",List.of("first","other"))),List.of(),List.of());
++        var service=app(r);var saved=context(service);
++        assertThat(service.resume(saved,Map.of("type","ordinary")).decision().status()).isEqualTo(ANSWERED);
++        var retake=service.resume(saved,Map.of("type","retake"));assertThat(retake.continuation()).isNotNull();
++        assertThat(retake.continuation().nextCondition().key()).isEqualTo("year");
++        assertThat(retake.continuation().confirmedConditions()).containsEntry("type","retake");
++        assertThat(service.resume(retake.continuation(),Map.of("year","first")).decision().status()).isEqualTo(ANSWERED);
++        assertThat(selected).hasValue(1);
++    }
++    @Test void unavailableEvidenceDoesNotCreateClarificationContext() {
++        var service=app(conditional());eligible.set(false);
++        var result=service.checkWithContext("合成条款",Map.of());
++        assertThat(result.decision().status()).isEqualTo(INSUFFICIENT_EVIDENCE);assertThat(result.continuation()).isNull();
++    }
++    private RuleCheckRuleTemplate manyConditions(int count) {
++        var conditions=new ArrayList<Condition>();var when=new LinkedHashMap<String,String>();
++        for(int i=0;i<count;i++){String key="k"+i;conditions.add(new Condition(key,"合成条件"+i,List.of("yes","no")));when.put(key,"yes");}
++        return rule(ReviewState.APPROVED,List.of(fact("limit",false,when)),conditions,List.of(),List.of());
++    }
++    @Test void cannotAskForSeventeenthConditionThatRequestContractCannotMerge() {
++        var values=new LinkedHashMap<String,String>();for(int i=0;i<16;i++)values.put("k"+i,"yes");
++        var result=app(manyConditions(17)).checkWithContext("合成条款",values);
++        assertThat(result.decision().status()).isEqualTo(INSUFFICIENT_EVIDENCE);
++        assertThat(result.continuation()).isNull();assertThat(result.decision().clarificationQuestions()).isEmpty();
++    }
++    @Test void mayClarifyExistingBlankKeyWithinSixteenConditionLimit() {
++        var values=new LinkedHashMap<String,String>();for(int i=0;i<15;i++)values.put("k"+i,"yes");values.put("k15","");
++        var service=app(manyConditions(16));var result=service.checkWithContext("合成条款",values);
++        assertThat(result.decision().status()).isEqualTo(NEED_CLARIFICATION);assertThat(result.continuation()).isNotNull();
++        assertThat(service.resume(result.continuation(),Map.of("k15","yes")).decision().status()).isEqualTo(ANSWERED);
++    }
+     private static String sha(String text){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));}catch(Exception e){throw new AssertionError(e);}}
+ }
+--- before/knowledge/src/test/java/com/zhku/knowledge/rulecheck/web/RuleCheckClarificationStoreTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/rulecheck/web/RuleCheckClarificationStoreTest.java
+@@ -0,0 +1,99 @@
++package com.zhku.knowledge.rulecheck.web;
++
++import com.zhku.knowledge.rulecheck.*;
++import com.zhku.knowledge.security.TrustedActor;
++import java.time.*;
++import java.util.*;
++import java.util.concurrent.atomic.AtomicReference;
++import org.junit.jupiter.api.Test;
++import org.springframework.mock.web.MockHttpSession;
++import static org.assertj.core.api.Assertions.*;
++import static com.zhku.knowledge.rulecheck.RuleCheckRuleTemplate.*;
++
++class RuleCheckClarificationStoreTest {
++    final MutableClock clock=new MutableClock();final RuleCheckClarificationStore store=new RuleCheckClarificationStore(clock);
++    final TrustedActor actor=new TrustedActor(UUID.randomUUID(),TrustedActor.Role.USER,0);
++    RuleCheckScopedResult.Continuation context() {
++        var condition=new Condition("type","类型",List.of("ordinary","other"));
++        var rule=new RuleCheckRuleTemplate("synthetic","v1",ReviewState.APPROVED,"合成责任",LocalDate.of(2026,10,8),List.of(),List.of(condition),List.of(),List.of());
++        return new RuleCheckScopedResult.Continuation(new RuleCheckRuntimeSettings("fixture","cut","scope","v1",20,5),
++            new RuleCheckApplicationService.CatalogEntry(rule,"合成查询范围"),"原问题",Map.of(),condition);
++    }
++    RuleCheckScopedResult.Continuation take(MockHttpSession session,String token) {
++        var value=new AtomicReference<RuleCheckScopedResult.Continuation>();
++        assertThatCode(()->value.set(store.consume(session,actor,token,"原问题",Map.of("type","ordinary")))).doesNotThrowAnyException();return value.get();
++    }
++    @Test void storesOneOpaqueContextAndConsumesOnlyOnce() {
++        var session=new MockHttpSession();var original=context();var token=store.put(session,actor,original);
++        assertThat(UUID.fromString(token)).isNotNull();assertThat(Collections.list(session.getAttributeNames())).hasSize(1);
++        assertThat(take(session,token)).isEqualTo(original);assertThat(Collections.list(session.getAttributeNames())).isEmpty();
++        assertThatThrownBy(()->store.consume(session,actor,token,"原问题",Map.of("type","ordinary"))).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++    }
++    @Test void newQuestionReplacesPreviousSingleContext() {
++        var session=new MockHttpSession();var old=store.put(session,actor,context());var next=store.put(session,actor,context());assertThat(next).isNotEqualTo(old);
++        assertThatThrownBy(()->store.consume(session,actor,old,"原问题",Map.of("type","ordinary"))).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++        assertThat(take(session,next)).isNotNull();
++    }
++    @Test void expiresAtExactFiveMinuteBoundaryWithoutSlidingRefresh() {
++        var first=new MockHttpSession();var token=store.put(first,actor,context());clock.now=Instant.EPOCH.plusSeconds(299);assertThat(take(first,token)).isNotNull();
++        clock.now=Instant.EPOCH;var expired=new MockHttpSession();token=store.put(expired,actor,context());clock.now=Instant.EPOCH.plusSeconds(300);var finalToken=token;
++        assertThatThrownBy(()->store.consume(expired,actor,finalToken,"原问题",Map.of("type","ordinary"))).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++        assertThat(Collections.list(expired.getAttributeNames())).isEmpty();
++    }
++    @Test void invalidConditionCanBeCorrectedWithoutConsumingOrExtendingExpiry() {
++        var session=new MockHttpSession();var token=store.put(session,actor,context());clock.now=Instant.EPOCH.plusSeconds(250);
++        for(var delta:List.of(Map.<String,String>of(),Map.of("wrong","ordinary"),Map.of("type","invalid"),Map.of("type","ordinary","other","value")))
++            assertThatThrownBy(()->store.consume(session,actor,token,"原问题",delta)).isInstanceOf(IllegalArgumentException.class);
++        assertThat(take(session,token)).isNotNull();
++        clock.now=Instant.EPOCH;var finalToken=store.put(session,actor,context());clock.now=Instant.EPOCH.plusSeconds(299);
++        assertThatThrownBy(()->store.consume(session,actor,finalToken,"另一个问题",Map.of("type","ordinary"))).isInstanceOf(IllegalArgumentException.class);
++        clock.now=Instant.EPOCH.plusSeconds(300);
++        assertThatThrownBy(()->store.consume(session,actor,finalToken,"原问题",Map.of("type","ordinary"))).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++    }
++    @Test void differentActorOrRevisionCannotReuseStoredContext() {
++        for(var other:List.of(new TrustedActor(UUID.randomUUID(),TrustedActor.Role.USER,0),new TrustedActor(actor.userId(),TrustedActor.Role.USER,1),new TrustedActor(actor.userId(),TrustedActor.Role.MAINTAINER,0))) {
++            var session=new MockHttpSession();var token=store.put(session,actor,context());
++            assertThatThrownBy(()->store.consume(session,other,token,"原问题",Map.of("type","ordinary"))).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++            assertThat(Collections.list(session.getAttributeNames())).isEmpty();
++        }
++    }
++    @Test void wrongTokenDoesNotDestroyCorrectOwnersCurrentQuestion() {
++        var session=new MockHttpSession();var token=store.put(session,actor,context());
++        assertThatThrownBy(()->store.consume(session,actor,UUID.randomUUID().toString(),"原问题",Map.of("type","ordinary"))).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++        assertThat(take(session,token)).isNotNull();
++    }
++    @Test void clearAndInvalidatedSessionCannotRestoreContext() {
++        var session=new MockHttpSession();var token=store.put(session,actor,context());assertThat(Collections.list(session.getAttributeNames())).hasSize(1);store.clear(session);
++        assertThatThrownBy(()->store.consume(session,actor,token,"原问题",Map.of("type","ordinary"))).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++        var finalToken=store.put(session,actor,context());session.invalidate();
++        assertThatThrownBy(()->store.consume(session,actor,finalToken,"原问题",Map.of("type","ordinary"))).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++    }
++    String finished(MockHttpSession session,String generation,RuleCheckScopedResult.Continuation context) {
++        var result=new AtomicReference<String>();assertThatCode(()->result.set(store.finish(session,actor,generation,context))).doesNotThrowAnyException();return result.get();
++    }
++    @Test void earlierSlowCompletionCannotOverwriteNewerQuestion() {
++        var session=new MockHttpSession();var old=store.begin(session,actor);var current=store.begin(session,actor);
++        var token=finished(session,current,context());
++        assertThatThrownBy(()->store.finish(session,actor,old,context())).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++        assertThatThrownBy(()->store.finish(session,actor,old,null)).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++        assertThat(take(session,token)).isNotNull();
++    }
++    @Test void consumingAndStartingNextGenerationIsAtomicAndCannotReplayOldToken() {
++        var session=new MockHttpSession();var token=store.put(session,actor,context());
++        var ticket=new AtomicReference<RuleCheckClarificationStore.Ticket>();
++        assertThatCode(()->ticket.set(store.consumeAndBegin(session,actor,token,"原问题",Map.of("type","ordinary")))).doesNotThrowAnyException();
++        assertThat(ticket.get().context()).isEqualTo(context());
++        assertThatThrownBy(()->store.consumeAndBegin(session,actor,token,"原问题",Map.of("type","ordinary"))).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++        assertThat(finished(session,ticket.get().generation(),null)).isNull();
++        assertThat(Collections.list(session.getAttributeNames())).isEmpty();
++    }
++    @Test void startingNewQuestionInvalidatesOldTokenBeforeWorkCompletes() {
++        var session=new MockHttpSession();var token=store.put(session,actor,context());var generation=store.begin(session,actor);
++        assertThatThrownBy(()->store.consume(session,actor,token,"原问题",Map.of("type","ordinary"))).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++        clock.now=Instant.EPOCH.plusSeconds(300);
++        assertThatThrownBy(()->store.finish(session,actor,generation,context())).isInstanceOf(RuleCheckClarificationStore.Failure.class);
++    }
++    static final class MutableClock extends Clock {
++        Instant now=Instant.EPOCH;public ZoneId getZone(){return ZoneOffset.UTC;}public Clock withZone(ZoneId zone){return this;}public Instant instant(){return now;}
++    }
++}
+--- before/knowledge/src/test/java/com/zhku/knowledge/rulecheck/web/RuleCheckControllerTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/rulecheck/web/RuleCheckControllerTest.java
+@@ -2,6 +2,8 @@
+ 
+ import com.fasterxml.jackson.databind.ObjectMapper;
+ import com.zhku.knowledge.rulecheck.*;
++import com.zhku.knowledge.security.*;
++import java.time.*;
+ import java.util.*;
+ import java.util.stream.Stream;
+ import org.junit.jupiter.api.*;
+@@ -21,12 +23,23 @@
+     static final String P="/zhku/controlled-preview/v2/rule-check";
+     static final ObjectMapper JSON=new ObjectMapper();
+     RuleCheckApplicationService service;MockMvc mvc;
++    MockHttpSession session;TrustedActor actor;
+     @BeforeEach void setup() {
+         service=mock(RuleCheckApplicationService.class);
++        session=new MockHttpSession();actor=new TrustedActor(UUID.randomUUID(),TrustedActor.Role.USER,0);authenticate(actor);
+         var builder=Jackson2ObjectMapperBuilder.json();new RuleCheckPreviewConfiguration().ruleCheckStrictRequests().customize(builder);
+-        mvc=MockMvcBuilders.standaloneSetup(new RuleCheckController(service,new RuleCheckRuntimeSettings("p","c","SYNTHETIC_SCOPE","2025.9.2",40,5)))
++        mvc=MockMvcBuilders.standaloneSetup(new RuleCheckController(service,settings(),new RuleCheckClarificationStore(Clock.systemUTC())))
++            .setCustomArgumentResolvers(new org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver())
++            .defaultRequest(post("/").session(session))
+             .setMessageConverters(new MappingJackson2HttpMessageConverter(builder.build())).build();
+     }
++    @AfterEach void clearIdentity(){org.springframework.security.core.context.SecurityContextHolder.clearContext();}
++    static void authenticate(TrustedActor actor) {
++        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
++            org.springframework.security.authentication.UsernamePasswordAuthenticationToken.authenticated(new PreviewPrincipal(actor),null,
++                List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"))));
++    }
++    static RuleCheckRuntimeSettings settings(){return new RuleCheckRuntimeSettings("p","c","SYNTHETIC_SCOPE","2025.9.2",40,5);}
+     static RuleCheckDecision.SupportedFact fact(String id,String text) {
+         return new RuleCheckDecision.SupportedFact(id,text,List.of(new RuleCheckVerifiedExcerpt("cite-"+id,UUID.randomUUID(),UUID.randomUUID(),"2025.9.2","a".repeat(64),3,5,"原文")));
+     }
+@@ -35,12 +48,12 @@
+         return Stream.of(
+             new RuleCheckDecision(RuleCheckDecision.Status.ANSWERED,"2025.9.2",List.of(a),List.of(),List.of(),List.of()),
+             new RuleCheckDecision(RuleCheckDecision.Status.PARTIALLY_ANSWERED,"2025.9.2",List.of(a),List.of(),List.of("无法确定的项目"),List.of()),
+-            new RuleCheckDecision(RuleCheckDecision.Status.NEED_CLARIFICATION,"2025.9.2",List.of(),List.of(new RuleCheckDecision.Clarification("year","哪一年级",List.of("A","B"))),List.of(),List.of()),
++            new RuleCheckDecision(RuleCheckDecision.Status.NEED_CLARIFICATION,"2025.9.2",List.of(),List.of(new RuleCheckDecision.Clarification("type","哪一类型",List.of("ordinary","other"))),List.of(),List.of()),
+             new RuleCheckDecision(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE,"2025.9.2",List.of(),List.of(),List.of("暂无已审核规则"),List.of()),
+             new RuleCheckDecision(RuleCheckDecision.Status.CONFLICTING_EVIDENCE,"2025.9.2",List.of(),List.of(),List.of(),List.of(new RuleCheckDecision.ConflictEvidence("尚未解决的矛盾",List.of(a,b)))));
+     }
+     @ParameterizedTest @MethodSource("states") void preservesAllFiveDecisionsAndExplicitClaims(RuleCheckDecision decision) throws Exception {
+-        when(service.check("中文问题",Map.of("year","A"))).thenReturn(decision);
++        when(service.checkWithContext("中文问题",Map.of("year","A"))).thenReturn(scoped(decision,"中文问题",Map.of("year","A")));
+         var result=mvc.perform(post(P).contentType("application/json").content("{\"question\":\"中文问题\",\"confirmedConditions\":{\"year\":\"A\"}}"))
+             .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store")).andReturn();
+         var response=JSON.readTree(result.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+@@ -59,7 +72,7 @@
+             assertThat(cite.path("startInclusive").asInt()).isEqualTo(3);assertThat(cite.path("endExclusive").asInt()).isEqualTo(5);
+             assertThat(cite.has("checksum")).isFalse();assertThat(cite.has("qualified")).isFalse();
+         }
+-        verify(service).check("中文问题",Map.of("year","A"));
++        verify(service).checkWithContext("中文问题",Map.of("year","A"));
+     }
+     @Test void unknownTrustedFieldsAreRejectedWithoutServiceInvocation() throws Exception {
+         for(String field:List.of("userId","reviewer","qualified","snapshots","sourceId","ruleId"))bad("{\"question\":\"q\",\"confirmedConditions\":{},\""+field+"\":\"untrusted\"}");
+@@ -86,7 +99,7 @@
+     }
+     @Test void invalidJsonAndServiceErrorsNeverEchoInputOrCauses() throws Exception {
+         bad("{\"do-not-echo\":");
+-        when(service.check("q",Map.of())).thenThrow(new IllegalStateException("do-not-echo private cause"));
++        when(service.checkWithContext("q",Map.of())).thenThrow(new IllegalStateException("do-not-echo private cause"));
+         mvc.perform(post(P).contentType("application/json").content(payload("q",Map.of())))
+             .andExpect(status().isServiceUnavailable()).andExpect(header().string("Cache-Control","no-store"))
+             .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("do-not-echo"))));
+@@ -102,6 +115,63 @@
+             assertThat(request.getInputStream().read()).isEqualTo((int)'d');
+         }
+     }
++    static RuleCheckScopedResult scoped(RuleCheckDecision decision,String question,Map<String,String> known) {
++        if(decision.status()==RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE)return new RuleCheckScopedResult(decision,null,null);
++        var year=new RuleCheckRuleTemplate.Condition("year","哪一年级",List.of("A","B"));
++        var type=new RuleCheckRuleTemplate.Condition("type","哪一类型",List.of("ordinary","other"));
++        var when=new LinkedHashMap<String,Map<String,String>>();decision.confirmedFacts().forEach(f->when.put(f.id(),Map.of("year","A")));
++        var scope=new RuleCheckScopedResult.Scope("fixture-rule","合成规则覆盖范围",List.of(year,type),when);
++        RuleCheckScopedResult.Continuation context=null;
++        if(decision.status()==RuleCheckDecision.Status.NEED_CLARIFICATION) {
++            var quote=fact("pending","合成确认事实").evidence().getFirst();
++            var binding=new RuleCheckRuleTemplate.EvidenceBinding(quote.sourceId(),quote.chunkId(),quote.revision(),quote.checksum(),quote.startInclusive(),quote.endExclusive(),quote.text());
++            var rule=new RuleCheckRuleTemplate("fixture-rule","2025.9.2",RuleCheckRuleTemplate.ReviewState.APPROVED,"合成责任",LocalDate.of(2026,10,8),
++                List.of(new RuleCheckRuleTemplate.Fact("pending","合成确认事实",false,Map.of("year","A","type","ordinary"),List.of(binding))),List.of(year,type),List.of(),List.of());
++            context=new RuleCheckScopedResult.Continuation(settings(),new RuleCheckApplicationService.CatalogEntry(rule,"合成规则覆盖范围"),question,known,type);
++        }
++        return new RuleCheckScopedResult(decision,scope,context);
++    }
++    void clarificationService() {
++        var need=states().filter(d->d.status()==RuleCheckDecision.Status.NEED_CLARIFICATION).findFirst().orElseThrow();
++        when(service.check(anyString(),eq(Map.of("year","A")))).thenReturn(need);
++        when(service.checkWithContext(anyString(),eq(Map.of("year","A")))).thenAnswer(i->scoped(need,i.getArgument(0),i.getArgument(1)));
++        var answer=new RuleCheckDecision(RuleCheckDecision.Status.ANSWERED,"2025.9.2",List.of(fact("a","合成确认事实")),List.of(),List.of(),List.of());
++        when(service.resume(any(),eq(Map.of("type","ordinary")))).thenReturn(scoped(answer,"q",Map.of("year","A","type","ordinary")));
++    }
++    String token(String question) throws Exception {
++        var response=mvc.perform(post(P).contentType("application/json").content(payload(question,Map.of("year","A"))))
++            .andExpect(status().isOk()).andExpect(jsonPath("$.clarificationToken").isString()).andReturn();
++        var token=JSON.readTree(response.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8)).path("clarificationToken").asText();
++        assertThat(token).isNotBlank();return token;
++    }
++    String continuation(String question,String token,Map<String,String> delta) throws Exception {return JSON.writeValueAsString(Map.of("question",question,"confirmedConditions",delta,"clarificationToken",token));}
++    @Test void clarificationConsumesServerContextOnceAndReturnsMergedExplicitConditions() throws Exception {
++        clarificationService();String token=token("q");String body=continuation("q",token,Map.of("type","ordinary"));
++        mvc.perform(post(P).contentType("application/json").content(body)).andExpect(status().isOk())
++            .andExpect(jsonPath("$.status").value("ANSWERED")).andExpect(jsonPath("$.confirmedConditions.year").value("A"))
++            .andExpect(jsonPath("$.confirmedConditions.type").value("ordinary"));
++        mvc.perform(post(P).contentType("application/json").content(body)).andExpect(status().isConflict());
++        verify(service,times(1)).resume(any(),eq(Map.of("type","ordinary")));
++    }
++    @Test void clarificationCannotCrossAuthenticatedActors() throws Exception {
++        clarificationService();String token=token("q");authenticate(new TrustedActor(UUID.randomUUID(),TrustedActor.Role.USER,0));
++        mvc.perform(post(P).contentType("application/json").content(continuation("q",token,Map.of("type","ordinary")))).andExpect(status().isConflict());
++        authenticate(actor);mvc.perform(post(P).contentType("application/json").content(continuation("q",token,Map.of("type","ordinary")))).andExpect(status().isConflict());
++        verify(service,never()).resume(any(),any());
++    }
++    @Test void invalidDeltaOrDifferentQuestionKeepsCurrentClarificationCorrectable() throws Exception {
++        clarificationService();String token=token("q");
++        bad(continuation("q",token,Map.of("year","B")));bad(continuation("other question",token,Map.of("type","ordinary")));
++        mvc.perform(post(P).contentType("application/json").content(continuation("q",token,Map.of("type","ordinary")))).andExpect(status().isOk());
++        verify(service,times(1)).resume(any(),eq(Map.of("type","ordinary")));
++    }
++    @Test void beginningNewQuestionMakesEarlierTokenUnusable() throws Exception {
++        clarificationService();String old=token("q");String current=token("new question");
++        mvc.perform(post(P).contentType("application/json").content(continuation("q",old,Map.of("type","ordinary")))).andExpect(status().isConflict());
++        mvc.perform(post(P).contentType("application/json").content(continuation("new question",current,Map.of("type","ordinary")))).andExpect(status().isOk());
++        var saved=org.mockito.ArgumentCaptor.forClass(RuleCheckScopedResult.Continuation.class);
++        verify(service).resume(saved.capture(),eq(Map.of("type","ordinary")));assertThat(saved.getValue().question()).isEqualTo("new question");
++    }
+     void bad(String body) throws Exception {
+         var result=mvc.perform(post(P).contentType("application/json").content(body)).andExpect(status().isBadRequest())
+             .andExpect(header().string("Cache-Control","no-store")).andReturn();
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRuleCheckCitationAuditTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRuleCheckCitationAuditTest.java
+@@ -231,6 +231,38 @@
+             persisted(new CitationAuditRecord(citation,chunk,"RULE_CHECK_CAPTURE",now),entry);
+         }
+     }
++    private RuleCheckApplicationService continuationFactory(AtomicInteger selections) {
++        var original=syntheticRule();var fact=original.facts().getFirst();
++        var condition=new RuleCheckRuleTemplate.Condition("type","合成类型",List.of("ordinary","other"));
++        var rule=new RuleCheckRuleTemplate(original.ruleId(),original.referenceRevision(),original.reviewState(),original.reviewer(),original.reviewedAt(),
++            List.of(new RuleCheckRuleTemplate.Fact(fact.id(),fact.text(),false,Map.of("type","ordinary"),fact.evidenceBindings())),List.of(condition),List.of(),List.of());
++        var catalogue=List.of(new RuleCheckApplicationService.CatalogEntry(rule,"合成续答范围"));
++        return RuleCheckRuntimeFactory.create(dataSource,new RuleCheckRuntimeSettings(profile,"span-v1","PUBLIC_ELECTIVE","v1",20,5),
++            ()->catalogue,(q,o)->{selections.incrementAndGet();return "synthetic-only";},fixedEmbedding(),()->"round-"+UUID.randomUUID(),Clock.fixed(now,ZoneOffset.UTC));
++    }
++    private int currentAuditCount() throws SQLException {
++        try(var c=dataSource.getConnection();var p=c.prepareStatement("SELECT count(*) FROM citation_audit WHERE index_entry_id=?")) {
++            p.setObject(1,entry);try(var rows=p.executeQuery()){rows.next();return rows.getInt(1);}
++        }
++    }
++    @Test void actualJdbcContinuationRetakesEvidenceAndAuditsWithoutReselectingRule() throws SQLException {
++        var selections=new AtomicInteger();var service=continuationFactory(selections);
++        var first=service.checkWithContext("合成条款",Map.of());assertThat(first.continuation()).isNotNull();
++        assertThat(first.decision().status()).isEqualTo(RuleCheckDecision.Status.NEED_CLARIFICATION);assertThat(currentAuditCount()).isEqualTo(1);
++        var next=service.resume(first.continuation(),Map.of("type","ordinary"));
++        assertThat(next.decision().status()).isEqualTo(RuleCheckDecision.Status.ANSWERED);assertThat(next.continuation()).isNull();
++        assertThat(next.decision().confirmedFacts().getFirst().evidence().getFirst().text()).isEqualTo(TEXT);
++        assertThat(selections).hasValue(1);assertThat(currentAuditCount()).isEqualTo(2);
++    }
++    @Test void actualJdbcWithdrawalBetweenRoundsRefusesStoredContinuation() throws SQLException {
++        var selections=new AtomicInteger();var service=continuationFactory(selections);
++        var first=service.checkWithContext("合成条款",Map.of());assertThat(first.continuation()).isNotNull();
++        update("UPDATE knowledge_source SET publication_status='ARCHIVED',visibility_scope='INTERNAL_ONLY' WHERE id=?",source);
++        var next=service.resume(first.continuation(),Map.of("type","ordinary"));
++        assertThat(next.decision().status()).isEqualTo(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE);
++        assertThat(next.decision().confirmedFacts()).isEmpty();assertThat(next.continuation()).isNull();
++        assertThat(selections).hasValue(1);assertThat(currentAuditCount()).isEqualTo(1);
++    }
+     private static String sha(String text) {
+         try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));}
+         catch(Exception e){throw new AssertionError(e);}
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckPreviewHttpTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckPreviewHttpTest.java
+@@ -3,6 +3,9 @@
+ import com.fasterxml.jackson.databind.ObjectMapper;
+ import com.zhku.knowledge.rulecheck.RuleCheckApplicationService;
+ import com.zhku.knowledge.rulecheck.RuleCheckDecision;
++import com.zhku.knowledge.rulecheck.*;
++import org.springframework.context.annotation.*;
++import static org.mockito.Mockito.*;
+ import com.zhku.knowledge.rulecheck.web.RuleCheckPreviewApplication;
+ import com.zhku.knowledge.security.PreviewIdentityRepository;
+ import java.net.*;
+@@ -133,7 +136,63 @@
+             }
+         })).doesNotThrowAnyException();
+     }
+-    static void withApp(Checked action) throws Exception {
++    @Test void realHttpClarificationUsesServerContextAndCannotReplayConsumedToken() {
++        assertThatCode(()->withApp(true,app->{
++            try(var user=new User(app.port)) {
++                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();
++                String token=clarificationToken(user,"q");
++                var response=user.json(continuationBody("q",token),true,false);assertThat(response.statusCode()).isEqualTo(200);
++                var answer=JSON.readTree(response.body());assertThat(answer.path("status").asText()).isEqualTo("ANSWERED");
++                assertThat(answer.path("confirmedConditions").path("year").asText()).isEqualTo("A");
++                assertThat(answer.path("confirmedConditions").path("type").asText()).isEqualTo("ordinary");
++                assertThat(answer.path("scope").path("questionScope").asText()).isEqualTo("合成续答范围");
++                assertThat(user.json(continuationBody("q",token),true,false).statusCode()).isEqualTo(409);
++                var fixture=app.context.getBean(ClarificationFixture.class);assertThat(fixture.checks).hasValue(1);assertThat(fixture.resumes).hasValue(1);
++            }
++        })).doesNotThrowAnyException();
++    }
++    @Test void realLoginAccountSwitchCannotContinuePreviousActorsQuestion() {
++        assertThatCode(()->withApp(true,app->{
++            try(var user=new User(app.port)) {
++                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();String token=clarificationToken(user,"q");
++                assertThat(user.login(app.accounts.get(1),true).statusCode()).isEqualTo(200);user.csrf();
++                assertThat(JSON.readTree(user.get("/auth/me").body()).path("userId").asText()).isEqualTo(app.accounts.get(1).id().toString());
++                assertThat(user.json(continuationBody("q",token),true,false).statusCode()).isEqualTo(409);
++                assertThat(app.context.getBean(ClarificationFixture.class).resumes).hasValue(0);
++            }
++        })).doesNotThrowAnyException();
++    }
++    @Test void realHttpClarificationExpiresAtControlledClockBoundary() {
++        assertThatCode(()->withApp(true,app->{
++            try(var user=new User(app.port)) {
++                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();String token=clarificationToken(user,"q");
++                var fixture=app.context.getBean(ClarificationFixture.class);fixture.clock.now=fixture.clock.now.plusSeconds(300);
++                assertThat(user.json(continuationBody("q",token),true,false).statusCode()).isEqualTo(409);assertThat(fixture.resumes).hasValue(0);
++            }
++        })).doesNotThrowAnyException();
++    }
++    @Test void realConcurrentOlderResponseCannotOverwriteNewQuestion() {
++        assertThatCode(()->withApp(true,app->{
++            var worker=java.util.concurrent.Executors.newSingleThreadExecutor();var fixture=app.context.getBean(ClarificationFixture.class);
++            try(var user=new User(app.port)) {
++                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();
++                var old=worker.submit(()->user.json(initialBody("slow"),true,false));
++                assertThat(fixture.slowEntered.await(2,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
++                String current=clarificationToken(user,"new question");fixture.releaseSlow.countDown();
++                assertThat(old.get(5,java.util.concurrent.TimeUnit.SECONDS).statusCode()).isEqualTo(409);
++                assertThat(user.json(continuationBody("new question",current),true,false).statusCode()).isEqualTo(200);
++            } finally {fixture.releaseSlow.countDown();worker.shutdownNow();assertThat(worker.awaitTermination(2,java.util.concurrent.TimeUnit.SECONDS)).isTrue();}
++        })).doesNotThrowAnyException();
++    }
++    static String initialBody(String question) throws Exception {return JSON.writeValueAsString(Map.of("question",question,"confirmedConditions",Map.of("year","A")));}
++    static String continuationBody(String question,String token) throws Exception {return JSON.writeValueAsString(Map.of("question",question,"confirmedConditions",Map.of("type","ordinary"),"clarificationToken",token));}
++    static String clarificationToken(User user,String question) throws Exception {
++        var response=user.json(initialBody(question),true,false);assertThat(response.statusCode()).isEqualTo(200);
++        var result=JSON.readTree(response.body());assertThat(result.path("status").asText()).isEqualTo("NEED_CLARIFICATION");
++        assertThat(result.path("clarificationToken").isTextual()).isTrue();return result.path("clarificationToken").asText();
++    }
++    static void withApp(Checked action) throws Exception {withApp(false,action);}
++    static void withApp(boolean clarificationFixture,Checked action) throws Exception {
+         String url=System.getProperty("zhku.db.url");RuleCheckDatabaseTestTarget.verify(url);
+         String password=System.getenv("ZHKU_DB_PASSWORD");if(password==null||password.isBlank())throw new IllegalArgumentException("缺少数据库环境凭据");
+         var source=new DriverManagerDataSource(url,"zhkuagent",password);
+@@ -148,7 +207,10 @@
+                     p.setObject(1,account.id());p.setString(2,account.login());p.setString(3,new BCryptPasswordEncoder(10).encode(account.password()));p.setString(4,role);p.executeUpdate();
+                 }
+             }
+-            context=(ServletWebServerApplicationContext)RuleCheckPreviewApplication.application().run(
++            var application=RuleCheckPreviewApplication.application();
++            // 仅JUnit测试源码显式装配合成服务替身；生产没有目录审批开关，原CLOSED工厂保留。
++            if(clarificationFixture)application.addPrimarySources(List.of(ClarificationFixtureConfiguration.class));
++            context=(ServletWebServerApplicationContext)application.run(
+                 "--server.port=0","--spring.main.banner-mode=off","--logging.level.root=ERROR",
+                 "--zhku.rule-check-preview.enabled=true","--zhku.rule-check-preview.initialize=true",
+                 "--zhku.db.url="+url,"--zhku.db.username=zhkuagent",
+@@ -167,6 +229,45 @@
+     }
+     record App(ServletWebServerApplicationContext context,int port,DataSource source,List<Account> accounts) {}
+     @FunctionalInterface interface Checked {void run(App app) throws Exception;}
++    static final class FixtureClock extends java.time.Clock {
++        volatile java.time.Instant now=java.time.Instant.EPOCH;
++        public java.time.ZoneId getZone(){return java.time.ZoneOffset.UTC;}public java.time.Clock withZone(java.time.ZoneId zone){return this;}public java.time.Instant instant(){return now;}
++    }
++    static final class ClarificationFixture {
++        final FixtureClock clock=new FixtureClock();final java.util.concurrent.atomic.AtomicInteger checks=new java.util.concurrent.atomic.AtomicInteger(),resumes=new java.util.concurrent.atomic.AtomicInteger();
++        final java.util.concurrent.CountDownLatch slowEntered=new java.util.concurrent.CountDownLatch(1),releaseSlow=new java.util.concurrent.CountDownLatch(1);
++        RuleCheckScopedResult result(String question,Map<String,String> values,RuleCheckRuntimeSettings settings) {
++            var year=new RuleCheckRuleTemplate.Condition("year","合成年级",List.of("A","B"));
++            var type=new RuleCheckRuleTemplate.Condition("type","合成类型",List.of("ordinary","other"));
++            var binding=new RuleCheckRuleTemplate.EvidenceBinding(UUID.randomUUID(),UUID.randomUUID(),settings.referenceRevision(),"a".repeat(64),0,4,"合成原文");
++            var fact=new RuleCheckRuleTemplate.Fact("fixture-only","合成确认事实",false,Map.of("year","A","type","ordinary"),List.of(binding));
++            var rule=new RuleCheckRuleTemplate("fixture-only",settings.referenceRevision(),RuleCheckRuleTemplate.ReviewState.APPROVED,"合成测试责任",java.time.LocalDate.of(2026,10,8),List.of(fact),List.of(year,type),List.of(),List.of());
++            var entry=new RuleCheckApplicationService.CatalogEntry(rule,"合成续答范围");
++            var scope=new RuleCheckScopedResult.Scope(rule.ruleId(),entry.questionScope(),rule.conditions(),Map.of(fact.id(),fact.when()));
++            if(!values.containsKey("type")) {
++                var decision=new RuleCheckDecision(RuleCheckDecision.Status.NEED_CLARIFICATION,settings.referenceRevision(),List.of(),List.of(new RuleCheckDecision.Clarification(type.key(),type.question(),type.allowedValues())),List.of(),List.of());
++                return new RuleCheckScopedResult(decision,scope,new RuleCheckScopedResult.Continuation(settings,entry,question,values,type));
++            }
++            var quote=new RuleCheckVerifiedExcerpt("fixture-citation",binding.sourceId(),binding.chunkId(),binding.revision(),binding.checksum(),binding.startInclusive(),binding.endExclusive(),binding.quote());
++            var decision=new RuleCheckDecision(RuleCheckDecision.Status.ANSWERED,settings.referenceRevision(),List.of(new RuleCheckDecision.SupportedFact(fact.id(),fact.text(),List.of(quote))),List.of(),List.of(),List.of());
++            return new RuleCheckScopedResult(decision,scope,null);
++        }
++        RuleCheckScopedResult check(String question,Map<String,String> values,RuleCheckRuntimeSettings settings) throws InterruptedException {
++            checks.incrementAndGet();if(question.equals("slow")){slowEntered.countDown();if(!releaseSlow.await(4,java.util.concurrent.TimeUnit.SECONDS))throw new IllegalStateException("合成慢请求未释放");}
++            return result(question,values,settings);
++        }
++    }
++    @Configuration(proxyBeanMethods=false) static class ClarificationFixtureConfiguration {
++        @Bean ClarificationFixture clarificationFixture(){return new ClarificationFixture();}
++        @Bean @Primary FixtureClock fixtureClock(ClarificationFixture fixture){return fixture.clock;}
++        @Bean @Primary RuleCheckApplicationService syntheticClarificationService(ClarificationFixture fixture,RuleCheckRuntimeSettings settings) {
++            var service=mock(RuleCheckApplicationService.class);
++            when(service.check(anyString(),anyMap())).thenAnswer(i->fixture.check(i.getArgument(0),i.getArgument(1),settings).decision());
++            when(service.checkWithContext(anyString(),anyMap())).thenAnswer(i->fixture.check(i.getArgument(0),i.getArgument(1),settings));
++            when(service.resume(any(),anyMap())).thenAnswer(i->{fixture.resumes.incrementAndGet();RuleCheckScopedResult.Continuation saved=i.getArgument(0);
++                var values=new LinkedHashMap<>(saved.confirmedConditions());values.putAll(i.getArgument(1));return fixture.result(saved.question(),values,settings);});return service;
++        }
++    }
+     static final class User implements AutoCloseable {
+         final int port;final CookieManager cookies=new CookieManager(null,CookiePolicy.ACCEPT_ALL);
+         final HttpClient client;String token;
+--- before/knowledge/scripts/verify-rule-check-refactor.ps1
++++ after/knowledge/scripts/verify-rule-check-refactor.ps1
+@@ -24,7 +24,7 @@
+         'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest',
+         'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest','RuleCheckDecisionServiceTest',
+         'RuleCheckEvidenceCaptureTest','JdbcRuleCheckCitationAuditTargetTest','RuleCheckApplicationServiceTest',
+-        'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest','RuleCheckControllerTest')
++        'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest','RuleCheckControllerTest','RuleCheckClarificationStoreTest')
+     $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+         'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
+         'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest','ControlledPreviewConfigurationTest','RuleCheckPreviewHttpTest')
+--- before/docs/product/rule-check-decision-contract.md
++++ after/docs/product/rule-check-decision-contract.md
+@@ -71,3 +71,11 @@
+ application/json媒体头守卫只约束Content-Type及UTF-8 charset声明，先于CSRF且不读body，非JSON/不支持charset返回415；避免csrf读取表单参数提前解析业务正文。新应用所有原始路径含百分号时在CSRF前400，防止MVC解码后匹配而绕过按原路径判断的过滤器；此守卫不进入旧v1。CSRF→当前身份→USER授权→32KiB实际读取限长（最多32769字节），没有Content-Length仍413；旧v1默认16KiB与路径保留。输入400/应用异常503均固定消息、no-store、不回显cause。新profile目录仍CLOSED，合法实际请求仅返回缺证。实际正文严格UTF8验证未完成，Jackson可能识别其他Unicode编码，不能把声明检查称正文编码验证。
+ 
+ 接口工程不证明合法规则ID的语义匹配、实际规则范围/例外完整、原文定位、跨轮上下文、最终外发原子性。A04/A06/A07及B02仍须独立验证；当前禁止真实规则激活，不把尚未完成的最终复查放任用于真实资料。
++
++## 必要澄清续答合同（Task2I，2026-10-08）
++
++同一POST的首次请求保留question/confirmedConditions两字段。NEED_CLARIFICATION才发clarificationToken；续答加该可选字段，必须canonical UUID文本、原问题完全一致、confirmedConditions仅本轮待问key及一个allowedValue，不能回传ruleId、旧可信条件、审核或证据。服务端合并此前明确值并标记USER_DECLARED；回复增加审核目录scope（ruleId/questionScope/declaredConditions/factPreconditions）以及每个主事实when，不把固定知识scope当个人适用，不自造独立例外。
++
++每登录HttpSession只保存一个必要上下文。绑定原问题/已审核CatalogEntry全文/settings/待问条件与TrustedActor全快照；5分钟按本轮开始绝对计时，错误尝试不延长，合法续答开启下一轮。新问题替换旧slot；nonce一次消费且交接下一generation在同session锁内；慢旧请求finish/异常清理必须匹配generation，不能覆盖或删新问题。失效/过期/换账号/revision变化/已消费/被替代返回固定409及no-store，要求重新查证；错误delta/不同问题400仍可更正；服务异常503。网络丢失返回后从新问题重建，不承诺咨询历史恢复或自动重试安全。
++
++续答跳过选择器但重新复核目录/settings、重新检索/捕获/审计/当前核验与决策；不缓存旧正文证据。缺资料不构造续答，已选规则变化/退役拒绝。此工程协议不证明自然语言选题语义、个人学籍、真实例外完整或最终HTTP外发原子性；最终身份/资料复核仍A07。正式目录CLOSED、真实2025草稿保持关闭。
+--- before/docs/product/rule-check-blockers.md
++++ after/docs/product/rule-check-blockers.md
+@@ -125,3 +125,9 @@
+ 新Controller显式进入v2，只接受问题/显式条件，拒绝身份/审核/资格/快照字段；严格类型、必填、UTF-16边界及重复键/尾随JSON。五状态保留确认事实、摘录、澄清、未知与冲突；声明标记USER_DECLARED，固定知识scope不代表个人适用。媒体头守卫在CSRF前且不读body；实际32KiB限长在CSRF/当前身份/授权之后，保留旧v1默认16KiB。
+ 
+ 实际HTTP验证CLOSED缺证与严格请求、角色/CSRF/415、固定长度及真正无Content-Length的chunked过大body413。最终29类327项（244纯单元+71真库含8 HTTP+12凭据配置）、29合同，无卷55463 V22连接0/退出。五状态11项投影测试用服务替身，不是实际JDBC五状态或模型效果。I1实际编码路径曾200绕过大小，新增8/2有效RED后在新应用CSRF前拒绝全部编码路径，最终GREEN；M1正文UTF8尚未校验，媒体守卫仅约束charset声明，合同已收窄。A03第一段工程通过；具体规则范围/结构化例外、A04多轮、A06定位、A07最终下发、A08页面及B/C/G2仍OPEN。[证据](../evidence/rule-check-refactor/2026-10-07/r5-api-20261008-01/acceptance.md)。
++
++## 2026-10-08 Task2I / A04 必要澄清上下文
++
++服务端绑定原问题、规则全文审核快照、运行settings、明确条件及待问项；续答只补一个允许值，不重选规则，每轮重新取证/审计/决策，规则变化/退役与来源撤回拒绝。每Session仅一个slot，无完整历史/回复缓存；5分钟按每轮开始计时、错误尝试不延长；token一次消费、全actor快照、generation保护旧慢请求不能覆盖/删除新问题。HTTP返回合并USER_DECLARED、审核问题范围/声明条件/事实when；过期/被替代/身份变化409，错误输入400供更正，异常503不回显cause。
++
++最终30类357项（268纯单元+77真库含12HTTP+12凭据配置）、29合同；无卷55464 V22连接0/容器退出。4新HTTP协议测试使用真实socket/数据库身份及测试-only合成service，非完整政策正向链；24真库审计类另验证fresh续答及来源撤回。真实2025仍DRAFT/不可见、正式目录CLOSED，A05/A06/A07/A08–A10与B/C/G2继续OPEN。[证据](../evidence/rule-check-refactor/2026-10-07/r5-clarification-20261008-01/acceptance.md)。
+--- before/docs/product/rule-check-remaining-tasks-2026-10-08.md
++++ after/docs/product/rule-check-remaining-tasks-2026-10-08.md
+@@ -1,13 +1,13 @@
+ # 校园规则查证：剩余任务清单
+ 
+-核对日期：2026-10-08；基于主路线图、R5任务计划、执行账本、卡点表和Task2H最终证据。本文整理既定范围，不批准部署、资料放行或P2扩张。
++核对日期：2026-10-08；基于主路线图、R5任务计划、执行账本、卡点表和Task2I最终证据。本文整理既定范围，不批准部署、资料放行或P2扩张。
+ 
+ ## 当前完成与未完成的分界
+ 
+ - 已完成：R1融合前截断修复、R2管理原文对照、R3结构/非空引用约束、R4在线激活与已有字段资格过滤；R5原文核验、当前数据库读取、五状态决策、共享检索捕获、精确JDBC审计及统一配置/内部应用编排。
+ - 首轮依据已确定为指定2025版；20道开发参考已由用户确认，不再列为待确认。
+-- 最新相关验收为29类327项（244纯单元+71专用临时库含8实际HTTP+12凭据相关配置检查）及29项启动器合同，见Task2H证据；默认关闭目录接口通过不等于真实学生查证已交付。
+-- 仍未完成：真实2025规则绑定/语义审核/展示资格、跨轮/具体范围/例外/最终下发及原文定位、学生页面、真实模型语义评估、16题报告及用户对照。内部链路通过不代表完整R5或G2通过。
++- 最新相关验收为30类357项（268纯单元+77专用临时库含12实际HTTP+12凭据相关配置检查）及29项启动器合同，见Task2I证据；默认关闭目录接口通过不等于真实学生查证已交付。
++- 仍未完成：真实2025规则绑定/语义审核/展示资格、真实具体范围/例外审核、最终下发及原文定位、学生页面、真实模型语义评估、16题报告及用户对照。内部链路通过不代表完整R5或G2通过。
+ - 报告候选排除3道与开发集第18条重叠的题后剩13道，需补3道独立任务，复核家族后才能冻结16道；候选已被AI查看，不称盲测。
+ 
+ 资料：首轮不等待2026版，但用户问现行年份适用性时须说明尚未核实。外部manifest身份、“2025版”字符串及本地审核标记不自动等于在线已发布身份、精确引用版本或学生展示许可。
+@@ -21,7 +21,7 @@
+ | A01 | v2身份、会话与CSRF边界（过滤链及实际HTTP认证已验证，浏览器待A10） | 明确独立路径及cookie/会话策略；未登录、错误角色、身份停用、CSRF缺失/错误、换账号均有反例；旧v1边界不退步 | 框架14项与旧v1 9项通过；独立cookie，不扩大旧路径；实际HTTP/cookie/临时库认证3项通过；浏览器流程待A10 |
+ | A02 | 受控启动与正式应用装配（独立启动/认证完成，终端/真实规则装配待续） | 受控配置下接入已完成工厂；默认关闭新入口；资料/规则/索引边界配置缺失或不合格不启动/不放行；本机与普通终端启动验证 | Codex；真实激活依赖B组 |
+ | A03 | v2请求、响应与接口（严格接口已验证，规则范围/例外待补） | 问题/显式条件限长、严格字段合同；响应完整表达五状态、确认事实、范围、条件/例外、未知与引用；客户端不能提交审核身份、资料资格或可信证据快照 | Codex；A01/A02 |
+-| A04 | 多轮必要澄清 | 绑定服务端选定规则、引用版本和已确认条件；不重复/无关追问，不把资料缺失转嫁用户；刷新/切换版本时不使用错误上下文 | Codex；A03；只实现查证必需上下文，不强建完整聊天历史 |
++| A04 | 多轮必要澄清（工程完成，真实规则与浏览器待B/A10） | 绑定服务端选定规则、引用版本和已确认条件；不重复/无关追问，不把资料缺失转嫁用户；刷新/切换版本时不使用错误上下文 | Codex；A03；只实现查证必需上下文，不强建完整聊天历史 |
+ | A05 | 有界自然语言规则选择适配 | 模型只返回已审目录ID，严格解析、超时/外发预算、空/歧义/越权/注入/故障拒绝；不生成政策事实、不猜个人条件 | Codex可先替身合同；真实语义表现由C组验证；必要性用简单选题基线对照 |
+ | A06 | 原文查询与定位入口 | 学生点击后到达实际版本/页码/条款；来源元数据与引用绑定；不存在/内部/撤回资料拒绝；资料文本与地址安全展示 | Codex；A01/A03/B01 |
+ | A07 | 最终外发及再次展示边界 | 明确从取证到响应、历史再次展示的复查策略；真实HTTP层撤回/版本/hash/身份变化矩阵；阻断或重取证，不用顺序检查宣称全链原子性 | Codex；A03/A06；完整清单时效继续D组 |
+@@ -113,7 +113,7 @@
+ 
+ ## 实施顺序与需要人参与的位置
+ 
+-1. **下一批A01**，之后A02/A03；合成工程不等待资料放行。
++1. A01身份、A02独立启动、A03严格接口及A04必要澄清工程已验证；接续A05有界选题/A06定位/A07最终边界，A02普通终端/代理后段与遗留H01按依赖推进。
+ 2. B01–B03与C01/C02准备可同步推进；实际语义/展示资格确认需要真实人工判断，已确认20题不重复询问。
+ 3. A04–A10接通完整单主题链，C03–C07先开发集调优、冻结后跑报告。
+ 4. 完成真实参与者对照C08并作G2方向决定；没有收益先局部调整/收缩。
+@@ -126,7 +126,7 @@
+ - [主路线图R5–R9与门禁](../superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md)
+ - [R5任务计划](../superpowers/plans/2026-10-08-rule-check-r5-plan.md)
+ - [执行账本](../../.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md)
+-- [最新Task2E工程证据](../evidence/rule-check-refactor/2026-10-07/r5-application-20261008-01/acceptance.md)
++- [最新Task2I工程证据](../evidence/rule-check-refactor/2026-10-07/r5-clarification-20261008-01/acceptance.md)
+ - [卡点表B-01至B-04](rule-check-blockers.md)
+ - [2025版本决定](rule-check-2025-reference-decision.md)
+ - [20题开发参考](rule-check-2025-human-reference-development.md)
+--- before/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
++++ after/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
+@@ -185,3 +185,16 @@
+ - [x] 实际HTTP正常USER下CLOSED目录缺证、错误字段/重复/尾随/标量拒绝、CSRF/角色/媒体类型拒绝、固定及chunked过大body413；旧v1与全部相关回归/29合同/一次最终审查，记录边界。
+ 
+ Expected：新入口默认关闭、真实目录CLOSED不变；这仅严格接口工程交付，不是2025规则启用/真实模型/浏览器质量。A07最终身份/资料再次核验、A06原文查询、A04跨轮规则绑定未完成，不承诺最终外发原子性。
++
++
++## Task2I / A04：只保存必要澄清上下文（2026-10-08）
++
++白名单与当前字节见r5-clarification-20261008-01/source-before.json。内部应用新增带服务端规则范围/声明条件/事实前提的结果；旧check保留Decision兼容。NEED_CLARIFICATION才创建续答上下文，绑定原问题、明确声明、已审CatalogEntry全文快照、运行settings与当前待问条件；续答只补一个待问允许值，不重新调用选择器，复核审核目录/配置，重新检索核验/审计/决策，不缓存旧证据。
++
++- [x] 内部有效RED：首次范围/上下文、分支不重复澄清、跳过selector而重取证、规则退役/变化/不同settings、错误键/值/改已声明值、缺资料与来源撤回拒绝；真库续答/撤回。
++- [x] GREEN：复用统一应用链；NEED才生成Continuation，范围只来自服务端APPROVED目录，不证明个人学籍/语义相关，结构化例外不自动补造。
++- [x] Session Store实际合同RED→GREEN：每个HttpSession仅一个上下文，随机token、绑定当前actor全快照，绝对5分钟，到期边界清除；consume仅一次，错误token/不同账户/revision/已失效/不同问题拒绝，错误条件保留供改正；新问题/终态清除，无完整聊天历史/正文缓存。
++- [x] HTTP增加可选clarificationToken，只消费服务端Session上下文；新问题清旧上下文，续答只接受本轮delta，返回合并后的USER_DECLARED及规则问题范围/声明条件/事实前提；真实身份HTTP+合成服务范围/状态夹具验证续答/换账号/到期/一次消费，CLOSED正式目录不变。
++- [x] 相关单元/真库/实际HTTP、29合同、最终一次增量审查及证据；普通终端/浏览器/原文/最终外发/真实语义仍后续。
++
++Expected：不会为资料缺失制造追问，不把客户端ruleId或条件当审核对象；续答途中规则/资料变化拒绝，旧证据不得复用。同浏览器并行新问题使旧token不可用，返回409重新查证；此有界取舍不暗建历史。正式应用没有合成审批模式。
+--- before/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
++++ after/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
+@@ -357,3 +357,23 @@
+ Final: fixed I1编码路径绕过 — actual HTTP新增encodedBusinessPathsCannotBypassActualBodyLimit/encodedBusinessFormsAreRejectedBeforeCsrfParameterParsing，RED8/2断言失败→仅v2应用CSRF前拒绝全部百分号路径→完整相关GREEN；不重复审查。
+ 
+ 接续A04必要澄清绑定；A03具体规则范围/例外、A06/A07/A08及B/C/G2尚未完成。
++
++
++Task2I/A04: start — r5-clarification-20261008-01/source-before.json，继续已授权任务。
++Task2I: Ruling: 续答绑定服务端已选择规则和原问题，跳过重新选题但每轮重新取证/审计/决策 — 防止模型变题及旧来源资格复活 — 代价：更换问题或已确认条件必须重新查证，检索/审计成本每轮发生。
++Task2I: Ruling: HttpSession只留一个必要上下文，5分钟绝对期限，actor userId/role/revision绑定；不保存完整历史或回答正文 — 窄查证流程不扩建聊天系统，换账号/并发/过期必须拒绝复用 — 代价：同浏览器并行新问题使旧token409；网络丢失续答响应后需要从新问题重建，不能声称完整咨询历史。
++Task2I: Ruling: 问题范围/声明条件/事实前提只投影审核目录，独立例外仍在事实文本/真实语义审核中 — 补足A03范围透明度但不猜测原模板没有的结构化信息 — 代价：B02例外完整性和自然语言匹配仍需人工/eval。
++Task2I: Ruling: 增加请求generation并在开始新问题时替换旧slot，完成时仅同generation可发布/清除 — 只有一次消费nonce仍不足以防止早到慢请求在晚到请求后覆盖上下文 — 代价：被新问题超越的旧请求409重新查证；每session仍仅一个slot，不加完整历史。
++Task2I: execution note — 首次core GREEN命令自动审批等待超时，CreateProcess尚未执行；随后普通方式执行core实现并重试验收成功88项。超时不计测试失败或安全否决，未问用户重复批准。
++
++Task2I/A04: complete — 核心RED32/13、真库24/2、generation10/3、API15/4、HTTP12/4，0异常/跳过→定向GREEN163；最终30类357项(268纯单元+77真库含12HTTP+12凭据配置)、29合同，无卷V22/连接0/容器退出；r5-clarification-20261008-01。一次独立增量审查，未commit/部署/原库/模型。
++
++Final: Ruling: I1按用户可完成任务重新评级为必须修复 — 合同总数限制不能与服务端追问矛盾 — 成本：超过接口预算的规则只能受控拒绝，待真实模板审核时收缩必要条件或另立合同。
++
++Final: Ruling: 5分钟按每轮开始绝对计时，合法续答开启下一轮；错误尝试不延长本轮 — 与Session Store实际实现保持一致，校正先前可能被理解为整段咨询TTL的表述 — 成本：不是整条咨询5分钟总期限，账号Session仍受15分钟空闲过期限制。
++
++Final: Ruling: 真实HTTP四项正向协议用测试-only Primary合成service/clock，核心fresh SQL另由临时库审计测试验证 — 不把协议替身当真实政策质量 — 成本：2025规则/学生资格/最终外发窗口/B/C/G2仍OPEN。
++
++Final: fixed I1：17个决定性条件/已声明16项时不得再发布无法提交的澄清；保留已有空白键补填仍16项。修复须实际RED27/1→最终GREEN。
++
++接续有界自然语言选题A05；原文A06/最终下发A07/页面浏览器与真实B/C/G2保持OPEN。

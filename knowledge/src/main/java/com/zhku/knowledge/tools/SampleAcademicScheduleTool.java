@@ -24,8 +24,7 @@ public final class SampleAcademicScheduleTool implements CampusTool {
             NAME,
             "查询固定的虚构样例校历和课表；不代表学校官方安排。",
             "{\"type\":\"object\",\"required\":[\"term\"],\"properties\":{\"term\":{\"type\":\"string\"},\"date\":{\"type\":\"string\"},\"courseKeyword\":{\"type\":\"string\"}}}",
-            CampusToolAccessMode.SAMPLE_DATA_READ_ONLY
-    );
+            CampusToolAccessMode.SAMPLE_DATA_READ_ONLY);
 
     @Override
     public CampusToolDescriptor descriptor() {
@@ -45,14 +44,12 @@ public final class SampleAcademicScheduleTool implements CampusTool {
                         NAME,
                         CampusToolStatus.DATA_UNAVAILABLE,
                         ToolJsonSupport.errorJson("没有匹配的样例校历或课表记录"),
-                        "仅查询固定样例数据，未匹配时不能推断真实校历、课表或选课状态。"
-                );
+                        "仅查询固定样例数据，未匹配时不能推断真实校历、课表或选课状态。");
             }
             return CampusToolResult.success(
                     NAME,
                     resultJson(matches),
-                    "结果仅来自固定虚构样例数据，不代表学校官方校历、课表、教室或选课资格。"
-            );
+                    "结果仅来自固定虚构样例数据，不代表学校官方校历、课表、教室或选课资格。");
         } catch (JsonProcessingException | ToolJsonSupport.ToolInputException exception) {
             return ToolJsonSupport.invalidArguments(NAME, exception.getMessage());
         }
@@ -127,8 +124,7 @@ public final class SampleAcademicScheduleTool implements CampusTool {
                         parseSampleDate(entry),
                         requiredSampleText(entry, "type"),
                         optionalSampleText(entry, "courseId"),
-                        requiredSampleText(entry, "title")
-                ));
+                        requiredSampleText(entry, "title")));
             }
             return List.copyOf(result);
         } catch (IOException | DateTimeException exception) {
@@ -168,8 +164,7 @@ public final class SampleAcademicScheduleTool implements CampusTool {
             LocalDate date,
             String type,
             String courseId,
-            String title
-    ) {
+            String title) {
         private SampleEntry {
             Objects.requireNonNull(term);
             Objects.requireNonNull(date);

@@ -1,0 +1,617 @@
+--- before/knowledge/src/test/java/com/zhku/knowledge/KnowledgeSchemaTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/KnowledgeSchemaTest.java
+@@ -15,16 +15,13 @@
+ /**
+  * 仲园 Agent 知识库的最小数据契约测试。
+  *
+- * <p>该测试在本机开发数据库执行版本化结构迁移，但不写入或清理任何资料。
++ * <p>该测试仅在显式专用临时数据库执行版本化结构迁移，但不写入或清理任何资料。
+  * 它确保后续问答至少有“资料来源—资料片段—发布状态”这一条可追溯链路。</p>
+  */
+ class KnowledgeSchemaTest {
+ 
+-    // 允许命令行覆盖连接信息；默认值只服务于本机 Docker 开发环境。
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url",
+-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    // 显式临时库目标在字段初始化时验证，禁止连接、迁移或清理原演示库。
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+ 
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user",
+--- before/knowledge/src/test/java/com/zhku/knowledge/RetrievalSchemaTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/RetrievalSchemaTest.java
+@@ -20,10 +20,7 @@
+  */
+ class RetrievalSchemaTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url",
+-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+ 
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user",
+--- before/knowledge/src/test/java/com/zhku/knowledge/ZhkuFlywayTestSupportTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/ZhkuFlywayTestSupportTest.java
+@@ -30,8 +30,7 @@
+  */
+ class ZhkuFlywayTestSupportTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+--- before/knowledge/src/test/java/com/zhku/knowledge/answer/PublicElectiveGroundedAnswerAcceptanceTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/answer/PublicElectiveGroundedAnswerAcceptanceTest.java
+@@ -15,10 +15,7 @@
+ /** 公共选修课程真实问法的有依据问答验收。 */
+ class PublicElectiveGroundedAnswerAcceptanceTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url",
+-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user",
+             "zhkuagent"
+--- before/knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusCreditAgentJdbcEndToEndTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/campusagent/CampusCreditAgentJdbcEndToEndTest.java
+@@ -40,8 +40,7 @@
+ 
+ /** 临时 PostgreSQL 中验证审核发布、五级规则链、受控工具和 HTTP 回答的真实数据边界。 */
+ class CampusCreditAgentJdbcEndToEndTest {
+-    private static final String URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String USER = System.getProperty("zhku.db.user", "zhkuagent");
+     private static final String PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+     private static final String REQUEST = """
+--- before/knowledge/src/test/java/com/zhku/knowledge/conversation/ConversationSessionSchemaTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/conversation/ConversationSessionSchemaTest.java
+@@ -18,10 +18,7 @@
+ /** 数据库会话存储的最小结构契约。 */
+ class ConversationSessionSchemaTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url",
+-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty("zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+ 
+--- before/knowledge/src/test/java/com/zhku/knowledge/conversation/JdbcConversationStoreContractTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/conversation/JdbcConversationStoreContractTest.java
+@@ -29,10 +29,7 @@
+ 
+     private static final Instant START = Instant.parse("2026-09-14T00:00:00Z");
+     private static final Duration SESSION_TTL = Duration.ofMinutes(10);
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url",
+-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty("zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+     private static final DataSource DATA_SOURCE = new DriverManagerDataSource(
+--- before/knowledge/src/test/java/com/zhku/knowledge/eval/PublicElectiveRetakeSharedCorpusTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/eval/PublicElectiveRetakeSharedCorpusTest.java
+@@ -27,7 +27,7 @@
+ 
+     @Test
+     void shouldAnswerExplicitPublicElectiveRetakeFromApprovedCorpus() throws Exception {
+-        String url = System.getProperty("zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++        String url = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+         String user = System.getProperty("zhku.db.user", "zhkuagent");
+         String password = ZhkuDatabaseTestConfig.databasePassword();
+         EvaluationDataset dataset = new EvaluationDatasetLoader().loadDataset(
+--- before/knowledge/src/test/java/com/zhku/knowledge/eval/RetrievalAcceptanceEvalTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/eval/RetrievalAcceptanceEvalTest.java
+@@ -42,9 +42,7 @@
+  */
+ class RetrievalAcceptanceEvalTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent"
+     );
+--- before/knowledge/src/test/java/com/zhku/knowledge/eval/RetrievalVectorBaselineEvalTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/eval/RetrievalVectorBaselineEvalTest.java
+@@ -69,9 +69,7 @@
+ @EnabledIfSystemProperty(named = "zhku.rag.smoke", matches = "true")
+ class RetrievalVectorBaselineEvalTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent"
+     );
+--- before/knowledge/src/test/java/com/zhku/knowledge/eval/SharedCorpusEvaluationReportTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/eval/SharedCorpusEvaluationReportTest.java
+@@ -41,8 +41,7 @@
+  */
+ class SharedCorpusEvaluationReportTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+--- before/knowledge/src/test/java/com/zhku/knowledge/feedback/JdbcFeedbackRepositoryTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/feedback/JdbcFeedbackRepositoryTest.java
+@@ -25,9 +25,7 @@
+ /** V16 的 JDBC 契约：只清理本测试写入的随机软引用，不重置共享测试库。 */
+ class JdbcFeedbackRepositoryTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty("zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+     private static final DataSource DATA_SOURCE = new DriverManagerDataSource(
+--- before/knowledge/src/test/java/com/zhku/knowledge/governance/GracefulDegradationTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/governance/GracefulDegradationTest.java
+@@ -59,8 +59,7 @@
+  */
+ class GracefulDegradationTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty("zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+     private static final LocalDate TEST_DATE = LocalDate.of(1993, 3, 3);
+--- before/knowledge/src/test/java/com/zhku/knowledge/governance/JdbcKnowledgeGovernanceRepositoryTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/governance/JdbcKnowledgeGovernanceRepositoryTest.java
+@@ -22,10 +22,7 @@
+ 
+ class JdbcKnowledgeGovernanceRepositoryTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url",
+-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user",
+             "zhkuagent"
+--- before/knowledge/src/test/java/com/zhku/knowledge/governance/KnowledgeGovernancePublisherTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/governance/KnowledgeGovernancePublisherTest.java
+@@ -28,10 +28,7 @@
+ 
+ class KnowledgeGovernancePublisherTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url",
+-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user",
+             "zhkuagent"
+--- before/knowledge/src/test/java/com/zhku/knowledge/governance/KnowledgeGovernanceSchemaTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/governance/KnowledgeGovernanceSchemaTest.java
+@@ -17,10 +17,7 @@
+ 
+ class KnowledgeGovernanceSchemaTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url",
+-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user",
+             "zhkuagent"
+--- before/knowledge/src/test/java/com/zhku/knowledge/governance/TelemetryAnswerChainCrossCheckTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/governance/TelemetryAnswerChainCrossCheckTest.java
+@@ -44,8 +44,7 @@
+  */
+ class TelemetryAnswerChainCrossCheckTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty("zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+     private static final LocalDate TEST_DATE = LocalDate.of(1992, 2, 2);
+--- before/knowledge/src/test/java/com/zhku/knowledge/notice/JdbcNoticeRepositoryTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/notice/JdbcNoticeRepositoryTest.java
+@@ -19,9 +19,7 @@
+ 
+ class JdbcNoticeRepositoryTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent"
+     );
+--- before/knowledge/src/test/java/com/zhku/knowledge/notice/NoticeGovernancePublisherTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/notice/NoticeGovernancePublisherTest.java
+@@ -32,9 +32,7 @@
+ 
+ class NoticeGovernancePublisherTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent"
+     );
+--- before/knowledge/src/test/java/com/zhku/knowledge/privacy/AnonymousTelemetryTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/privacy/AnonymousTelemetryTest.java
+@@ -22,7 +22,7 @@
+ class AnonymousTelemetryTest {
+ 
+     private static final DataSource DATA_SOURCE = new DriverManagerDataSource(
+-            System.getProperty("zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"),
++            com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl(),
+             System.getProperty("zhku.db.user", "zhkuagent"),
+             ZhkuDatabaseTestConfig.databasePassword());
+ 
+--- before/knowledge/src/test/java/com/zhku/knowledge/publication/PublicElectiveKeywordSearchAcceptanceTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/publication/PublicElectiveKeywordSearchAcceptanceTest.java
+@@ -23,10 +23,7 @@
+  */
+ class PublicElectiveKeywordSearchAcceptanceTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url",
+-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user",
+             "zhkuagent"
+--- before/knowledge/src/test/java/com/zhku/knowledge/publication/ReviewedKnowledgePublisherTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/publication/ReviewedKnowledgePublisherTest.java
+@@ -31,10 +31,7 @@
+     private static final String REPLACEMENT_TEST_SCOPE =
+             "TASK3_REPLACEMENT_TEST";
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url",
+-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user",
+             "zhkuagent"
+--- before/knowledge/src/test/java/com/zhku/knowledge/rag/JdbcCitationAuditRepositoryTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/rag/JdbcCitationAuditRepositoryTest.java
+@@ -32,9 +32,7 @@
+  */
+ class JdbcCitationAuditRepositoryTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent"
+     );
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcEmbeddingProfileStoreTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcEmbeddingProfileStoreTest.java
+@@ -32,8 +32,7 @@
+  */
+ class JdbcEmbeddingProfileStoreTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRetrievalIndexingTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRetrievalIndexingTest.java
+@@ -32,8 +32,7 @@
+  */
+ class JdbcRetrievalIndexingTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+--- before/knowledge/src/test/java/com/zhku/knowledge/serviceguide/JdbcServiceGuidePublisherTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/serviceguide/JdbcServiceGuidePublisherTest.java
+@@ -25,8 +25,7 @@
+  */
+ class JdbcServiceGuidePublisherTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+--- before/knowledge/src/test/java/com/zhku/knowledge/serviceguide/JdbcServiceGuideRepositoryTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/serviceguide/JdbcServiceGuideRepositoryTest.java
+@@ -26,8 +26,7 @@
+  */
+ class JdbcServiceGuideRepositoryTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD =
+--- before/knowledge/src/test/java/com/zhku/knowledge/serviceguide/ServiceGuideAcceptanceTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/serviceguide/ServiceGuideAcceptanceTest.java
+@@ -37,8 +37,7 @@
+  */
+ class ServiceGuideAcceptanceTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+--- before/knowledge/src/test/java/com/zhku/knowledge/telemetry/JdbcAnonymousTelemetryRepositoryTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/telemetry/JdbcAnonymousTelemetryRepositoryTest.java
+@@ -27,8 +27,7 @@
+  */
+ class JdbcAnonymousTelemetryRepositoryTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+--- before/knowledge/src/test/java/com/zhku/knowledge/conversation/elective/JdbcElectiveRetakeEvidenceFinderIntegrationTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/conversation/elective/JdbcElectiveRetakeEvidenceFinderIntegrationTest.java
+@@ -19,10 +19,7 @@
+  */
+ class JdbcElectiveRetakeEvidenceFinderIntegrationTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url",
+-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty(
+             "zhku.db.user",
+             "zhkuagent"
+--- before/knowledge/src/test/java/com/zhku/knowledge/conversation/publicelective/JdbcCreditLimitEvidenceFinderIntegrationTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/conversation/publicelective/JdbcCreditLimitEvidenceFinderIntegrationTest.java
+@@ -14,10 +14,7 @@
+ /** 学分上限规则只能使用其独立范围内已发布、学生可见的数据库证据。 */
+ class JdbcCreditLimitEvidenceFinderIntegrationTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url",
+-            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+-    );
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty("zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+ 
+--- before/knowledge/src/test/java/com/zhku/knowledge/governance/web/TelemetryAdminControllerTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/governance/web/TelemetryAdminControllerTest.java
+@@ -34,8 +34,7 @@
+ /** 遥测读取 API 的 HTTP 契约：只聚合窗口内桶，单条事件地址始终不存在。 */
+ class TelemetryAdminControllerTest {
+ 
+-    private static final String DATABASE_URL = System.getProperty(
+-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent");
++    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
+     private static final String DATABASE_USER = System.getProperty("zhku.db.user", "zhkuagent");
+     private static final String DATABASE_PASSWORD = ZhkuDatabaseTestConfig.databasePassword();
+     private static final LocalDate WINDOW_START = LocalDate.of(2099, 1, 1);
+--- before/knowledge/src/test/java/com/zhku/knowledge/ZhkuDatabaseTestConfig.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/ZhkuDatabaseTestConfig.java
+@@ -6,6 +6,19 @@
+ public final class ZhkuDatabaseTestConfig {
+ 
+     private ZhkuDatabaseTestConfig() {
++    }
++    private static final java.util.regex.Pattern TARGET=java.util.regex.Pattern.compile(
++        "^jdbc:postgresql://127\\.0\\.0\\.1:([0-9]{4,5})/(zhkuagent_rulecheck_e2e|zhkuagent_run_archive_e2e|zhkuagent_e2e)$");
++    public static String databaseUrl() {
++        String url=System.getProperty("zhku.db.url");verifyTarget(url);return url;
++    }
++    public static void verifyTarget(String url) {
++        // 静态字段/数据源构造就拒绝，setup失败后cleanup也不能靠默认地址重新连接原库。
++        if(url==null)throw new IllegalArgumentException("数据库测试必须显式配置专用临时库目标");
++        var match=TARGET.matcher(url);
++        if(!match.matches())throw new IllegalArgumentException("数据库测试仅允许精确回环专用临时库，拒绝原库与URL扩展");
++        int port=Integer.parseInt(match.group(1));
++        if(port<1024||port>65535||port==54329)throw new IllegalArgumentException("拒绝原演示库端口或非法测试端口");
+     }
+ 
+     public static String databasePassword() {
+--- before/knowledge/src/test/java/com/zhku/knowledge/ZhkuFlywayTestSupport.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/ZhkuFlywayTestSupport.java
+@@ -7,14 +7,9 @@
+ /**
+  * 测试侧 Flyway 迁移的统一入口。
+  *
+- * <p><b>为什么要统一收口并开启 outOfOrder</b>：本项目的迁移号段按阶段分配，跨线并行开发时
+- * 会出现"高版本先入共享库、低版本后补"的真实情形（线上已发生：`V16` 先应用，随后补的 `V15`
+- * 被判为乱序迁移，所有直接 `Flyway.configure()` 的入口在校验阶段全部失败）。
+- * 把开关收敛到这一个入口，既避免"在十几个测试类里各写一遍"的散落写法，也让这条约定有唯一出处。</p>
+- *
+- * <p><b>这不是放宽校验</b>：`outOfOrder` 只影响"已存在的历史迁移能否补应用"，不改校验强度、
+- * 不改已有迁移内容。**创建新迁移前仍需先确认编号大于共享库当前最大版本**；本入口只是让
+- * 已发生的乱序能被安全补上（配合 `ZhkuFlywayTestSupportTest` 的乱序用例锁定行为）。</p>
++ * <p>只允许显式专用临时库；校验须先于Flyway配置，直接运行旧测试也不能迁移原库。
++ * outOfOrder保留既有测试合同，用临时schema验证历史迁移号乱序场景；不修改已有迁移内容，
++ * 也不授予共享或生产库补迁移权限。</p>
+  */
+ public final class ZhkuFlywayTestSupport {
+ 
+@@ -23,7 +18,7 @@
+     private ZhkuFlywayTestSupport() {
+     }
+ 
+-    /** 迁移默认位置（`classpath:db/migration`），行为与收口前一致，只多了乱序容忍。 */
++    /** 迁移默认位置；所有入口均先拒绝原库，乱序只沿用既有临时库合同。 */
+     public static void migrate(String url, String user, String password) {
+         migrate(url, user, password, DEFAULT_LOCATIONS);
+     }
+@@ -56,7 +51,7 @@
+ 
+     private static Flyway configured(
+             String url, String user, String password, String locations, String schema) {
+-        Objects.requireNonNull(url, "数据库地址不能为空");
++        ZhkuDatabaseTestConfig.verifyTarget(url);
+         Objects.requireNonNull(user, "数据库用户不能为空");
+         Objects.requireNonNull(password, "数据库密码不能为空");
+         Objects.requireNonNull(locations, "迁移位置不能为空");
+--- before/knowledge/src/test/java/com/zhku/knowledge/ZhkuDatabaseTestTargetTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/ZhkuDatabaseTestTargetTest.java
+@@ -0,0 +1,64 @@
++package com.zhku.knowledge;
++
++import java.util.stream.Stream;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.MethodSource;
++import static org.assertj.core.api.Assertions.*;
++
++/** 不建连接；非法目标只测校验/代表性静态字段，绝不调用旧setup/cleanup或迁移。 */
++class ZhkuDatabaseTestTargetTest {
++    static final String SAFE="jdbc:postgresql://127.0.0.1:55467/zhkuagent_rulecheck_e2e";
++    @Test void missingAndBlankTargetsFailClosed() {for(String url:new String[]{null,""," "})reject(url);}
++    @Test void originalDatabaseAndReservedPortAreRejected() {reject("jdbc:postgresql://127.0.0.1:54329/zhkuagent");reject(SAFE.replace("55467","54329"));}
++    @Test void onlyExplicitExactLoopbackHostIsAllowed() {for(String host:new String[]{"localhost","remote.invalid","[::1]","127.0.0.1.evil"})reject(SAFE.replace("127.0.0.1",host));}
++    @Test void onlyExplicitExistingDisposableDatabaseNamesAreAllowed() {for(String name:new String[]{"zhkuagent","postgres","zhkuagent_e2e_backup","zhkuagent_rulecheck_e2e_backup","zhkuagent_run_archive_e2e_backup"})reject(SAFE.replace("zhkuagent_rulecheck_e2e",name));}
++    @Test void queryCredentialsFragmentAndTrailingContentCannotExtendTarget() {
++        for(String suffix:new String[]{"?options=x","?password=synthetic","#fragment","/"," ",";other"})reject(SAFE+suffix);
++        reject(SAFE.replace("//127.0.0.1","//synthetic@127.0.0.1"));
++    }
++    @Test void invalidPortsAreRejected() {for(String port:new String[]{"0","1023","65536","-1","123456"})reject(SAFE.replace("55467",port));}
++    @Test void knownDisposableTargetsPassWithoutConnection() {
++        assertThatNoException().isThrownBy(()->ZhkuDatabaseTestConfig.verifyTarget(SAFE));
++        assertThatNoException().isThrownBy(()->ZhkuDatabaseTestConfig.verifyTarget(SAFE.replace("zhkuagent_rulecheck_e2e","zhkuagent_run_archive_e2e")));
++    }
++    @Test void existingLiveFixtureTargetRemainsCompatibleWithoutCallingProvider() {
++        assertThatNoException().isThrownBy(()->ZhkuDatabaseTestConfig.verifyTarget(SAFE.replace("zhkuagent_rulecheck_e2e","zhkuagent_e2e")));
++    }
++    @Test void isolatedProductionProbeRejectsInheritedOriginalOrOtherDatabaseBeforeStartup() {
++        for(String url:new String[]{null,"jdbc:postgresql://127.0.0.1:54329/zhkuagent",SAFE.replace("zhkuagent_rulecheck_e2e","zhkuagent"),SAFE,SAFE.replace("127.0.0.1","localhost"),SAFE.replace("zhkuagent_rulecheck_e2e","zhkuagent_run_archive_e2e")+"?options=x"})
++            assertThatThrownBy(()->com.zhku.knowledge.controlled.SubmissionProductionStartupProbe.validateDatabaseTarget(url)).isInstanceOf(IllegalArgumentException.class);
++    }
++    @Test void isolatedProductionProbeAcceptsOnlyItsExactArchiveFixtureWithoutStartup() {
++        assertThatNoException().isThrownBy(()->com.zhku.knowledge.controlled.SubmissionProductionStartupProbe.validateDatabaseTarget(SAFE.replace("zhkuagent_rulecheck_e2e","zhkuagent_run_archive_e2e")));
++    }
++    @Test void urlGetterRequiresSystemPropertyInsteadOfDefaultOrEnvironment() {
++        withUrl(null,()->assertThatThrownBy(ZhkuDatabaseTestConfig::databaseUrl).isInstanceOf(IllegalArgumentException.class));
++        withUrl("jdbc:postgresql://127.0.0.1:54329/zhkuagent",()->assertThatThrownBy(ZhkuDatabaseTestConfig::databaseUrl).isInstanceOf(IllegalArgumentException.class));
++        withUrl(SAFE,()->assertThat(ZhkuDatabaseTestConfig.databaseUrl()).isEqualTo(SAFE));
++    }
++    static Stream<String> fixtures(){return Stream.of("com.zhku.knowledge.KnowledgeSchemaTest","com.zhku.knowledge.feedback.JdbcFeedbackRepositoryTest","com.zhku.knowledge.ZhkuFlywayTestSupportTest");}
++    @ParameterizedTest @MethodSource("fixtures") void representativeLegacyStaticFieldsRejectOriginalTargetBeforeLifecycle(String fixture) {
++        withUrl("jdbc:postgresql://127.0.0.1:54329/zhkuagent",()-> {
++            var loader=new FixtureLoader(getClass().getClassLoader(),fixture);
++            assertThatThrownBy(()->Class.forName(fixture,true,loader)).isInstanceOf(ExceptionInInitializerError.class)
++                .hasCauseInstanceOf(IllegalArgumentException.class);
++        });
++    }
++    static void reject(String url){assertThatThrownBy(()->ZhkuDatabaseTestConfig.verifyTarget(url)).isInstanceOf(IllegalArgumentException.class);}
++    static void withUrl(String value,Runnable assertion){String previous=System.getProperty("zhku.db.url");try{if(value==null)System.clearProperty("zhku.db.url");else System.setProperty("zhku.db.url",value);assertion.run();}finally{if(previous==null)System.clearProperty("zhku.db.url");else System.setProperty("zhku.db.url",previous);}}
++    static final class FixtureLoader extends ClassLoader {
++        private final String fixture;
++        FixtureLoader(ClassLoader parent,String fixture){super(parent);this.fixture=fixture;}
++        @Override protected Class<?> loadClass(String name,boolean resolve)throws ClassNotFoundException {
++            if(!name.equals(fixture))return super.loadClass(name,resolve);
++            synchronized(getClassLoadingLock(name)) {
++                Class<?> type=findLoadedClass(name);
++                if(type==null)try(var input=getParent().getResourceAsStream(name.replace('.','/')+".class")) {
++                    if(input==null)throw new ClassNotFoundException(name);byte[] bytes=input.readAllBytes();type=defineClass(name,bytes,0,bytes.length);
++                } catch(java.io.IOException missing){throw new ClassNotFoundException(name,missing);}
++                if(resolve)resolveClass(type);return type;
++            }
++        }
++    }
++}
+--- before/knowledge/scripts/verify-rule-check-refactor.ps1
++++ after/knowledge/scripts/verify-rule-check-refactor.ps1
+@@ -24,10 +24,12 @@
+         'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest',
+         'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest','RuleCheckDecisionServiceTest',
+         'RuleCheckEvidenceCaptureTest','JdbcRuleCheckCitationAuditTargetTest','RuleCheckApplicationServiceTest',
+-        'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest','RuleCheckControllerTest','RuleCheckClarificationStoreTest','BoundedRuleSelectorTest','RuleCheckOriginalEvidenceServiceTest')
++        'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest','RuleCheckControllerTest','RuleCheckClarificationStoreTest','BoundedRuleSelectorTest','RuleCheckOriginalEvidenceServiceTest','ZhkuDatabaseTestTargetTest')
+     $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+         'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
+-        'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest','ControlledPreviewConfigurationTest','RuleCheckPreviewHttpTest')
++        'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest','ControlledPreviewConfigurationTest','RuleCheckPreviewHttpTest',
++        'RetrievalSchemaTest','ZhkuFlywayTestSupportTest','JdbcFeedbackRepositoryTest','JdbcAnonymousTelemetryRepositoryTest',
++        'JdbcCitationAuditRepositoryTest','JdbcKnowledgeGovernanceRepositoryTest','KnowledgeGovernanceSchemaTest','ReviewedKnowledgePublisherTest')
+     # 旧controlled配置类含需要进程数据库凭据的数据源装配，不能冒充无密钥纯单元。
+     $selected=@($Tests.Split(',')|ForEach-Object {$_.Trim()})
+     if (@($selected|Sort-Object -Unique).Count -ne $selected.Count) {throw '测试选择不能重复'}
+--- before/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
++++ after/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
+@@ -222,3 +222,17 @@
+ - [x] 29工具合同、一次增量审查、问题证据；A06真实HTTP会话绑定/点击/页面及B01原件映射继续后段，最终复查窗口A07，正式CLOSED不变。
+ 
+ Expected：page_number只标RECORDED_SOURCE_PAGE，不将未审映射的值冒称PDF物理或印刷页，不添加#page导航；无URL/locator时输出未知，不生成外链。上下文保留完整核验摘录，至8192 UTF8字节，左右最多256 UTF16且不切代理对，超限拒绝而非截断摘录。公开VerifiedExcerpt构造器不能授权客户端输入，未来HTTP必须绑定服务端会话结果；本批仅内部组件。
++
++
++## Task2L / H01：旧数据库测试拒绝原库（2026-10-08）
++
++本批42项白名单/当前字节见h01-database-isolation-20261008-01/source-before.json，其中32个真实旧测试仍从系统属性回退原库。仅测试侧改造，生产Java/资源/原件/参考保护。新测试配置databaseUrl/verifyTarget只接受显式系统属性、精确127.0.0.1非54329端口和既有rulecheck/run_archive/zhkuagent_e2e三个精确临时库名，无URL扩展或凭据。旧fallback替换为guarded getter，在static字段/DS构造/测试迁移/cleanup之前失败；统一Flyway入口再次验证传入url，不能靠外层runner。
++
++- [ ] 无数据库RED：缺失/原库/原端口/非回环/不精确测试名/URL凭据及参数/越界端口；显式安全目标允许。反射隔离加载代表性旧fixture，仅静态字段、不setup/cleanup/连接，非法目标必须在class init拒绝。
++- [ ] GREEN：精确目标helper及32个旧fallback统一替换；共享Flyway配置前guard；旧密码来源不变，凭证守卫不放宽。
++- [ ] 安全目标下无模型旧库正向选类+当前R5相关回归/29工具合同；独立增量审查与完整文件/SQL/XML/退出证据。供应商/报告集测试只做目标静态改造，不自动外发/消费留出。
++- [ ] 记录直接全量Maven缺目标将fail-closed的取舍；runner分类/CI分层F06另续；H01是否完整关闭以连接入口清单审查为准，不以零网络错误当拒绝证据。
++
++Expected：不连接/迁移/清理原库，非法URL本身不写日志或cause；negative literal配置/原库拒绝单测保持，不机械移除全部54329字样。ArchiveTestDatabase既有专用run_archive guard保留，R5reader更窄rulecheck guard保留。测试守卫允许的三个名字不授予任意原库写入或生产资格。
++
++补充：隔离产品启动探针自包含校验实际继承环境URL，仅允许archive临时库，不依赖父测试系统属性或未挂载helper。纯单元验证其拒绝目标，未运行实际打包产品探针/供应商。
+--- before/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
++++ after/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
+@@ -415,3 +415,11 @@
+ Final: fixed M2保留原审查知识代码diff/全部source-review哈希与审查者实际补查文档说明；生成器修为全部11项，最终changes-final.diff覆盖全部11项，不把最终补差异冒充已重审。
+ 
+ 接续A06原文HTTP服务端引用绑定与A07最终展示边界；真实文件/页码B01、供应商A05后段/C与学生浏览器/G2保持OPEN。
++
++
++Task2L/H01: start — h01-database-isolation-20261008-01/source-before.json，32个旧fallback/41项白名单；持续已授权工作。
++Task2L: Ruling: 先清P0旧测试默认库风险，再扩大HTTP验收 — 新runner隔离不保护直接运行旧fixture，当前审查已定位实际默认原库路径 — 成本：A06后段/A07顺延一个独立安全批次，不跳过产品主线。
++Task2L: Ruling: 测试helper只允许既有两个精确e2e库名，URL显式系统属性；旧fixture在static捕获时guard、Flyway再次guard — 缺配置/cleanup也不能复活原库默认；run_archive已有隔离兼容 — 成本：默认全量Maven会安全失败，纯/数据库/供应商分类仍F06，不能由本批宣称全仓CI完成。
++Task2L: Ruling: 不自动运行供应商/留出评测类，先选无模型旧库及R5回归 — 目标改造不是模型外发/提前消费报告集的理由 — 成本：这些类仅源/配置保护验证，实际模型语义与完整旧功能另有门禁。
++
++Task2L: Ruling: 库名白名单补已有zhkuagent_e2e；另将隔离产品启动探针纳入第42项白名单 — 校园旧runner已有专用库，探针子进程继承环境URL与父测试系统属性可能不一致 — 成本：只兼容第三个精确测试名；探针更窄仅archive库，单类挂载不能依赖未挂载测试helper，不外发模型。
+--- before/knowledge/src/test/java/com/zhku/knowledge/controlled/SubmissionProductionStartupProbe.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/controlled/SubmissionProductionStartupProbe.java
+@@ -3,7 +3,16 @@
+ import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+ /** 只构造产品模型工厂、不调用model；只输出有限异常类型和bean名，排除自由错误正文。 */
+ public final class SubmissionProductionStartupProbe {
++    public static void validateDatabaseTarget(String url) {
++        // 探针只挂载这一个class；父测试的系统属性校验不能保护子进程继承的环境URL。
++        if(url==null||!url.matches("^jdbc:postgresql://127\\.0\\.0\\.1:[0-9]{4,5}/zhkuagent_run_archive_e2e$"))
++            throw new IllegalArgumentException("产品启动探针仅允许显式archive专用临时库");
++        int port=Integer.parseInt(url.substring("jdbc:postgresql://127.0.0.1:".length(),url.lastIndexOf('/')));
++        if(port<1024||port>65535||port==54329)throw new IllegalArgumentException("产品启动探针拒绝原库端口或非法端口");
++    }
+     public static void main(String[] args) {
++        try { validateDatabaseTarget(System.getenv("ZHKU_DB_URL")); }
++        catch(IllegalArgumentException invalid) {System.out.println("PRODUCTION_PROBE_FAILURE IllegalArgumentException target");System.exit(1);return;}
+         var settings=new ArrayList<String>(List.of("--server.port=0","--server.address=127.0.0.1","--server.servlet.context-path=/api",
+                 "--spring.main.banner-mode=off","--logging.level.root=OFF","--zhku.controlled-preview.enabled=true","--zhku.controlled-preview.conversations.enabled=true",
+                 "--zhku.campus-agent.enabled=true","--zhku.campus-agent.archive.enabled=true","--zhku.db.username=zhkuagent","--zhku.db.url="+System.getenv("ZHKU_DB_URL"),"--zhku.rag.active-profile=dashscope"));

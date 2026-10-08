@@ -10,3 +10,10 @@
 - 不在命令参数、仓库文件、日志、测试报告或答复中打印密钥值。数据库写入验收只使用专用临时测试库，不能因为取得密码就写入原演示库。
 - 本机启动脚本应优先使用已配置的环境变量；既有数据目录中的 `infra/.env` 只作为数据库密码的兼容回退。启用 RAG / 校园 Agent 时必须由环境变量提供 `DASHSCOPE_API_KEY`。
 - 若进程、用户级和系统级环境均无法读取所需变量，应先检查启动器的环境继承与运行目录，再准确报告当前会话的访问边界；不能声称已调用数据库或真实供应商，也不能编造凭证。
+
+## 用户终端与 Codex 运行时
+
+- Codex注入的PATH不等于用户Windows PowerShell/CMD的PATH。2026-10-06确认用户终端无法识别`pwsh`，但本机`%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.exe`存在。每次使用先检查实际文件，不假设缓存路径永久有效。
+- 人工演示优先使用`knowledge\scripts\start-controlled-manual-demo.cmd`；它查找可用PowerShell 7并保留参数和退出码，不修改全局PATH。`-CheckEnvironment`仅检查启动环境，不运行数据库、模型或Maven。
+- 交付给用户的命令须在普通用户终端环境验证；不能用Codex中的`Get-Command pwsh/rg`成功来证明用户也能调用。不必要的辅助CLI依赖应移除或提供明确替代路径。
+- 中文终端验收还须覆盖Windows PowerShell5.1的GBK解码边界；Java的file.encoding不等于终端/父进程编码。发生乱码时先q退出，在调用启动器前把当前会话Console.InputEncoding、Console.OutputEncoding及OutputEncoding一并设置为UTF8Encoding(false)，再启动；不修改系统语言或全局编码。演示内层也显式使用UTF-8，不依赖Agent终端的默认值。

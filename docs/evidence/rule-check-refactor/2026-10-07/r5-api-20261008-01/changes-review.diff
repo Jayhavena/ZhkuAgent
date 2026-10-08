@@ -1,0 +1,427 @@
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckController.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckController.java
+@@ -0,0 +1,68 @@
++package com.zhku.knowledge.rulecheck.web;
++
++import com.fasterxml.jackson.databind.JsonNode;
++import com.zhku.knowledge.rulecheck.RuleCheckApplicationService;
++import com.zhku.knowledge.rulecheck.RuleCheckRuntimeSettings;
++import com.zhku.knowledge.rulecheck.RuleCheckDecision;
++import com.zhku.knowledge.rulecheck.RuleCheckVerifiedExcerpt;
++import java.util.*;
++import java.util.Map;
++import org.springframework.web.bind.annotation.*;
++import org.springframework.http.ResponseEntity;
++import org.springframework.http.converter.HttpMessageNotReadableException;
++
++/** 仅接受显式声明；身份和资料资格由安全链/应用服务决定，不由请求字段自证。 */
++@RestController
++@RequestMapping("/zhku/controlled-preview/v2/rule-check")
++public final class RuleCheckController {
++    private final RuleCheckApplicationService service;
++    private final RuleCheckRuntimeSettings settings;
++    public RuleCheckController(RuleCheckApplicationService service,RuleCheckRuntimeSettings settings) {this.service=service;this.settings=settings;}
++    @PostMapping public ResponseEntity<?> check(@RequestBody JsonNode payload) {
++        var input=request(payload);
++        try {
++            var decision=service.check(input.question(),input.confirmedConditions());
++            var reply=new Reply(decision.status(),decision.referenceRevision(),settings.requiredScope(),"USER_DECLARED",
++                input.confirmedConditions(),decision.confirmedFacts().stream().map(RuleCheckController::fact).toList(),
++                decision.clarificationQuestions(),decision.unknownItems(),
++                decision.conflicts().stream().map(c->new ConflictReply(c.issue(),c.sides().stream().map(RuleCheckController::fact).toList())).toList());
++            return ResponseEntity.ok().header("Cache-Control","no-store").body(reply);
++        } catch(RuntimeException unavailable) {
++            // 应用或映射异常不回显cause；不能把接口故障包装成有依据的政策结论。
++            return ResponseEntity.status(503).header("Cache-Control","no-store").body(new ErrorReply("RULE_CHECK_UNAVAILABLE","查证服务暂不可用"));
++        }
++    }
++    @ExceptionHandler({HttpMessageNotReadableException.class,IllegalArgumentException.class})
++    public ResponseEntity<ErrorReply> invalidRequest() {
++        return ResponseEntity.badRequest().header("Cache-Control","no-store").body(new ErrorReply("INVALID_RULE_CHECK_REQUEST","问题或条件格式不符合要求"));
++    }
++    private static Request request(JsonNode payload) {
++        if(payload==null||!payload.isObject()||payload.size()!=2||!payload.has("question")||!payload.has("confirmedConditions"))throw invalid();
++        var question=payload.get("question");var conditions=payload.get("confirmedConditions");
++        // 明确检查JSON类型，不允许数字/布尔/数组被Jackson默默转换为条件字符串。
++        if(!question.isTextual()||question.textValue().isBlank()||question.textValue().length()>2048
++                ||!conditions.isObject()||conditions.size()>16)throw invalid();
++        var values=new LinkedHashMap<String,String>();
++        conditions.fields().forEachRemaining(entry->{
++            String key=entry.getKey();var value=entry.getValue();
++            if(key.isBlank()||key.length()>64||!value.isTextual()||value.textValue().length()>128)throw invalid();
++            values.put(key,value.textValue());
++        });
++        return new Request(question.textValue(),Map.copyOf(values));
++    }
++    private static IllegalArgumentException invalid() {return new IllegalArgumentException("无效查证输入");}
++    private static FactReply fact(RuleCheckDecision.SupportedFact fact) {
++        return new FactReply(fact.id(),fact.text(),fact.evidence().stream().map(RuleCheckController::citation).toList());
++    }
++    private static CitationReply citation(RuleCheckVerifiedExcerpt quote) {
++        return new CitationReply(quote.citationId(),quote.sourceId(),quote.chunkId(),quote.revision(),quote.startInclusive(),quote.endExclusive(),quote.text());
++    }
++    private record Request(String question,Map<String,String> confirmedConditions) {}
++    public record Reply(RuleCheckDecision.Status status,String referenceRevision,String knowledgeScope,String conditionSource,
++        Map<String,String> confirmedConditions,List<FactReply> confirmedFacts,List<RuleCheckDecision.Clarification> clarificationQuestions,
++        List<String> unknownItems,List<ConflictReply> conflicts) {}
++    public record FactReply(String id,String text,List<CitationReply> citations) {}
++    public record CitationReply(String citationId,UUID sourceId,UUID chunkId,String revision,int startInclusive,int endExclusive,String text) {}
++    public record ConflictReply(String issue,List<FactReply> sides) {}
++    public record ErrorReply(String code,String message) {}
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckMediaTypeFilter.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckMediaTypeFilter.java
+@@ -0,0 +1,28 @@
++package com.zhku.knowledge.rulecheck.web;
++
++import jakarta.servlet.*;
++import jakarta.servlet.http.*;
++import java.io.IOException;
++import org.springframework.web.filter.OncePerRequestFilter;
++import org.springframework.http.MediaType;
++import java.nio.charset.StandardCharsets;
++
++/** 只检查头部，避免CSRF读取表单参数时提前解析未授权的业务body。 */
++public final class RuleCheckMediaTypeFilter extends OncePerRequestFilter {
++    @Override protected boolean shouldNotFilter(HttpServletRequest request) {
++        return !"POST".equals(request.getMethod())||!"/zhku/controlled-preview/v2/rule-check".equals(request.getRequestURI().substring(request.getContextPath().length()));
++    }
++    @Override protected void doFilterInternal(HttpServletRequest request,HttpServletResponse response,FilterChain chain) throws ServletException,IOException {
++        boolean json=false;
++        try {
++            var type=MediaType.parseMediaType(request.getContentType());
++            json="application".equalsIgnoreCase(type.getType())&&"json".equalsIgnoreCase(type.getSubtype())
++                &&(type.getCharset()==null||StandardCharsets.UTF_8.equals(type.getCharset()));
++        } catch(RuntimeException invalid) { }
++        if(!json) {
++            response.setStatus(415);response.setContentType("application/json");response.setCharacterEncoding("UTF-8");response.setHeader("Cache-Control","no-store");
++            response.getWriter().write("{\"code\":\"JSON_REQUIRED\",\"message\":\"查证请求须使用UTF-8 JSON\"}");return;
++        }
++        chain.doFilter(request,response);
++    }
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/controlled/ControlledRunRequestLimitFilter.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/controlled/ControlledRunRequestLimitFilter.java
+@@ -16,15 +16,22 @@
+ 
+ /** 仅由受控安全链在身份和授权之后调用，不能全局注册。 */
+ public final class ControlledRunRequestLimitFilter extends OncePerRequestFilter {
++    private final String route;
++    private final int maxBytes;
++    public ControlledRunRequestLimitFilter() {this("/zhku/controlled-preview/v1/runs",16384);}
++    public ControlledRunRequestLimitFilter(String route,int maxBytes) {
++        if(route==null||!route.startsWith("/")||maxBytes<1||maxBytes>65536)throw new IllegalArgumentException("请求限长配置不合格");
++        this.route=route;this.maxBytes=maxBytes;
++    }
+     @Override protected boolean shouldNotFilter(HttpServletRequest request) {
+-        return !"POST".equals(request.getMethod()) || !"/zhku/controlled-preview/v1/runs".equals(
++        return !"POST".equals(request.getMethod()) || !route.equals(
+                 request.getRequestURI().substring(request.getContextPath().length()));
+     }
+     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+             throws ServletException, IOException {
+         // Content-Length可缺失或错误；实际最多读上限+1，避免先分配整个不可信body。
+-        var bytes = request.getInputStream().readNBytes(16385);
+-        if (bytes.length > 16384) {
++        var bytes = request.getInputStream().readNBytes(maxBytes+1);
++        if (bytes.length > maxBytes) {
+             response.setStatus(413); response.setContentType("application/json"); response.setCharacterEncoding("UTF-8");
+             response.setHeader("Cache-Control", "no-store");
+             response.getWriter().write("{\"code\":\"REQUEST_TOO_LARGE\",\"message\":\"请求内容超过大小限制\"}");
+--- before/knowledge/src/main/java/com/zhku/knowledge/security/PreviewSecurityConfiguration.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/security/PreviewSecurityConfiguration.java
+@@ -106,7 +106,10 @@
+         // 不安全请求先检查CSRF，再查当前身份；数据库故障不能覆盖本该先发生的403。
+         http.addFilterAfter(new CurrentIdentityFilter(repository, mapper,cookieName,cookiePath), CsrfFilter.class);
+         // 直接创建而非Servlet Bean；先身份/CSRF/授权，再读取和限制业务body。
+-        if (!ruleCheck) http.addFilterAfter(new ControlledRunRequestLimitFilter(), AuthorizationFilter.class);
++        if (ruleCheck) {
++            http.addFilterBefore(new com.zhku.knowledge.rulecheck.web.RuleCheckMediaTypeFilter(),CsrfFilter.class);
++            http.addFilterAfter(new ControlledRunRequestLimitFilter(prefix+"/rule-check",32768),AuthorizationFilter.class);
++        } else http.addFilterAfter(new ControlledRunRequestLimitFilter(), AuthorizationFilter.class);
+         return http.build();
+     }
+ 
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckPreviewApplication.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckPreviewApplication.java
+@@ -12,7 +12,7 @@
+ /** 显式装配避免旧匿名、治理、Agent入口被同目录扫描带入。 */
+ @SpringBootConfiguration(proxyBeanMethods=false)
+ @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class,FlywayAutoConfiguration.class,UserDetailsServiceAutoConfiguration.class})
+-@Import({RuleCheckPreviewConfiguration.class,RuleCheckPreviewSecurityConfiguration.class,RuleCheckAuthController.class})
++@Import({RuleCheckPreviewConfiguration.class,RuleCheckPreviewSecurityConfiguration.class,RuleCheckAuthController.class,RuleCheckController.class})
+ public class RuleCheckPreviewApplication {
+     public static SpringApplication application() {
+         var application=new SpringApplication(RuleCheckPreviewApplication.class);
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckPreviewConfiguration.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/web/RuleCheckPreviewConfiguration.java
+@@ -100,6 +100,8 @@
+             },()->java.util.UUID.randomUUID().toString(),ruleCheckClock);
+     }
+     @Bean public Jackson2ObjectMapperBuilderCustomizer ruleCheckStrictRequests() {
+-        return builder->builder.featuresToEnable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
++        // 重复键会覆盖先前的条件，尾随JSON会制造两个解读；都不能默默接受。
++        return builder->builder.featuresToEnable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
++            DeserializationFeature.FAIL_ON_TRAILING_TOKENS,com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+     }
+ }
+--- before/knowledge/src/test/java/com/zhku/knowledge/rulecheck/web/RuleCheckControllerTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/rulecheck/web/RuleCheckControllerTest.java
+@@ -0,0 +1,111 @@
++package com.zhku.knowledge.rulecheck.web;
++
++import com.fasterxml.jackson.databind.ObjectMapper;
++import com.zhku.knowledge.rulecheck.*;
++import java.util.*;
++import java.util.stream.Stream;
++import org.junit.jupiter.api.*;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.MethodSource;
++import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
++import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
++import org.springframework.test.web.servlet.MockMvc;
++import org.springframework.test.web.servlet.setup.MockMvcBuilders;
++import org.springframework.mock.web.*;
++import static org.assertj.core.api.Assertions.*;
++import static org.mockito.Mockito.*;
++import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
++
++class RuleCheckControllerTest {
++    static final String P="/zhku/controlled-preview/v2/rule-check";
++    static final ObjectMapper JSON=new ObjectMapper();
++    RuleCheckApplicationService service;MockMvc mvc;
++    @BeforeEach void setup() {
++        service=mock(RuleCheckApplicationService.class);
++        var builder=Jackson2ObjectMapperBuilder.json();new RuleCheckPreviewConfiguration().ruleCheckStrictRequests().customize(builder);
++        mvc=MockMvcBuilders.standaloneSetup(new RuleCheckController(service,new RuleCheckRuntimeSettings("p","c","SYNTHETIC_SCOPE","2025.9.2",40,5)))
++            .setMessageConverters(new MappingJackson2HttpMessageConverter(builder.build())).build();
++    }
++    static RuleCheckDecision.SupportedFact fact(String id,String text) {
++        return new RuleCheckDecision.SupportedFact(id,text,List.of(new RuleCheckVerifiedExcerpt("cite-"+id,UUID.randomUUID(),UUID.randomUUID(),"2025.9.2","a".repeat(64),3,5,"原文")));
++    }
++    static Stream<RuleCheckDecision> states() {
++        var a=fact("a","合成事实含条件与例外");var b=fact("b","另一合成证据侧");
++        return Stream.of(
++            new RuleCheckDecision(RuleCheckDecision.Status.ANSWERED,"2025.9.2",List.of(a),List.of(),List.of(),List.of()),
++            new RuleCheckDecision(RuleCheckDecision.Status.PARTIALLY_ANSWERED,"2025.9.2",List.of(a),List.of(),List.of("无法确定的项目"),List.of()),
++            new RuleCheckDecision(RuleCheckDecision.Status.NEED_CLARIFICATION,"2025.9.2",List.of(),List.of(new RuleCheckDecision.Clarification("year","哪一年级",List.of("A","B"))),List.of(),List.of()),
++            new RuleCheckDecision(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE,"2025.9.2",List.of(),List.of(),List.of("暂无已审核规则"),List.of()),
++            new RuleCheckDecision(RuleCheckDecision.Status.CONFLICTING_EVIDENCE,"2025.9.2",List.of(),List.of(),List.of(),List.of(new RuleCheckDecision.ConflictEvidence("尚未解决的矛盾",List.of(a,b)))));
++    }
++    @ParameterizedTest @MethodSource("states") void preservesAllFiveDecisionsAndExplicitClaims(RuleCheckDecision decision) throws Exception {
++        when(service.check("中文问题",Map.of("year","A"))).thenReturn(decision);
++        var result=mvc.perform(post(P).contentType("application/json").content("{\"question\":\"中文问题\",\"confirmedConditions\":{\"year\":\"A\"}}"))
++            .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store")).andReturn();
++        var response=JSON.readTree(result.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
++        assertThat(response.path("status").asText()).isEqualTo(decision.status().name());
++        assertThat(response.path("referenceRevision").asText()).isEqualTo("2025.9.2");
++        assertThat(response.path("knowledgeScope").asText()).isEqualTo("SYNTHETIC_SCOPE");
++        assertThat(response.path("conditionSource").asText()).isEqualTo("USER_DECLARED");
++        assertThat(response.path("confirmedConditions").path("year").asText()).isEqualTo("A");
++        assertThat(response.path("confirmedFacts").size()).isEqualTo(decision.confirmedFacts().size());
++        assertThat(response.path("clarificationQuestions").size()).isEqualTo(decision.clarificationQuestions().size());
++        assertThat(response.path("unknownItems").size()).isEqualTo(decision.unknownItems().size());
++        assertThat(response.path("conflicts").size()).isEqualTo(decision.conflicts().size());
++        if(!decision.confirmedFacts().isEmpty()) {
++            var cite=response.path("confirmedFacts").get(0).path("citations").get(0);
++            assertThat(cite.path("text").asText()).isEqualTo("原文");
++            assertThat(cite.path("startInclusive").asInt()).isEqualTo(3);assertThat(cite.path("endExclusive").asInt()).isEqualTo(5);
++            assertThat(cite.has("checksum")).isFalse();assertThat(cite.has("qualified")).isFalse();
++        }
++        verify(service).check("中文问题",Map.of("year","A"));
++    }
++    @Test void unknownTrustedFieldsAreRejectedWithoutServiceInvocation() throws Exception {
++        for(String field:List.of("userId","reviewer","qualified","snapshots","sourceId","ruleId"))bad("{\"question\":\"q\",\"confirmedConditions\":{},\""+field+"\":\"untrusted\"}");
++        verifyNoInteractions(service);
++    }
++    @Test void requiredObjectAndStringShapesDoNotCoerceScalars() throws Exception {
++        for(String body:List.of("null","[]","\"q\"","{}","{\"question\":\"q\"}",
++            "{\"question\":12,\"confirmedConditions\":{}}","{\"question\":\"q\",\"confirmedConditions\":null}",
++            "{\"question\":\"q\",\"confirmedConditions\":{\"x\":12}}","{\"question\":\"q\",\"confirmedConditions\":{\"x\":true}}",
++            "{\"question\":\"q\",\"confirmedConditions\":{\"x\":null}}"))bad(body);
++        verifyNoInteractions(service);
++    }
++    @Test void allBusinessInputBoundsAreCheckedBeforeService() throws Exception {
++        bad(payload(" ",Map.of()));bad(payload("x".repeat(2049),Map.of()));
++        bad(payload("q",Map.of(" ","a")));bad(payload("q",Map.of("x".repeat(65),"a")));bad(payload("q",Map.of("x","a".repeat(129))));
++        var tooMany=new HashMap<String,String>();for(int i=0;i<17;i++)tooMany.put("k"+i,"a");bad(payload("q",tooMany));
++        verifyNoInteractions(service);
++    }
++    @Test void duplicatePropertiesAndTrailingJsonAreRejected() throws Exception {
++        for(String body:List.of("{\"question\":\"first\",\"question\":\"second\",\"confirmedConditions\":{}}",
++            "{\"question\":\"q\",\"confirmedConditions\":{\"x\":\"a\",\"x\":\"b\"}}",
++            "{\"question\":\"q\",\"confirmedConditions\":{}} {}"))bad(body);
++        verifyNoInteractions(service);
++    }
++    @Test void invalidJsonAndServiceErrorsNeverEchoInputOrCauses() throws Exception {
++        bad("{\"do-not-echo\":");
++        when(service.check("q",Map.of())).thenThrow(new IllegalStateException("do-not-echo private cause"));
++        mvc.perform(post(P).contentType("application/json").content(payload("q",Map.of())))
++            .andExpect(status().isServiceUnavailable()).andExpect(header().string("Cache-Control","no-store"))
++            .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("do-not-echo"))));
++    }
++    @Test void mediaTypeGuardRejectsFormsWithoutReadingBody() throws Exception {
++        for(String type:List.of("application/x-www-form-urlencoded","text/plain","application/json; charset=UTF-16","application/problem+json")) {
++            var request=new MockHttpServletRequest("POST","/api"+P);request.setContextPath("/api");request.setContentType(type);
++            request.setContent("do-not-echo".getBytes(java.nio.charset.StandardCharsets.UTF_8));var response=new MockHttpServletResponse();
++            var called=new java.util.concurrent.atomic.AtomicBoolean();
++            new RuleCheckMediaTypeFilter().doFilter(request,response,(a,b)->called.set(true));
++            assertThat(response.getStatus()).isEqualTo(415);assertThat(called).isFalse();
++            assertThat(response.getContentAsString()).doesNotContain("do-not-echo");
++            assertThat(request.getInputStream().read()).isEqualTo((int)'d');
++        }
++    }
++    void bad(String body) throws Exception {
++        var result=mvc.perform(post(P).contentType("application/json").content(body)).andExpect(status().isBadRequest())
++            .andExpect(header().string("Cache-Control","no-store")).andReturn();
++        assertThat(result.getResponse().getContentAsString()).doesNotContain("do-not-echo","untrusted");
++    }
++    static String payload(String question,Map<String,String> conditions) throws Exception {return JSON.writeValueAsString(Map.of("question",question,"confirmedConditions",conditions));}
++}
+--- before/knowledge/src/test/java/com/zhku/knowledge/security/RuleCheckPreviewSecurityConfigurationTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/security/RuleCheckPreviewSecurityConfigurationTest.java
+@@ -34,17 +34,18 @@
+     @Test void anonymousNeedsLoginAndCsrfFailurePrecedesIdentityRead(){run((mvc,repository)->{
+         mvc.perform(get(P+"/auth/me")).andExpect(status().isUnauthorized());
+         mvc.perform(get(P+"/auth/csrf")).andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"));
+-        mvc.perform(post(P+"/rule-check")).andExpect(status().isForbidden());
+-        mvc.perform(post(P+"/rule-check").with(csrf().useInvalidToken())).andExpect(status().isForbidden());
+-        mvc.perform(post(P+"/rule-check").with(csrf())).andExpect(status().isUnauthorized());
++        mvc.perform(post(P+"/rule-check").contentType("application/json")).andExpect(status().isForbidden());
++        mvc.perform(post(P+"/rule-check").contentType("application/json").with(csrf().useInvalidToken())).andExpect(status().isForbidden());
++        // 超大JSON也不能先于匿名授权失败被业务过滤器读取。
++        mvc.perform(post(P+"/rule-check").contentType("application/json").content(" ".repeat(32769)).with(csrf())).andExpect(status().isUnauthorized());
+         verifyNoInteractions(repository);
+     });}
+     @Test void loginTrustsStoredActorAndAllowsOnlyUserCheck(){run((mvc,repository)->{
+         var session=login(mvc,"user-a");
+         mvc.perform(get(P+"/auth/me").session(session)).andExpect(status().isOk())
+                 .andExpect(jsonPath("$.userId").value(USER.userId().toString())).andExpect(jsonPath("$.role").value("USER"));
+-        mvc.perform(post(P+"/rule-check").session(session).with(csrf())).andExpect(status().isOk());
+-        mvc.perform(post(P+"/rule-check").session(login(mvc,"maintainer")).with(csrf())).andExpect(status().isForbidden());
++        mvc.perform(post(P+"/rule-check").contentType("application/json").session(session).with(csrf())).andExpect(status().isOk());
++        mvc.perform(post(P+"/rule-check").contentType("application/json").content(" ".repeat(32769)).session(login(mvc,"maintainer")).with(csrf())).andExpect(status().isForbidden());
+         verify(repository,times(1)).authenticate(eq("user-a"),any());
+     });}
+     @Test void oldPathsWrongMethodsAndAnonymousInterfacesStayDenied(){run((mvc,repository)->{
+@@ -57,7 +58,7 @@
+     });}
+     @Test void identityHeadersAndForeignFrameworkPrincipalNeverAuthorize(){run((mvc,repository)->{
+         mvc.perform(get(P+"/auth/me").header("userId",USER.userId().toString()).header("role","USER")).andExpect(status().isUnauthorized());
+-        mvc.perform(post(P+"/rule-check").with(user("foreign").roles("USER")).with(csrf()))
++        mvc.perform(post(P+"/rule-check").contentType("application/json").with(user("foreign").roles("USER")).with(csrf()))
+                 .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("AUTH_REVOKED"));
+         verifyNoInteractions(repository);
+     });}
+@@ -74,10 +75,10 @@
+     @Test void identityUnavailableIs503WithoutClearingValidSession(){run((mvc,repository)->{
+         var session=login(mvc,"user-a");
+         doThrow(new PreviewIdentityRepository.Failure(PreviewIdentityRepository.Code.IDENTITY_UNAVAILABLE)).when(repository).requireCurrent(USER);
+-        mvc.perform(post(P+"/rule-check").session(session).with(csrf())).andExpect(status().isServiceUnavailable())
++        mvc.perform(post(P+"/rule-check").contentType("application/json").session(session).with(csrf())).andExpect(status().isServiceUnavailable())
+                 .andExpect(jsonPath("$.code").value("IDENTITY_UNAVAILABLE")).andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("SENTINEL"))));
+         assertThat(session.isInvalid()).isFalse();
+-        mvc.perform(post(P+"/rule-check").session(session)).andExpect(status().isForbidden());
++        mvc.perform(post(P+"/rule-check").contentType("application/json").session(session)).andExpect(status().isForbidden());
+     });}
+     @Test void loginFailureIsBoundedAndConsumesOneAttempt(){run((mvc,repository)->{
+         for(int i=0;i<20;i++) mvc.perform(post(P+"/auth/login").param("username","unknown").param("password","synthetic-password").with(csrf()))
+@@ -102,10 +103,10 @@
+         mvc.perform(post(P+"/auth/login").session(session).param("username","user-a").param("password","synthetic-password")
+                 .header(token.get("headerName").asText(),token.get("token").asText())).andExpect(status().isOk());
+         assertThat(session.getId()).isNotEqualTo(beforeId);
+-        mvc.perform(post(P+"/rule-check").session(session).header(token.get("headerName").asText(),token.get("token").asText())).andExpect(status().isForbidden());
++        mvc.perform(post(P+"/rule-check").contentType("application/json").session(session).header(token.get("headerName").asText(),token.get("token").asText())).andExpect(status().isForbidden());
+         var fresh=mvc.perform(get(P+"/auth/csrf").session(session)).andExpect(status().isOk()).andReturn();
+         var freshToken=mapper.readTree(fresh.getResponse().getContentAsString());
+-        mvc.perform(post(P+"/rule-check").session(session).header(freshToken.get("headerName").asText(),freshToken.get("token").asText())).andExpect(status().isOk());
++        mvc.perform(post(P+"/rule-check").contentType("application/json").session(session).header(freshToken.get("headerName").asText(),freshToken.get("token").asText())).andExpect(status().isOk());
+     });}
+     @Test void environmentRequiresExplicitIsolatedProfileAndEnablement(){
+         var accepted=environment();assertThatCode(()->RuleCheckPreviewSecurityConfiguration.validateEnvironment(accepted)).doesNotThrowAnyException();
+--- before/knowledge/src/test/java/com/zhku/knowledge/rulecheck/web/RuleCheckPreviewConfigurationTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/rulecheck/web/RuleCheckPreviewConfigurationTest.java
+@@ -95,7 +95,7 @@
+         assertThat(RuleCheckPreviewApplication.class.getAnnotation(ComponentScan.class)).isNull();
+         var imports=RuleCheckPreviewApplication.class.getAnnotation(Import.class);assertThat(imports).isNotNull();
+         assertThat(imports.value()).containsExactlyInAnyOrder(RuleCheckPreviewConfiguration.class,
+-                RuleCheckPreviewSecurityConfiguration.class,RuleCheckAuthController.class);
++                RuleCheckPreviewSecurityConfiguration.class,RuleCheckAuthController.class,RuleCheckController.class);
+     }
+     @Test void profileYamlKeepsEntryAndInitializationClosedByDefault() throws Exception {
+         var resource=new ClassPathResource("application-zhku-rule-check-preview.yml");assertThat(resource.exists()).isTrue();
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckPreviewHttpTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckPreviewHttpTest.java
+@@ -70,13 +70,45 @@
+             assertThat(decision.confirmedFacts()).isEmpty();
+             try(var user=new User(app.port);var bare=HttpClient.newHttpClient()) {
+                 user.csrf();assertThat(user.login(app.accounts.get(2),true).statusCode()).isEqualTo(200);
+-                assertThat(user.post("/rule-check","{}",true).statusCode()).isEqualTo(403);
++                user.csrf();assertThat(user.json("{}",true,false).statusCode()).isEqualTo(403);
+                 for(String path:List.of("/api/zhku/controlled-preview/v1/auth/me","/api/zhku/local-admin/sources","/api/zhku/local-preview/chat")) {
+                     assertThat(bare.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+app.port+path)).GET().build(),HttpResponse.BodyHandlers.ofString()).statusCode()).isIn(401,403);
+                 }
+                 var wrong=bare.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+app.port+PREFIX+"/auth/me"))
+                     .header("Cookie","ZHKU_CONTROLLED_SESSION="+user.cookie().getValue()).GET().build(),HttpResponse.BodyHandlers.ofString());
+                 assertThat(wrong.statusCode()).isEqualTo(401);
++            }
++        })).doesNotThrowAnyException();
++    }
++    @Test void actualJsonApiRejectsUnsafeShapesAndPreservesClosedCatalogue() {
++        assertThatCode(()->withApp(app->{
++            try(var user=new User(app.port)) {
++                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();
++                String payload="{\"question\":\"中文查证问题\",\"confirmedConditions\":{}}";
++                assertThat(user.json(payload,false,false).statusCode()).isEqualTo(403);
++                var response=user.json(payload,true,false);assertThat(response.statusCode()).isEqualTo(200);
++                var body=JSON.readTree(response.body());assertThat(body.path("status").asText()).isEqualTo("INSUFFICIENT_EVIDENCE");
++                assertThat(body.path("confirmedFacts").size()).isZero();assertThat(body.path("conditionSource").asText()).isEqualTo("USER_DECLARED");
++                assertThat(body.path("referenceRevision").asText()).isEqualTo("2025.9.2");
++                assertThat(response.headers().firstValue("Cache-Control").orElse("")).isEqualTo("no-store");
++                for(String invalid:List.of("{\"question\":\"q\",\"confirmedConditions\":{},\"qualified\":true}",
++                    "{\"question\":12,\"confirmedConditions\":{}}","{\"question\":\"q\",\"confirmedConditions\":{\"x\":false}}",
++                    "{\"question\":\"q\",\"question\":\"other\",\"confirmedConditions\":{}}",payload+" {}"))
++                    assertThat(user.json(invalid,true,false).statusCode()).isEqualTo(400);
++                assertThat(user.post("/rule-check","question=do-not-echo",true).statusCode()).isEqualTo(415);
++            }
++        })).doesNotThrowAnyException();
++    }
++    @Test void actualKnownLengthBodyOverLimitIsRejected() {assertBodyLimit(false);}
++    @Test void actualChunkedBodyWithoutLengthOverLimitIsRejected() {assertBodyLimit(true);}
++    void assertBodyLimit(boolean chunked) {
++        assertThatCode(()->withApp(app->{
++            try(var user=new User(app.port)) {
++                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();
++                var response=user.json(" ".repeat(32769),true,chunked);
++                assertThat(response.statusCode()).isEqualTo(413);
++                assertThat(response.body()).contains("REQUEST_TOO_LARGE");
++                assertThat(response.headers().firstValue("Cache-Control").orElse("")).isEqualTo("no-store");
+             }
+         })).doesNotThrowAnyException();
+     }
+@@ -123,6 +155,13 @@
+         HttpResponse<String> login(Account a,boolean csrf) throws Exception {return post("/auth/login","username="+URLEncoder.encode(a.login(),java.nio.charset.StandardCharsets.UTF_8)+"&password="+URLEncoder.encode(a.password(),java.nio.charset.StandardCharsets.UTF_8),csrf);}
+         HttpResponse<String> get(String path) throws Exception {return send(path,null,false);}
+         HttpResponse<String> post(String path,String body,boolean csrf) throws Exception {return send(path,body,csrf);}
++        HttpResponse<String> json(String body,boolean csrf,boolean chunked) throws Exception {
++            var request=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+PREFIX+"/rule-check")).timeout(Duration.ofSeconds(5))
++                .header("Content-Type","application/json; charset=UTF-8");if(csrf)request.header("X-CSRF-TOKEN",token);
++            var publisher=chunked?HttpRequest.BodyPublishers.ofInputStream(()->new java.io.ByteArrayInputStream(body.getBytes(java.nio.charset.StandardCharsets.UTF_8))):HttpRequest.BodyPublishers.ofString(body);
++            if(chunked)assertThat(publisher.contentLength()).isEqualTo(-1);
++            return client.send(request.POST(publisher).build(),HttpResponse.BodyHandlers.ofString());
++        }
+         HttpResponse<String> send(String path,String body,boolean csrf) throws Exception {
+             var request=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+PREFIX+path)).timeout(Duration.ofSeconds(5));
+             if(csrf)request.header("X-CSRF-TOKEN",token);
+--- before/knowledge/scripts/verify-rule-check-refactor.ps1
++++ after/knowledge/scripts/verify-rule-check-refactor.ps1
+@@ -24,7 +24,7 @@
+         'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest',
+         'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest','RuleCheckDecisionServiceTest',
+         'RuleCheckEvidenceCaptureTest','JdbcRuleCheckCitationAuditTargetTest','RuleCheckApplicationServiceTest',
+-        'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest')
++        'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest','RuleCheckControllerTest')
+     $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+         'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
+         'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest','ControlledPreviewConfigurationTest','RuleCheckPreviewHttpTest')

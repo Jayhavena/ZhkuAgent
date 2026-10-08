@@ -1,0 +1,32 @@
+{
+  "stage": "STUDENT_PAGE_BUNDLED_STATIC_BROWSER_CHECKED_NOT_PROXY_CHAIN",
+  "nodeTests": 80,
+  "legacyTests": 69,
+  "sfcSsrTests": 9,
+  "vueLifecycleVirtualHostTests": 2,
+  "failures": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "newPageBundled": true,
+  "staticBrowserVerified": true,
+  "proxyChainVerified": false,
+  "databaseCalled": false,
+  "providerCalled": false,
+  "backendChanged": false,
+  "backendRerun": false,
+  "studentVisible": false,
+  "qualityGatePassed": false,
+  "review": {
+    "criticalRemaining": 0,
+    "importantRemaining": 0,
+    "fixed": [
+      "I1 实际Vue setup/mount/unmount复现11/1 RED；登录开始同步保留共享LOGIN_UNCONFIRMED，成功/已知失败仅同epoch清理，组件销毁不清未知；旧身份异常不能污染新身份。最终Node80/80。",
+      "M1 路由命名RuleCheck且afterEach成功导航按name设置class；实际浏览器/rules/的bodyClass=rule-check-page，首页移除，主链接返回/rules。"
+    ],
+    "rulings": [
+      "身份结果未知属于共享会话而不是组件提示；先写未知再等待，避免busy结束与页面catch之间重开POST。",
+      "首次生命周期测试夹具缺SSR context导致11/2 TypeError，不作为有效业务RED；修正provide后11/1断言反例有效。",
+      "一次独立审查后重要修复由根执行者验证，不二次审查；模板9项SSR、生命周期2项虚拟host、实际静态浏览器分开报告。"
+    ]
+  }
+}

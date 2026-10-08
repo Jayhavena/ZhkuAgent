@@ -1,0 +1,175 @@
+# R5：可核验原文与单主题查证实施计划
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. 用户已授权连续实施；默认顺序执行，卡点留账，推进不依赖卡点的任务；不创建新聊天、不推送/部署。
+
+**Goal:** 让首个校园规则查证切片只展示经审核模板或可核对原文，逐步完成条件/例外、必要澄清与真实用户验证。
+
+**Architecture:** 保留现有检索、引用审计和controlled身份边界。先建立可独立验证的原文跨度核验组件，后续应用链复用既有混合检索，不让新组件变成第三套通用RAG。旧四字段协议和v1学分接口保持兼容，新v2查证回复按既定五种业务状态实施。
+
+**Tech Stack:** 当前Java21/JUnit/AssertJ、Spring/JDBC与Vue；Task1仅JDK确定性核验，无数据库、模型或新依赖。
+
+**Spec:** [范围约定](../../product/rule-check-scope.md)、[主路线图R5](2026-10-07-rule-check-refactor-roadmap.md)、[Eval协议](../../product/rule-check-eval-contract.md)。细化已有“已审模板/校验原文跨度”设计，不重新确定产品方向。受限工作列于[卡点表](../../product/rule-check-blockers.md)。
+
+日期：2026-10-08。P0工程收口已完成20类151项及独立审查补修；Task1和Task2A已验证，尚未装配学生入口。G0当前资料和人工参考未通过；允许Task1合成工程组件开发，不允许据此进入学生试点。Task2–4数据依赖单独记录，不能用编造政策补齐。
+
+## Global Constraints
+
+- 面向学生降低查阅、理解和判断成本；不推断个人教务资格，不宣称办理已受理。
+- 事实只能来自已审模板或经核验摘录；模型提供的自由改写、数字、标识和位置全部不可信。
+- 摘录文本相同只证明取自该位置，不证明回答完整、相关、当前适用或没有遗漏条件/例外。
+- G0未通过时，不给合成资料学生发布资格，不执行真实质量留出/用户对照，不扩张主题或实施P2。
+- 不改变公共runtime、旧学分循环、旧Flyway迁移或既有v1协议。
+- 每批有独立before字节/增量/命令/实际XML/哈希/失败及退出证据；新增测试显式登记，真实模型不加入默认白名单。
+
+## Review Focus
+
+1. 原文4、模型写40、位置合法：核验不能只检查ID或字符范围，必须检查提议文本与实际substring一致。
+2. 相同文字出现在多处或重复citation ID：按给定位置和服务端身份核对，重复标识拒绝而不是取第一条。
+3. 查询后撤回、版本/hash改变、reader返回另一个source/chunk：输出前重读并拒绝；数据库实际竞态由Task2补证，不用内存回调宣称真库控制。
+4. UTF-16位置跨越代理对、负数/越界/空白：必须受控拒绝，不能切出半个字符或泄漏未核验的提议文字。
+5. 证据重复原文但不相关、遗漏例外、模型裁判分高：Task1不证明语义完整，Task2/3的审核模板与真实人工评分必须补齐。
+
+## 文件与接口
+
+| 任务 | 计划路径 | 责任 |
+| --- | --- | --- |
+| Task1 | `knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceSnapshot.java` | 服务端本轮证据与最新读取结果：citationId/sourceId/chunkId/revision/checksum/text/eligible |
+| Task1 | 同包`RuleCheckEvidenceSpan.java` | 模型提议：citationId/startInclusive/endExclusive/quote；不承载客户端自证的资料资格 |
+| Task1 | 同包`RuleCheckVerifiedExcerpt.java` | 核验通过后由原文生成的摘录及服务端身份/版本/hash/位置 |
+| Task1 | 同包`RuleCheckEvidenceVerifier.java`；同测试包`RuleCheckEvidenceVerifierTest.java` | 本轮引用、位置、文字、SHA-256与最新资格/身份/版本复核；结果含明确拒绝原因 |
+| Task1 | `knowledge/scripts/verify-rule-check-refactor.ps1` | 仅登记该纯单元类，保留供应商/数据库目标限制 |
+| Task2 | 同包`RuleCheckRequest/Reply/ApplicationService/Controller`及必要的当前证据读取适配器、测试；现有controlled安全配置/引用审计 | 五状态、审核模板、共享检索与输出前真库重新取证；执行前补确切文件白名单 |
+| Task3 | `agent/frontend/src/views/RuleCheckView.vue`、`src/api/rule-check.js`、页面测试与必要路由/首页 | 原文入口、必要追问、独立确认项及未知项、旧学分实验导航 |
+| Task4 | 独立评估与用户对照证据 | 真实16题留出、失败归因、配对变化及收益；不添加假用户或模型评分成绩 |
+
+Task1接口：`verify(proposal, List<RuleCheckEvidenceSnapshot> approved)`，构造器注入`CurrentEvidenceReader.read(sourceId, chunkId)`，返回`VerificationResult`。reader是服务端依赖，不能由学生请求提供；Task1只有内存替身，尚不接数据库。通过时文本由snapshot的substring产生，不照搬模型文字。
+
+位置统一Java/JavaScript的UTF-16 code unit，起点包含、终点不包含，不能割裂代理对。checksum指片段文本UTF-8 SHA-256值，按十六进制值比较；审核版本独立匹配，不因文字相同省略版本检查。reader异常、无结果、当前不合格或身份/文字/版本/hash变更均拒绝。不要把该回调接口当现有权限装配已完成。
+
+## Task1：原文跨度核验组件（可独立推进）
+
+- [x] **Step1：准备基线与任务证据。** 确认拟新增路径不存在、P0最终源码测试一致；记G0与本批未接学生端。创建本计划独立账本，不复写P0历史。
+- [x] **Step2：编写合同反例。** 正常摘录、4→40、伪造/重复ID、负数/越界/空/空白范围、错误SHA、版本/身份/正文改变、撤回、reader缺失/异常、UTF-16边界。非法提议在调用reader前拒绝，计数必须0；正常核验reader一次。
+- [x] **Step3：观察RED。** Java新API最小壳只默认拒绝，不连接或生成事实；测试应暴露正常路径与详细拒绝合同未实现。该RED是新组件合同缺失，不冒充旧生产链已复现或修复。
+- [x] **Step4：最小实现。** 本轮标识唯一→核验原文与SHA/跨度/quote→读取当前服务端快照→资格/身份/版本/hash/text一致→仅从原文生成输出；异常受控拒绝，不加通用语义裁判或关键词证明器。
+- [x] **Step5：定向与相关回归。** 显式Unit入口、无真实模型/DB；保存XML、源码哈希和资源退出。将同一4→40作为新组件反例拒绝，同时保留旧RAG仍放行的R3已知风险，不混淆两条路径。
+- [x] **Step6：更新证据与职责边界。** 标`COMPONENT_VERIFIED_NOT_INTEGRATED`；RC-04-SEMANTICS仍OPEN。仅原文组件不能勾掉整个主路线图R5或关闭G2。
+
+## Task2：审核模板与应用链（受B-01/B-02资料条件限制）
+
+### Task2A：数据库当前证据读取准备（可独立推进，不开放学生入口）
+
+2026-10-08依赖复核：真实审核模板依赖B-01/B-02，但现有schema的输出前读取适配可用专用临时库合成夹具验证，不必等待人工参考。
+
+- [x] 保存新增`knowledge/src/main/java/com/zhku/knowledge/rulecheck/JdbcRuleCheckEvidenceReader.java`、`knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRuleCheckEvidenceReaderTest.java`、同测试包`JdbcRuleCheckEvidenceReaderTargetTest.java`缺失基线，及runner当前字节。只实现CurrentEvidenceReader，不加controller或模板。
+- [x] API最小壳与合同RED→GREEN；以server配置的profile/切分版本/scope及请求source/chunk参数绑定读取，要求ACTIVE与R4同口径的现有元数据资格；不允许BUILDING回退，不混用切分版本。
+- [x] 真库验证读取后撤回/可见性/分享资格/scope/profile退役/run/版本/正文/hash漂移；连接中断只使核验拒绝。声明是两次顺序真实数据库读写之间的变更，不伪称并发线性化或已完成流式输出撤回。
+- [x] 新DB测试在任何连接/迁移前复用严格临时目标guard，AfterEach拒绝后不连接；增加实际setup/cleanup纯单元反例。凭证每次运行重新检查，数据库写入仅随机无卷临时库。
+- [x] 保存真库与相关纯单元XML/源哈希/退出证据，标`DB_ADAPTER_VERIFIED_NOT_INTEGRATED`；完整时间/清单/审核模板/真实质量仍OPEN。新读取不是新检索引擎，不复制候选排序。
+
+### Task2B：受控规则草案与五状态决策组件（2026-10-08接续）
+
+开发参考20/20已确认，报告集及资料展示资格仍未放行。本任务实现服务端规则决策组件，真实模板以DRAFT导出，不自动装配HTTP或学生入口。
+
+白名单：同包新增`RuleCheckRuleTemplate.java`、`RuleCheckDecision.java`、`RuleCheckDecisionService.java`；新增同测试包`RuleCheckDecisionServiceTest.java`；runner仅登记新纯单元测试；`docs/product/rule-check-2025-rule-template-draft.json`及独立证据批次。不改公共runtime、现有检索或DB迁移。
+
+- [x] 保存基线与接口约束：规则由服务端提供，提问理解/规则选择不在本组件中，不能以测试题ID匹配宣称自然语言问答完成。
+- [x] 写反例并观察RED：五状态、条件分支、无用追问、独立部分事实、未审核模板、引用齐全但原文篡改、多条款漏证、撤回/版本变化、冲突双方证据与不可变输入。
+- [x] 最小实现：逐事实绑定来源/片段/版本/hash/跨度→复用现有核验器重读→冲突优先→资料缺口不追问用户→缺决定性条件澄清→完整或独立部分回答。
+- [x] 将实际确认内容与条款位置导出为DRAFT主题模板；事实确认记录继承，运行时规则语义审核、UUID绑定和展示资格分别留空，不伪造生产标识。
+- [x] 新定向GREEN、相关纯单元回归、runner合同及独立最终审查；保留历史RED与哈希、实际测试数量和资源退出证据。
+
+Expected：无资料放行时组件合同可验证，真实草案仍不可发布；模型不能向决策接口提交任意事实正文。各事实是否相关/独立、必要条件与冲突由已审核模板声明，本组件不证明模板语义正确；HTTP身份/CSRF、模型选择和最终下发窗口仍由后续装配验收。
+
+- [ ] 锁定一个具有当前有效、可传播且人工已审资料的主题；明示对象、前提、结论、例外、原文位置及审核责任。
+- [ ] 采用既定v2前缀，复用混合检索/引用审计，不复制学分loop；可信身份、CSRF、模式绑定及输入限长继承当前controlled合同。
+- [ ] 以审核规则对象决定五状态，未知条件只有会影响结论才追问；部分事实必须独立成立，不用摘录原文暗示整体个人资格。
+- [ ] 为CurrentEvidenceReader实现真库读取，用真实数据库撤回/版本/hash/权限竞态矩阵验证；不能用Task1的内存替身代替。
+- [ ] 必要时加入受控模型“选片段/缺条件”适配，严格JSON合同与调用预算；实际供应商和费用数据独立验收。
+
+卡点不解除时，不填虚构审核规则或把一般RAG自由回答接到新学生入口。可继续准备接口/验收设计和独立反例，但不宣称真实查证闭环完成。
+
+### Task2C：共享检索到当前核验的证据连接（2026-10-08）
+
+现有RetrievedChunk丢弃SQL已读到的sourceId，无法直接绑定Task1/2A要求的持久来源/片段身份。本批补齐连接，不添加第二套检索、不读取或写入原演示库、不启动HTTP。
+
+白名单：RetrievedChunk、两路Jdbc候选映射、同包新增RuleCheckEvidenceCapture及纯单元测试；JdbcCandidateRetrieverTest增加实际检索→捕获→核验反例；runner只登记新增测试。证据批次r5-capture-20261008-01。兼容旧七参数构造器保留null来源，新连接拒绝该对象，绝不以chunkId冒充sourceId；对外v1响应DTO保持原样。
+
+- [x] 基线与RED：正常多片段/别名、无来源身份、重复chunk、别名工厂故障、正文hash篡改、撤回/版本变更、审计异常；临时库验证两路携带实际来源身份。
+- [x] 最小GREEN：复用引用ID工厂、原文核验器、审计仓储；整批验证成功并审计成功才返回不可变快照。审计部分写入可能留痕，但不能返回可消费证据，不宣称事务原子性。
+- [x] 真库连接验收：现有两路SQL→共享混合检索→当前reader→核验器，合成临时资料；顺序撤回后旧候选捕获拒绝。不得用临时资料赋予2025手册展示资格。
+- [x] 相关回归、runner合同、一次独立审查及白名单增量/哈希/退出证据；状态为RETRIEVAL_CAPTURE_VERIFIED_NOT_HTTP_INTEGRATED。
+
+Expected：旧v1返回格式/行为兼容；没有真实资料/规则放行时不伪装学生问答闭环。捕获的qualified标记来自当前reader核验，不信任客户端DTO；后续决策仍重读，捕获不消除最终下发撤回窗口。
+
+### Task2D：精确索引绑定与实际JDBC引用审计（2026-10-08）
+
+Task2C独立审查留下装配依赖：旧审计按chunk选择最新entry，无profile/切分约束；现有DB CHECK还不允许RULE_CHECK_CAPTURE。因此连接组件通过不能推导实际JDBC审计可用。本批补这段必要后端链，不启用学生入口。原容器只读盘点为已停止，不读取/启动/迁移原库，在线资料状态仍未知。
+
+白名单：CitationAuditRecord增加可选来源/版本/hash/正文绑定，保留旧四参；旧JdbcCitationAuditRepository拒绝新CAPTURE路由防止误装；新增同rulecheck包JdbcRuleCheckCitationAuditRepository，固定server profile/切分/scope；Capture填完整审核绑定；新增V22只扩充审计CHECK保留全部旧路由，不编辑V1–V21；新真库/目标合同及runner登记，具体before见r5-audit-20261008-01/source-before.json。
+
+- [x] RED：数据库新路由真实持久化、较新BUILDING/不同切分不能抢审计、来源/版本/hash/正文/资格/run/profile变化拒绝；无完整绑定和误用旧仓储在连接前拒绝；临时测试目标guard真实setup/cleanup验证。
+- [x] GREEN：以一条参数化INSERT SELECT在同一SQL快照匹配当前资格、固定profile/切分/scope及捕获source/chunk/revision/hash/正文；匹配不唯一或0行拒绝，不按latest回退。旧路由使用旧仓储保留行为。
+- [x] 临时库实际共享检索→捕获→JDBC审计→规则决策及撤回拒绝，真实2025资料不自动放行；审计是捕获尝试，不是HTTP已下发，逐条审计仍不承诺整批事务原子性。
+- [x] 相关纯单元/真库回归、runner合同、一次fresh独立审查及源码/XML/资源/增量证据；阶段JDBC_CAPTURE_AUDIT_VERIFIED_NOT_HTTP_INTEGRATED。
+
+Expected：V22迁移仅应用到新无卷临时库；不破坏旧审计路由或改变旧RAG自由事实协议。B-01仍需真实资料/规则审核，B-02仍需报告与用户证据；完整R5/G2不能据此完成。
+
+## Task3：查证页面与真实链路（依赖Task2）
+
+- [ ] 新查证首页、原文位置/版本、确认项/未知项与必要澄清；旧v1/学分URL保持独立兼容。
+- [ ] 修RC-11冲突/已完成文案，避免“尚未确认=未受理”。
+- [ ] 实际Vue→Nginx→Java→专用临时库验证正常、澄清、拒答、定位、撤回与换账号；不以源码字符串或模型替身冒充浏览器/真实模型效果。
+
+## Task4：G2方向验证（依赖B-01/B-02与真实参与者）
+
+- [ ] 冻结16题独立报告集、人工评分rubric及版本；记录开发/报告家族隔离和未知项。
+- [ ] 对照官网/PDF，招募5–8位真实目标用户、平衡题组和顺序，报告正确完成与耗时、失败/超时，不虚构参与者。
+- [ ] 按预登记预算重复关键随机路径，记录轨迹、成功向量、实际调用/用量/失败成本；没有用量就不算金额。
+- [ ] 输出继续/调整/收缩/停止扩张结论；G2未通过不展开R6–R8多主题与P2设施。
+
+## 回退与收口
+
+Task1新组件未装配时，只涉及新增文件和显式验收白名单；回退按当前哈希逐项审核新增清单，不重写旧RAG链或删除历史证据。Task2以后先关闭受影响v2入口再恢复对应增量，旧v1不借回退改变语义。每项工程状态、真实资料/模型/数据库/浏览器/用户状态分别报告。
+
+**本批实际：**Task1 19项定向，Task2A 15项真库+3项目标/故障合同；最终18类172项相关回归通过，合同29项。见[R5组件](../../evidence/rule-check-refactor/2026-10-07/r5-evidence-20261008-01/acceptance.md)和[DB适配](../../evidence/rule-check-refactor/2026-10-07/r5-db-20261008-01/acceptance.md)。完整Task2/3/4仍待外部审核与真实参与者；不将部分勾选解释为整个R5完成。
+
+**2026-10-08用户范围更新：**先以2025版为准。[版本决定](../../product/rule-check-2025-reference-decision.md)将本计划首轮资料门禁绑定2025快照，2026正文获取不再作前置条件；主题审核、展示资格及人工参考仍必需。Task2–4沿指定2025范围接续，当前适用性未知单独处理，不补造审核。
+
+
+## Task2E：统一固定配置与应用编排（2026-10-08）
+
+本批白名单见 `r5-application-20261008-01/source-before.json`，按进入本批时的字节比较，不能把其他未提交工作纳入重构。
+
+- [x] API与真实断言RED：服务端固定profile/切片/scope/引用版本和候选预算；仅审核目录内的规则ID可选择；模型不能生成事实或补造条件。
+- [x] GREEN：复用混合检索→捕获核验/审计→目录复核→五状态决策，固定切片过滤在词法和向量SQL截断之前，旧调用兼容。
+- [x] 专用无卷临时库验证实际工厂装配、双路固定切片、输出前资料撤回；相关单元/真库回归及启动器合同全部通过。
+- [x] 一次新上下文增量审查、记录裁定与证据、真实规则/学生发布仍关闭。
+
+Expected：空/未审目录不调用选择器或检索；目录越权、选择器异常、未知条件键、审核途中撤回拒绝且不泄漏正文；独立部分事实、必要澄清、缺证及冲突状态保留。真实资料草稿、人工参考、36题原件和既有迁移均不改变。
+
+
+## Task2F / A01：独立v2身份边界（2026-10-08）
+
+用户已批准剩余任务清单并要求持续执行。本批细化既定受控身份合同：新`zhku-rule-check-preview`独立profile/应用上下文，固定v2路径与`ZHKU_RULE_CHECK_SESSION` cookie，不扩大v1 cookie路径；认证Provider与当前身份过滤复用同一实现，仅按可信服务端入口配置参数化。
+
+白名单与进入本批字节见`r5-security-20261008-01/source-before.json`。框架沿Boot3.4.4/Security6.4.4，Context7版本文档已核对，未升级依赖。A01先验证真实过滤链+身份存储替身；A02继续独立启动、实际cookie创建与临时库认证，本批不创建模型/数据库/校园执行资源。
+
+- [x] 编写v2路径、可信USER/维护者、CSRF、身份撤销/不可用、登出、会话更新和入口混用拒绝的实际断言RED。
+- [x] 复用身份链实现；仅指定v2四个auth路径及USER查证POST放行；其他入口、方法、身份头拒绝。登出/撤销只清v2 cookie。
+- [x] 实施安全环境守卫：独立profile/显式开关/回环绑定/固定15分钟cookie会话配置，拒绝持久化、URL凭据和匿名/旧Agent混用。
+- [x] 旧v1框架与受控启动相关回归、新v2过滤链、查证相关单元全部通过；29隔离合同及一次独立增量审查，保留证据。
+
+Expected：CSRF优先于身份库；非可信同名USER拒绝；维护者不继承USER；停用/revision变化清会话，身份库故障503且不放行；登入更新会话ID并刷新CSRF、旧token不能重用；新profile不能加载旧v1入口，新v2配置不进入旧v1上下文。业务接口暂无Controller，以测试sentinel证明授权，不宣称学生查证HTTP完成。
+
+
+## Task2G / A02第一段：默认关闭的独立应用与真实HTTP认证（2026-10-08）
+
+白名单/当前字节：r5-startup-20261008-01/source-before.json。新Application仅显式Import新配置、安全链和AuthController，不扫描旧Controller、Agent或治理。主入口/直接配置都在资源初始化前验证A01会话守卫、专用临时库精确目标、process-only凭据来源、关闭目录模式及固定profile/切片/scope/引用版本/预算。数据源和迁移/身份/内部RuntimeFactory共享一个目标，Flyway自动装配关闭，由显式bean执行既有V22迁移。
+
+- [x] 有效断言RED：开关/profile/数据库目标/覆盖凭据/运行边界/目录模式/迁移同意缺失均拒绝；默认YAML关闭；主入口无隐式扫描。
+- [x] 最小GREEN：只允许专用zhkuagent_rulecheck_e2e回环非54329目标，显式initialize=true才迁移；实际目录固定为空，无模型/资料发布路径，构造完整内部应用Bean。
+- [x] 实际socket HTTP+临时库合成账号：Cookie路径/name/HttpOnly/SameSite、登录session换ID/token刷新、me、logout、revision撤销与旧路径拒绝；关闭监听/身份线程并清本夹具UUID账号。
+- [x] 相关综合验收、29启动器合同、一次独立审查及证据；普通用户终端启动器/同源代理/业务Controller留A02后段/A03，不整体勾选A02。
+
+Expected：真实2025规则/许可未通过时目录CLOSED、无外发；正式查证业务接口未装配。只允许新无卷临时库，绝不通过初始化开关迁移原演示库。不将真实HTTP身份验收当作真实学生政策效果或浏览器完成。

@@ -1,0 +1,439 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] ZhkuAgent                                                          [pom]
+[INFO] ZhkuAgent Shared Runtime                                           [jar]
+[INFO] ZhkuAgent Knowledge                                                [jar]
+[INFO] 
+[INFO] ------------------------< com.zhku:zhku-agent >-------------------------
+[INFO] Building ZhkuAgent 0.0.1-SNAPSHOT                                  [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] -----------------------< com.zhku:agent-runtime >-----------------------
+[INFO] Building ZhkuAgent Shared Runtime 0.0.1-SNAPSHOT                   [2/3]
+[INFO]   from agent-runtime\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ agent-runtime ---
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.0.1-SNAPSHOT                        [3/3]
+[INFO]   from knowledge\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 20 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 2 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 197 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[WARNING] file.encoding cannot be set as system property, use <argLine>-Dfile.encoding=...</argLine> instead
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest
+00:42:23.626 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:23.711 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Schema history table "public"."flyway_schema_history" does not exist yet
+00:42:23.717 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.046s)
+00:42:23.739 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "public"."flyway_schema_history" ...
+00:42:23.836 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": << Empty Schema >>
+00:42:23.836 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:23.856 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "1 - create zhku knowledge schema"
+00:42:23.974 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "2 - add knowledge source visibility governance"
+00:42:24.021 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "3 - create zhku knowledge governance staging"
+00:42:24.126 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "4 - add zhku knowledge source version scope"
+00:42:24.161 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "5 - allow archived knowledge submission reimport"
+00:42:24.196 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "6 - add official notice lifecycle"
+00:42:24.288 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "7 - allow superseded notice audit visibility"
+00:42:24.313 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "8 - support reviewed internal official notice material"
+00:42:24.342 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "9 - add retrieval catalog and index audit"
+00:42:24.467 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "12 - create conversation session store"
+00:42:24.511 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "15 - create service guides"
+00:42:24.696 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "16 - create anonymous feedback"
+00:42:24.748 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "17 - create anonymous telemetry"
+00:42:24.807 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "18 - create campus agent run archive"
+00:42:24.883 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "19 - create preview identity and run ownership"
+00:42:24.937 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "20 - add conversation session ownership"
+00:42:24.970 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "21 - create campus run submission"
+00:42:25.011 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 17 migrations to schema "public", now at version v21 (execution time 00:00.795s)
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+00:42:25.638 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:25.668 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.018s)
+00:42:25.693 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:25.694 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:25.695 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:26.063 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:26.091 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.016s)
+00:42:26.113 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:26.113 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:26.114 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:26.471 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:26.494 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.013s)
+00:42:26.515 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:26.515 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:26.516 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:26.867 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:26.893 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.014s)
+00:42:26.918 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:26.919 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:26.919 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:27.230 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:27.256 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.017s)
+00:42:27.279 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:27.279 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:27.280 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:27.622 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:27.650 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.013s)
+00:42:27.674 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:27.674 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:27.675 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:28.038 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:28.065 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.016s)
+00:42:28.089 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:28.090 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:28.091 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:28.458 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:28.483 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.016s)
+00:42:28.505 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:28.505 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:28.506 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:28.844 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:28.864 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.011s)
+00:42:28.887 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:28.887 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:28.888 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:29.228 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:29.248 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.010s)
+00:42:29.271 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:29.271 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:29.272 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:29.583 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:29.602 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.012s)
+00:42:29.623 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:29.623 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:29.624 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:29.951 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:29.974 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.014s)
+00:42:29.998 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:29.998 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:29.999 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:30.316 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:30.336 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.012s)
+00:42:30.360 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:30.360 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:30.361 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:30.681 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:30.703 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.013s)
+00:42:30.724 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:30.724 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:30.725 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:31.008 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:31.040 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.021s)
+00:42:31.064 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:31.064 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:31.065 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:31.384 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:31.405 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.011s)
+00:42:31.426 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:31.426 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:31.427 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:31.733 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:31.753 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.010s)
+00:42:31.774 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:31.774 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:31.775 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:32.092 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:32.110 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.009s)
+00:42:32.128 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:32.128 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:32.130 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:32.466 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:32.483 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.009s)
+00:42:32.501 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:32.501 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:32.502 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:32.768 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:32.791 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.014s)
+00:42:32.812 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:32.812 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:32.813 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+00:42:33.166 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+00:42:33.182 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 17 migrations (execution time 00:00.009s)
+00:42:33.201 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 21
+00:42:33.202 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+00:42:33.203 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "public" is up to date. No migration necessary.
+[ERROR] Tests run: 22, Failures: 11, Errors: 2, Skipped: 0, Time elapsed: 10.49 s <<< FAILURE! -- in com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.ineligibleNearestMustNotDisplaceEligibleResultAndJdbcReadIsBounded -- Time elapsed: 2.541 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting AtomicInteger(3) to have value:
+  1
+but did not.
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.ineligibleNearestMustNotDisplaceEligibleResultAndJdbcReadIsBounded(JdbcCandidateRetrieverTest.java:296)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.retirementDuringEmbeddingMustPreventCandidateRead -- Time elapsed: 0.432 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting empty but was: [RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=�ڶ��� ����ѡ�޿β�������������������Ӧ���ޡ�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 2 ҳ, pageNumber=2, sourceVersion=ѧ���ֲ� 2026 ��, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.retirementDuringEmbeddingMustPreventCandidateRead(JdbcCandidateRetrieverTest.java:260)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.retiredProfileMustNotServeOnlineOrCallEmbedding -- Time elapsed: 0.409 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertOnlineUnavailableWithoutEmbedding(JdbcCandidateRetrieverTest.java:334)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.retiredProfileMustNotServeOnlineOrCallEmbedding(JdbcCandidateRetrieverTest.java:164)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.unconfirmedSharingMustBeExcludedOnBothPaths -- Time elapsed: 0.391 s <<< ERROR!
+org.postgresql.util.PSQLException: 
+ERROR: new row for relation "knowledge_source" violates check constraint "ck_knowledge_source_student_visibility"
+  ��ϸ��Failing row contains (6b111111-1111-4111-8111-111111111111, ������Դ 6b111111-1111-4111-8111-111111111111, STUDENT_HANDBOOK, null, ѧ���ֲ� 2026 ��, PUBLISHED, 2026-09-01 08:00:00+08, dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd, 2026-10-08 00:42:26.546293+08, 2026-10-08 00:42:26.546293+08, STUDENT_VISIBLE, ������֤, ��������, f, STUDENT_HANDBOOK, PUBLIC_ELECTIVE).
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2733)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2420)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:372)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:517)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:434)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:194)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:155)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.update(JdbcCandidateRetrieverTest.java:350)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.unconfirmedSharingMustBeExcludedOnBothPaths(JdbcCandidateRetrieverTest.java:208)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.missingProfileMustNotCallEmbedding -- Time elapsed: 0.365 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertOnlineUnavailableWithoutEmbedding(JdbcCandidateRetrieverTest.java:336)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.missingProfileMustNotCallEmbedding(JdbcCandidateRetrieverTest.java:169)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.indexChecksumDriftMustExcludeOnlyStaleChunk -- Time elapsed: 0.416 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  [6bc11111-1111-4111-8111-111111111111, 6bc22222-2222-4222-8222-222222222222]
+to contain exactly (and in same order):
+  [6bc22222-2222-4222-8222-222222222222]
+but some elements were not expected:
+  [6bc11111-1111-4111-8111-111111111111]
+
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertOnlyBOnBothPaths(JdbcCandidateRetrieverTest.java:326)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.indexChecksumDriftMustExcludeOnlyStaleChunk(JdbcCandidateRetrieverTest.java:238)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.unfinishedFailedOrRolledBackRunMustBeExcluded -- Time elapsed: 0.388 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting empty but was: [RetrievedChunk[chunkId=6bc11111-1111-4111-8111-111111111111, content=��һ�� ÿѧ�ڹ���ѡ�޿�����޶� 4 ѧ�֡�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 1 ҳ, pageNumber=1, sourceVersion=ѧ���ֲ� 2026 ��, contentChecksum=4d2e485a2783fcf19f5cf66234e6370f05025388c0a089fbb304840d50dcd82a],
+    RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=�ڶ��� ����ѡ�޿β�������������������Ӧ���ޡ�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 2 ҳ, pageNumber=2, sourceVersion=ѧ���ֲ� 2026 ��, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertBothEmpty(JdbcCandidateRetrieverTest.java:320)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.unfinishedFailedOrRolledBackRunMustBeExcluded(JdbcCandidateRetrieverTest.java:268)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.chunkingVersionDriftMustExcludeOnlyStaleChunk -- Time elapsed: 0.356 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  [6bc11111-1111-4111-8111-111111111111, 6bc22222-2222-4222-8222-222222222222]
+to contain exactly (and in same order):
+  [6bc22222-2222-4222-8222-222222222222]
+but some elements were not expected:
+  [6bc11111-1111-4111-8111-111111111111]
+
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertOnlyBOnBothPaths(JdbcCandidateRetrieverTest.java:326)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.chunkingVersionDriftMustExcludeOnlyStaleChunk(JdbcCandidateRetrieverTest.java:245)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.sourceVersionDriftMustExcludeStaleEntries -- Time elapsed: 0.364 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting empty but was: [RetrievedChunk[chunkId=6bc11111-1111-4111-8111-111111111111, content=��һ�� ÿѧ�ڹ���ѡ�޿�����޶� 4 ѧ�֡�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 1 ҳ, pageNumber=1, sourceVersion=changed-version, contentChecksum=4d2e485a2783fcf19f5cf66234e6370f05025388c0a089fbb304840d50dcd82a],
+    RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=�ڶ��� ����ѡ�޿β�������������������Ӧ���ޡ�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 2 ҳ, pageNumber=2, sourceVersion=changed-version, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertBothEmpty(JdbcCandidateRetrieverTest.java:320)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.sourceVersionDriftMustExcludeStaleEntries(JdbcCandidateRetrieverTest.java:224)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.buildingProfileMustNotServeOnlineOrCallEmbedding -- Time elapsed: 0.324 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertOnlineUnavailableWithoutEmbedding(JdbcCandidateRetrieverTest.java:334)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.buildingProfileMustNotServeOnlineOrCallEmbedding(JdbcCandidateRetrieverTest.java:157)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.draftSourceMustBeExcludedOnBothPaths -- Time elapsed: 0.350 s <<< ERROR!
+org.postgresql.util.PSQLException: 
+ERROR: new row for relation "knowledge_source" violates check constraint "ck_knowledge_source_student_visibility"
+  ��ϸ��Failing row contains (6b111111-1111-4111-8111-111111111111, ������Դ 6b111111-1111-4111-8111-111111111111, STUDENT_HANDBOOK, null, ѧ���ֲ� 2026 ��, DRAFT, 2026-09-01 08:00:00+08, dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd, 2026-10-08 00:42:31.457458+08, 2026-10-08 00:42:31.457458+08, STUDENT_VISIBLE, ������֤, ��������, t, STUDENT_HANDBOOK, PUBLIC_ELECTIVE).
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2733)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2420)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:372)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:517)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:434)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:194)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:155)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.update(JdbcCandidateRetrieverTest.java:350)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.draftSourceMustBeExcludedOnBothPaths(JdbcCandidateRetrieverTest.java:194)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.chunkChecksumDriftMustExcludeOnlyStaleChunk -- Time elapsed: 0.358 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  [6bc11111-1111-4111-8111-111111111111, 6bc22222-2222-4222-8222-222222222222]
+to contain exactly (and in same order):
+  [6bc22222-2222-4222-8222-222222222222]
+but some elements were not expected:
+  [6bc11111-1111-4111-8111-111111111111]
+
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertOnlyBOnBothPaths(JdbcCandidateRetrieverTest.java:326)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.chunkChecksumDriftMustExcludeOnlyStaleChunk(JdbcCandidateRetrieverTest.java:231)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.runProfileMismatchMustNotMakeEntriesReadable -- Time elapsed: 0.397 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting empty but was: [RetrievedChunk[chunkId=6bc11111-1111-4111-8111-111111111111, content=��һ�� ÿѧ�ڹ���ѡ�޿�����޶� 4 ѧ�֡�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 1 ҳ, pageNumber=1, sourceVersion=ѧ���ֲ� 2026 ��, contentChecksum=4d2e485a2783fcf19f5cf66234e6370f05025388c0a089fbb304840d50dcd82a],
+    RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=�ڶ��� ����ѡ�޿β�������������������Ӧ���ޡ�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 2 ҳ, pageNumber=2, sourceVersion=ѧ���ֲ� 2026 ��, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.assertBothEmpty(JdbcCandidateRetrieverTest.java:320)
+	at com.zhku.knowledge.retrieval.JdbcCandidateRetrieverTest.runProfileMismatchMustNotMakeEntriesReadable(JdbcCandidateRetrieverTest.java:278)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   JdbcCandidateRetrieverTest.buildingProfileMustNotServeOnlineOrCallEmbedding:157->assertOnlineUnavailableWithoutEmbedding:334 
+Expecting code to raise a throwable.
+[ERROR]   JdbcCandidateRetrieverTest.chunkChecksumDriftMustExcludeOnlyStaleChunk:231->assertOnlyBOnBothPaths:326 
+Expecting actual:
+  [6bc11111-1111-4111-8111-111111111111, 6bc22222-2222-4222-8222-222222222222]
+to contain exactly (and in same order):
+  [6bc22222-2222-4222-8222-222222222222]
+but some elements were not expected:
+  [6bc11111-1111-4111-8111-111111111111]
+
+[ERROR]   JdbcCandidateRetrieverTest.chunkingVersionDriftMustExcludeOnlyStaleChunk:245->assertOnlyBOnBothPaths:326 
+Expecting actual:
+  [6bc11111-1111-4111-8111-111111111111, 6bc22222-2222-4222-8222-222222222222]
+to contain exactly (and in same order):
+  [6bc22222-2222-4222-8222-222222222222]
+but some elements were not expected:
+  [6bc11111-1111-4111-8111-111111111111]
+
+[ERROR]   JdbcCandidateRetrieverTest.indexChecksumDriftMustExcludeOnlyStaleChunk:238->assertOnlyBOnBothPaths:326 
+Expecting actual:
+  [6bc11111-1111-4111-8111-111111111111, 6bc22222-2222-4222-8222-222222222222]
+to contain exactly (and in same order):
+  [6bc22222-2222-4222-8222-222222222222]
+but some elements were not expected:
+  [6bc11111-1111-4111-8111-111111111111]
+
+[ERROR]   JdbcCandidateRetrieverTest.ineligibleNearestMustNotDisplaceEligibleResultAndJdbcReadIsBounded:296 
+Expecting AtomicInteger(3) to have value:
+  1
+but did not.
+[ERROR]   JdbcCandidateRetrieverTest.missingProfileMustNotCallEmbedding:169->assertOnlineUnavailableWithoutEmbedding:336 
+Expecting code to raise a throwable.
+[ERROR]   JdbcCandidateRetrieverTest.retiredProfileMustNotServeOnlineOrCallEmbedding:164->assertOnlineUnavailableWithoutEmbedding:334 
+Expecting code to raise a throwable.
+[ERROR]   JdbcCandidateRetrieverTest.retirementDuringEmbeddingMustPreventCandidateRead:260 
+Expecting empty but was: [RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=�ڶ��� ����ѡ�޿β�������������������Ӧ���ޡ�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 2 ҳ, pageNumber=2, sourceVersion=ѧ���ֲ� 2026 ��, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]
+[ERROR]   JdbcCandidateRetrieverTest.runProfileMismatchMustNotMakeEntriesReadable:278->assertBothEmpty:320 
+Expecting empty but was: [RetrievedChunk[chunkId=6bc11111-1111-4111-8111-111111111111, content=��һ�� ÿѧ�ڹ���ѡ�޿�����޶� 4 ѧ�֡�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 1 ҳ, pageNumber=1, sourceVersion=ѧ���ֲ� 2026 ��, contentChecksum=4d2e485a2783fcf19f5cf66234e6370f05025388c0a089fbb304840d50dcd82a],
+    RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=�ڶ��� ����ѡ�޿β�������������������Ӧ���ޡ�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 2 ҳ, pageNumber=2, sourceVersion=ѧ���ֲ� 2026 ��, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]
+[ERROR]   JdbcCandidateRetrieverTest.sourceVersionDriftMustExcludeStaleEntries:224->assertBothEmpty:320 
+Expecting empty but was: [RetrievedChunk[chunkId=6bc11111-1111-4111-8111-111111111111, content=��һ�� ÿѧ�ڹ���ѡ�޿�����޶� 4 ѧ�֡�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 1 ҳ, pageNumber=1, sourceVersion=changed-version, contentChecksum=4d2e485a2783fcf19f5cf66234e6370f05025388c0a089fbb304840d50dcd82a],
+    RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=�ڶ��� ����ѡ�޿β�������������������Ӧ���ޡ�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 2 ҳ, pageNumber=2, sourceVersion=changed-version, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]
+[ERROR]   JdbcCandidateRetrieverTest.unfinishedFailedOrRolledBackRunMustBeExcluded:268->assertBothEmpty:320 
+Expecting empty but was: [RetrievedChunk[chunkId=6bc11111-1111-4111-8111-111111111111, content=��һ�� ÿѧ�ڹ���ѡ�޿�����޶� 4 ѧ�֡�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 1 ҳ, pageNumber=1, sourceVersion=ѧ���ֲ� 2026 ��, contentChecksum=4d2e485a2783fcf19f5cf66234e6370f05025388c0a089fbb304840d50dcd82a],
+    RetrievedChunk[chunkId=6bc22222-2222-4222-8222-222222222222, content=�ڶ��� ����ѡ�޿β�������������������Ӧ���ޡ�, sourceTitle=������Դ 6b111111-1111-4111-8111-111111111111, sourceLocator=�� 2 ҳ, pageNumber=2, sourceVersion=ѧ���ֲ� 2026 ��, contentChecksum=14645b383e5e785768997c983b053d2f91b08753c0c871971fb0fd73609ea3b9]]
+[ERROR] Errors: 
+[ERROR]   JdbcCandidateRetrieverTest.draftSourceMustBeExcludedOnBothPaths:194->update:350 ? PSQL ERROR: new row for relation "knowledge_source" violates check constraint "ck_knowledge_source_student_visibility"
+  ��ϸ��Failing row contains (6b111111-1111-4111-8111-111111111111, ������Դ 6b111111-1111-4111-8111-111111111111, STUDENT_HANDBOOK, null, ѧ���ֲ� 2026 ��, DRAFT, 2026-09-01 08:00:00+08, dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd, 2026-10-08 00:42:31.457458+08, 2026-10-08 00:42:31.457458+08, STUDENT_VISIBLE, ������֤, ��������, t, STUDENT_HANDBOOK, PUBLIC_ELECTIVE).
+[ERROR]   JdbcCandidateRetrieverTest.unconfirmedSharingMustBeExcludedOnBothPaths:208->update:350 ? PSQL ERROR: new row for relation "knowledge_source" violates check constraint "ck_knowledge_source_student_visibility"
+  ��ϸ��Failing row contains (6b111111-1111-4111-8111-111111111111, ������Դ 6b111111-1111-4111-8111-111111111111, STUDENT_HANDBOOK, null, ѧ���ֲ� 2026 ��, PUBLISHED, 2026-09-01 08:00:00+08, dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd, 2026-10-08 00:42:26.546293+08, 2026-10-08 00:42:26.546293+08, STUDENT_VISIBLE, ������֤, ��������, f, STUDENT_HANDBOOK, PUBLIC_ELECTIVE).
+[INFO] 
+[ERROR] Tests run: 22, Failures: 11, Errors: 2, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ZhkuAgent 0.0.1-SNAPSHOT:
+[INFO] 
+[INFO] ZhkuAgent .......................................... SUCCESS [  0.003 s]
+[INFO] ZhkuAgent Shared Runtime ........................... SUCCESS [  1.412 s]
+[INFO] ZhkuAgent Knowledge ................................ FAILURE [ 22.135 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  24.020 s
+[INFO] Finished at: 2026-10-08T00:42:33+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: There are test failures.
+[ERROR] 
+[ERROR] See D:\alldesk\Projects\ZhkuAgent\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :knowledge

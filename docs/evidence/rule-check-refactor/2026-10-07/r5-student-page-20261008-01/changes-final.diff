@@ -1,0 +1,510 @@
+--- before/agent/frontend/src/views/RuleCheckView.vue
++++ after/agent/frontend/src/views/RuleCheckView.vue
+@@ -0,0 +1,201 @@
++<script setup>
++import { ref, computed, watch, inject, onMounted, onUnmounted } from 'vue'
++import PasswordInput from '../components/PasswordInput.vue'
++import RuleCheckFact from '../components/RuleCheckFact.vue'
++import { ruleCheckClient } from '../api/rule-check.js'
++import { ruleCheckSession } from '../state/rule-check-session.js'
++import { createRuleCheckWorkflow } from '../state/rule-check-workflow.js'
++
++// 测试可注入渲染状态；正式入口仍只从独立v2客户端取得结果，不提供URL资料自证参数。
++const runtime = inject('rule-check-runtime', null)
++const session = runtime?.session || ruleCheckSession, api = runtime?.client || ruleCheckClient
++const flow = runtime?.workflow || createRuleCheckWorkflow(), state = flow.state
++const username = ref(''), password = ref(''), question = ref(''), choice = ref(''), loginError = ref('')
++const loginBusy = ref(false), authChecking = ref(!runtime)
++let alive = true
++const student = computed(() => session.state.actor?.role === 'USER')
++const nextCondition = computed(() => state.result?.clarificationQuestions?.[0])
++const labels = { ANSWERED: '有原文支持', PARTIALLY_ANSWERED: '有部分依据', NEED_CLARIFICATION: '需要确认条件', INSUFFICIENT_EVIDENCE: '暂无充分依据', CONFLICTING_EVIDENCE: '依据存在冲突' }
++const identityMessage = computed(() => session.state.reason === 'LOGOUT_UNCONFIRMED' ? '退出尚未确认，请重试退出。'
++  : session.state.reason === 'LOGIN_UNCONFIRMED' ? '登录结果尚未确认，请先核对登录状态。'
++  : session.state.reason === 'AUTH_EXPIRED' ? '登录已失效，请重新登录。' : '')
++const conditionName = key => state.result?.scope?.conditions.find(c => c.key === key)?.question || key
++const originalParts = computed(() => {
++  const original = state.original
++  if (!original) return { before: '', quote: '', after: '' }
++  const value = original.contextText, start = original.quoteStartInclusive - original.contextStartInclusive, end = original.quoteEndExclusive - original.contextStartInclusive
++  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end <= start || end > value.length) return { before: value, quote: '', after: '' }
++  return { before: value.slice(0, start), quote: value.slice(start, end), after: value.slice(end) }
++})
++const originalLink = computed(() => {
++  const value = state.original?.safeSourceUrl
++  if (!value) return null
++  try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password && (!url.port || url.port === '443') ? value : null }
++  catch { return null }
++})
++watch(() => state.result, () => { choice.value = '' })
++watch(() => session.state.epoch, () => { question.value = ''; username.value = ''; password.value = ''; choice.value = ''; loginError.value = '' }, { flush: 'sync' })
++watch(question, value => {
++  // 编辑问题后旧依据不再对应当前输入；不能让用户以新题的视角误读上轮回答。
++  if (state.result && value !== state.question) flow.reset()
++})
++onMounted(async () => {
++  if (runtime || session.state.identityBusy) { authChecking.value = false; return }
++  await checkLogin()
++})
++onUnmounted(() => { alive = false; password.value = ''; flow.dispose() })
++async function login() {
++  if (loginBusy.value || session.state.identityBusy || session.state.reason === 'LOGIN_UNCONFIRMED') return
++  loginBusy.value = true; loginError.value = ''
++  const pending = api.login(username.value.trim(), password.value), epoch = session.state.epoch
++  // 身份请求可能跨页面存活；先保留未确认状态，不能随组件销毁丢失，也不能污染下一代身份。
++  session.state.reason = 'LOGIN_UNCONFIRMED'
++  try { await pending; if (session.state.epoch === epoch) session.state.reason = '' }
++  catch (error) {
++    if (error.code !== 'STALE_RESPONSE') {
++      const unknown = error.code === 'NETWORK_UNAVAILABLE' || error.code === 'BAD_RESPONSE'
++      if (!unknown && session.state.epoch === epoch) session.state.reason = ''
++      if (alive && !unknown) loginError.value = error.status === 401 ? '登录未成功，请检查账号和密码。' : '登录暂不可用，请稍后再试。'
++    }
++  }
++  finally { password.value = ''; if (alive) loginBusy.value = false }
++}
++async function checkLogin() {
++  if (session.state.identityBusy) return
++  authChecking.value = true; loginError.value = ''
++  try { await api.me(); if (alive) session.state.reason = '' }
++  catch (error) { if (alive && error.code !== 'STALE_RESPONSE' && error.status !== 401) loginError.value = '暂时无法核对登录状态，请稍后重试。' }
++  finally { if (alive) authChecking.value = false }
++}
++async function logout() {
++  loginError.value = ''; flow.reset()
++  try { await api.logout() }
++  catch (error) { if (alive && error.code !== 'STALE_RESPONSE') loginError.value = '退出尚未确认，请重试退出。' }
++}
++function newQuestion() { flow.reset(); question.value = ''; choice.value = '' }
++</script>
++
++<template>
++  <main class="rule-page">
++    <header class="rule-header"><RouterLink to="/" class="rule-brand">仲园规则查证</RouterLink>
++      <nav aria-label="查证导航"><RouterLink to="/campus/run">学分实验</RouterLink><RouterLink to="/super-agent">通用助手实验</RouterLink>
++        <button v-if="session.state.actor" type="button" :disabled="session.state.identityBusy" @click="logout">退出登录</button></nav>
++    </header>
++    <section class="rule-intro"><h1>先找到依据，再理解规则。</h1><p>用你的话提问，确认必要条件，逐条核对原文。</p>
++      <p class="reference-note">首轮以2025版文本为依据；现行适用性仍需核实。</p></section>
++    <section v-if="!session.state.actor" class="rule-login" aria-labelledby="rule-login-title">
++      <h2 id="rule-login-title">登录规则查证</h2><p>使用受控演示账号，查看当前可查证的规则。</p>
++      <p v-if="authChecking" role="status">正在核对登录状态…</p>
++      <form @submit.prevent="login"><label for="username">账号</label><input id="username" v-model="username" name="username" autocomplete="username" required maxlength="32" :disabled="authChecking || loginBusy || session.state.identityBusy" />
++        <label for="password">密码</label><PasswordInput v-model="password" :disabled="authChecking || loginBusy || session.state.identityBusy" />
++        <p id="password-hint" class="rule-hint">请输入演示账号的密码（16～64位英文字符）。</p>
++        <p id="login-feedback" role="status" aria-live="polite">{{ loginError || identityMessage }}</p>
++        <button class="rule-primary" type="submit" :disabled="authChecking || loginBusy || session.state.identityBusy || session.state.reason === 'LOGIN_UNCONFIRMED'">{{ loginBusy || session.state.identityBusy ? '正在切换登录状态…' : '登录' }}</button>
++      </form>
++      <button v-if="session.state.reason === 'LOGOUT_UNCONFIRMED'" type="button" :disabled="session.state.identityBusy" @click="logout">重试退出</button>
++      <button v-if="session.state.reason === 'LOGIN_UNCONFIRMED'" type="button" :disabled="authChecking || session.state.identityBusy" @click="checkLogin">核对登录状态</button>
++    </section>
++    <p v-else-if="!student" class="rule-notice">当前账号不是学生查证身份，请退出后使用学生查证身份登录。</p>
++    <div v-else class="rule-desk">
++      <section class="question-column" aria-label="问题与查证结果">
++        <p v-if="authChecking" role="status">正在核对登录状态…</p>
++        <form class="question-form" @submit.prevent="flow.start(question)"><label for="rule-question">你想查证什么？</label>
++          <textarea id="rule-question" v-model="question" required maxlength="2048" rows="4" :disabled="authChecking || state.busy || session.state.identityBusy" placeholder="例如：公共选修课有什么学分限制？"></textarea>
++          <div class="question-actions"><span>{{ question.length }}/2048</span><button type="button" @click="newQuestion">新问题</button><button class="rule-primary" type="submit" :disabled="!question.trim() || authChecking || state.busy || session.state.identityBusy">{{ state.busy ? '正在查证…' : '查证规则' }}</button></div>
++        </form>
++        <p v-if="state.error" class="rule-notice" role="alert">{{ state.error }}</p>
++        <p v-if="state.busy" class="query-progress" role="status" aria-live="polite">正在查证，请等待本次结果。</p>
++        <section v-else-if="state.result" class="decision" aria-labelledby="decision-title" aria-live="polite">
++          <header><p class="decision-question">本次问题：{{ state.question }}</p><h2 id="decision-title">{{ labels[state.result.status] }}</h2><p>依据版本 {{ state.result.referenceRevision }}</p></header>
++          <p v-if="state.result.scope" class="question-scope">本次覆盖：{{ state.result.scope.questionScope }}</p>
++          <div v-if="Object.keys(state.result.confirmedConditions).length" class="declared-conditions"><h3>你已确认</h3><dl><template v-for="(value,key) in state.result.confirmedConditions" :key="key"><dt>{{ conditionName(key) }}</dt><dd>{{ value }}</dd></template></dl></div>
++          <form v-if="state.result.status === 'NEED_CLARIFICATION' && nextCondition" class="clarification" @submit.prevent="flow.clarify(nextCondition.key,choice)">
++            <label for="rule-condition">{{ nextCondition.question }}</label><select id="rule-condition" v-model="choice" required><option disabled value="">请选择你能确认的情况</option><option v-for="value in nextCondition.allowedValues" :key="value" :value="value">{{ value }}</option></select>
++            <button class="rule-primary" type="submit" :disabled="!choice">确认条件并继续</button><p class="rule-hint">无法确认时保留未知，先核对相关资料。</p>
++          </form>
++          <RuleCheckFact v-for="fact in state.result.confirmedFacts" :key="fact.id" :fact="fact" :conditions="state.result.scope?.conditions || []" :disabled="state.originalBusy" @original="flow.openOriginal" />
++          <section v-for="(conflict,index) in state.result.conflicts" :key="index" class="rule-conflict"><h3>{{ conflict.issue }}</h3><p>这些依据尚未形成一致结论。</p>
++            <RuleCheckFact v-for="(side,i) in conflict.sides" :key="i" :fact="side" :conditions="state.result.scope?.conditions || []" :disabled="state.originalBusy" @original="flow.openOriginal" /></section>
++          <section v-if="state.result.unknownItems.length" class="rule-unknown"><h3>仍无法确认</h3><ul><li v-for="(unknown,i) in state.result.unknownItems" :key="i">{{ unknown }}</li></ul></section>
++        </section>
++        <div v-else-if="!state.error" class="empty-result"><h2>从一个具体问题开始</h2><p>有充分依据时解释规则；需要条件时追问；缺证或冲突时说明未知。</p></div>
++      </section>
++      <aside id="original-panel" class="original-column" aria-label="原文对照" aria-live="polite"><h2>原文对照</h2>
++        <p v-if="state.originalBusy" role="status">正在核对当前原文…</p>
++        <template v-else-if="state.original"><h3>{{ state.original.title || '来源标题未记录' }}</h3><p class="original-version">版本 {{ state.original.revision }}</p><p>{{ state.original.sourceLocator || '条款定位尚未记录' }}</p>
++          <p v-if="state.original.pageNumberKind === 'RECORDED_SOURCE_PAGE'">记录页码 {{ state.original.recordedPageNumber }}</p><p v-else>页码尚未记录</p>
++          <p v-if="state.original.sectionTitle">{{ state.original.sectionTitle }}</p>
++          <blockquote class="original-text">{{ originalParts.before }}<mark>{{ originalParts.quote }}</mark>{{ originalParts.after }}</blockquote>
++          <ul class="original-unknown"><li v-for="(unknown,i) in state.original.unknownItems" :key="i">{{ unknown }}</li></ul>
++          <a v-if="originalLink" class="original-link" :href="originalLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">打开原件</a>
++        </template>
++        <p v-else class="original-placeholder">点击回答中的“核对原文”，对照摘录、条款和记录页码。当前没有可展示的原文。</p>
++      </aside>
++    </div>
++    <footer class="rule-footer">个人项目，非学校官方系统。规则查证不能代替个人修读资格认定或教务办理。</footer>
++  </main>
++</template>
++
++<style scoped>
++.rule-page { min-height: 100vh; width: 100%; background: #faf8f2; color: #252a24; color-scheme: light; font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; line-height: 1.7; padding: 0 36px; }
++.rule-header { max-width: 1200px; margin: auto; padding: 24px 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid #d8ddcf; }
++.rule-brand { color: #28553f; font-weight: 700; font-size: 20px; }
++nav { display: flex; align-items: center; flex-wrap: wrap; gap: 22px; font-size: 14px; }
++.rule-intro { max-width: 1200px; margin: 42px auto 34px; }
++h1 { font-family: 'Songti SC', SimSun, serif; font-size: clamp(28px, 4vw, 42px); font-weight: 700; letter-spacing: .025em; margin-bottom: 12px; }
++.reference-note, .rule-hint, .rule-footer { color: #647261; font-size: 13px; }
++.reference-note { margin-top: 14px; }
++.rule-desk { max-width: 1200px; margin: auto; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 40px; }
++.question-column, .original-column { min-width: 0; }
++.question-form label { display: block; font-size: 18px; font-weight: 600; margin-bottom: 12px; }
++input, textarea, select { width: 100%; color: #252a24; border: 1px solid #a5b29e; border-radius: 2px; background: #fff; padding: 12px; font: inherit; }
++textarea { resize: vertical; min-height: 130px; }
++button { font: inherit; color: #28553f; padding: 9px 16px; border: 1px solid #a5b29e; border-radius: 2px; background: #fff; }
++.rule-primary { color: #fff; background: #28553f; border-color: #28553f; font-weight: 600; }
++button:disabled, input:disabled, textarea:disabled { opacity: .55; cursor: not-allowed; }
++button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #28553f; outline-offset: 3px; }
++.question-actions { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
++.question-actions span { margin-right: auto; font-size: 12px; color: #647261; }
++.decision { margin-top: 36px; }
++.decision header { border-top: 3px solid #28553f; padding-top: 20px; }
++.decision-question, .decision header > p:last-child { font-size: 13px; color: #647261; overflow-wrap: anywhere; }
++h2 { font-size: 23px; margin: 6px 0 14px; }
++h3 { font-size: 17px; }
++.question-scope { margin: 20px 0; padding-left: 14px; border-left: 3px solid #a9bca5; white-space: pre-wrap; overflow-wrap: anywhere; }
++.declared-conditions { margin: 20px 0; font-size: 14px; }
++dl { display: grid; grid-template-columns: minmax(80px, 1fr) 2fr; gap: 6px 16px; }
++.clarification { padding: 24px 0; border-top: 1px solid #d8ddcf; }
++.clarification label { display: block; margin-bottom: 12px; font-weight: 600; }
++.clarification select { margin-bottom: 14px; }
++.clarification .rule-hint { margin-top: 12px; }
++.rule-unknown, .rule-conflict { padding: 22px 0; border-top: 1px solid #d8ddcf; }
++ul { padding-left: 22px; margin-top: 10px; }
++li { margin-bottom: 8px; overflow-wrap: anywhere; }
++.original-column { background: #fff; padding: 26px; border-top: 3px solid #a9bca5; align-self: start; }
++.original-column h2 { margin-top: 0; }
++.original-column h3, .original-column p { overflow-wrap: anywhere; }
++.original-version, .original-unknown, .original-placeholder { color: #647261; font-size: 13px; }
++.original-text { margin: 24px 0; line-height: 2; white-space: pre-wrap; overflow-wrap: anywhere; }
++mark { background: #f1e4ab; color: #252a24; padding: 2px 0; }
++.original-link { display: inline-block; text-decoration: underline; color: #28553f; margin-top: 16px; }
++.rule-notice { max-width: 1200px; margin: 24px auto; border-left: 3px solid #a8853a; padding: 12px 16px; background: #f5efdc; }
++.query-progress, .empty-result { margin: 34px 0; color: #647261; }
++.empty-result h2 { color: #465346; font-size: 20px; }
++.rule-footer { max-width: 1200px; margin: 50px auto 0; padding: 24px 0; border-top: 1px solid #d8ddcf; }
++.rule-login { max-width: 440px; margin: 0 0 0 max(0px, calc((100% - 1200px) / 2)); padding: 26px 0; }
++.rule-login form { margin-top: 20px; }
++.rule-login label { display: block; margin: 14px 0 7px; }
++.rule-login #login-feedback { min-height: 28px; margin: 10px 0; color: #7b4b17; font-size: 14px; }
++.rule-login > button { margin-top: 16px; }
++.rule-login :deep(.password-field) { display: flex; border: 1px solid #a5b29e; background: #fff; }
++.rule-login :deep(.password-field input) { border: 0; min-width: 0; flex: 1; }
++.rule-login :deep(.password-field button) { border: 0; padding: 10px 12px; }
++.rule-login :deep(.icon) { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
++@media (max-width: 800px) { .rule-desk { grid-template-columns: 1fr; gap: 30px; } .rule-page { padding: 0 20px; } .rule-header { align-items: flex-start; flex-direction: column; gap: 12px; } .rule-intro { margin-top: 30px; } .original-column { padding: 22px; } }
++@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
++</style>
++<style>
++/* 直接打开/rules时旧校园CSS尚未加载，必须独立解除Vite模板的居中/宽度限制。 */
++body.rule-check-page { display: block; min-width: 320px; }
++body.rule-check-page #app { max-width: none; margin: 0; padding: 0; text-align: left; height: auto; }
++</style>
+--- before/agent/frontend/src/components/RuleCheckFact.vue
++++ after/agent/frontend/src/components/RuleCheckFact.vue
+@@ -0,0 +1,29 @@
++<script setup>
++defineProps({ fact: { type: Object, required: true }, conditions: { type: Array, default: () => [] }, disabled: Boolean })
++defineEmits(['original'])
++</script>
++<template>
++  <article class="rule-fact">
++    <h3>{{ fact.text }}</h3>
++    <div v-if="Object.keys(fact.when).length" class="fact-conditions"><p>仅在这些条件下确认</p>
++      <dl><template v-for="(value, key) in fact.when" :key="key"><dt>{{ conditions.find(c => c.key === key)?.question || key }}</dt><dd>{{ value }}</dd></template></dl>
++    </div>
++    <div v-for="citation in fact.citations" :key="citation.originalToken" class="fact-citation">
++      <!-- 资料和政策文本只作为文字展示，不能把原文中的HTML变成浏览器指令。 -->
++      <blockquote>{{ citation.text }}</blockquote>
++      <div class="citation-actions"><span>引用版本 {{ citation.revision }}</span><button type="button" :disabled="disabled" @click="$emit('original', citation.originalToken)">核对原文</button></div>
++    </div>
++  </article>
++</template>
++<style scoped>
++.rule-fact { padding: 24px 0; border-top: 1px solid #d8ddcf; }
++h3 { font-size: 19px; line-height: 1.65; font-weight: 600; overflow-wrap: anywhere; }
++.fact-conditions { margin-top: 14px; font-size: 14px; color: #465346; }
++dl { display: grid; grid-template-columns: minmax(90px, 1fr) 2fr; gap: 6px 16px; margin-top: 8px; }
++dt, dd { overflow-wrap: anywhere; }
++blockquote { margin: 18px 0 10px; padding-left: 16px; border-left: 3px solid #a9bca5; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; }
++.citation-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: 13px; color: #647261; }
++button { border: 1px solid #28553f; background: #fff; padding: 7px 12px; color: #28553f; border-radius: 2px; font: inherit; }
++button:focus-visible { outline: 3px solid #28553f; outline-offset: 3px; }
++button:disabled { opacity: .5; cursor: wait; }
++</style>
+--- before/agent/frontend/src/router/index.js
++++ after/agent/frontend/src/router/index.js
+@@ -3,6 +3,7 @@
+ import { controlledSession } from '../state/controlled-session.js'
+ 
+ const routes = [
++  { path: '/rules', name: 'RuleCheck', component: () => import('../views/RuleCheckView.vue'), meta: { title: '校园规则查证 - 仲园' } },
+   { path: '/campus/login', component: () => import('../views/ControlledLogin.vue'), meta: { title: '登录 - 仲园 Agent' } },
+   { path: '/campus', component: () => import('../components/ControlledLayout.vue'), meta: { requiresControlledAuth: true }, children: [
+     { path: '', redirect: '/campus/run' },
+@@ -16,7 +17,7 @@
+     component: () => import('../views/Home.vue'),
+     meta: {
+       title: '首页 - 仲园 Agent',
+-      description: '仲园 Agent 本机演示，提供任务助手入口，展示任务处理过程与结果。'
++      description: '校园规则查证：自然语言提问、必要条件确认和原文核对。'
+     }
+   },
+   {
+@@ -53,4 +54,8 @@
+ export default router
+ 
+ // 原Vite模板有body居中和#app宽度约束，仅在校园路由覆盖，保留旧演示样式。
+-router.afterEach(to => document.body.classList.toggle('controlled-page', to.path.startsWith('/campus')))
++router.afterEach((to, from, failure) => {
++  if (failure) return
++  document.body.classList.toggle('controlled-page', to.path.startsWith('/campus'))
++  document.body.classList.toggle('rule-check-page', to.name === 'RuleCheck')
++})
+--- before/agent/frontend/src/views/Home.vue
++++ after/agent/frontend/src/views/Home.vue
+@@ -1,24 +1,25 @@
+ <template>
+   <div class="home-container">
+     <main class="hero">
+-      <h1 class="title">仲园 <span class="brand">Agent</span></h1>
+-      <p class="subtitle">校园可信问答 · 本机演示</p>
++      <h1 class="title">仲园 <span class="brand">规则查证</span></h1>
++      <p class="subtitle">提出问题，确认条件，核对原文。</p>
+ 
+       <!-- 校园入口复用可信身份与本人归属，不能指向旧通用匿名API。 -->
+       <div
+         class="entry-card"
+         role="link"
+         tabindex="0"
+-        @click="navigateTo('/campus/run')"
+-        @keydown.enter="navigateTo('/campus/run')"
++        @click="navigateTo('/rules')"
++        @keydown.enter="navigateTo('/rules')"
+       >
+         <div class="card-text">
+-          <div class="card-title">校园工作台</div>
+-          <div class="card-desc">登录后核对学分、查看本人任务与出处</div>
++          <div class="card-title">查证校园规则</div>
++          <div class="card-desc">登录后提问，查看能确认的规则和原文依据</div>
+         </div>
+         <div class="card-arrow" aria-hidden="true">→</div>
+       </div>
+-      <p class="legacy-note">旧通用任务页面保留作独立历史演示；本次Nginx入口不开放其API。</p>
++      <p class="legacy-note">个人项目，非学校官方系统。首轮以2025版文本为依据，现行适用性仍需核实。</p>
++      <nav class="legacy-note" aria-label="实验入口"><RouterLink to="/campus/run">学分实验</RouterLink> / <RouterLink to="/super-agent">通用助手实验</RouterLink></nav>
+     </main>
+ 
+     <AppFooter />
+@@ -32,15 +33,15 @@
+ 
+ // 设置页面标题和元数据
+ useHead({
+-  title: '首页 - 仲园 Agent',
++  title: '校园规则查证 - 仲园',
+   meta: [
+     {
+       name: 'description',
+-      content: '仲园 Agent 本机演示，提供任务助手入口，展示任务处理过程与结果。'
++      content: '校园规则查证：自然语言提问、必要条件确认和原文核对。'
+     },
+     {
+       name: 'keywords',
+-      content: '仲园 Agent,ZhkuAgent,任务助手,本机演示,首页'
++      content: '仲园,ZhkuAgent,校园规则查证,原文核对,本机演示'
+     }
+   ]
+ })
+--- before/agent/frontend/tests/rule-check-page.test.mjs
++++ after/agent/frontend/tests/rule-check-page.test.mjs
+@@ -0,0 +1,110 @@
++import test, { after } from 'node:test'
++import assert from 'node:assert/strict'
++import { createSSRApp, createRenderer, reactive, nextTick, ssrContextKey } from 'vue'
++import { renderToString } from '@vue/server-renderer'
++import { createRouter, createMemoryHistory } from 'vue-router'
++import { createServer } from 'vite'
++import { fileURLToPath } from 'node:url'
++const root=fileURLToPath(new URL('..',import.meta.url))
++const vite=await createServer({root,server:{middlewareMode:true,hmr:false},appType:'custom',logLevel:'silent'})
++after(()=>vite.close())
++const component=(await vite.ssrLoadModule('/src/views/RuleCheckView.vue')).default
++const ID='22222222-2222-4222-8222-222222222222'
++const quote=()=>({citationId:'c',sourceId:ID,chunkId:ID,revision:'2025.9.2',startInclusive:2,endExclusive:4,text:'原文',originalToken:ID})
++const fact=()=>({id:'limit',text:'合成确认事实',when:{year:'A'},citations:[quote()]})
++const decision=(status='ANSWERED')=>({status,referenceRevision:'2025.9.2',conditionSource:'USER_DECLARED',confirmedConditions:{year:'A'},confirmedFacts:[fact()],clarificationQuestions:[],unknownItems:[],conflicts:[],clarificationToken:null,
++  scope:{ruleId:'fixture',questionScope:'合成规则覆盖范围',conditions:[{key:'year',question:'合成年级',allowedValues:['A','B']}],factPreconditions:{limit:{year:'A'}}}})
++async function render({actor={role:'USER',userId:ID,authRevision:0},reason='',result=null,original=null,busy=false,error='',originalBusy=false}={}) {
++  const app=createSSRApp(component)
++  const router=createRouter({history:createMemoryHistory(),routes:[{path:'/rules',component:{template:'<div />'}},{path:'/',component:{template:'<div />'}}]})
++  app.use(router);await router.push('/rules');await router.isReady()
++  app.provide('rule-check-runtime',{session:{state:{actor,epoch:0,identityBusy:false,reason}},client:{},workflow:{state:{question:'合成问题',result,original,busy,originalBusy,error},dispose(){},reset(){}}})
++  return renderToString(app)
++}
++test('student page has independent login and explicit first reference boundary',async()=>{
++  const html=await render({actor:null});assert.match(html,/登录规则查证/);assert.match(html,/2025/);assert.match(html,/现行/)
++  assert.match(html,/autocomplete="username"/);assert.match(html,/autocomplete="current-password"/)
++})
++test('all five decisions have distinct visible outcomes',async()=>{
++  for(const [status,label] of Object.entries({ANSWERED:'有原文支持',PARTIALLY_ANSWERED:'有部分依据',NEED_CLARIFICATION:'需要确认条件',INSUFFICIENT_EVIDENCE:'暂无充分依据',CONFLICTING_EVIDENCE:'依据存在冲突'})) {
++    const result=decision(status)
++    if(status==='PARTIALLY_ANSWERED')result.unknownItems=['合成未知项']
++    if(status==='NEED_CLARIFICATION'){result.confirmedFacts=[];result.clarificationQuestions=[{key:'type',question:'合成类型是什么',allowedValues:['普通','其他']}];result.clarificationToken=ID}
++    if(status==='INSUFFICIENT_EVIDENCE'){result.confirmedFacts=[];result.scope=null;result.unknownItems=['无审核依据']}
++    if(status==='CONFLICTING_EVIDENCE'){result.confirmedFacts=[];result.conflicts=[{issue:'合成相互矛盾',sides:[fact(),{...fact(),id:'other',text:'合成另一侧'}]}]}
++    const html=await render({result});assert.match(html,new RegExp(label))
++    if(status==='CONFLICTING_EVIDENCE'){assert.match(html,/合成相互矛盾/);assert.match(html,/合成另一侧/)}
++  }
++})
++test('confirmed facts disclose declared conditions and original action',async()=>{
++  const html=await render({result:decision()});assert.match(html,/合成规则覆盖范围/);assert.match(html,/合成年级/)
++  assert.match(html,/你已确认/);assert.match(html,/核对原文/);assert.match(html,/2025.9.2/);assert.match(html,/仅在这些条件下确认/)
++})
++test('necessary clarification displays only allowed choices and no invented fact',async()=>{
++  const result={...decision('NEED_CLARIFICATION'),confirmedFacts:[],clarificationQuestions:[{key:'type',question:'合成类型是什么',allowedValues:['普通','其他']}],clarificationToken:ID}
++  const html=await render({result});assert.match(html,/合成类型是什么/);assert.match(html,/>普通</);assert.match(html,/>其他</)
++  assert.match(html,/确认条件并继续/);assert.doesNotMatch(html,/合成确认事实/)
++})
++test('original highlight uses relative span and recorded page mapping remains unknown',async()=>{
++  const original={title:'合成手册',sourceLocator:'合成定位',revision:'2025.9.2',recordedPageNumber:1,pageNumberKind:'RECORDED_SOURCE_PAGE',contextText:'前文原文后文',contextStartInclusive:10,quoteStartInclusive:12,quoteEndExclusive:14,safeSourceUrl:'https://official.example/a.pdf',unknownItems:['物理页与印刷页映射尚未核实']}
++  const html=await render({result:decision(),original});assert.match(html,/<mark[^>]*>原文<\/mark>/);assert.match(html,/记录页码/);assert.match(html,/映射尚未核实/)
++  assert.match(html,/rel="noopener noreferrer"/);assert.match(html,/https:\/\/official.example\/a.pdf/)
++})
++test('policy and original are escaped text and javascript links are never emitted',async()=>{
++  const result=decision();result.confirmedFacts[0].text='<script>evil()</script>';result.confirmedFacts[0].citations[0].text='<img src=x onerror=evil>'
++  const original={title:'<script>title()</script>',revision:'2025.9.2',pageNumberKind:'UNKNOWN',contextText:'<script>body()</script>',contextStartInclusive:0,quoteStartInclusive:0,quoteEndExclusive:8,safeSourceUrl:'javascript:evil()',unknownItems:['未知页码']}
++  const html=await render({result,original});assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>|<img src=x|href="javascript:/)
++})
++test('pending, missing evidence, unconfirmed outcome and logout uncertainty stay distinct',async()=>{
++  const pending=await render({busy:true});assert.match(pending,/正在查证/)
++  const failed=await render({error:'本次查证结果未确认，请主动重新查证。'});assert.match(failed,/结果未确认/);assert.doesNotMatch(failed,/未受理|已受理/)
++  const loggedOut=await render({actor:null,reason:'LOGOUT_UNCONFIRMED'});assert.match(loggedOut,/退出尚未确认/);assert.match(loggedOut,/重试退出/)
++})
++test('maintainer cannot use student question form',async()=>{
++  const html=await render({actor:{role:'MAINTAINER',userId:ID,authRevision:0}});assert.match(html,/学生查证身份/);assert.doesNotMatch(html,/<textarea/)
++})
++test('unconfirmed login requires identity read before another login attempt',async()=>{
++  const html=await render({actor:null,reason:'LOGIN_UNCONFIRMED'});assert.match(html,/登录结果尚未确认/);assert.match(html,/核对登录状态/)
++  assert.match(html,/<button[^>]*type="submit"[^>]*disabled/)
++})
++
++// 用Vue实际setup/mount/unmount执行生命周期；虚拟host不伪称浏览器DOM或Cookie验收。
++function mountLifecycle(runtime) {
++  const host = createRenderer({
++    createElement: () => ({}), createText: () => ({}), createComment: () => ({}),
++    insert() {}, remove() {}, setText() {}, setElementText() {}, patchProp() {}, parentNode: () => null, nextSibling: () => null
++  })
++  const app = host.createApp({ ...component, render: () => null })
++  app.provide(ssrContextKey, { modules: new Set() })
++  app.provide('rule-check-runtime', runtime); app.mount({})
++  return { app, setup: app._instance.setupState }
++}
++test('login pending then unmount and return preserves uncertainty until identity read', async () => {
++  const session = { state: reactive({ actor: null, epoch: 0, identityBusy: false, reason: '' }) }
++  let rejectLogin, posts = 0, reads = 0
++  const runtime = { session, client: {
++    async login() { posts++; session.state.epoch++; session.state.reason = ''; session.state.identityBusy = true
++      try { await new Promise((_,reject) => { rejectLogin = reject }) }
++      finally { session.state.identityBusy = false }
++    },
++    async me() { reads++; session.state.actor = { role: 'USER', userId: ID, authRevision: 0 } }
++  }, workflow: { state: reactive({ result: null, question: '' }), dispose() {}, reset() {} } }
++  const first = mountLifecycle(runtime), pending = first.setup.login()
++  first.app.unmount()
++  const returned = mountLifecycle(runtime)
++  rejectLogin({ code: 'NETWORK_UNAVAILABLE' }); await pending; await nextTick()
++  assert.equal(session.state.reason, 'LOGIN_UNCONFIRMED')
++  await returned.setup.login(); assert.equal(posts, 1, 'unknown identity must block another POST')
++  await returned.setup.checkLogin(); assert.equal(reads, 1); assert.equal(session.state.reason, '')
++  returned.app.unmount()
++})
++test('unmounted login failure cannot mark a later identity uncertain', async () => {
++  const session = { state: reactive({ actor: null, epoch: 0, identityBusy: false, reason: '' }) }
++  let rejectLogin
++  const runtime = { session, client: { async login() { session.state.epoch++; await new Promise((_,reject) => { rejectLogin = reject }) } },
++    workflow: { state: reactive({ result: null, question: '' }), dispose() {}, reset() {} } }
++  const first = mountLifecycle(runtime), pending = first.setup.login(); first.app.unmount()
++  session.state.epoch++; session.state.reason = ''; session.state.actor = { role: 'USER', userId: ID, authRevision: 1 }
++  rejectLogin({ code: 'NETWORK_UNAVAILABLE' }); await pending
++  assert.equal(session.state.reason, ''); assert.equal(session.state.actor.authRevision, 1)
++})
+--- before/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
++++ after/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
+@@ -283,3 +283,13 @@
+ - [x] 全部既有Node测试及Vue构建、源码保护/哈希/日志/一次增量审查；无供应商/数据库/真实资料授权，B/C/G2保持OPEN。
+ 
+ Expected：仅API/状态工程，不将测试替身叫真实浏览器，也不提前标A08–A10完成；界面档案查阅台风格和实际浏览器覆盖在Task3B/C，原有v1文案RC-11另按实际旧页面问题处理。
++
++## Task3B / A08学生查证页面与主入口（2026-10-08）
++
++沿Task3已有范围与Task3A风格，10项before清单r5-student-page-20261008-01；复用v2 API/Workflow、PasswordInput，/rules新页面，首页主CTA改规则查证并保留实验旧URL。保护API/旧v1/Java/资料与参考。
++
++- [x] RED：实际Vue SFC SSR登录/维护者、五状态、必要追问/条件、原文高亮/页码未知、HTML转义/HTTPS、网络未确认/退出未确认等可见文案。
++- [x] GREEN：页面问题/五状态/事实与原文对照，显式条件和未知/冲突，不猜个人资格；身份/新题/离开清本地，执行pending单独表达；首页查证主入口、旧URL实验导航。
++- [x] 全Node既有69+SSR、Vue构建真实导入新页面、增量审查与证据；真实浏览器/代理/普通终端另Task3C，不因SSR给A10或G2放行。
++
++Expected：目前Nginx只开旧v1，本批页面bundle并不等于可用HTTP代理闭环；真实CLOSED保持，未审资料正确缺证，B/C/用户收益门禁继续OPEN。
+--- before/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
++++ after/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
+@@ -507,3 +507,24 @@
+ Final: fixed I3 查证前置CSRF传expectedRound并登记query请求，更新token和处理401前验证；迟到A的JSON/HTML401不清B新题/身份。
+ 
+ 接续Task3B页面/首页入口，Task3C真实浏览器/代理；A07入口迟到失败先记静态风险，最小复现另批；B/C/G2继续OPEN。
++
++Task3B: start — 10项before，复用现有Task3/Task3A设计继续页面，不另批次审批。
++Task3B: Ruling: /rules内独立v2登录，保留旧/campus实验URL — v1身份不能自动获v2资格，也不能把首页问答引回学分 — 成本：本机两演示入口各自登录/代理需明确装配。
++Task3B: Ruling: SFC SSR与实际浏览器分层 — 可证明模板字段/转义，不证明点击/网络/Cookie/代理 — 成本：Task3C真实浏览器仍必做，当前Nginx未v2不得声称整链已用。
++
++Task3B: Ruling: 登录丢响应先只读核对身份，再允许重新登录 — 身份POST也可能已完成，不能把未知当失败 — 成本：LOGIN_UNCONFIRMED暂禁登录按钮，显式me后401清失效状态或确认实际actor；不能据SSR冒称网络状态已模拟。
++Task3B: Ruling: /rules独立body class/CSS解除Vite居中限制 — 直接进新页旧校园CSS未加载，不能依赖访问旧路由先导入样式 — 成本：全局样式限rules-page，真实布局仍需浏览器验收。
++
++Task3B: complete — 初始8/8RED，登录未知9/1RED；审查生命周期夹具11/2 error不算业务RED，provide SSR context后11/1有效RED→Node80/80、0fail/cancel/skip；新页面实际bundle。静态浏览器686宽/rules/→首页→主CTA/rules确认，非代理/登录/任务闭环。4175预览停止。
++
++Final: Ruling: 身份结果未知属于共享会话而不是组件提示；先写未知再等待，避免busy结束与页面catch之间重开POST。
++
++Final: Ruling: 首次生命周期测试夹具缺SSR context导致11/2 TypeError，不作为有效业务RED；修正provide后11/1断言反例有效。
++
++Final: Ruling: 一次独立审查后重要修复由根执行者验证，不二次审查；模板9项SSR、生命周期2项虚拟host、实际静态浏览器分开报告。
++
++Final: fixed I1 实际Vue setup/mount/unmount复现11/1 RED；登录开始同步保留共享LOGIN_UNCONFIRMED，成功/已知失败仅同epoch清理，组件销毁不清未知；旧身份异常不能污染新身份。最终Node80/80。
++
++Final: fixed M1 路由命名RuleCheck且afterEach成功导航按name设置class；实际浏览器/rules/的bodyClass=rule-check-page，首页移除，主链接返回/rules。
++
++继续Task2P A07入口迟到身份失败最小复现，然后Task3C代理/完整浏览器；B/C/G2仍OPEN。
+--- before/docs/product/rule-check-remaining-tasks-2026-10-08.md
++++ after/docs/product/rule-check-remaining-tasks-2026-10-08.md
+@@ -25,7 +25,7 @@
+ | A05 | 有界自然语言规则选择适配（协议组件已验收，真实适配/语义待续） | 模型只返回已审目录ID，严格解析、超时/外发预算、空/歧义/越权/注入/故障拒绝；不生成政策事实、不猜个人条件 | Codex可先替身合同；真实语义表现由C组验证；必要性用简单选题基线对照 |
+ | A06 | 原文查询与定位入口（HTTP/会话凭据已验收，真实页码/浏览器待续） | 学生点击后到达实际版本/页码/条款；来源元数据与引用绑定；不存在/内部/撤回资料拒绝；资料文本与地址安全展示 | Codex；A01/A03/B01 |
+ | A07 | 最终外发及再次展示边界（HTTP资料/规则/身份/Session复查已验收，下发原子窗口仍有局限） | 明确从取证到响应、历史再次展示的复查策略；真实HTTP层撤回/版本/hash/身份变化矩阵；阻断或重取证，不用顺序检查宣称全链原子性 | Codex；A03/A06；完整清单时效继续D组 |
+-| A08 | 学生查证页面与产品入口（v2客户端/状态已验收，页面待续） | 提问、五状态、原文、条件/例外、独立确认项/未知项、版本说明；主入口改为规则查证，学分/通用Agent放实验导航；保留旧URL | Codex；可先合成页面，真实使用依赖B组 |
++| A08 | 学生查证页面与产品入口（v2客户端/状态与页面已验收，完整代理浏览器待续） | 提问、五状态、原文、条件/例外、独立确认项/未知项、版本说明；主入口改为规则查证，学分/通用Agent放实验导航；保留旧URL | Codex；可先合成页面，真实使用依赖B组 |
+ | A09 | 页面状态与兼容修复（身份/问题迟到状态已验收，旧v1文案/浏览器待续） | 修RC-11同键内容冲突说明和完成后仍“正在确认”；丢响应不能说未受理，不自动重复执行未知任务；换账号不展示旧正文；沿用实际涉及的3C合同 | Codex；A08，不把只读查证强塞进学分执行循环 |
+ | A10 | 浏览器端到端验收 | 实际Vue→Nginx→Java→专用临时库覆盖回答/部分回答/澄清/缺证/冲突、定位、撤回、换账号和旧v1；中文及普通用户终端验证 | Codex；A01–A09；替身效果与供应商效果分开 |
+ 
+--- before/docs/product/rule-check-blockers.md
++++ after/docs/product/rule-check-blockers.md
+@@ -175,3 +175,9 @@
+ A08页面/A09旧v1 RC-11实际文案/A10浏览器代理及普通终端仍OPEN；API只工程合同，跨tab即时同步/网络JSON下载硬上限未实现，真实规则字段与范围/例外仍B/C。后端501项对应Task2O代码保护不变，无DB/供应商/原库操作。本轮未重跑Java，不能称新增501测试执行。
+ 
+ 继续A07观察入口CurrentIdentityFilter延迟失败的潜在会话窗口：旧请求许可查询失败后该既有过滤器可能无条件invalidate/clearCookie；Task2O验证的是Controller开始/决定/原文窗口，没有全面验证入口失败发生于新登录之后的顺序。仅静态风险、尚未动态复现，不与已修I1混淆；后续最小反例决定修复，不将顺序check称全链原子保证。
++
++## 2026-10-08 Task3B：学生查证页面工程完成
++
++Node80/80=既有69+实际SFC SSR9+Vue生命周期虚拟host2，0fail/cancel/skip，真实页面bundle20.28KB。审查I1登录pending跨页面丢未知状态有效11/1RED→GREEN；M1尾斜杠class由实际浏览器确认。首次生命周期夹具缺SSR context的TypeError单独保留，不算业务RED。[本批证据](../evidence/rule-check-refactor/2026-10-07/r5-student-page-20261008-01/acceptance.md)。静态预览686宽登录页无水平溢出；/rules/ class正确，首页移除，主CTA返回/rules；无代理时me不可用为预期，不计A10。临时预览关闭，4175无监听。没有数据库/真实模型操作，Java/API/旧v1/真实DRAFT/参考保护不变。
++
++A08页面可构建但尚未完整使用；A09旧v1 RC11、A10代理/真实后端/普通终端/浏览器矩阵继续OPEN。B/C/真实可见/G2不放行。A07入口过滤器迟到失败风险另批最小复现后处理。
+--- before/docs/product/rule-check-decision-contract.md
++++ after/docs/product/rule-check-decision-contract.md
+@@ -131,3 +131,9 @@
+ 身份epoch、问题round和Workflow本地generation丢弃旧成功/错误/原文；查询的前置CSRF也绑定round，错误token/结构请求先拒不替换正确轮次。当前HTTP401在解析正文前按身份失效清本地，即使空/HTML；旧epoch/round401不得清新身份。login/logout串行，公开me在转换时拒绝，login完成用私有读取；me核对完整actor变化时清旧内容/CSRF。跨tab仅me/当前401检测，不承诺即时同步或浏览器Set-Cookie网络顺序原子性。
+ 
+ 五状态/revision/USER_DECLARED/非空依据/UTF16及原文跨度、pageKind/HTTPS无userinfo/端口结构校验，只证明消息结构，不证明语义、相关性或资料资格。网络JSON仍整体读取后验证，不声称下载字节/内存硬上限；可展示条目/文本上限可能比未来审核模板严格，真实B/C联调需校准。Workflow失败/新题/身份变化/离开清旧正文/原文；网络结果未确认、不自动重试或宣称教务受理。本批仅Node实际import测试，无页面/路由/代理/浏览器装配。
++
++## 学生查证页面（Task3B，2026-10-08）
++
++/rules使用独立v2身份与查证客户端，首页主入口指向该页，旧学分/通用助手标实验。五状态独立pending；展示问题范围、用户声明条件、事实成立前提、未知项与冲突两侧；原文按上下文相对跨度对照，不造页码映射或PDF跳页。政策/元数据使用插值转义，外链HTTPS且无userinfo/非443，不替代服务端host许可。
++
++身份epoch清输入/密码，编辑新题清旧内容，离开销毁Workflow。登录从开始即保留共享LOGIN_UNCONFIRMED，只同代成功/已知失败清理；页面销毁不取消服务端登录，也不丢未知，先只读me再登录。密码不持久化。SSR9项只模板；生命周期2项实际Vue虚拟host只setup/mount/unmount；静态浏览器只布局/路由，尚无代理或真实账号交互闭环。

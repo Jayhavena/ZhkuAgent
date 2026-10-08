@@ -71,7 +71,8 @@ class RagProviderConfigurationTest {
         new ApplicationContextRunner()
                 .withAllowBeanDefinitionOverriding(true)
                 .withUserConfiguration(RagProviderConfiguration.class, TestApiKeyConfiguration.class)
-                .withPropertyValues(concatProfileKeys("zhku.rag.enabled=true", "zhku.rag.active-profile=stub", "ZHKU_DB_PASSWORD=test-only"))
+                .withPropertyValues(concatProfileKeys("zhku.rag.enabled=true", "zhku.rag.active-profile=stub",
+                        "ZHKU_DB_PASSWORD=test-only"))
                 .run(context -> {
                     assertThat(context).hasNotFailed();
                     assertThat(context).hasSingleBean(ModelChatClient.class);

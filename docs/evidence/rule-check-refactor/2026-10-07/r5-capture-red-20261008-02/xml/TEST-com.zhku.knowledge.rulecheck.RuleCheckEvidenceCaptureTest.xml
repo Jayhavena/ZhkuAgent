@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.252" tests="12" errors="0" skipped="0" failures="9"><testcase name="rejectsLegacyChunkWithoutInventingSourceIdentity" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.088" /><testcase name="duplicateChunkAliasesAreNotASecondEvidenceIdentity" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.002" /><testcase name="capturesPersistentIdentityWithServerAliasesAndAudit" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.017"><failure message="&#xA;Expecting value to be true but was false" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.capturesPersistentIdentityWithServerAliasesAndAudit(RuleCheckEvidenceCaptureTest.java:56)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="factoryFailureCannotExposeFirstPreparedSnapshot" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.004"><failure message="&#xA;expected: CITATION_ALLOCATION_FAILED&#xA; but was: INVALID_CANDIDATES" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: CITATION_ALLOCATION_FAILED
+ but was: INVALID_CANDIDATES
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.rejected(RuleCheckEvidenceCaptureTest.java:50)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.factoryFailureCannotExposeFirstPreparedSnapshot(RuleCheckEvidenceCaptureTest.java:82)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="sameTextDifferentCurrentRevisionStillRejects" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.002"><failure message="&#xA;expected: UNVERIFIED_EVIDENCE&#xA; but was: INVALID_CANDIDATES" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: UNVERIFIED_EVIDENCE
+ but was: INVALID_CANDIDATES
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.rejected(RuleCheckEvidenceCaptureTest.java:50)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.sameTextDifferentCurrentRevisionStillRejects(RuleCheckEvidenceCaptureTest.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="validIdWithTamperedFortyDoesNotBecomeEvidence" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.003"><failure message="&#xA;expected: UNVERIFIED_EVIDENCE&#xA; but was: INVALID_CANDIDATES" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: UNVERIFIED_EVIDENCE
+ but was: INVALID_CANDIDATES
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.rejected(RuleCheckEvidenceCaptureTest.java:50)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.validIdWithTamperedFortyDoesNotBecomeEvidence(RuleCheckEvidenceCaptureTest.java:93)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="withdrawnSecondChunkRejectsWholeBatch" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.002"><failure message="&#xA;expected: UNVERIFIED_EVIDENCE&#xA; but was: INVALID_CANDIDATES" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: UNVERIFIED_EVIDENCE
+ but was: INVALID_CANDIDATES
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.rejected(RuleCheckEvidenceCaptureTest.java:50)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.withdrawnSecondChunkRejectsWholeBatch(RuleCheckEvidenceCaptureTest.java:98)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="emptyAndNullInputsDoNotReadOrAudit" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.0" /><testcase name="duplicateServerAliasRejectsBatchBeforeAudit" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.002"><failure message="&#xA;expected: CITATION_ALLOCATION_FAILED&#xA; but was: INVALID_CANDIDATES" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: CITATION_ALLOCATION_FAILED
+ but was: INVALID_CANDIDATES
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.rejected(RuleCheckEvidenceCaptureTest.java:50)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.duplicateServerAliasRejectsBatchBeforeAudit(RuleCheckEvidenceCaptureTest.java:77)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="unavailableReaderDoesNotReuseRetrievedText" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.002"><failure message="&#xA;expected: UNVERIFIED_EVIDENCE&#xA; but was: INVALID_CANDIDATES" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: UNVERIFIED_EVIDENCE
+ but was: INVALID_CANDIDATES
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.rejected(RuleCheckEvidenceCaptureTest.java:50)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.unavailableReaderDoesNotReuseRetrievedText(RuleCheckEvidenceCaptureTest.java:109)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="partialAuditFailureDoesNotReturnConsumableEvidence" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.002"><failure message="&#xA;expected: AUDIT_UNAVAILABLE&#xA; but was: INVALID_CANDIDATES" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: AUDIT_UNAVAILABLE
+ but was: INVALID_CANDIDATES
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.rejected(RuleCheckEvidenceCaptureTest.java:50)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.partialAuditFailureDoesNotReturnConsumableEvidence(RuleCheckEvidenceCaptureTest.java:117)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="blankAliasFailsClosed" classname="com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest" time="0.001"><failure message="&#xA;expected: CITATION_ALLOCATION_FAILED&#xA; but was: INVALID_CANDIDATES" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: CITATION_ALLOCATION_FAILED
+ but was: INVALID_CANDIDATES
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.rejected(RuleCheckEvidenceCaptureTest.java:50)
+	at com.zhku.knowledge.rulecheck.RuleCheckEvidenceCaptureTest.blankAliasFailsClosed(RuleCheckEvidenceCaptureTest.java:87)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase></testsuite>

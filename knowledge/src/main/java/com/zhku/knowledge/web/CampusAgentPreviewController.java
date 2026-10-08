@@ -1,9 +1,11 @@
 package com.zhku.knowledge.web;
 
-import com.zhku.agent.agent.runtime.AgentRunState;
 import com.zhku.knowledge.campusagent.CampusCreditAgentManager;
 import com.zhku.knowledge.campusagent.CampusCreditAgentService;
+import com.zhku.knowledge.campusagent.CampusAgentResultVisibility;
+import com.zhku.knowledge.campusagent.archive.CampusRunArchive;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,18 +26,33 @@ import java.util.concurrent.RejectedExecutionException;
 @RequestMapping("/zhku/local-preview/campus-agent/v1/runs")
 public class CampusAgentPreviewController {
     private final CampusCreditAgentManager manager;
+    private final CampusAgentResultVisibility visibility;
 
     public CampusAgentPreviewController(CampusCreditAgentManager manager) {
+        // 手动装配没有可信许可源时安全拒绝正文，不能形成绕过 Spring 门禁的旧构造器旁路。
+        this(manager, new CampusAgentResultVisibility(candidate -> new CampusRunArchive.Visibility(
+                CampusRunArchive.VisibilityStatus.HIDDEN, CampusRunArchive.Reason.SOURCE_UNAVAILABLE)));
+    }
+
+    @Autowired
+    public CampusAgentPreviewController(CampusCreditAgentManager manager, CampusAgentResultVisibility visibility) {
         this.manager = manager;
+        this.visibility = visibility;
     }
 
     @PostMapping
     public ResponseEntity<?> start(@RequestBody(required = false) CampusCreditAgentService.Request request) {
-        if (request == null) return ResponseEntity.badRequest().body(new ErrorReply("INVALID_REQUEST", "问题不能为空"));
+        if (request == null)
+            return ResponseEntity.badRequest().body(new ErrorReply("INVALID_REQUEST", "问题不能为空"));
         try {
             var snapshot = manager.start(request);
-            return ResponseEntity.status(snapshot.state() == AgentRunState.FAILED
-                    ? HttpStatus.SERVICE_UNAVAILABLE : HttpStatus.ACCEPTED).body(snapshot);
+            // 503 表示未获准执行；已接收任务的快速失败仍返回 202，不能依赖线程时序。
+            return ResponseEntity.status("EXECUTOR_REJECTED".equals(snapshot.failureCategory())
+                    ? HttpStatus.SERVICE_UNAVAILABLE
+                    : HttpStatus.ACCEPTED).body(visibility.filter(snapshot));
+        } catch (CampusRunArchive.Failure exception) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(new ErrorReply(exception.code().name(), exception.safeMessage()));
         } catch (IllegalArgumentException exception) {
             return ResponseEntity.badRequest().body(new ErrorReply("INVALID_REQUEST", "课程输入无效"));
         } catch (RejectedExecutionException exception) {
@@ -46,8 +63,9 @@ public class CampusAgentPreviewController {
 
     @GetMapping("/{runId}")
     public ResponseEntity<?> find(@PathVariable UUID runId) {
-        try { return ResponseEntity.ok(manager.find(runId)); }
-        catch (IllegalArgumentException exception) {
+        try {
+            return ResponseEntity.ok(visibility.filter(manager.find(runId)));
+        } catch (IllegalArgumentException exception) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorReply("RUN_NOT_FOUND", "运行不存在"));
         }
@@ -55,12 +73,14 @@ public class CampusAgentPreviewController {
 
     @PostMapping("/{runId}/cancel")
     public ResponseEntity<?> cancel(@PathVariable UUID runId) {
-        try { return ResponseEntity.ok(manager.cancel(runId)); }
-        catch (IllegalArgumentException exception) {
+        try {
+            return ResponseEntity.ok(visibility.filter(manager.cancel(runId)));
+        } catch (IllegalArgumentException exception) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorReply("RUN_NOT_FOUND", "运行不存在"));
         }
     }
 
-    public record ErrorReply(String code, String message) { }
+    public record ErrorReply(String code, String message) {
+    }
 }

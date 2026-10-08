@@ -1,0 +1,133 @@
+# 受控查证规则与五状态决策合同
+
+2026-10-08。本文按阶段保留设计与验收记录；早期“尚无HTTP/Bean”是当时边界。最新Task2H已装配默认关闭目录的严格JSON接口，真实2025规则/展示、模型语义、页面及最终外发门禁仍未完成。
+
+`RuleCheckDecisionService`复用现有原文核验器和当前证据读取接口。服务端提供已审核规则、本轮检索取得的快照及提问条件；模型不能提交事实正文、审核人、资料资格或已核验摘录。规则选择与条件提取仍是后续应用链任务，不能仅通过测试题编号选择规则。
+
+每个规则保存审核责任、指定参考版本、事实及其全部证据绑定。绑定使用持久source/chunk、片段revision/checksum和原文跨度；不能把PDF文件hash当作片段hash。每个事实标明适用前提与能否独立回答。此标记和条件/例外完整性须有审核依据，组件不进行自动语义证明。
+
+| 判定 | 必须满足的约束 |
+| --- | --- |
+| 完整回答 | 适用事实的全部绑定已核验，必要条件完整，没有证据缺口或未解决冲突 |
+| 部分回答 | 只输出条件匹配、证据已核验且明确可独立成立的事实；未知项另列 |
+| 必要澄清 | 缺少仍适用分支的决定性条件；按审核声明顺序先询问一个条件，再收敛分支；不能询问已排除分支的条件或重复已有信息 |
+| 证据不足 | 缺资料、范围未覆盖、规则未审/退役或来源不可用；不靠追问用户补来源缺口 |
+| 证据冲突 | 至少两个冲突侧均通过原文与当前字段核验；不选择其中一方肯定作答 |
+
+同source/chunk的多重本轮别名拒绝歧义。引用合法但quote把4改成40、漏关联例外、当前撤回或版本/hash漂移均阻断该事实。若冲突一方缺证，不能自动消除冲突后放行剩下的一方。
+
+真实2025规则草案见[模板草案](rule-check-2025-rule-template-draft.json)：20个已确认问题参考归并到10个条款定位。草案仍为DRAFT，没有伪造运行时UUID、片段checksum或跨度；不是20条已发布规则。个人当前资格、当期入口和2026适用性不能从这批参考推断。
+
+后续装配必须补齐：
+
+1. 在实际审核发布片段上建立稳定身份及跨度，保留原件/文本/片段各自指纹。
+2. 规则选择与提问匹配、条件提取可信边界、条件/例外及独立性审核，不能靠模型自报相关性。
+3. 复用现有controlled身份、CSRF、限长、预算与引用审计；学生不能提交服务端模板或快照自证资格。
+4. 输出和历史再展示的最终资格复核与撤回窗口。逐绑定顺序重读不等于跨条款原子快照或并发线性化。
+5. 使用真实输出评价检索、事实支持及状态；组件合成测试不能当产品正确率。
+
+本组件只实现来源核验后的规则决策约束，旧自由RAG链的事实支持风险仍单独记录。
+
+## 共享检索证据捕获合同（Task2C）
+
+RuleCheckEvidenceCapture仅消费服务端两路检索结果；RetrievedChunk现在保留SQL中实际sourceId。旧七参构造器仍可用于旧链路，但新链拒绝缺来源身份、重复chunk或不唯一引用别名，不按标题/正文猜来源。捕获复用已有CitationIdFactory与CitationAuditRepository，按整段原文调用现有核验器检查hash/UTF-16/当前身份及字段资格。所有片段通过后再写审计，全部审计成功才返回不可变快照。
+
+RULE_CHECK_CAPTURE表示证据取得尝试，不是学生已看到回答。逐条仓储写入失败可保留部分审计，不返回快照、不承诺事务原子性；实际审计数据库持久化另行验收。捕获后规则决策仍须再次核验必要绑定，不能消除最终下发窗口。未添加客户端快照DTO、HTTP入口、自然语言规则选择或真实规则激活。临时库只验证合成SQL链路，不改变2025资料发布状态。
+
+## 固定索引JDBC捕获审计（Task2D）
+
+捕获传入完整source/chunk/revision/hash/正文绑定；JdbcRuleCheckCitationAuditRepository只接受RULE_CHECK_CAPTURE，并以固定服务端profile/切分/scope在一条参数化INSERT SELECT中重新检查当前资料资格、run一致性、来源版本及原文，匹配唯一entry后插入。任何0行、重复引用或数据库失败均阻断。旧JdbcCitationAuditRepository显式拒绝CAPTURE，防止误装时退回latest解析；旧四参/旧路由不改语义。V22仅扩充现有CHECK，未更改历史迁移；原库未应用该迁移。
+
+当前快照不保存召回entryId，审计绑定的是固定配置下仍符合捕获内容的当前entry；不得声称追踪召回时entry或自动校验跨组件配置。后续装配必须统一检索、current reader与审计的profile/切分/scope，并验证切换边界。单条SQL快照不等于整批审计或最终HTTP/历史下发原子性。真实2025规则仍DRAFT，来源指纹一致不等于展示资格。
+
+## 服务端统一装配与应用链路（Task2E）
+
+`RuleCheckRuntimeFactory`从一份不可变`RuleCheckRuntimeSettings`同时装配词法、向量、当前证据reader和捕获审计；profile、chunkingVersion及requiredScope一致。固定切片过滤在两路SQL的评分/排序/LIMIT之前，旧构造器和离线评测保留既有行为。工厂构造不会连接数据库或调用供应商；单独手动拼接旧构造器不享有统一配置保证。引用版本精确比较，没有将“2025版”自动解释为“2025.9.2”。
+
+`RuleCheckApplicationService.check(question, confirmedConditions)`为内部应用接口，不是HTTP请求DTO。问题限2048个UTF-16单元、条件最多16项、键64/值128；条件表示调用方显式传入的声明，不证明真实学籍或个人资格。目录必须由服务端维护，仅APPROVED且引用版本一致的规则进入选择选项；ID重复或已审选项超过64项拒绝。选择器只收到ID和已审问题范围，只返回一个ID；无结果/越权/异常不触发检索，不接收模型事实正文、审核身份或资格声明。语义选错一个合法ID仍可能解释错规则，须由后续独立路由eval验证，白名单不是语义相关性证明。
+
+空/未审目录不调用选择器或检索。选定规则后先拒绝未声明条件键，再共享混合检索→整批捕获核验/逐条审计→重读审核目录→五状态决策；单路不可用可复用另一健康路径，双路不可用或无候选拒答。捕获后同一规则及其问题范围变化/退役时拒绝，决策reader再次核对来源资格。异常信息不回显为学生正文；目前应用拒绝原因用于失败归类，尚无运营告警装配。
+
+当前只有可测试工厂与内部应用链路，无Spring Bean、Controller、v2身份/CSRF或页面入口；旧v1 cookie路径和权限未改变。真实模板仍DRAFT、真实资料展示资格未改变。目录/数据库顺序复核不保证跨组件或最终HTTP外发原子性；历史再展示及语义路由均需后续验收。工程状态与真实模型效果、报告集质量、用户收益分别记录。
+
+独立审查I1补充：真实embedding适配器的调用/输出异常不一定属于RetrieverUnavailableException。新工厂在向量检索边界统一转换运行时故障，让已有Hybrid单路降级生效，原因链保留供后续诊断；旧检索器与索引任务的异常语义未改。健康词法证据仍须通过当前核验、审计及决策，不能因模型故障跳过这些步骤。
+
+## 独立v2身份边界（2026-10-08）
+
+新zhku-rule-check-preview独立profile/应用上下文；/api/zhku/controlled-preview/v2固定ZHKU_RULE_CHECK_SESSION cookie，15分钟闲置、内存、HttpOnly、SameSite Strict，仅本机HTTP；旧v1 cookie不扩宽，不提供SSO。四个auth路径之外只授权USER查证POST，MAINTAINER无角色继承；客户端身份头不可信。CSRF先于当前身份读取，登录换session ID并刷新token；撤销或revision不符清新cookie/session，身份库故障503且不输出事实。安全环境缺实际cookie配置或混用profile/匿名/治理/Agent入口时拒绝，不能靠守卫默认值补齐。
+
+Task2F为真实安全过滤链与身份仓储替身工程验收；暂无独立启动Application/实际cookie创建/业务Controller。A02/A03仍待完成，真实规则及资料许可不由身份工程验收授权。证据见r5-security-20261008-01。
+
+## 默认关闭的独立应用装配（2026-10-08）
+
+RuleCheckPreviewApplication只Import新配置、v2安全链与AuthController，不自动扫描。main initializer及直接配置BFPP/数据源都要求安全环境合格；profile YAML enabled/initialize默认false。当前只支持显式专用无卷验收库zhkuagent_rulecheck_e2e、127.0.0.1非54329，无URL参数/凭据，密码仅进程环境；取得密码不授权原库迁移。显式initialize才执行18份既有迁移至V22，DataSource/Flyway/身份/RuntimeFactory共享目标，自动Flyway关闭。
+
+运行配置固定检索profile/切片/scope/2025.9.2与预算；目录固定为空，不接受客户端或配置伪造审核规则；选择/embedding外发拒绝。HTTP认证有实际合成临时库证据，业务Controller未装配。正式规则/展示及供应商适配须后续独立任务，不通过打开开关自动获得。A02普通用户终端与同源代理尚未交付。
+
+## 严格JSON查证接口（Task2H，2026-10-08）
+
+POST /api/zhku/controlled-preview/v2/rule-check，仅question与confirmedConditions两项必填字段；question非空白至2048 UTF-16，条件至16项，键非空白至64/值文本至128。数字/布尔/null/数组不转换文本；额外可信字段、重复键与尾随JSON拒绝400。条件标记USER_DECLARED，仅用户声明，不证明个人学籍或资格。响应显式五状态、固定knowledgeScope/referenceRevision、声明条件、确认事实/核验摘录、澄清/未知/冲突；引用无内部checksum/qualified属性，不生成原文地址或虚构无例外说明。
+
+application/json媒体头守卫只约束Content-Type及UTF-8 charset声明，先于CSRF且不读body，非JSON/不支持charset返回415；避免csrf读取表单参数提前解析业务正文。新应用所有原始路径含百分号时在CSRF前400，防止MVC解码后匹配而绕过按原路径判断的过滤器；此守卫不进入旧v1。CSRF→当前身份→USER授权→32KiB实际读取限长（最多32769字节），没有Content-Length仍413；旧v1默认16KiB与路径保留。输入400/应用异常503均固定消息、no-store、不回显cause。新profile目录仍CLOSED，合法实际请求仅返回缺证。实际正文严格UTF8验证未完成，Jackson可能识别其他Unicode编码，不能把声明检查称正文编码验证。
+
+接口工程不证明合法规则ID的语义匹配、实际规则范围/例外完整、原文定位、跨轮上下文、最终外发原子性。A04/A06/A07及B02仍须独立验证；当前禁止真实规则激活，不把尚未完成的最终复查放任用于真实资料。
+
+## 必要澄清续答合同（Task2I，2026-10-08）
+
+同一POST的首次请求保留question/confirmedConditions两字段。NEED_CLARIFICATION才发clarificationToken；续答加该可选字段，必须canonical UUID文本、原问题完全一致、confirmedConditions仅本轮待问key及一个allowedValue，不能回传ruleId、旧可信条件、审核或证据。服务端合并此前明确值并标记USER_DECLARED；回复增加审核目录scope（ruleId/questionScope/declaredConditions/factPreconditions）以及每个主事实when，不把固定知识scope当个人适用，不自造独立例外。
+
+每登录HttpSession只保存一个必要上下文。绑定原问题/已审核CatalogEntry全文/settings/待问条件与TrustedActor全快照；5分钟按本轮开始绝对计时，错误尝试不延长，合法续答开启下一轮。新问题替换旧slot；nonce一次消费且交接下一generation在同session锁内；慢旧请求finish/异常清理必须匹配generation，不能覆盖或删新问题。失效/过期/换账号/revision变化/已消费/被替代返回固定409及no-store，要求重新查证；错误delta/不同问题400仍可更正；服务异常503。网络丢失返回后从新问题重建，不承诺咨询历史恢复或自动重试安全。
+
+续答跳过选择器但重新复核目录/settings、重新检索/捕获/审计/当前核验与决策；不缓存旧正文证据。缺资料不构造续答，已选规则变化/退役拒绝。此工程协议不证明自然语言选题语义、个人学籍、真实例外完整或最终HTTP外发原子性；最终身份/资料复核仍A07。正式目录CLOSED、真实2025草稿保持关闭。
+
+## 有界选题协议组件（Task2J / A05第一段，2026-10-08）
+
+独立provider-neutral Transport接收systemConstraints及结构化userPayload（question、审核ruleId/questionScope）；不额外传原文、个人条件/凭据，用户问题可能自行含个人信息，不宣称脱敏。模型仅一个JSON字段ruleId，精确目录ID文本或null；null为不确定/歧义拒绝，无第一项/关键词猜测回退。重复键/尾随/其他字段/答案/工具/错误类型/非法Unicode与越权ID拒绝；合法ID语义错误仍可能发生，须C05人工参考评估。
+
+问题2048 UTF16、目录64项、ID128/scope2048；SYSTEM+结构化payload合计65536 UTF8字节，String返回后解析前1024字节上限。每实例准入尝试1–128总限额、每轮等待至多5秒，失败/超时也计，无隐式重试；单worker/单未完成任务，BUSY不排调用者，executor队列1仅线程handoff。取消不证明供应商停止，实际run退出前保留占用；close拒绝新请求/interrupt，不无限等待非协作任务，diagnostic继续展示未退出状态。
+
+此批只进程内Transport替身，正式CLOSED未装配；String后的预算不证明实际网络读取已限长，真实适配须验证响应读流/连接超时/无重试，供应商用量未知不可估成金额。组件白名单和prompt不证明相关性/注入语义安全/学生收益，A05整体及C组保持OPEN。
+
+## 有界原文定位内部组件（Task2K / A06第一段，2026-10-08）
+
+JDBC read兼容委托readLocated，同一现有字段资格SQL返回正文与title/source_url/source_locator/page_number/section_title。单片段length(content)<=65536数据库字符；URL/section分别4096/8192 UTF8字节超限在SQL为NULL，不搬运无限元数据。当前行完整读取再检查rows.next唯一；所有已有profile/run/scope/版本/hash/学生展示与分享条件保留。此预算是此reader单片段，不宣称整条检索链下载限制或PDF页数限制。
+
+内部定位只接服务端已核验摘录，固定revision、当前一次SQL持久身份/hash/资格匹配，复用Verifier memo校验本次正文hash/Unicode/span/摘录一致。memo不是第二次fresh DB；公开VerifiedExcerpt构造器不授权HTTP输入。返回同轮citation别名、元数据、有界context及原chunk UTF16跨度；完整quote左右最多256单位且不切代理对，context<=8192 UTF8字节，超限无正文拒绝而不截断quote。失败只有固定Code，不含旧正文/cause。
+
+记录页码仅RECORDED_SOURCE_PAGE；缺页UNKNOWN，物理与印刷页映射待B01，不猜PDF页或造#page。SourceURL仅https、显式精确host、无userinfo、默认/443端口、合法URI和2048字符；只返回原字段，不服务端抓取/跟随重定向，不验证远端实际文件/版本。标题/条款/页码/地址缺失明确unknown；文本必须在未来前端逃逸渲染，不称本组件已净化HTML。原文HTTP Session引用绑定、真实点击/页码映射与最终当前身份/资料再核验窗口仍A06后段/A07，正式CLOSED不变。
+
+## 旧数据库测试目标边界（Task2L / H01，2026-10-08）
+
+所有32处旧原库默认配置改用显式zhku.db.url校验，shared Flyway配置前二次校验；固定127.0.0.1、1024..65535非54329、三个已存在专用测试库名zhkuagent_rulecheck_e2e/zhkuagent_run_archive_e2e/zhkuagent_e2e，不接受userinfo/query/fragment/尾随。archive/rulecheck/demo既有更窄边界不扩大。缺目标的直接全量Maven将安全失败，纯/DB/HTTP/供应商显式分类仍F06。测试密码来源不变，不把库名守卫当生产资料授权。
+
+SubmissionProductionStartupProbe只挂载单class，独立校验继承环境URL仅为archive目标后才启动Application，固定错误不回显URL/cause；不能依赖父系统属性或未挂载helper。本批仅纯单元guard验证，未声称打包子进程正向启动或全部旧测试执行。
+
+## 服务端引用凭据组件（Task2M / A06，2026-10-08）
+
+只用于内部Session引用绑定，不提供HTTP/Bean入口。每Session仅一个generation及完整TrustedActor快照，begin废旧轮；固定5min从开始，不因publish/resolve延长。publish仅一次，32输入引用先限数再去重、alias/revision128、hash64hex、持久UUID、有效span/长度、Unicode；单quote4096UTF16/8192UTF8、唯一quote合计32768UTF8。同alias不同quote拒绝，精确重复共用随机UUIDhandle；空终态不能再补写。仅保留有限excerpt正文，不保留问题/条件/完整历史/原文全文。
+
+resolve接受canonical opaque handle且匹配本Session/actor/TTL；requireCurrent供原文I/O后校验轮次和完整server条目，不靠public Ticket/VerifiedExcerpt构造器自证。clearOwn不能清新账号/新轮。Session失效或未知凭据固定Failure无cause。未来HTTP必须只传handle，另需A07当前身份/审核目录/资料复查，顺序检查不保证网络交付原子性；组件合同不证明来源/语义真实性。
+
+## 返回前复查内部组件（Task2N / A07，2026-10-08）
+
+非缺证ScopedResult由应用生成仅请求内存ReleaseBinding(settings、全文审核entry、question、明确条件、原capture元数据refs)；兼容3参数constructor不授权有依据结果release。isCurrent精确settings/entry及唯一alias/持久身份/版本/hash，原refs非空且<=resultLimit<=50；fresh reader重建同轮alias的原集合，不重新检索/外发/audit。deterministic decide/verifier继续全文hash/UTF16/span/current核验，exact比较完整decision/scope/continuation并后置catalogue。无scope/continuation/binding的INSUFFICIENT只给无facts/clarification/conflict的缺证理由，可不依赖catalogue可用。
+
+isReferenceApproved仅当前APPROVED/精确revision目录facts和conflict bindings的source/chunk/revision/hash/span/quote匹配，citation alias不作持久身份；不证明当前source资格，HTTP仍须fresh locate和identity/Session完成后检查。所有原refs在重放前做纯正文UTF16/SHA256校验，即使未参与决策也不能只比较两份旧checksum字段；纯校验不增加查询或事实授权。public ReleaseBinding不证明来源真伪/自然语言选题相关性，不接受HTTP客户端构造。<=50是distinct refs，decide仍逐binding fresh verifier，不宣称整体SQL次数或时限受控。保守拒绝原非输出chunk变化及任何replay差异，可能增加拒答/延迟须C组评估。
+
+新组件未Controller/Bean装配；A07真实HTTP身份/Session/撤回矩阵及最终下发窗口后段仍需实现。前后目录和顺序SQL核验不等于数据、身份和网络交付原子提交。
+
+## 原文HTTP和回答末端核对（Task2O，2026-10-08）
+
+独立v2 POST现装配isCurrent、fresh identity和Session保存SecurityContext的完整actor检查；澄清和引用generation同锁开始/发布，I/O锁外。请求初始的新问题立即替代旧引用，续答先验证delta再开始新引用轮。CitationReply增加originalToken（随机UUID），其他字段沿用既有协议；ReleaseBinding不进DTO/Session。异常只清自己的generation，不清并发新登录/新问题，不用迟到401响应无条件删Cookie。
+
+USER GET /api/zhku/controlled-preview/v2/rule-check/originals/{originalToken}只读取本Session凭据，拒绝任何query参数；过期/未知/跨Session404，已知但目录/资料/会话变化409，当前身份撤销401、核验故障503。两次fresh locate必须FOUND且完整View一致，前后approved目录精确membership，再fresh identity和Session actor/generation/TTL检查；失败不带旧正文或cause，全部no-store。View记录页码只称RECORDED_SOURCE_PAGE，物理/印刷页映射仍未知；默认allowHosts为空，无已审核链接则unknown。生产CLOSED目录和真实DRAFT不可见不变。
+
+独立9项真实HTTP测试连接实际RuntimeFactory/词法/捕获/审计/决定/当前replay/原文SQL；规则和账号合成、固定selector、向量故障词法fallback，不能称供应商语义或真实规则质量。旧12项HTTP里必要澄清组仍明确mock isCurrent，仅证明协议。审查I1后首问和续答在任何consume/begin前核对Session全actor，避免迟到旧请求覆盖新账号已完成slot；实际入口身份SQL的spy仅callRealMethod后阻塞，不mock许可。检查是顺序窗口，不是数据库/目录/身份/网络原子提交；缓存/代理/浏览器和多实例语义另验。浏览器需按身份和问题轮次丢弃迟到正文，A08–A10继续推进。
+
+## 学生v2客户端与本地状态（Task3A，2026-10-08）
+
+独立ruleCheckSession复用已有Session工厂，不混用v1身份或submission。只提供v2 auth/查证/原文，同源cookie、no-store、CSRF；客户端仅提交自然语言、显式条件及可选server clarificationToken。必要澄清逐轮只传当前awaited key的allowed value，不猜其他条件。
+
+身份epoch、问题round和Workflow本地generation丢弃旧成功/错误/原文；查询的前置CSRF也绑定round，错误token/结构请求先拒不替换正确轮次。当前HTTP401在解析正文前按身份失效清本地，即使空/HTML；旧epoch/round401不得清新身份。login/logout串行，公开me在转换时拒绝，login完成用私有读取；me核对完整actor变化时清旧内容/CSRF。跨tab仅me/当前401检测，不承诺即时同步或浏览器Set-Cookie网络顺序原子性。
+
+五状态/revision/USER_DECLARED/非空依据/UTF16及原文跨度、pageKind/HTTPS无userinfo/端口结构校验，只证明消息结构，不证明语义、相关性或资料资格。网络JSON仍整体读取后验证，不声称下载字节/内存硬上限；可展示条目/文本上限可能比未来审核模板严格，真实B/C联调需校准。Workflow失败/新题/身份变化/离开清旧正文/原文；网络结果未确认、不自动重试或宣称教务受理。本批仅Node实际import测试，无页面/路由/代理/浏览器装配。

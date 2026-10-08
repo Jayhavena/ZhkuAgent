@@ -22,10 +22,9 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 class AnonymousTelemetryTest {
 
     private static final DataSource DATA_SOURCE = new DriverManagerDataSource(
-            System.getProperty("zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"),
+            com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl(),
             System.getProperty("zhku.db.user", "zhkuagent"),
-            ZhkuDatabaseTestConfig.databasePassword()
-    );
+            ZhkuDatabaseTestConfig.databasePassword());
 
     @Test
     void shouldRejectFreeTextAndSensitiveFieldsFromStructuredTelemetry() {
@@ -34,16 +33,14 @@ class AnonymousTelemetryTest {
                 "retrievalProfile", "local-public-elective",
                 "handoffRequired", false,
                 "latencyBucket", "LT_1S",
-                "message", "raw-student-question"
-        ))).withMessageContaining("不允许");
+                "message", "raw-student-question"))).withMessageContaining("不允许");
     }
 
     @Test
     void shouldRejectRawTextSmuggledIntoAnAllowedTelemetryDimension() {
         assertThatIllegalArgumentException().isThrownBy(() -> PrivacyBoundary.anonymousTelemetry(Map.of(
                 "route", "CURRENT_NOTICE",
-                "failureCategory", "raw-student-question"
-        ))).withMessageContaining("格式");
+                "failureCategory", "raw-student-question"))).withMessageContaining("格式");
     }
 
     @Test
@@ -53,16 +50,14 @@ class AnonymousTelemetryTest {
                 "retrievalProfile", "local-public-elective",
                 "handoffRequired", false,
                 "latencyBucket", "LT_1S",
-                "eventDate", "2026-09-21"
-        ));
+                "eventDate", "2026-09-21"));
 
         assertThat(telemetry).containsExactlyInAnyOrderEntriesOf(Map.of(
                 "route", "CURRENT_NOTICE",
                 "retrievalProfile", "local-public-elective",
                 "handoffRequired", false,
                 "latencyBucket", "LT_1S",
-                "eventDate", "2026-09-21"
-        ));
+                "eventDate", "2026-09-21"));
     }
 
     @Test
@@ -73,15 +68,13 @@ class AnonymousTelemetryTest {
                 "profile", "local-public-elective",
                 "status", "READY",
                 "apiKey", "test-secret",
-                "ZHKU_DB_PASSWORD", "test-password"
-        ));
+                "ZHKU_DB_PASSWORD", "test-password"));
 
         assertThat(echo).containsExactlyInAnyOrderEntriesOf(Map.of(
                 "provider", "dashscope",
                 "model", "qwen-plus",
                 "profile", "local-public-elective",
-                "status", "READY"
-        ));
+                "status", "READY"));
         assertThat(echo.values()).doesNotContain("test-secret", "test-password");
     }
 
@@ -89,16 +82,14 @@ class AnonymousTelemetryTest {
     void shouldExportOnlyWhitelistedAggregateFields() {
         Map<String, Object> exported = PrivacyBoundary.aggregateExport(new FeedbackAggregate(
                 "course-selection", "2026-1", FeedbackReason.OUTDATED,
-                LocalDate.of(2026, 9, 21), 3L
-        ));
+                LocalDate.of(2026, 9, 21), 3L));
 
         assertThat(exported).containsExactlyInAnyOrderEntriesOf(Map.of(
                 "guideIdentifier", "course-selection",
                 "guideVersion", "2026-1",
                 "reason", "OUTDATED",
                 "feedbackDate", "2026-09-21",
-                "count", 3L
-        ));
+                "count", 3L));
     }
 
     @Test
@@ -107,15 +98,15 @@ class AnonymousTelemetryTest {
             DatabaseMetaData metadata = connection.getMetaData();
             assertThat(columnsOf(metadata, "anonymous_feedback_event")).containsExactlyInAnyOrder(
                     "guide_identifier", "guide_version", "feedback_reason",
-                    "anonymous_session_hash", "dedupe_key", "created_at", "expires_at"
-            );
+                    "anonymous_session_hash", "dedupe_key", "created_at", "expires_at");
             assertThat(columnsOf(metadata, "anonymous_feedback_aggregate")).containsExactlyInAnyOrder(
-                    "guide_identifier", "guide_version", "feedback_reason", "feedback_date", "feedback_count"
-            );
+                    "guide_identifier", "guide_version", "feedback_reason", "feedback_date", "feedback_count");
             assertThat(columnsOf(metadata, "anonymous_feedback_event"))
-                    .doesNotContain("message", "question", "answer", "name", "student_id", "contact", "password", "api_key");
+                    .doesNotContain("message", "question", "answer", "name", "student_id", "contact", "password",
+                            "api_key");
             assertThat(columnsOf(metadata, "anonymous_feedback_aggregate"))
-                    .doesNotContain("message", "question", "answer", "name", "student_id", "contact", "password", "api_key");
+                    .doesNotContain("message", "question", "answer", "name", "student_id", "contact", "password",
+                            "api_key");
         }
     }
 

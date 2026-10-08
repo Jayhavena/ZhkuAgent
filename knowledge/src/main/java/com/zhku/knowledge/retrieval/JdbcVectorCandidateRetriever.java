@@ -23,6 +23,14 @@ public final class JdbcVectorCandidateRetriever implements ChunkCandidateRetriev
     private final String profileId;
     private final String requiredScope;
     private final EmbeddingClient embeddingClient;
+    private final boolean offlineEvaluation;
+    private final String chunkingVersion;
+
+    public JdbcVectorCandidateRetriever(DataSource dataSource, RetrievalEligibilityFilter eligibilityFilter,
+            String profileId, String requiredScope, String chunkingVersion, EmbeddingClient embeddingClient) {
+        this(dataSource, eligibilityFilter, profileId, requiredScope, embeddingClient, false, Objects.requireNonNull(chunkingVersion));
+        if (chunkingVersion.isBlank()) throw new IllegalArgumentException("固定切片版本不能为空");
+    }
 
     public JdbcVectorCandidateRetriever(
             DataSource dataSource,
@@ -31,11 +39,24 @@ public final class JdbcVectorCandidateRetriever implements ChunkCandidateRetriev
             String requiredScope,
             EmbeddingClient embeddingClient
     ) {
+        this(dataSource, eligibilityFilter, profileId, requiredScope, embeddingClient, false, null);
+    }
+
+    private JdbcVectorCandidateRetriever(DataSource dataSource, RetrievalEligibilityFilter eligibilityFilter,
+            String profileId, String requiredScope, EmbeddingClient embeddingClient, boolean offlineEvaluation, String chunkingVersion) {
         this.dataSource = Objects.requireNonNull(dataSource, "数据源不能为空");
         this.eligibilityFilter = Objects.requireNonNull(eligibilityFilter, "资格过滤器不能为空");
         this.profileId = Objects.requireNonNull(profileId, "profile 标识不能为空");
         this.requiredScope = requiredScope;
         this.embeddingClient = Objects.requireNonNull(embeddingClient, "embedding 客户端不能为空");
+        this.offlineEvaluation = offlineEvaluation;
+        this.chunkingVersion = chunkingVersion;
+    }
+
+    /** 仅离线评测允许读取BUILDING；评测在激活前执行，不能为其提前放宽线上入口。资料资格仍完整检查。 */
+    public static JdbcVectorCandidateRetriever forOfflineEvaluation(DataSource dataSource,
+            RetrievalEligibilityFilter eligibilityFilter, String profileId, String requiredScope, EmbeddingClient embeddingClient) {
+        return new JdbcVectorCandidateRetriever(dataSource, eligibilityFilter, profileId, requiredScope, embeddingClient, true, null);
     }
 
     @Override
@@ -57,7 +78,7 @@ public final class JdbcVectorCandidateRetriever implements ChunkCandidateRetriev
         }
 
         List<RetrievedChunk> candidates = new ArrayList<>();
-        for (CandidateRow row : loadRows(toVectorLiteral(queryVector))) {
+        for (CandidateRow row : loadRows(toVectorLiteral(queryVector), limit)) {
             if (!eligibilityFilter.evaluate(row.source(), requiredScope).eligible()) {
                 continue;
             }
@@ -72,11 +93,16 @@ public final class JdbcVectorCandidateRetriever implements ChunkCandidateRetriev
     private int profileDimensions() {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "SELECT dimensions FROM embedding_profile WHERE profile_id = ?")) {
+                     "SELECT dimensions, status FROM embedding_profile WHERE profile_id = ?")) {
             statement.setString(1, profileId);
             try (ResultSet result = statement.executeQuery()) {
                 if (!result.next()) {
                     throw new RetrieverUnavailableException("profile 未在册：" + profileId);
+                }
+                String status = result.getString("status");
+                // 状态检查必须早于embedding外发；维度匹配不等于这个profile已经上线。
+                if (!"ACTIVE".equals(status) && !(offlineEvaluation && "BUILDING".equals(status))) {
+                    throw new RetrieverUnavailableException("profile 不允许当前读取模式：" + status);
                 }
                 return result.getInt("dimensions");
             }
@@ -85,8 +111,9 @@ public final class JdbcVectorCandidateRetriever implements ChunkCandidateRetriev
         }
     }
 
-    private List<CandidateRow> loadRows(String vectorLiteral) {
-        // 不在此处 LIMIT：资格过滤发生在 Java 侧，先截断会让不合格条目挤掉合格候选。
+    private List<CandidateRow> loadRows(String vectorLiteral, int limit) {
+        // 所有已知资格先在SQL过滤，再精确排序/LIMIT，避免物化全库或被不合格近邻挤占。
+        // 查询时再检查profile，防止embedding期间退役后仍输出候选；完整时效映射仍待后续实现。
         String sql = """
                 SELECT entry.chunk_id, chunk.content, chunk.source_locator, chunk.page_number,
                        chunk.content_checksum, source.id AS source_id, source.title AS source_title,
@@ -95,13 +122,35 @@ public final class JdbcVectorCandidateRetriever implements ChunkCandidateRetriev
                 FROM retrieval_index_entry entry
                 JOIN knowledge_chunk chunk ON chunk.id = entry.chunk_id
                 JOIN knowledge_source source ON source.id = chunk.source_id
-                WHERE entry.profile_id = ? AND entry.embedding IS NOT NULL
+                JOIN embedding_profile profile ON profile.profile_id = entry.profile_id
+                JOIN retrieval_index_run index_run ON index_run.id = entry.run_id
+                WHERE entry.profile_id = ?
+                  AND (profile.status = 'ACTIVE' OR (? AND profile.status = 'BUILDING'))
+                  AND index_run.status = 'COMPLETED'
+                  AND index_run.profile_id = entry.profile_id
+                  AND index_run.chunking_version = entry.chunking_version
+                  AND source.publication_status = 'PUBLISHED'
+                  AND source.visibility_scope = 'STUDENT_VISIBLE'
+                  AND source.sharing_rights_confirmed = TRUE
+                  AND (CAST(? AS VARCHAR) IS NULL OR source.knowledge_scope = ?)
+                  AND (CAST(? AS VARCHAR) IS NULL OR entry.chunking_version = ?)
+                  AND entry.source_version = source.source_version
+                  AND entry.content_checksum = chunk.content_checksum
+                  AND entry.embedding IS NOT NULL
                 ORDER BY entry.embedding <=> CAST(? AS vector), entry.chunk_id
+                LIMIT ?
                 """;
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, profileId);
-            statement.setString(2, vectorLiteral);
+            statement.setBoolean(2, offlineEvaluation);
+            statement.setString(3, requiredScope);
+            statement.setString(4, requiredScope);
+            // 固定切片过滤先于距离排序/LIMIT，避免其他版本挤占候选预算。
+            statement.setString(5, chunkingVersion);
+            statement.setString(6, chunkingVersion);
+            statement.setString(7, vectorLiteral);
+            statement.setInt(8, limit);
             try (ResultSet result = statement.executeQuery()) {
                 List<CandidateRow> rows = new ArrayList<>();
                 while (result.next()) {
@@ -114,7 +163,8 @@ public final class JdbcVectorCandidateRetriever implements ChunkCandidateRetriev
                                     result.getString("source_locator"),
                                     (Integer) result.getObject("page_number"),
                                     result.getString("source_version"),
-                                    result.getString("content_checksum")
+                                    result.getString("content_checksum"),
+                                    sourceId
                             ),
                             new SourceEligibilitySnapshot(
                                     sourceId,

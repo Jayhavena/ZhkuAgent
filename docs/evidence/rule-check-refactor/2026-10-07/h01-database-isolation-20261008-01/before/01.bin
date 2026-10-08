@@ -1,0 +1,139 @@
+package com.zhku.knowledge;
+
+import org.junit.jupiter.api.Test;
+
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * 阶段 8 检索元数据层的数据契约测试（V9）。
+ *
+ * <p>确保"规则目录—embedding profile—索引运行—索引条目—引用审计"这条
+ * 可追溯链路真实存在于迁移后的结构中，任一向量都能反查到已发布资料的版本。</p>
+ */
+class RetrievalSchemaTest {
+
+    private static final String DATABASE_URL = System.getProperty(
+            "zhku.db.url",
+            "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
+    );
+
+    private static final String DATABASE_USER = System.getProperty(
+            "zhku.db.user",
+            "zhkuagent"
+    );
+
+    private static final String DATABASE_PASSWORD =
+            ZhkuDatabaseTestConfig.databasePassword();
+
+    @Test
+    void shouldProvideRetrievalCatalogAndIndexAuditSchema() throws SQLException {
+        assertThat(DATABASE_PASSWORD)
+                .as("运行数据库契约测试时必须显式提供本机密码")
+                .isNotBlank();
+
+        ZhkuFlywayTestSupport.migrate(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+
+        try (Connection connection = DriverManager.getConnection(
+                DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD
+        )) {
+            DatabaseMetaData metadata = connection.getMetaData();
+
+            assertThat(tableExists(metadata, "rule_catalog_entry"))
+                    .as("路由判定依赖可审计的规则目录")
+                    .isTrue();
+            assertThat(columnsOf(metadata, "rule_catalog_entry")).contains(
+                    "rule_id", "topic", "required_facts", "evidence_scope",
+                    "risk", "handoff_condition", "catalog_version"
+            );
+
+            assertThat(tableExists(metadata, "embedding_profile"))
+                    .as("embedding 变更必须走 profile 原子切换，元数据先行")
+                    .isTrue();
+            assertThat(columnsOf(metadata, "embedding_profile")).contains(
+                    "profile_id", "provider", "model", "dimensions", "status"
+            );
+
+            assertThat(tableExists(metadata, "retrieval_index_run"))
+                    .as("每次索引重建必须留痕")
+                    .isTrue();
+            assertThat(columnsOf(metadata, "retrieval_index_run")).contains(
+                    "id", "profile_id", "chunking_version", "status", "started_at"
+            );
+
+            assertThat(tableExists(metadata, "retrieval_index_entry"))
+                    .as("检索片段必须版本化映射回原知识片段")
+                    .isTrue();
+            assertThat(columnsOf(metadata, "retrieval_index_entry")).contains(
+                    "id", "run_id", "profile_id", "chunk_id",
+                    "source_version", "chunking_version", "content_checksum", "embedding"
+            );
+            assertThat(hasForeignKeyTo(metadata, "retrieval_index_entry", "knowledge_chunk"))
+                    .as("索引条目必须关联原 knowledge_chunk，禁止悬空向量")
+                    .isTrue();
+            assertThat(hasForeignKeyTo(metadata, "retrieval_index_entry", "retrieval_index_run"))
+                    .as("索引条目必须归属某次索引运行")
+                    .isTrue();
+
+            assertThat(tableExists(metadata, "citation_audit"))
+                    .as("每个下发的引用标识都必须可审计")
+                    .isTrue();
+            assertThat(columnsOf(metadata, "citation_audit")).contains(
+                    "id", "citation_id", "index_entry_id", "route", "created_at"
+            );
+            assertThat(hasForeignKeyTo(metadata, "citation_audit", "retrieval_index_entry"))
+                    .as("引用必须反查到具体索引条目")
+                    .isTrue();
+        }
+    }
+
+    private static boolean tableExists(
+            DatabaseMetaData metadata,
+            String tableName
+    ) throws SQLException {
+        try (ResultSet tables = metadata.getTables(
+                null, "public", tableName, new String[]{"TABLE"}
+        )) {
+            return tables.next();
+        }
+    }
+
+    private static Set<String> columnsOf(
+            DatabaseMetaData metadata,
+            String tableName
+    ) throws SQLException {
+        Set<String> columns = new HashSet<>();
+        try (ResultSet result = metadata.getColumns(
+                null, "public", tableName, null
+        )) {
+            while (result.next()) {
+                columns.add(result.getString("COLUMN_NAME"));
+            }
+        }
+        return columns;
+    }
+
+    private static boolean hasForeignKeyTo(
+            DatabaseMetaData metadata,
+            String foreignKeyTable,
+            String primaryKeyTable
+    ) throws SQLException {
+        try (ResultSet foreignKeys = metadata.getImportedKeys(
+                null, "public", foreignKeyTable
+        )) {
+            while (foreignKeys.next()) {
+                if (primaryKeyTable.equals(foreignKeys.getString("PKTABLE_NAME"))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}

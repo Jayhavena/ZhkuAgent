@@ -1,0 +1,111 @@
+package com.zhku.knowledge.rulecheck.web;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zhku.knowledge.rulecheck.*;
+import java.util.*;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.mock.web.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+class RuleCheckControllerTest {
+    static final String P="/zhku/controlled-preview/v2/rule-check";
+    static final ObjectMapper JSON=new ObjectMapper();
+    RuleCheckApplicationService service;MockMvc mvc;
+    @BeforeEach void setup() {
+        service=mock(RuleCheckApplicationService.class);
+        var builder=Jackson2ObjectMapperBuilder.json();new RuleCheckPreviewConfiguration().ruleCheckStrictRequests().customize(builder);
+        mvc=MockMvcBuilders.standaloneSetup(new RuleCheckController(service,new RuleCheckRuntimeSettings("p","c","SYNTHETIC_SCOPE","2025.9.2",40,5)))
+            .setMessageConverters(new MappingJackson2HttpMessageConverter(builder.build())).build();
+    }
+    static RuleCheckDecision.SupportedFact fact(String id,String text) {
+        return new RuleCheckDecision.SupportedFact(id,text,List.of(new RuleCheckVerifiedExcerpt("cite-"+id,UUID.randomUUID(),UUID.randomUUID(),"2025.9.2","a".repeat(64),3,5,"原文")));
+    }
+    static Stream<RuleCheckDecision> states() {
+        var a=fact("a","合成事实含条件与例外");var b=fact("b","另一合成证据侧");
+        return Stream.of(
+            new RuleCheckDecision(RuleCheckDecision.Status.ANSWERED,"2025.9.2",List.of(a),List.of(),List.of(),List.of()),
+            new RuleCheckDecision(RuleCheckDecision.Status.PARTIALLY_ANSWERED,"2025.9.2",List.of(a),List.of(),List.of("无法确定的项目"),List.of()),
+            new RuleCheckDecision(RuleCheckDecision.Status.NEED_CLARIFICATION,"2025.9.2",List.of(),List.of(new RuleCheckDecision.Clarification("year","哪一年级",List.of("A","B"))),List.of(),List.of()),
+            new RuleCheckDecision(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE,"2025.9.2",List.of(),List.of(),List.of("暂无已审核规则"),List.of()),
+            new RuleCheckDecision(RuleCheckDecision.Status.CONFLICTING_EVIDENCE,"2025.9.2",List.of(),List.of(),List.of(),List.of(new RuleCheckDecision.ConflictEvidence("尚未解决的矛盾",List.of(a,b)))));
+    }
+    @ParameterizedTest @MethodSource("states") void preservesAllFiveDecisionsAndExplicitClaims(RuleCheckDecision decision) throws Exception {
+        when(service.check("中文问题",Map.of("year","A"))).thenReturn(decision);
+        var result=mvc.perform(post(P).contentType("application/json").content("{\"question\":\"中文问题\",\"confirmedConditions\":{\"year\":\"A\"}}"))
+            .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store")).andReturn();
+        var response=JSON.readTree(result.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+        assertThat(response.path("status").asText()).isEqualTo(decision.status().name());
+        assertThat(response.path("referenceRevision").asText()).isEqualTo("2025.9.2");
+        assertThat(response.path("knowledgeScope").asText()).isEqualTo("SYNTHETIC_SCOPE");
+        assertThat(response.path("conditionSource").asText()).isEqualTo("USER_DECLARED");
+        assertThat(response.path("confirmedConditions").path("year").asText()).isEqualTo("A");
+        assertThat(response.path("confirmedFacts").size()).isEqualTo(decision.confirmedFacts().size());
+        assertThat(response.path("clarificationQuestions").size()).isEqualTo(decision.clarificationQuestions().size());
+        assertThat(response.path("unknownItems").size()).isEqualTo(decision.unknownItems().size());
+        assertThat(response.path("conflicts").size()).isEqualTo(decision.conflicts().size());
+        if(!decision.confirmedFacts().isEmpty()) {
+            var cite=response.path("confirmedFacts").get(0).path("citations").get(0);
+            assertThat(cite.path("text").asText()).isEqualTo("原文");
+            assertThat(cite.path("startInclusive").asInt()).isEqualTo(3);assertThat(cite.path("endExclusive").asInt()).isEqualTo(5);
+            assertThat(cite.has("checksum")).isFalse();assertThat(cite.has("qualified")).isFalse();
+        }
+        verify(service).check("中文问题",Map.of("year","A"));
+    }
+    @Test void unknownTrustedFieldsAreRejectedWithoutServiceInvocation() throws Exception {
+        for(String field:List.of("userId","reviewer","qualified","snapshots","sourceId","ruleId"))bad("{\"question\":\"q\",\"confirmedConditions\":{},\""+field+"\":\"untrusted\"}");
+        verifyNoInteractions(service);
+    }
+    @Test void requiredObjectAndStringShapesDoNotCoerceScalars() throws Exception {
+        for(String body:List.of("null","[]","\"q\"","{}","{\"question\":\"q\"}",
+            "{\"question\":12,\"confirmedConditions\":{}}","{\"question\":\"q\",\"confirmedConditions\":null}",
+            "{\"question\":\"q\",\"confirmedConditions\":{\"x\":12}}","{\"question\":\"q\",\"confirmedConditions\":{\"x\":true}}",
+            "{\"question\":\"q\",\"confirmedConditions\":{\"x\":null}}"))bad(body);
+        verifyNoInteractions(service);
+    }
+    @Test void allBusinessInputBoundsAreCheckedBeforeService() throws Exception {
+        bad(payload(" ",Map.of()));bad(payload("x".repeat(2049),Map.of()));
+        bad(payload("q",Map.of(" ","a")));bad(payload("q",Map.of("x".repeat(65),"a")));bad(payload("q",Map.of("x","a".repeat(129))));
+        var tooMany=new HashMap<String,String>();for(int i=0;i<17;i++)tooMany.put("k"+i,"a");bad(payload("q",tooMany));
+        verifyNoInteractions(service);
+    }
+    @Test void duplicatePropertiesAndTrailingJsonAreRejected() throws Exception {
+        for(String body:List.of("{\"question\":\"first\",\"question\":\"second\",\"confirmedConditions\":{}}",
+            "{\"question\":\"q\",\"confirmedConditions\":{\"x\":\"a\",\"x\":\"b\"}}",
+            "{\"question\":\"q\",\"confirmedConditions\":{}} {}"))bad(body);
+        verifyNoInteractions(service);
+    }
+    @Test void invalidJsonAndServiceErrorsNeverEchoInputOrCauses() throws Exception {
+        bad("{\"do-not-echo\":");
+        when(service.check("q",Map.of())).thenThrow(new IllegalStateException("do-not-echo private cause"));
+        mvc.perform(post(P).contentType("application/json").content(payload("q",Map.of())))
+            .andExpect(status().isServiceUnavailable()).andExpect(header().string("Cache-Control","no-store"))
+            .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("do-not-echo"))));
+    }
+    @Test void mediaTypeGuardRejectsFormsWithoutReadingBody() throws Exception {
+        for(String type:List.of("application/x-www-form-urlencoded","text/plain","application/json; charset=UTF-16","application/problem+json")) {
+            var request=new MockHttpServletRequest("POST","/api"+P);request.setContextPath("/api");request.setContentType(type);
+            request.setContent("do-not-echo".getBytes(java.nio.charset.StandardCharsets.UTF_8));var response=new MockHttpServletResponse();
+            var called=new java.util.concurrent.atomic.AtomicBoolean();
+            new RuleCheckMediaTypeFilter().doFilter(request,response,(a,b)->called.set(true));
+            assertThat(response.getStatus()).isEqualTo(415);assertThat(called).isFalse();
+            assertThat(response.getContentAsString()).doesNotContain("do-not-echo");
+            assertThat(request.getInputStream().read()).isEqualTo((int)'d');
+        }
+    }
+    void bad(String body) throws Exception {
+        var result=mvc.perform(post(P).contentType("application/json").content(body)).andExpect(status().isBadRequest())
+            .andExpect(header().string("Cache-Control","no-store")).andReturn();
+        assertThat(result.getResponse().getContentAsString()).doesNotContain("do-not-echo","untrusted");
+    }
+    static String payload(String question,Map<String,String> conditions) throws Exception {return JSON.writeValueAsString(Map.of("question",question,"confirmedConditions",conditions));}
+}

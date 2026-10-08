@@ -2,11 +2,18 @@ package com.zhku.knowledge.web;
 
 import com.zhku.knowledge.campusagent.CampusCreditAgentManager;
 import com.zhku.knowledge.campusagent.CampusCreditAgentService;
+import com.zhku.knowledge.campusagent.CampusAgentResultVisibility;
+import com.zhku.knowledge.publication.LocalKnowledgePublisherFactory;
+import org.springframework.core.env.Environment;
+import com.zhku.knowledge.campusagent.archive.CampusRunArchiveStore;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import com.zhku.knowledge.rag.ApiKeyResolver;
 import com.zhku.knowledge.rag.RagProviderProfile;
 import com.zhku.knowledge.tools.CampusToolRegistry;
 import com.zhku.knowledge.tools.CourseCreditSummaryTool;
 import com.zhku.knowledge.tools.modelcall.CourseCreditChatModelFactory;
+import com.zhku.knowledge.tools.modelcall.CourseCreditModelTransport;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -28,8 +35,19 @@ import java.util.concurrent.TimeUnit;
 @ConditionalOnProperty(prefix = "zhku.campus-agent", name = "enabled", havingValue = "true")
 public class CampusAgentPreviewConfiguration {
     @Bean
-    ChatModel zhkuCampusAgentChatModel(RagProviderProfile profile, ApiKeyResolver keyResolver) {
-        return CourseCreditChatModelFactory.create(profile, keyResolver);
+    CampusAgentResultVisibility zhkuCampusAgentResultVisibility(Environment environment) {
+        // 与原问答读取同一资料库；归档开关关闭也不能绕过实时来源许可。
+        return new CampusAgentResultVisibility(LocalKnowledgePublisherFactory.createDataSource(environment));
+    }
+
+    @Bean(destroyMethod = "close")
+    CourseCreditModelTransport zhkuCampusAgentModelTransport(RagProviderProfile profile, ApiKeyResolver keyResolver) {
+        return CourseCreditChatModelFactory.open(profile, keyResolver);
+    }
+
+    @Bean(destroyMethod = "")
+    ChatModel zhkuCampusAgentChatModel(CourseCreditModelTransport transport) {
+        return transport.model();
     }
 
     @Bean(destroyMethod = "shutdown")
@@ -45,10 +63,13 @@ public class CampusAgentPreviewConfiguration {
                 Thread.ofPlatform().name("zhku-campus-agent-timeout").factory());
     }
 
-    @Bean
+    @Bean(destroyMethod = "close")
     CampusCreditAgentManager zhkuCampusCreditAgentManager(ChatModel zhkuCampusAgentChatModel,
             LocalPreviewConversationFacade zhkuLocalPreviewConversationFacade,
-            ExecutorService zhkuCampusAgentWorker, ScheduledExecutorService zhkuCampusAgentTimer) {
+            ExecutorService zhkuCampusAgentWorker, ScheduledExecutorService zhkuCampusAgentTimer,
+            ObjectProvider<CampusRunArchiveStore> archiveProvider, ConfigurableBeanFactory beanFactory) {
+        // worker 先关闭准入；transport 后有界等待实际模型返回，不借用用户取消/超时原因。
+        beanFactory.registerDependentBean("zhkuCampusAgentModelTransport", "zhkuCampusAgentWorker");
         CampusCreditAgentService service = new CampusCreditAgentService(
                 zhkuCampusAgentChatModel,
                 new CampusToolRegistry(List.of(new CourseCreditSummaryTool())),
@@ -57,7 +78,13 @@ public class CampusAgentPreviewConfiguration {
                     var session = zhkuLocalPreviewConversationFacade.createConversation();
                     return zhkuLocalPreviewConversationFacade.sendMessage(session.sessionId(), question);
                 }, 3);
-        return new CampusCreditAgentManager(service, zhkuCampusAgentWorker,
-                zhkuCampusAgentTimer, Duration.ofSeconds(30));
+        var archive = archiveProvider.getIfAvailable();
+        if (archive == null)
+            return new CampusCreditAgentManager(service, zhkuCampusAgentWorker, zhkuCampusAgentTimer,
+                    Duration.ofSeconds(30));
+        // 动态ObjectProvider不代替明确销毁依赖；Manager先排空封写，Store后释放owner锁。
+        beanFactory.registerDependentBean("zhkuCampusRunArchiveStore", "zhkuCampusCreditAgentManager");
+        return new CampusCreditAgentManager(service, zhkuCampusAgentWorker, zhkuCampusAgentTimer,
+                Duration.ofSeconds(30), archive);
     }
 }

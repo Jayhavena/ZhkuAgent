@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest" time="0.246" tests="10" errors="0" skipped="0" failures="3"><testcase name="storesOneOpaqueContextAndConsumesOnlyOnce" classname="com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest" time="0.157"></testcase><testcase name="startingNewQuestionInvalidatesOldTokenBeforeWorkCompletes" classname="com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest" time="0.007"><failure message="&#xA;Expecting code to raise a throwable." type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest.startingNewQuestionInvalidatesOldTokenBeforeWorkCompletes(RuleCheckClarificationStoreTest.java:92)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="clearAndInvalidatedSessionCannotRestoreContext" classname="com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest" time="0.002" /><testcase name="consumingAndStartingNextGenerationIsAtomicAndCannotReplayOldToken" classname="com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest" time="0.005"><failure message="&#xA;Expecting code not to raise a throwable but caught&#xA;  &quot;com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStore$Failure: 需要重新查证&#xA;&quot;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code not to raise a throwable but caught
+  "com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStore$Failure: 需要重新查证
+"
+	at com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest.consumingAndStartingNextGenerationIsAtomicAndCannotReplayOldToken(RuleCheckClarificationStoreTest.java:84)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="invalidConditionCanBeCorrectedWithoutConsumingOrExtendingExpiry" classname="com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest" time="0.003" /><testcase name="wrongTokenDoesNotDestroyCorrectOwnersCurrentQuestion" classname="com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest" time="0.001" /><testcase name="newQuestionReplacesPreviousSingleContext" classname="com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest" time="0.003" /><testcase name="earlierSlowCompletionCannotOverwriteNewerQuestion" classname="com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest" time="0.003"><failure message="&#xA;Expecting code not to raise a throwable but caught&#xA;  &quot;com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStore$Failure: 需要重新查证&#xA;&quot;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting code not to raise a throwable but caught
+  "com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStore$Failure: 需要重新查证
+"
+	at com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest.finished(RuleCheckClarificationStoreTest.java:72)
+	at com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest.earlierSlowCompletionCannotOverwriteNewerQuestion(RuleCheckClarificationStoreTest.java:76)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="differentActorOrRevisionCannotReuseStoredContext" classname="com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest" time="0.002" /><testcase name="expiresAtExactFiveMinuteBoundaryWithoutSlidingRefresh" classname="com.zhku.knowledge.rulecheck.web.RuleCheckClarificationStoreTest" time="0.002" /></testsuite>

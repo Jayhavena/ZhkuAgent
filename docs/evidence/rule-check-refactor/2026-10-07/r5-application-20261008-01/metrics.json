@@ -1,0 +1,89 @@
+{
+  "stage": "APPLICATION_CHAIN_VERIFIED_NOT_HTTP_INTEGRATED",
+  "phase": "r5-application-final-20261008-01",
+  "tests": 263.0,
+  "classes": 23,
+  "counts": {
+    "unit": 200,
+    "database": 63
+  },
+  "suiteClasses": {
+    "unit": 20,
+    "database": 3
+  },
+  "runnerContractChecks": 29,
+  "sourceFiles": 546,
+  "sourceDrift": 0,
+  "xmlHashesVerified": true,
+  "unchanged": {
+    "docs/product/rule-check-2025-rule-template-draft.json": "53d517d8629de6aa835818f82a33009ea81cd3c83b4b3de65e8594bfb53daa61",
+    "docs/product/rule-check-2025-human-reference-development.json": "c01505d9114274d8b379ca98b0f47739c689f199e699f8a460e53bf9b367efc9",
+    "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/quality-cases-draft.json": "6215cc2313ae5bdc8e649bbc325d1ce87180af791b01de3a4f3fc975f536e31f",
+    "knowledge/src/main/resources/db/migration/V12__create_conversation_session_store.sql": "ddf2447d8766a95665df84aae002d3a1d2552a3e36111178928ff4f391fa45ce",
+    "knowledge/src/main/resources/db/migration/V15__create_service_guides.sql": "52c3e7d2db21d313baaed196d005ec00560e812099adf433e45e28107117ce69",
+    "knowledge/src/main/resources/db/migration/V16__create_anonymous_feedback.sql": "719438d7096e89517224be2cd2ca0e10f8e27134640ac370687d5eebc834ad2f",
+    "knowledge/src/main/resources/db/migration/V17__create_anonymous_telemetry.sql": "e639854d7adc1f30d5c7a5f5b2b664a7bf3885e0128f44f7b428b9f3908abec9",
+    "knowledge/src/main/resources/db/migration/V18__create_campus_agent_run_archive.sql": "74a1700ee09b575e641044308d00c0ba2e15040e19578f72f4098020ed760121",
+    "knowledge/src/main/resources/db/migration/V19__create_preview_identity_and_run_ownership.sql": "1058cc7b1cd1a3697c3b2867e5b6c0d073cf08cce9418c439bbe33bb2b976800",
+    "knowledge/src/main/resources/db/migration/V1__create_zhku_knowledge_schema.sql": "817ef3e632d6116fa6202d430c5948c3d776ea9df22515a94020cb2ec85e99c6",
+    "knowledge/src/main/resources/db/migration/V20__add_conversation_session_ownership.sql": "2db8712b59b1ed6e430e49a2df717adc9195d989e7377ec740a8a289d2e390e5",
+    "knowledge/src/main/resources/db/migration/V21__create_campus_run_submission.sql": "74be9be2e51031de9b216566d9ab210f864993fd0ae18682b8cb3b7f55bf6968",
+    "knowledge/src/main/resources/db/migration/V22__allow_rule_check_capture_audit.sql": "f9e48075110bebded9c815d9d0f4e42b7653903f0ea17e1a6ffd57be1a264054",
+    "knowledge/src/main/resources/db/migration/V2__add_knowledge_source_visibility_governance.sql": "e86af12698fc60535752d172fe78e0341a306f47219748fb8248a4b4348bd153",
+    "knowledge/src/main/resources/db/migration/V3__create_zhku_knowledge_governance_staging.sql": "9d8c109385a1e286b429ac68f00439099432eb5f8a7fbab770258dbbdf25a04a",
+    "knowledge/src/main/resources/db/migration/V4__add_zhku_knowledge_source_version_scope.sql": "d15a75ba5fc175143a3ef3a58d39cc2467482ea639b67f45e667fb9cf6a4aea8",
+    "knowledge/src/main/resources/db/migration/V5__allow_archived_knowledge_submission_reimport.sql": "c3f1fc08bd5de22ee2638cdedfc0bead307f4ff818e9d73a5fcb6e7df0238585",
+    "knowledge/src/main/resources/db/migration/V6__add_official_notice_lifecycle.sql": "a250e06f2d5c7adfe3a6ae592c7a89179298532016b4beea866c9077b643b1c1",
+    "knowledge/src/main/resources/db/migration/V7__allow_superseded_notice_audit_visibility.sql": "83d089e66f16e23447cbf6bc45f1b7ce0d0cd91da3f10e6b7ecfdc88359c41a9",
+    "knowledge/src/main/resources/db/migration/V8__support_reviewed_internal_official_notice_material.sql": "367f59f90d170f1890c8f1015d2a7e7535d3cefc55d54b62f2c2a63334b2ec56",
+    "knowledge/src/main/resources/db/migration/V9__add_retrieval_catalog_and_index_audit.sql": "c88a5b36268efa8eecc98c92b06f085ba6967dd956d26fa7e0d42e75c4ba8cab"
+  },
+  "database": {
+    "target": "jdbc:postgresql://127.0.0.1:55460/zhkuagent_rulecheck_e2e",
+    "container": "zhku-rulecheck-bdbf2d4be4e9",
+    "synthetic": true,
+    "migration": "22",
+    "expectedMigration": 22.0,
+    "connectionsAfterTests": 0,
+    "verified": true
+  },
+  "containerExited": true,
+  "studentVisible": false,
+  "qualityGatePassed": false,
+  "realProviderEvaluated": false,
+  "userBenefitEvaluated": false,
+  "review": {
+    "reviewer": "/root/r5_application_review",
+    "reviewModel": "gpt-6-astra",
+    "reviewBasis": "source-review.json and changes-review.diff before I1 fix; original verdict preserved in review.md",
+    "criticalFound": 0,
+    "importantFound": 1,
+    "minorFound": 1,
+    "criticalRemaining": 0,
+    "importantRemaining": 0,
+    "fixPasses": 1,
+    "reReviewRun": false,
+    "finalPhase": "r5-application-final-20261008-01",
+    "fixedFindings": [
+      {
+        "id": "I1",
+        "test": "factoryKeepsLexicalEvidenceWhenActualEmbeddingAdapterFailuresOccur",
+        "redPhase": "r5-application-review-red-20261008-01",
+        "implementation": "Factory-local vector retrieval boundary converts supplier/output runtime failures to RetrieverUnavailableException; healthy lexical path still traverses current evidence verification, audit and decision",
+        "verification": "RED22/1 assertion failure, zero errors/skips; final whole related suite must pass before completion; actual ModelCallFailedException and ModelOutputFormatException types are synthetic throws, no supplier call"
+      }
+    ],
+    "deferredMinors": [
+      "M1：切片夹具尚未构造不同chunk、错误版本排名更靠前且预算1的挤占反例；现有SQL过滤顺序正确且双路固定切片真库测试通过，回归保护增强留到检索评估步骤。"
+    ],
+    "rulings": [
+      "合法ID的自然语言相关性不由本批裁定 — 选择接口及替身不证明语义匹配，必须独立路由eval — 代价：不能据白名单宣称问答正确率。",
+      "真实2025条件、例外、审核责任与展示资格不由合成夹具裁定 — 真实草稿仍DRAFT且未激活 — 代价：无法凭本批启用学生资料。",
+      "v2身份、CSRF、页面、最终外发及历史再展示不由内部工厂裁定 — 本批无入口且旧v1合同不扩大 — 代价：浏览器闭环尚未交付。",
+      "跨目录/数据库/多条款原子一致与最终撤回窗口未证明 — 当前仅顺序复核，不作并发线性化承诺 — 代价：外发/重放需追加独立门禁。",
+      "完整有效期、发布清单、原召回entry追踪与历史正文重放保持后续边界 — 当前只验证已有资格字段与固定配置下匹配当前entry — 代价：来源完整生命周期及历史重放仍未完成。",
+      "真实模型效果、费用、报告质量与用户收益不由工程通过裁定 — 未执行供应商或真实参与者验证 — 代价：仍不能证明降低查证成本。",
+      "历史dirty、旧自由RAG风险、原库升级与全仓测试不由白名单验收裁定 — 仅审本批before增量及23类相关回归，原库未操作 — 代价：旧风险不关闭，原库升级未验证。"
+    ]
+  }
+}

@@ -1,0 +1,165 @@
+package com.zhku.knowledge.retrieval;
+
+import com.zhku.knowledge.ZhkuDatabaseTestConfig;
+import com.zhku.knowledge.ZhkuFlywayTestSupport;
+import com.zhku.knowledge.rag.*;
+import com.zhku.knowledge.rulecheck.*;
+import org.junit.jupiter.api.*;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import javax.sql.DataSource;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.sql.SQLException;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import static org.assertj.core.api.Assertions.*;
+
+class JdbcRuleCheckCitationAuditTest {
+    // 合成夹具只入专用临时库；发布字段不代表真实资料放行。
+    private static final String TEXT="合成条款：每期上限4。";
+    private final UUID source=UUID.randomUUID(), chunk=UUID.randomUUID(), run=UUID.randomUUID(), entry=UUID.randomUUID();
+    private final String profile="audit-"+UUID.randomUUID();
+    private final List<String> profiles=new ArrayList<>();
+    private final Instant now=Instant.parse("2026-10-08T10:00:00Z");
+    private DataSource dataSource;
+    private boolean targetVerified;
+    private JdbcRuleCheckCitationAuditRepository audit;
+
+    @BeforeEach void setUp() throws SQLException { setUpAt(System.getProperty("zhku.db.url")); }
+    void setUpAt(String target) throws SQLException {
+        targetVerified=false;
+        RuleCheckDatabaseTestTarget.verify(target);
+        targetVerified=true;
+        String user=System.getProperty("zhku.db.user","zhkuagent"), password=ZhkuDatabaseTestConfig.databasePassword();
+        dataSource=new DriverManagerDataSource(target,user,password);
+        ZhkuFlywayTestSupport.migrate(target,user,password);
+        update("""
+            INSERT INTO knowledge_source(id,title,source_type,source_version,publication_status,published_at,
+                content_checksum,visibility_scope,publication_scope,review_notice,sharing_rights_confirmed,document_family,knowledge_scope)
+            VALUES(?,'合成审计夹具','STUDENT_HANDBOOK','v1','PUBLISHED',CURRENT_TIMESTAMP,?,
+                'STUDENT_VISIBLE','本地验证','非真实审核',TRUE,'STUDENT_HANDBOOK','PUBLIC_ELECTIVE')
+            """,source,sha(TEXT));
+        update("INSERT INTO knowledge_chunk(id,source_id,chunk_index,source_locator,page_number,content,content_checksum) VALUES(?,?,0,'合成页1',1,?,?)",chunk,source,TEXT,sha(TEXT));
+        profiles.add(profile);
+        update("INSERT INTO embedding_profile(profile_id,provider,model,dimensions,status,activated_at) VALUES(?,'fixture','none',3,'ACTIVE',CURRENT_TIMESTAMP)",profile);
+        addEntry(entry,run,profile,"span-v1");
+        audit=new JdbcRuleCheckCitationAuditRepository(dataSource,profile,"span-v1","PUBLIC_ELECTIVE");
+    }
+    private void addEntry(UUID e,UUID r,String p,String version) throws SQLException {
+        update("INSERT INTO retrieval_index_run(id,profile_id,chunking_version,status,finished_at,indexed_entries) VALUES(?,?,?,'COMPLETED',CURRENT_TIMESTAMP,1)",r,p,version);
+        update("INSERT INTO retrieval_index_entry(id,run_id,profile_id,chunk_id,source_version,chunking_version,content_checksum,created_at) VALUES(?,?,?,?,'v1',?,?,CURRENT_TIMESTAMP + INTERVAL '1 day')",e,r,p,chunk,version,sha(TEXT));
+    }
+    @AfterEach void tearDown() throws SQLException {
+        if (!targetVerified || dataSource==null) return;
+        update("DELETE FROM citation_audit WHERE index_entry_id IN (SELECT id FROM retrieval_index_entry WHERE chunk_id=?)",chunk);
+        update("DELETE FROM retrieval_index_entry WHERE chunk_id=?",chunk);
+        for(String p:profiles) { update("DELETE FROM retrieval_index_run WHERE profile_id=?",p); update("DELETE FROM embedding_profile WHERE profile_id=?",p); }
+        update("DELETE FROM knowledge_chunk WHERE id=?",chunk); update("DELETE FROM knowledge_source WHERE id=?",source);
+    }
+    private CitationAuditRecord row() {
+        return new CitationAuditRecord("audit-"+UUID.randomUUID(),chunk,"RULE_CHECK_CAPTURE",now,source,"v1",sha(TEXT),TEXT);
+    }
+    private void persisted(CitationAuditRecord row,UUID expectedEntry) throws SQLException {
+        try(var connection=dataSource.getConnection(); var statement=connection.prepareStatement("SELECT index_entry_id,route,created_at FROM citation_audit WHERE citation_id=?")) {
+            statement.setString(1,row.citationId()); try(var rows=statement.executeQuery()) {
+                assertThat(rows.next()).isTrue(); assertThat(rows.getObject(1,UUID.class)).isEqualTo(expectedEntry);
+                assertThat(rows.getString(2)).isEqualTo(row.route()); assertThat(rows.getTimestamp(3).toInstant()).isEqualTo(now);
+                assertThat(rows.next()).isFalse();
+            }
+        }
+    }
+    private void refused(CitationAuditRecord row) throws SQLException {
+        assertThatThrownBy(()->audit.record(row)).isInstanceOf(IllegalStateException.class);
+        try(var connection=dataSource.getConnection();var statement=connection.prepareStatement("SELECT count(*) FROM citation_audit WHERE citation_id=?")) {
+            statement.setString(1,row.citationId()); try(var rows=statement.executeQuery()){rows.next();assertThat(rows.getInt(1)).isZero();}
+        }
+    }
+    private void recorded(CitationAuditRecord row) { assertThatCode(()->audit.record(row)).doesNotThrowAnyException(); }
+    @Test void captureRoutePersistsExactEntryAndTimestamp() throws SQLException { var row=row();recorded(row);persisted(row,entry); }
+    @Test void newerBuildingProfileCannotHijackAuditEntry() throws SQLException {
+        String other="building-"+UUID.randomUUID();profiles.add(other);
+        update("INSERT INTO embedding_profile(profile_id,provider,model,dimensions,status) VALUES(?,'fixture','none',3,'BUILDING')",other);
+        addEntry(UUID.randomUUID(),UUID.randomUUID(),other,"span-v1");
+        var row=row();recorded(row);persisted(row,entry);
+    }
+    @Test void newerDifferentChunkingCannotHijackAuditEntry() throws SQLException {
+        addEntry(UUID.randomUUID(),UUID.randomUUID(),profile,"span-v2");
+        var row=row();recorded(row);persisted(row,entry);
+    }
+    @Test void missingFixedProfileCannotFallBackToLatest() throws SQLException {
+        var wrong=new JdbcRuleCheckCitationAuditRepository(dataSource,"missing-profile","span-v1","PUBLIC_ELECTIVE");
+        assertThatThrownBy(()->wrong.record(row())).isInstanceOf(IllegalStateException.class);
+    }
+    @Test void wrongSourceIdentityIsRejected() throws SQLException {
+        var r=row();refused(new CitationAuditRecord(r.citationId(),chunk,r.route(),now,UUID.randomUUID(),"v1",sha(TEXT),TEXT));
+    }
+    @Test void capturedVersionCannotFollowReindexedNewVersion() throws SQLException {
+        update("UPDATE knowledge_source SET source_version='v2' WHERE id=?",source);
+        update("UPDATE retrieval_index_entry SET source_version='v2' WHERE id=?",entry);refused(row());
+    }
+    @Test void capturedHashCannotFollowChangedCurrentHashes() throws SQLException {
+        update("UPDATE knowledge_chunk SET content_checksum=? WHERE id=?","0".repeat(64),chunk);
+        update("UPDATE retrieval_index_entry SET content_checksum=? WHERE id=?","0".repeat(64),entry);refused(row());
+    }
+    @Test void changedBodyWithStaleStoredHashIsRejected() throws SQLException {
+        update("UPDATE knowledge_chunk SET content=? WHERE id=?",TEXT+"新增内容",chunk);refused(row());
+    }
+    @Test void withdrawnOrPrivateSourceCannotBeAudited() throws SQLException {
+        update("UPDATE knowledge_source SET publication_status='ARCHIVED',visibility_scope='INTERNAL_ONLY' WHERE id=?",source);refused(row());
+    }
+    @Test void unknownSharingAndWrongScopeAreRejected() throws SQLException {
+        update("UPDATE knowledge_source SET visibility_scope='INTERNAL_ONLY',sharing_rights_confirmed=FALSE WHERE id=?",source);refused(row());
+        update("UPDATE knowledge_source SET sharing_rights_confirmed=TRUE,visibility_scope='STUDENT_VISIBLE',knowledge_scope='OTHER' WHERE id=?",source);refused(row());
+    }
+    @Test void retiredProfileCannotBeAudited() throws SQLException {
+        update("UPDATE embedding_profile SET status='RETIRED' WHERE profile_id=?",profile);refused(row());
+    }
+    @Test void incompleteRunCannotBeAudited() throws SQLException {
+        update("UPDATE retrieval_index_run SET status='RUNNING',finished_at=NULL WHERE id=?",run);refused(row());
+    }
+    @Test void mismatchedRunProfileCannotBeAudited() throws SQLException {
+        String other="other-"+UUID.randomUUID();profiles.add(other);
+        update("INSERT INTO embedding_profile(profile_id,provider,model,dimensions,status) VALUES(?,'fixture','none',3,'BUILDING')",other);
+        update("UPDATE retrieval_index_run SET profile_id=? WHERE id=?",other,run);refused(row());
+    }
+    @Test void mismatchedRunChunkingCannotBeAudited() throws SQLException {
+        update("UPDATE retrieval_index_run SET chunking_version='span-v2' WHERE id=?",run);refused(row());
+    }
+    @Test void checksumHexCaseDoesNotChangeIdentity() throws SQLException {
+        var r=row();var upper=new CitationAuditRecord(r.citationId(),chunk,r.route(),now,source,"v1",sha(TEXT).toUpperCase(Locale.ROOT),TEXT);
+        recorded(upper);persisted(upper,entry);
+    }
+    @Test void duplicateCitationCannotBecomeSecondSuccessfulAudit() throws SQLException {
+        var r=row();recorded(r);assertThatThrownBy(()->audit.record(r)).isInstanceOf(IllegalStateException.class);persisted(r,entry);
+    }
+    @Test void oldRetrievalRouteRemainsSupported() throws SQLException {
+        var legacy=new JdbcCitationAuditRepository(dataSource);
+        var r=new CitationAuditRecord("legacy-"+UUID.randomUUID(),chunk,"RETRIEVAL_AUGMENTED",now);
+        legacy.record(r);persisted(r,entry);
+    }
+    @Test void realLexicalCaptureAuditAndDecisionAreConnected() throws SQLException {
+        var lexical=new JdbcLexicalCandidateRetriever(dataSource,new RetrievalEligibilityFilter(Clock.fixed(now,ZoneOffset.UTC)),profile,"PUBLIC_ELECTIVE");
+        var retrieved=new HybridRetrievalService(new HybridCandidateFuser()).retrieve("合成条款",10,1,lexical,(q,n)->List.of()).chunks();
+        var verifier=new RuleCheckEvidenceVerifier(new JdbcRuleCheckEvidenceReader(dataSource,profile,"span-v1","PUBLIC_ELECTIVE"));
+        var capture=new RuleCheckEvidenceCapture(verifier,()->"captured-"+UUID.randomUUID(),audit,Clock.fixed(now,ZoneOffset.UTC));
+        var captured=capture.capture(retrieved);assertThat(captured.accepted()).isTrue();
+        var snapshot=captured.snapshots().getFirst();
+        persisted(new CitationAuditRecord(snapshot.citationId(),chunk,"RULE_CHECK_CAPTURE",now),entry);
+        var binding=new RuleCheckRuleTemplate.EvidenceBinding(source,chunk,"v1",sha(TEXT),0,TEXT.length(),TEXT);
+        var rule=new RuleCheckRuleTemplate("synthetic-only","v1",RuleCheckRuleTemplate.ReviewState.APPROVED,"合成测试责任",java.time.LocalDate.of(2026,10,8),
+                List.of(new RuleCheckRuleTemplate.Fact("limit","合成规则每期上限4",true,Map.of(),List.of(binding))),List.of(),List.of(),List.of());
+        assertThat(new RuleCheckDecisionService(verifier).decide(rule,Map.of(),captured.snapshots()).status()).isEqualTo(RuleCheckDecision.Status.ANSWERED);
+        update("UPDATE knowledge_source SET publication_status='ARCHIVED',visibility_scope='INTERNAL_ONLY' WHERE id=?",source);
+        assertThat(new RuleCheckDecisionService(verifier).decide(rule,Map.of(),captured.snapshots()).status()).isEqualTo(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE);
+    }
+    private void update(String sql,Object...values) throws SQLException {
+        try(var c=dataSource.getConnection();var s=c.prepareStatement(sql)){for(int i=0;i<values.length;i++)s.setObject(i+1,values[i]);s.executeUpdate();}
+    }
+    private static String sha(String text) {
+        try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));}
+        catch(Exception e){throw new AssertionError(e);}
+    }
+}

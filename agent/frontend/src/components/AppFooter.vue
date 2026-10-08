@@ -10,24 +10,6 @@
           <a href="#">《隐私政策》</a>
         </div>
       </div>
-      
-      <div class="footer-section">
-        <h4>友情链接</h4>
-        <div class="footer-links">
-          <a href="https://www.mianshiya.com" target="_blank">面试鸭</a>
-          <a href="#" target="_blank">编程导航</a>
-          <a href="#" target="_blank">代码小抄</a>
-        </div>
-      </div>
-      
-      <div class="footer-section">
-        <h4>项目来源</h4>
-        <div class="footer-links">
-          <span>基于原项目学习与改造</span>
-          <span>原项目作者：鱼皮</span>
-          <span>原项目：鱼皮AI超级智能体应用平台</span>
-        </div>
-      </div>
     </div>
     
     <div class="footer-bottom">
@@ -166,4 +148,4 @@ const currentYear = computed(() => new Date().getFullYear())
     height: 80px;
   }
 }
-</style> 
+</style>

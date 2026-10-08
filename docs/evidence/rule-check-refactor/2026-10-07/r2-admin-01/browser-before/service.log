@@ -1,0 +1,49 @@
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.4)
+
+2026-10-07T22:34:36.071+08:00  INFO 55740 --- [zhku-knowledge] [           main] c.z.k.g.web.ZhkuLocalAdminApplication    : Starting ZhkuLocalAdminApplication using Java 21.0.11 with PID 55740 (D:\alldesk\Projects\ZhkuAgent\knowledge\target\classes started by nangua in D:\alldesk\Projects\ZhkuAgent)
+2026-10-07T22:34:36.074+08:00  INFO 55740 --- [zhku-knowledge] [           main] c.z.k.g.web.ZhkuLocalAdminApplication    : The following 1 profile is active: "zhku-local-admin"
+2026-10-07T22:34:37.648+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 18124 (http)
+2026-10-07T22:34:37.665+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-07T22:34:37.665+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.39]
+2026-10-07T22:34:37.772+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring embedded WebApplicationContext
+2026-10-07T22:34:37.773+08:00  INFO 55740 --- [zhku-knowledge] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1643 ms
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+2026-10-07T22:34:39.565+08:00  INFO 55740 --- [zhku-knowledge] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+2026-10-07T22:34:39.668+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-10-07T22:34:39.674+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 17 migrations (execution time 00:00.060s)
+2026-10-07T22:34:39.701+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-10-07T22:34:39.814+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-10-07T22:34:39.814+08:00  WARN 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+2026-10-07T22:34:39.845+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - create zhku knowledge schema"
+2026-10-07T22:34:39.984+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - add knowledge source visibility governance"
+2026-10-07T22:34:40.045+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "3 - create zhku knowledge governance staging"
+2026-10-07T22:34:40.169+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "4 - add zhku knowledge source version scope"
+2026-10-07T22:34:40.225+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "5 - allow archived knowledge submission reimport"
+2026-10-07T22:34:40.283+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "6 - add official notice lifecycle"
+2026-10-07T22:34:40.380+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "7 - allow superseded notice audit visibility"
+2026-10-07T22:34:40.412+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "8 - support reviewed internal official notice material"
+2026-10-07T22:34:40.453+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "9 - add retrieval catalog and index audit"
+2026-10-07T22:34:40.587+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "12 - create conversation session store"
+2026-10-07T22:34:40.644+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "15 - create service guides"
+2026-10-07T22:34:40.843+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "16 - create anonymous feedback"
+2026-10-07T22:34:40.899+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "17 - create anonymous telemetry"
+2026-10-07T22:34:40.969+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "18 - create campus agent run archive"
+2026-10-07T22:34:41.069+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "19 - create preview identity and run ownership"
+2026-10-07T22:34:41.138+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "20 - add conversation session ownership"
+2026-10-07T22:34:41.180+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "21 - create campus run submission"
+2026-10-07T22:34:41.235+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 17 migrations to schema "public", now at version v21 (execution time 00:00.885s)
+2026-10-07T22:34:41.449+08:00  INFO 55740 --- [zhku-knowledge] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 18124 (http) with context path '/api'
+2026-10-07T22:34:41.461+08:00  INFO 55740 --- [zhku-knowledge] [           main] c.z.k.g.web.ZhkuLocalAdminApplication    : Started ZhkuLocalAdminApplication in 6.033 seconds (process running for 6.579)
+2026-10-07T22:34:41.579+08:00  INFO 55740 --- [zhku-knowledge] [.1-18124-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-07T22:34:41.581+08:00  INFO 55740 --- [zhku-knowledge] [.1-18124-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-07T22:34:41.586+08:00  INFO 55740 --- [zhku-knowledge] [.1-18124-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 5 ms
+2026-10-07T22:35:15.660+08:00  INFO 55740 --- [zhku-knowledge] [.1-18124-exec-1] c.z.k.g.web.FeedbackAdminController      : zhku.anonymousTelemetry={eventDate=2026-10-07, route=LOCAL_ADMIN_FEEDBACK, failureCategory=NONE}

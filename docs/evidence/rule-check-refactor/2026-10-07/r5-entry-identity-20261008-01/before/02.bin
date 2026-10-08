@@ -1,0 +1,305 @@
+package com.zhku.knowledge.retrieval;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zhku.knowledge.rulecheck.RuleCheckApplicationService;
+import com.zhku.knowledge.rulecheck.RuleCheckDecision;
+import com.zhku.knowledge.rulecheck.*;
+import org.springframework.context.annotation.*;
+import static org.mockito.Mockito.*;
+import com.zhku.knowledge.rulecheck.web.RuleCheckPreviewApplication;
+import com.zhku.knowledge.security.PreviewIdentityRepository;
+import java.net.*;
+import java.net.http.*;
+import java.time.Duration;
+import java.util.*;
+import javax.sql.DataSource;
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.*;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import static org.assertj.core.api.Assertions.*;
+
+/** 实际本机HTTP与专用临时库认证；合成账号不赋予任何真实资料资格。 */
+@Timeout(60)
+class RuleCheckPreviewHttpTest {
+    static final String PREFIX="/api/zhku/controlled-preview/v2";
+    static final ObjectMapper JSON=new ObjectMapper();
+    record Account(UUID id,String login,String password,String role) {}
+    @Test void realCookieLoginTokenRotationAndLogoutStayInsideV2() {
+        assertThatCode(()->withApp(app->{
+            try(var user=new User(app.port)) {
+                assertThat(user.get("/auth/me").statusCode()).isEqualTo(401);
+                var csrf=user.csrf();var before=user.cookie();
+                assertThat(before.getName()).isEqualTo("ZHKU_RULE_CHECK_SESSION");
+                assertThat(before.getPath()).isEqualTo(PREFIX);assertThat(before.isHttpOnly()).isTrue();
+                assertThat(before.getMaxAge()).isEqualTo(-1);assertThat(before.getSecure()).isFalse();
+                assertThat(csrf.headers().allValues("set-cookie").toString()).contains("SameSite=Strict").doesNotContain("Domain=");
+                assertThat(user.login(app.accounts.get(0),false).statusCode()).isEqualTo(403);
+                var oldToken=user.token;String oldId=before.getValue();
+                assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);
+                assertThat(user.cookie().getValue()).isNotEqualTo(oldId);
+                var me=user.get("/auth/me");assertThat(me.statusCode()).isEqualTo(200);
+                assertThat(me.headers().firstValue("Cache-Control").orElse("")).contains("no-store");
+                assertThat(JSON.readTree(me.body()).path("userId").asText()).isEqualTo(app.accounts.get(0).id().toString());
+                user.token=oldToken;assertThat(user.post("/auth/logout","",true).statusCode()).isEqualTo(403);
+                user.csrf();assertThat(user.token).isNotEqualTo(oldToken);
+                assertThat(user.post("/auth/logout","",true).statusCode()).isEqualTo(204);
+                assertThat(user.get("/auth/me").statusCode()).isEqualTo(401);
+            }
+        })).doesNotThrowAnyException();
+    }
+    @Test void actualCurrentIdentityRevisionRevokesCookieAndAccountSwitchUsesNewActor() {
+        assertThatCode(()->withApp(app->{
+            try(var user=new User(app.port)) {
+                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);
+                try(var c=app.source.getConnection();var p=c.prepareStatement("UPDATE preview_identity SET auth_revision=auth_revision+1 WHERE user_id=?")) {
+                    p.setObject(1,app.accounts.get(0).id());assertThat(p.executeUpdate()).isEqualTo(1);
+                }
+                var revoked=user.get("/auth/me");assertThat(revoked.statusCode()).isEqualTo(401);
+                assertThat(revoked.headers().allValues("set-cookie").toString()).contains("ZHKU_RULE_CHECK_SESSION=", "Max-Age=0", "Path="+PREFIX);
+                user.csrf();assertThat(user.login(app.accounts.get(1),true).statusCode()).isEqualTo(200);
+                assertThat(JSON.readTree(user.get("/auth/me").body()).path("userId").asText()).isEqualTo(app.accounts.get(1).id().toString());
+            }
+        })).doesNotThrowAnyException();
+    }
+    @Test void restrictedImportsClosedCatalogueAndWrongCookieDoNotExposeLegacyBusiness() {
+        assertThatCode(()->withApp(app->{
+            assertThat(app.context.getBeanNamesForType(com.zhku.knowledge.controlled.ControlledAuthController.class)).isEmpty();
+            assertThat(app.context.getBeanNamesForType(com.zhku.knowledge.controlled.ControlledPreviewConfiguration.class)).isEmpty();
+            var service=app.context.getBean(RuleCheckApplicationService.class);
+            var decision=service.check("合成查证问题",Map.of());
+            assertThat(decision.status()).isEqualTo(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE);
+            assertThat(decision.confirmedFacts()).isEmpty();
+            try(var user=new User(app.port);var bare=HttpClient.newHttpClient()) {
+                user.csrf();assertThat(user.login(app.accounts.get(2),true).statusCode()).isEqualTo(200);
+                user.csrf();assertThat(user.json("{}",true,false).statusCode()).isEqualTo(403);
+                for(String path:List.of("/api/zhku/controlled-preview/v1/auth/me","/api/zhku/local-admin/sources","/api/zhku/local-preview/chat")) {
+                    assertThat(bare.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+app.port+path)).GET().build(),HttpResponse.BodyHandlers.ofString()).statusCode()).isIn(401,403);
+                }
+                var wrong=bare.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+app.port+PREFIX+"/auth/me"))
+                    .header("Cookie","ZHKU_CONTROLLED_SESSION="+user.cookie().getValue()).GET().build(),HttpResponse.BodyHandlers.ofString());
+                assertThat(wrong.statusCode()).isEqualTo(401);
+            }
+        })).doesNotThrowAnyException();
+    }
+    @Test void actualJsonApiRejectsUnsafeShapesAndPreservesClosedCatalogue() {
+        assertThatCode(()->withApp(app->{
+            try(var user=new User(app.port)) {
+                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();
+                String payload="{\"question\":\"中文查证问题\",\"confirmedConditions\":{}}";
+                assertThat(user.json(payload,false,false).statusCode()).isEqualTo(403);
+                var response=user.json(payload,true,false);assertThat(response.statusCode()).isEqualTo(200);
+                var body=JSON.readTree(response.body());assertThat(body.path("status").asText()).isEqualTo("INSUFFICIENT_EVIDENCE");
+                assertThat(body.path("confirmedFacts").size()).isZero();assertThat(body.path("conditionSource").asText()).isEqualTo("USER_DECLARED");
+                assertThat(body.path("referenceRevision").asText()).isEqualTo("2025.9.2");
+                assertThat(response.headers().firstValue("Cache-Control").orElse("")).isEqualTo("no-store");
+                for(String invalid:List.of("{\"question\":\"q\",\"confirmedConditions\":{},\"qualified\":true}",
+                    "{\"question\":12,\"confirmedConditions\":{}}","{\"question\":\"q\",\"confirmedConditions\":{\"x\":false}}",
+                    "{\"question\":\"q\",\"question\":\"other\",\"confirmedConditions\":{}}",payload+" {}"))
+                    assertThat(user.json(invalid,true,false).statusCode()).isEqualTo(400);
+                assertThat(user.post("/rule-check","question=do-not-echo",true).statusCode()).isEqualTo(415);
+            }
+        })).doesNotThrowAnyException();
+    }
+    @Test void actualKnownLengthBodyOverLimitIsRejected() {assertBodyLimit(false);}
+    @Test void actualChunkedBodyWithoutLengthOverLimitIsRejected() {assertBodyLimit(true);}
+    @Test void encodedBusinessPathsCannotBypassActualBodyLimit() {
+        assertThatCode(()->withApp(app->{
+            try(var user=new User(app.port)) {
+                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();
+                for(String path:List.of(PREFIX+"/rule%2Dcheck",PREFIX+"/rule%2dcheck","/api/zhku/controlled-preview/%762/rule-check")) {
+                    var response=user.encoded(path,"application/json", " ".repeat(32769)+"{\"question\":\"q\",\"confirmedConditions\":{}}",true);
+                    assertThat(response.statusCode()).isEqualTo(400);assertThat(response.body()).contains("NON_CANONICAL_PATH");
+                }
+            }
+        })).doesNotThrowAnyException();
+    }
+    @Test void encodedBusinessFormsAreRejectedBeforeCsrfParameterParsing() {
+        assertThatCode(()->withApp(app->{
+            try(var user=new User(app.port)) {
+                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();
+                // 不送CSRF头；规范路径守卫不能等到表单参数被解析后才拒绝。
+                var response=user.encoded(PREFIX+"/rule%2Dcheck","application/x-www-form-urlencoded","_csrf="+URLEncoder.encode(user.token,java.nio.charset.StandardCharsets.UTF_8)+"&question=q",false);
+                assertThat(response.statusCode()).isEqualTo(400);assertThat(response.body()).contains("NON_CANONICAL_PATH");
+            }
+        })).doesNotThrowAnyException();
+    }
+    void assertBodyLimit(boolean chunked) {
+        assertThatCode(()->withApp(app->{
+            try(var user=new User(app.port)) {
+                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();
+                var response=user.json(" ".repeat(32769),true,chunked);
+                assertThat(response.statusCode()).isEqualTo(413);
+                assertThat(response.body()).contains("REQUEST_TOO_LARGE");
+                assertThat(response.headers().firstValue("Cache-Control").orElse("")).isEqualTo("no-store");
+            }
+        })).doesNotThrowAnyException();
+    }
+    @Test void realHttpClarificationUsesServerContextAndCannotReplayConsumedToken() {
+        assertThatCode(()->withApp(true,app->{
+            try(var user=new User(app.port)) {
+                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();
+                String token=clarificationToken(user,"q");
+                var response=user.json(continuationBody("q",token),true,false);assertThat(response.statusCode()).isEqualTo(200);
+                var answer=JSON.readTree(response.body());assertThat(answer.path("status").asText()).isEqualTo("ANSWERED");
+                assertThat(answer.path("confirmedConditions").path("year").asText()).isEqualTo("A");
+                assertThat(answer.path("confirmedConditions").path("type").asText()).isEqualTo("ordinary");
+                assertThat(answer.path("scope").path("questionScope").asText()).isEqualTo("合成续答范围");
+                assertThat(user.json(continuationBody("q",token),true,false).statusCode()).isEqualTo(409);
+                var fixture=app.context.getBean(ClarificationFixture.class);assertThat(fixture.checks).hasValue(1);assertThat(fixture.resumes).hasValue(1);
+            }
+        })).doesNotThrowAnyException();
+    }
+    @Test void realLoginAccountSwitchCannotContinuePreviousActorsQuestion() {
+        assertThatCode(()->withApp(true,app->{
+            try(var user=new User(app.port)) {
+                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();String token=clarificationToken(user,"q");
+                assertThat(user.login(app.accounts.get(1),true).statusCode()).isEqualTo(200);user.csrf();
+                assertThat(JSON.readTree(user.get("/auth/me").body()).path("userId").asText()).isEqualTo(app.accounts.get(1).id().toString());
+                assertThat(user.json(continuationBody("q",token),true,false).statusCode()).isEqualTo(409);
+                assertThat(app.context.getBean(ClarificationFixture.class).resumes).hasValue(0);
+            }
+        })).doesNotThrowAnyException();
+    }
+    @Test void realHttpClarificationExpiresAtControlledClockBoundary() {
+        assertThatCode(()->withApp(true,app->{
+            try(var user=new User(app.port)) {
+                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();String token=clarificationToken(user,"q");
+                var fixture=app.context.getBean(ClarificationFixture.class);fixture.clock.now=fixture.clock.now.plusSeconds(300);
+                assertThat(user.json(continuationBody("q",token),true,false).statusCode()).isEqualTo(409);assertThat(fixture.resumes).hasValue(0);
+            }
+        })).doesNotThrowAnyException();
+    }
+    @Test void realConcurrentOlderResponseCannotOverwriteNewQuestion() {
+        assertThatCode(()->withApp(true,app->{
+            var worker=java.util.concurrent.Executors.newSingleThreadExecutor();var fixture=app.context.getBean(ClarificationFixture.class);
+            try(var user=new User(app.port)) {
+                user.csrf();assertThat(user.login(app.accounts.get(0),true).statusCode()).isEqualTo(200);user.csrf();
+                var old=worker.submit(()->user.json(initialBody("slow"),true,false));
+                assertThat(fixture.slowEntered.await(2,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+                String current=clarificationToken(user,"new question");fixture.releaseSlow.countDown();
+                assertThat(old.get(5,java.util.concurrent.TimeUnit.SECONDS).statusCode()).isEqualTo(409);
+                assertThat(user.json(continuationBody("new question",current),true,false).statusCode()).isEqualTo(200);
+            } finally {fixture.releaseSlow.countDown();worker.shutdownNow();assertThat(worker.awaitTermination(2,java.util.concurrent.TimeUnit.SECONDS)).isTrue();}
+        })).doesNotThrowAnyException();
+    }
+    static String initialBody(String question) throws Exception {return JSON.writeValueAsString(Map.of("question",question,"confirmedConditions",Map.of("year","A")));}
+    static String continuationBody(String question,String token) throws Exception {return JSON.writeValueAsString(Map.of("question",question,"confirmedConditions",Map.of("type","ordinary"),"clarificationToken",token));}
+    static String clarificationToken(User user,String question) throws Exception {
+        var response=user.json(initialBody(question),true,false);assertThat(response.statusCode()).isEqualTo(200);
+        var result=JSON.readTree(response.body());assertThat(result.path("status").asText()).isEqualTo("NEED_CLARIFICATION");
+        assertThat(result.path("clarificationToken").isTextual()).isTrue();return result.path("clarificationToken").asText();
+    }
+    static void withApp(Checked action) throws Exception {withApp(false,action);}
+    static void withApp(boolean clarificationFixture,Checked action) throws Exception {
+        withApp(clarificationFixture?ClarificationFixtureConfiguration.class:null,action);
+    }
+    static void withApp(Class<?> testConfiguration,Checked action) throws Exception {
+        String url=System.getProperty("zhku.db.url");RuleCheckDatabaseTestTarget.verify(url);
+        String password=System.getenv("ZHKU_DB_PASSWORD");if(password==null||password.isBlank())throw new IllegalArgumentException("缺少数据库环境凭据");
+        var source=new DriverManagerDataSource(url,"zhkuagent",password);
+        var limits=new Properties();limits.setProperty("connectTimeout","1");limits.setProperty("socketTimeout","2");source.setConnectionProperties(limits);
+        Flyway.configure().dataSource(source).locations("classpath:db/migration").outOfOrder(false).load().migrate();
+        var accounts=new ArrayList<Account>();ServletWebServerApplicationContext context=null;PreviewIdentityRepository identity=null;int port=0;
+        try {
+            for(String role:List.of("USER","USER","MAINTAINER")) {
+                var account=new Account(UUID.randomUUID(),"test-"+UUID.randomUUID().toString().substring(0,12),"Synthetic-"+UUID.randomUUID(),role);
+                accounts.add(account);
+                try(var c=source.getConnection();var p=c.prepareStatement("INSERT INTO preview_identity(user_id,login_name,password_hash,role,enabled,auth_revision) VALUES(?,?,?,?,true,0)")) {
+                    p.setObject(1,account.id());p.setString(2,account.login());p.setString(3,new BCryptPasswordEncoder(10).encode(account.password()));p.setString(4,role);p.executeUpdate();
+                }
+            }
+            var application=RuleCheckPreviewApplication.application();
+            // 仅JUnit测试源码显式装配合成服务替身；生产没有目录审批开关，原CLOSED工厂保留。
+            if(testConfiguration!=null)application.addPrimarySources(List.of(testConfiguration));
+            context=(ServletWebServerApplicationContext)application.run(
+                "--server.port=0","--spring.main.banner-mode=off","--logging.level.root=ERROR",
+                "--zhku.rule-check-preview.enabled=true","--zhku.rule-check-preview.initialize=true",
+                "--zhku.db.url="+url,"--zhku.db.username=zhkuagent",
+                "--zhku.rule-check-preview.profile-id=synthetic-http","--zhku.rule-check-preview.chunking-version=synthetic-v1",
+                "--zhku.rule-check-preview.required-scope=PUBLIC_ELECTIVE_CREDIT_LIMIT","--zhku.rule-check-preview.reference-revision=2025.9.2",
+                "--zhku.rule-check-preview.candidate-limit=40","--zhku.rule-check-preview.result-limit=5");
+            port=context.getWebServer().getPort();identity=context.getBean(PreviewIdentityRepository.class);
+            action.run(new App(context,port,source,accounts));
+        } finally {
+            if(context!=null)context.close();
+            // 只清本夹具UUID；不重置资料或身份表。监听及身份线程必须实际退出。
+            for(var account:accounts)try(var c=source.getConnection();var p=c.prepareStatement("DELETE FROM preview_identity WHERE user_id=?")) {p.setObject(1,account.id());p.executeUpdate();}
+            if(identity!=null) {assertThat(identity.status().closed()).isTrue();assertThat(identity.status().inFlight()).isZero();assertThat(identity.status().liveThreads()).isZero();}
+            if(port!=0) {final int closedPort=port;assertThatThrownBy(()->{try(var socket=new Socket()){socket.connect(new InetSocketAddress("127.0.0.1",closedPort),500);}}).isInstanceOf(java.io.IOException.class);}
+        }
+    }
+    record App(ServletWebServerApplicationContext context,int port,DataSource source,List<Account> accounts) {}
+    @FunctionalInterface interface Checked {void run(App app) throws Exception;}
+    static final class FixtureClock extends java.time.Clock {
+        volatile java.time.Instant now=java.time.Instant.EPOCH;
+        public java.time.ZoneId getZone(){return java.time.ZoneOffset.UTC;}public java.time.Clock withZone(java.time.ZoneId zone){return this;}public java.time.Instant instant(){return now;}
+    }
+    static final class ClarificationFixture {
+        final FixtureClock clock=new FixtureClock();final java.util.concurrent.atomic.AtomicInteger checks=new java.util.concurrent.atomic.AtomicInteger(),resumes=new java.util.concurrent.atomic.AtomicInteger();
+        final java.util.concurrent.CountDownLatch slowEntered=new java.util.concurrent.CountDownLatch(1),releaseSlow=new java.util.concurrent.CountDownLatch(1);
+        RuleCheckScopedResult result(String question,Map<String,String> values,RuleCheckRuntimeSettings settings) {
+            var year=new RuleCheckRuleTemplate.Condition("year","合成年级",List.of("A","B"));
+            var type=new RuleCheckRuleTemplate.Condition("type","合成类型",List.of("ordinary","other"));
+            var binding=new RuleCheckRuleTemplate.EvidenceBinding(UUID.randomUUID(),UUID.randomUUID(),settings.referenceRevision(),"a".repeat(64),0,4,"合成原文");
+            var fact=new RuleCheckRuleTemplate.Fact("fixture-only","合成确认事实",false,Map.of("year","A","type","ordinary"),List.of(binding));
+            var rule=new RuleCheckRuleTemplate("fixture-only",settings.referenceRevision(),RuleCheckRuleTemplate.ReviewState.APPROVED,"合成测试责任",java.time.LocalDate.of(2026,10,8),List.of(fact),List.of(year,type),List.of(),List.of());
+            var entry=new RuleCheckApplicationService.CatalogEntry(rule,"合成续答范围");
+            var scope=new RuleCheckScopedResult.Scope(rule.ruleId(),entry.questionScope(),rule.conditions(),Map.of(fact.id(),fact.when()));
+            if(!values.containsKey("type")) {
+                var decision=new RuleCheckDecision(RuleCheckDecision.Status.NEED_CLARIFICATION,settings.referenceRevision(),List.of(),List.of(new RuleCheckDecision.Clarification(type.key(),type.question(),type.allowedValues())),List.of(),List.of());
+                return new RuleCheckScopedResult(decision,scope,new RuleCheckScopedResult.Continuation(settings,entry,question,values,type));
+            }
+            var quote=new RuleCheckVerifiedExcerpt("fixture-citation",binding.sourceId(),binding.chunkId(),binding.revision(),binding.checksum(),binding.startInclusive(),binding.endExclusive(),binding.quote());
+            var decision=new RuleCheckDecision(RuleCheckDecision.Status.ANSWERED,settings.referenceRevision(),List.of(new RuleCheckDecision.SupportedFact(fact.id(),fact.text(),List.of(quote))),List.of(),List.of(),List.of());
+            return new RuleCheckScopedResult(decision,scope,null);
+        }
+        RuleCheckScopedResult check(String question,Map<String,String> values,RuleCheckRuntimeSettings settings) throws InterruptedException {
+            checks.incrementAndGet();if(question.equals("slow")){slowEntered.countDown();if(!releaseSlow.await(4,java.util.concurrent.TimeUnit.SECONDS))throw new IllegalStateException("合成慢请求未释放");}
+            return result(question,values,settings);
+        }
+    }
+    @Configuration(proxyBeanMethods=false) static class ClarificationFixtureConfiguration {
+        @Bean ClarificationFixture clarificationFixture(){return new ClarificationFixture();}
+        @Bean @Primary FixtureClock fixtureClock(ClarificationFixture fixture){return fixture.clock;}
+        @Bean @Primary RuleCheckApplicationService syntheticClarificationService(ClarificationFixture fixture,RuleCheckRuntimeSettings settings) {
+            var service=mock(RuleCheckApplicationService.class);
+            // 此组是续答协议替身；真Runtime末端复查在独立OriginalHttpTest验证。
+            when(service.isCurrent(any())).thenReturn(true);
+            when(service.check(anyString(),anyMap())).thenAnswer(i->fixture.check(i.getArgument(0),i.getArgument(1),settings).decision());
+            when(service.checkWithContext(anyString(),anyMap())).thenAnswer(i->fixture.check(i.getArgument(0),i.getArgument(1),settings));
+            when(service.resume(any(),anyMap())).thenAnswer(i->{fixture.resumes.incrementAndGet();RuleCheckScopedResult.Continuation saved=i.getArgument(0);
+                var values=new LinkedHashMap<>(saved.confirmedConditions());values.putAll(i.getArgument(1));return fixture.result(saved.question(),values,settings);});return service;
+        }
+    }
+    static final class User implements AutoCloseable {
+        final int port;final CookieManager cookies=new CookieManager(null,CookiePolicy.ACCEPT_ALL);
+        final HttpClient client;String token;
+        User(int port){this.port=port;client=HttpClient.newBuilder().cookieHandler(cookies).connectTimeout(Duration.ofSeconds(1)).build();}
+        HttpResponse<String> csrf() throws Exception {var r=get("/auth/csrf");assertThat(r.statusCode()).isEqualTo(200);token=JSON.readTree(r.body()).path("token").asText();return r;}
+        HttpCookie cookie(){return cookies.getCookieStore().getCookies().stream().filter(c->c.getName().equals("ZHKU_RULE_CHECK_SESSION")).findFirst().orElseThrow();}
+        HttpResponse<String> login(Account a,boolean csrf) throws Exception {return post("/auth/login","username="+URLEncoder.encode(a.login(),java.nio.charset.StandardCharsets.UTF_8)+"&password="+URLEncoder.encode(a.password(),java.nio.charset.StandardCharsets.UTF_8),csrf);}
+        HttpResponse<String> get(String path) throws Exception {return send(path,null,false);}
+        HttpResponse<String> post(String path,String body,boolean csrf) throws Exception {return send(path,body,csrf);}
+        HttpResponse<String> json(String body,boolean csrf,boolean chunked) throws Exception {
+            var request=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+PREFIX+"/rule-check")).timeout(Duration.ofSeconds(5))
+                .header("Content-Type","application/json; charset=UTF-8");if(csrf)request.header("X-CSRF-TOKEN",token);
+            var publisher=chunked?HttpRequest.BodyPublishers.ofInputStream(()->new java.io.ByteArrayInputStream(body.getBytes(java.nio.charset.StandardCharsets.UTF_8))):HttpRequest.BodyPublishers.ofString(body);
+            if(chunked)assertThat(publisher.contentLength()).isEqualTo(-1);
+            return client.send(request.POST(publisher).build(),HttpResponse.BodyHandlers.ofString());
+        }
+        HttpResponse<String> encoded(String path,String type,String body,boolean csrf) throws Exception {
+            var request=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+path)).timeout(Duration.ofSeconds(5)).header("Content-Type",type);
+            if(csrf)request.header("X-CSRF-TOKEN",token);
+            return client.send(request.POST(HttpRequest.BodyPublishers.ofString(body)).build(),HttpResponse.BodyHandlers.ofString());
+        }
+        HttpResponse<String> send(String path,String body,boolean csrf) throws Exception {
+            var request=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+PREFIX+path)).timeout(Duration.ofSeconds(5));
+            if(csrf)request.header("X-CSRF-TOKEN",token);
+            if(body==null)request.GET();else request.header("Content-Type","application/x-www-form-urlencoded").POST(HttpRequest.BodyPublishers.ofString(body));
+            return client.send(request.build(),HttpResponse.BodyHandlers.ofString());
+        }
+        @Override public void close(){client.close();}
+    }
+}

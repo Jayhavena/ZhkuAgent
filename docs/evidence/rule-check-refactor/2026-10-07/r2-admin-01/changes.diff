@@ -1,0 +1,466 @@
+--- a/knowledge/src/main/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminController.java
++++ b/knowledge/src/main/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminController.java
+@@ -374,6 +374,7 @@
+             UUID id,
+             int startPageNumber,
+             int endPageNumber,
++            String rawText,
+             String editedText,
+             String sectionTitle,
+             String sourceLocator,
+@@ -386,6 +387,8 @@
+                     candidate.id(),
+                     candidate.startPageNumber(),
+                     candidate.endPageNumber(),
++                    // 原文只交给本机审核响应；不能把暂存候选加入学生回答协议。
++                    candidate.rawText(),
+                     candidate.editedText(),
+                     candidate.sectionTitle(),
+                     candidate.sourceLocator(),
+--- a/knowledge/src/main/resources/zhku/local-admin/index.html
++++ b/knowledge/src/main/resources/zhku/local-admin/index.html
+@@ -242,6 +242,24 @@
+             display: grid;
+             grid-template-columns: repeat(2, minmax(0, 1fr));
+             gap: 12px;
++        }
++        .candidate-texts {
++            display: grid;
++            grid-template-columns: repeat(2, minmax(0, 1fr));
++            gap: 12px;
++        }
++        .candidate-original {
++            white-space: pre-wrap;
++            overflow-wrap: anywhere;
++            max-height: 24rem;
++            overflow: auto;
++            margin: 8px 0 0;
++            padding: 12px;
++            background: #f4f6f2;
++            font-family: inherit;
++        }
++        @media (max-width: 700px) {
++            .candidate-texts { grid-template-columns: 1fr; }
+         }
+         .candidate-actions {
+             display: flex;
+@@ -404,6 +422,13 @@
+     <section class="card" id="review-stage" aria-labelledby="review-title" hidden>
+         <div class="section-heading"><h2 id="review-title">3. 审核候选片段</h2><span id="review-stage-status" class="status">请逐条给出处理结论</span></div>
+         <p id="candidate-summary" class="hint"></p>
++        <div class="candidate-actions">
++            <label>审核状态<select id="candidate-filter"><option value="ALL">全部片段</option><option value="PENDING_REVIEW">待审核</option><option value="APPROVED">已通过</option><option value="DISCARDED">已丢弃</option></select></label>
++            <button id="candidate-previous" class="secondary" type="button">上一页</button>
++            <span id="candidate-page-info" class="hint" role="status"></span>
++            <button id="candidate-next" class="secondary" type="button">下一页</button>
++        </div>
++        <p class="hint">每页最多20条。编辑区中的草稿仅保留在当前页面，切页或筛选不会提交；刷新浏览器会丢失未保存草稿。请先保存，再通过审核。</p>
+         <div id="candidate-list" class="candidate-list"></div>
+     </section>
+ 
+@@ -488,6 +513,17 @@
+     const submissionsEndpoint = "/api/zhku/local-admin/submissions";
+     const uploadForm = document.querySelector("#upload-form"); const refreshButton = document.querySelector("#refresh-submissions"); const submissionList = document.querySelector("#submission-list"); const submissionEmpty = document.querySelector("#submission-empty"); const reviewStage = document.querySelector("#review-stage"); const candidateSummary = document.querySelector("#candidate-summary"); const candidateList = document.querySelector("#candidate-list"); const publishStage = document.querySelector("#publish-stage"); const publishButton = document.querySelector("#publish-button"); const publishStatus = document.querySelector("#publish-status"); const noticePublicationFields = document.querySelector("#notice-publication-fields"); const verifyStage = document.querySelector("#verify-stage"); const pageError = document.querySelector("#page-error"); const pageSuccess = document.querySelector("#page-success"); const currentStage = document.querySelector("#current-stage"); const stageNote = document.querySelector("#stage-note"); const confirmationDialog = document.querySelector("#confirmation-dialog"); const confirmationTitle = document.querySelector("#confirmation-title"); const confirmationMessage = document.querySelector("#confirmation-message"); const confirmationAccept = document.querySelector("#confirmation-accept");
+     let selectedSubmission = null; let pendingConfirmation = null;
++    const candidatePageSize = 20;
++    const candidateFilter = document.querySelector("#candidate-filter");
++    const candidatePrevious = document.querySelector("#candidate-previous");
++    const candidateNext = document.querySelector("#candidate-next");
++    const candidatePageInfo = document.querySelector("#candidate-page-info");
++    let candidatePage = 0;
++    // 草稿与服务端审核状态分开：翻页不能悄悄保存或批准，也不能丢失当前输入。
++    const candidateDrafts = new Map();
++    candidateFilter.addEventListener("change", () => { candidatePage = 0; if (selectedSubmission) renderCandidates(selectedSubmission); });
++    candidatePrevious.addEventListener("click", () => { candidatePage--; renderCandidates(selectedSubmission); });
++    candidateNext.addEventListener("click", () => { candidatePage++; renderCandidates(selectedSubmission); });
+     const feedbackEndpoint = "/api/zhku/local-admin/feedback";
+     const feedbackConfigGrid = document.querySelector("#feedback-config"); const feedbackTable = document.querySelector("#feedback-table"); const feedbackRows = document.querySelector("#feedback-rows"); const feedbackEmpty = document.querySelector("#feedback-empty"); const feedbackSummary = document.querySelector("#feedback-summary"); const refreshFeedbackButton = document.querySelector("#refresh-feedback"); const retentionButton = document.querySelector("#retention-button");
+     // 原因枚举的中文标签；未登记的取值原样显示，避免后端新增枚举时被前端静默吞掉。
+@@ -508,20 +544,71 @@
+     function requestConfirmation(title, message, label, action) { confirmationTitle.textContent = title; confirmationMessage.textContent = message; confirmationAccept.textContent = label; pendingConfirmation = action; if (typeof confirmationDialog.showModal === "function") { confirmationDialog.showModal(); } else if (window.confirm(message)) { const accepted = pendingConfirmation; pendingConfirmation = null; accepted(); } }
+     async function loadSubmissions(selectId) { clearMessage(); try { const response = await fetch(submissionsEndpoint); const submissions = await readJson(response); if (!response.ok) { showError(submissions.message || "无法读取资料列表。"); return; } renderSubmissions(submissions); const targetId = selectId || selectedSubmission?.id; if (targetId) { await loadSubmission(targetId); } } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
+     function renderSubmissions(submissions) { submissionList.replaceChildren(); submissionEmpty.hidden = submissions.length > 0; submissions.forEach(submission => { const item = document.createElement("article"); item.className = "submission"; const row = document.createElement("div"); row.className = "submission-row"; const detail = document.createElement("div"); const heading = document.createElement("h3"); const meta = document.createElement("p"); const badge = document.createElement("span"); badge.className = "status-badge"; heading.textContent = `${submission.title}｜${submission.sourceVersion}`; meta.className = "candidate-meta"; meta.textContent = `知识范围：${submission.knowledgeScope}｜当前状态：${submissionStatusLabel(submission.status)}`; badge.textContent = submissionStatusLabel(submission.status); detail.append(heading, meta); row.append(detail, badge); item.append(row, actionButton("查看并继续", "secondary", () => loadSubmission(submission.id))); submissionList.append(item); }); }
+-    async function loadSubmission(submissionId) { clearMessage(); try { const response = await fetch(`${submissionsEndpoint}/${submissionId}`); const submission = await readJson(response); if (!response.ok) { showError(submission.message || "无法读取资料详情。"); return; } selectedSubmission = submission; reviewStage.hidden = false; renderCandidates(submission); refreshPublishCheck(); if (submission.candidates.length === 0) { activateStage("EXTRACT"); } else if (submission.candidates.some(candidate => candidate.reviewStatus === "PENDING_REVIEW")) { activateStage("REVIEW"); } else { activateStage("PUBLISH"); } } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
+-    function renderCandidates(submission) { candidateList.replaceChildren(); const pendingCount = submission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length; candidateSummary.textContent = `共 ${submission.candidates.length} 条候选片段；待处理 ${pendingCount} 条。所有候选片段必须通过或丢弃后才能发布。`; if (submission.candidates.length === 0) { candidateList.append(actionButton("提取候选片段", "", extractCandidates)); return; } submission.candidates.forEach(candidate => candidateList.append(createCandidateCard(candidate))); }
+-    function createCandidateCard(candidate) { const card = document.createElement("article"); card.className = "candidate"; const heading = document.createElement("h3"); const meta = document.createElement("p"); heading.textContent = `PDF 第 ${candidate.startPageNumber}—${candidate.endPageNumber} 页｜${candidateStatusLabel(candidate.reviewStatus)}`; meta.className = "candidate-meta"; meta.textContent = candidate.reviewNote || candidate.discardReason || "请填写审核说明后作出结论。"; const form = document.createElement("form"); const title = createInput("片段标题", candidate.sectionTitle || ""); const locator = createInput("资料定位", candidate.sourceLocator || `PDF 第 ${candidate.startPageNumber} 页`); const text = createTextarea("编辑后正文", candidate.editedText || ""); const note = createTextarea("审核说明或丢弃原因", candidate.reviewNote || candidate.discardReason || ""); const pageRange = document.createElement("div"); pageRange.className = "candidate-grid"; const startPage = createNumberInput("起始页", candidate.startPageNumber); const endPage = createNumberInput("结束页", candidate.endPageNumber); pageRange.append(startPage.label, endPage.label); const actions = document.createElement("div"); actions.className = "candidate-actions"; actions.append(actionButton("保存编辑", "secondary", () => updateCandidate(candidate.id, { startPageNumber: Number(startPage.input.value), endPageNumber: Number(endPage.input.value), editedText: text.input.value, sectionTitle: title.input.value, sourceLocator: locator.input.value }))); if (candidate.reviewStatus === "PENDING_REVIEW") { actions.append(actionButton("通过", "", () => reviewCandidate(candidate.id, "APPROVE", note.input.value)), actionButton("丢弃", "danger", () => requestConfirmation("丢弃前请确认", "丢弃后该候选片段不会进入发布版本。确认丢弃吗？", "确认丢弃", () => reviewCandidate(candidate.id, "DISCARD", note.input.value))), actionButton("按正文两段拆分", "secondary", () => splitCandidate(candidate.id, text.input.value))); } form.append(title.label, locator.label, text.label, note.label, pageRange, actions); card.append(heading, meta, form); return card; }
++    async function loadSubmission(submissionId) { clearMessage(); try { const response = await fetch(`${submissionsEndpoint}/${submissionId}`); const submission = await readJson(response); if (!response.ok) { showError(submission.message || "无法读取资料详情。"); return; } if (selectedSubmission?.id !== submission.id) { candidatePage = 0; candidateFilter.value = "ALL"; } selectedSubmission = submission; reviewStage.hidden = false; renderCandidates(submission); refreshPublishCheck(); if (submission.candidates.length === 0) { activateStage("EXTRACT"); } else if (submission.candidates.some(candidate => candidate.reviewStatus === "PENDING_REVIEW")) { activateStage("REVIEW"); } else { activateStage("PUBLISH"); } } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); } }
++    function renderCandidates(submission) {
++        candidateList.replaceChildren();
++        const pendingCount = submission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length;
++        candidateSummary.textContent = `共 ${submission.candidates.length} 条候选片段；待处理 ${pendingCount} 条。所有候选片段必须通过或丢弃后才能发布。`;
++        // 本批只控制DOM数量；服务端仍返回完整候选，不能把页面切片当后端分页。
++        const filtered = submission.candidates.filter(candidate => candidateFilter.value === "ALL" || candidate.reviewStatus === candidateFilter.value);
++        const pageCount = Math.max(1, Math.ceil(filtered.length / candidatePageSize));
++        candidatePage = Math.max(0, Math.min(candidatePage, pageCount - 1));
++        candidatePrevious.disabled = candidatePage === 0;
++        candidateNext.disabled = candidatePage >= pageCount - 1;
++        candidatePageInfo.textContent = `第 ${candidatePage + 1} / ${pageCount} 页；筛选结果 ${filtered.length} 条`;
++        if (submission.candidates.length === 0) { candidateList.append(actionButton("提取候选片段", "", extractCandidates)); return; }
++        if (filtered.length === 0) { const empty = document.createElement("p"); empty.textContent = "当前筛选没有候选片段。"; candidateList.append(empty); return; }
++        filtered.slice(candidatePage * candidatePageSize, (candidatePage + 1) * candidatePageSize).forEach(candidate => candidateList.append(createCandidateCard(candidate)));
++    }
++    function createCandidateCard(candidate) {
++        const card = document.createElement("article"); card.className = "candidate"; card.dataset.candidateId = candidate.id;
++        const heading = document.createElement("h3"); const meta = document.createElement("p");
++        heading.textContent = `PDF 第 ${candidate.startPageNumber}—${candidate.endPageNumber} 页｜${candidateStatusLabel(candidate.reviewStatus)}`;
++        meta.className = "candidate-meta"; meta.textContent = candidate.reviewNote || candidate.discardReason || "请填写审核说明后作出结论。";
++        const editable = candidate.reviewStatus === "PENDING_REVIEW" && ["EXTRACTED", "IN_REVIEW"].includes(selectedSubmission.status);
++        // 已结束审核的片段以服务端保存内容为准，不展示可能残留的待审草稿。
++        const draft = editable ? candidateDrafts.get(candidate.id) : undefined;
++        const form = document.createElement("form");
++        const title = createInput("片段标题", draft?.sectionTitle ?? candidate.sectionTitle ?? "");
++        const locator = createInput("资料定位", draft?.sourceLocator ?? candidate.sourceLocator ?? `PDF 第 ${candidate.startPageNumber} 页`);
++        const originalPanel = document.createElement("div"); const originalLabel = document.createElement("p"); const original = document.createElement("pre");
++        originalLabel.textContent = "PDF提取原文（只读）"; original.className = "candidate-original";
++        // 资料内容是不可信文本，不能作为HTML插入，保留换行便于核对。
++        original.textContent = candidate.rawText ?? ""; originalPanel.append(originalLabel, original);
++        if (!candidate.rawText?.trim()) { const warning = document.createElement("p"); warning.className = "hint"; warning.textContent = "未提取到可读原文，请人工核对PDF；扫描页需先识别文字，不能直接视为无规则。"; originalPanel.append(warning); }
++        const text = createTextarea("编辑后正文", draft?.editedText ?? candidate.editedText ?? candidate.rawText ?? "");
++        const texts = document.createElement("div"); texts.className = "candidate-texts"; texts.append(originalPanel, text.label);
++        const note = createTextarea("审核说明或丢弃原因", draft?.note ?? candidate.reviewNote ?? candidate.discardReason ?? "");
++        const pageRange = document.createElement("div"); pageRange.className = "candidate-grid";
++        const startPage = createNumberInput("起始页", draft?.startPageNumber ?? candidate.startPageNumber);
++        const endPage = createNumberInput("结束页", draft?.endPageNumber ?? candidate.endPageNumber); pageRange.append(startPage.label, endPage.label);
++        const content = () => ({ startPageNumber: Number(startPage.input.value), endPageNumber: Number(endPage.input.value), editedText: text.input.value, sectionTitle: title.input.value, sourceLocator: locator.input.value });
++        const actions = document.createElement("div"); actions.className = "candidate-actions";
++        if (editable) {
++            const approve = actionButton("通过", "", () => reviewCandidate(candidate.id, "APPROVE", note.input.value));
++            // 通过针对已保存正文；不能让审核者以为未提交的草稿已被批准。
++            const refreshApproval = () => { const values = content(); approve.disabled = !candidate.editedText || !candidate.sectionTitle || !candidate.sourceLocator || Object.entries(values).some(([key, value]) => value !== candidate[key]); };
++            form.addEventListener("input", () => { candidateDrafts.set(candidate.id, { ...content(), note: note.input.value }); refreshApproval(); });
++            refreshApproval();
++            actions.append(actionButton("保存编辑", "secondary", () => updateCandidate(candidate.id, content())), approve,
++                actionButton("丢弃", "danger", () => requestConfirmation("丢弃前请确认", "丢弃后该候选片段不会进入发布版本。确认丢弃吗？", "确认丢弃", () => reviewCandidate(candidate.id, "DISCARD", note.input.value))),
++                actionButton("按正文两段拆分", "secondary", () => splitCandidate(candidate.id, text.input.value)));
++        }
++        form.append(title.label, locator.label, texts, note.label, pageRange, actions);
++        if (!editable) form.querySelectorAll("input, textarea").forEach(control => { control.disabled = true; });
++        card.append(heading, meta, form); return card;
++    }
+     function createInput(labelText, value) { const label = document.createElement("label"); label.textContent = labelText; const input = document.createElement("input"); input.value = value; label.append(input); return { label, input }; } function createNumberInput(labelText, value) { const field = createInput(labelText, value); field.input.type = "number"; field.input.min = "1"; return field; } function createTextarea(labelText, value) { const label = document.createElement("label"); label.textContent = labelText; const textarea = document.createElement("textarea"); textarea.value = value; label.append(textarea); return { label, input: textarea }; } function actionButton(label, className, handler) { const button = document.createElement("button"); button.type = "button"; button.textContent = label; if (className) { button.className = className; } button.addEventListener("click", handler); return button; }
+-    async function extractCandidates() { await requestAndReload(`${submissionsEndpoint}/${selectedSubmission.id}/extract`, { method: "POST" }, "候选片段已提取，请逐条审核。", "REVIEW"); } async function updateCandidate(candidateId, body) { await requestAndReload(`${apiBase}/candidates/${candidateId}`, { method: "PATCH", headers: jsonHeaders(), body: JSON.stringify(body) }, "候选片段已更新。", "REVIEW"); } async function reviewCandidate(candidateId, decision, note) { await requestAndReload(`${apiBase}/candidates/${candidateId}/review`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ decision, note }) }, decision === "APPROVE" ? "候选片段已通过。" : "候选片段已丢弃。", "REVIEW"); }
+-    async function splitCandidate(candidateId, editedText) { const separator = "\n---\n"; if (!editedText.includes(separator)) { showError("请在“编辑后正文”中用单独一行 --- 分隔两段，再执行拆分。"); return; } const [firstEditedText, secondEditedText] = editedText.split(separator, 2); await requestAndReload(`${apiBase}/candidates/${candidateId}/split`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ firstEditedText, secondEditedText }) }, "候选片段已拆分，请分别审核两段内容。", "REVIEW"); }
+-    async function requestAndReload(url, options, successMessage, nextStage) { clearMessage(); try { const response = await fetch(url, options); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "操作未完成，请检查当前资料状态。"); return false; } showSuccess(successMessage); activateStage(nextStage); await loadSubmissions(selectedSubmission.id); return true; } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); return false; } }
++    async function extractCandidates() { await requestAndReload(`${submissionsEndpoint}/${selectedSubmission.id}/extract`, { method: "POST" }, "候选片段已提取，请逐条审核。", "REVIEW"); } async function updateCandidate(candidateId, body) { await requestAndReload(`${apiBase}/candidates/${candidateId}`, { method: "PATCH", headers: jsonHeaders(), body: JSON.stringify(body) }, "候选片段已更新。", "REVIEW", () => { const draft = candidateDrafts.get(candidateId); candidateDrafts.set(candidateId, { note: draft?.note ?? "" }); }); } async function reviewCandidate(candidateId, decision, note) { await requestAndReload(`${apiBase}/candidates/${candidateId}/review`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ decision, note }) }, decision === "APPROVE" ? "候选片段已通过。" : "候选片段已丢弃。", "REVIEW", () => candidateDrafts.delete(candidateId)); }
++    async function splitCandidate(candidateId, editedText) { const separator = "\n---\n"; if (!editedText.includes(separator)) { showError("请在“编辑后正文”中用单独一行 --- 分隔两段，再执行拆分。"); return; } const [firstEditedText, secondEditedText] = editedText.split(separator, 2); await requestAndReload(`${apiBase}/candidates/${candidateId}/split`, { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ firstEditedText, secondEditedText }) }, "候选片段已拆分，请分别审核两段内容。", "REVIEW", () => candidateDrafts.delete(candidateId)); }
++    async function requestAndReload(url, options, successMessage, nextStage, onAccepted) { clearMessage(); try { const response = await fetch(url, options); const payload = await readJson(response); if (!response.ok) { showError(payload.message || "操作未完成，请检查当前资料状态。"); return false; } onAccepted?.(); showSuccess(successMessage); activateStage(nextStage); await loadSubmissions(selectedSubmission.id); return true; } catch (error) { showError("本机资料服务暂不可用，请确认服务和数据库已启动。"); return false; } }
+     function refreshPublishCheck() { if (!selectedSubmission) { publishButton.disabled = true; return; } const isOfficialNotice = selectedSubmission.documentFamily === "OFFICIAL_NOTICE"; noticePublicationFields.hidden = !isOfficialNotice; publishButton.textContent = isOfficialNotice ? "发布当前选课通知" : "发布已审核资料"; const pending = selectedSubmission.candidates.filter(candidate => candidate.reviewStatus === "PENDING_REVIEW").length; const approved = selectedSubmission.candidates.filter(candidate => candidate.reviewStatus === "APPROVED").length; const canPublish = selectedSubmission.status === "IN_REVIEW" && pending === 0 && approved > 0; publishButton.disabled = !canPublish; publishStage.dataset.locked = String(!canPublish); publishStatus.textContent = pending > 0 ? `还有 ${pending} 条候选片段待处理` : (approved === 0 ? "至少需要一条通过片段" : (isOfficialNotice ? "候选片段已审核；请填写通知时态事实后发布。" : "已满足发布条件，请确认后发布")); }
+     function toBeijingInstant(value) { if (!value) { return null; } return new Date(`${value}:00+08:00`).toISOString(); }
+     function refreshEvidenceFields() { const internal = document.querySelector("#notice-evidence-channel").value === "INTERNAL_OFFICIAL"; document.querySelector("#notice-public-url-label").hidden = internal; document.querySelector("#notice-issuing-unit-label").hidden = !internal; document.querySelector("#notice-delivery-channel-label").hidden = !internal; document.querySelector("#notice-material-reference-label").hidden = !internal; }
+     document.querySelector("#notice-evidence-channel").addEventListener("change", refreshEvidenceFields);
+     function noticePublicationPayload() { const channel = document.querySelector("#notice-evidence-channel").value; const payload = { academicTerm: document.querySelector("#notice-academic-term").value, validFrom: toBeijingInstant(document.querySelector("#notice-valid-from").value), validTo: toBeijingInstant(document.querySelector("#notice-valid-to").value), officialUrl: channel === "PUBLIC_WEB" ? document.querySelector("#notice-official-url").value : null, evidenceChannel: channel, issuingUnit: document.querySelector("#notice-issuing-unit").value, deliveryChannel: document.querySelector("#notice-delivery-channel").value, materialReference: document.querySelector("#notice-material-reference").value, facts: [{ type: document.querySelector("#notice-fact-type").value, startsAt: toBeijingInstant(document.querySelector("#notice-fact-start").value), endsAt: toBeijingInstant(document.querySelector("#notice-fact-end").value), officialEntryUrl: document.querySelector("#notice-entry-url").value, startsAtConfirmed: true, endsAtConfirmed: true }] }; if (!payload.validFrom || !payload.validTo || !payload.facts[0].startsAt || !payload.facts[0].endsAt || !payload.facts[0].officialEntryUrl || (channel === "PUBLIC_WEB" && !payload.officialUrl) || (channel === "INTERNAL_OFFICIAL" && (!payload.issuingUnit || !payload.deliveryChannel || !payload.materialReference))) { throw new Error("请完整填写通知有效期、办理时间及对应来源依据后再发布。"); } return payload; }
+     async function publishSelectedSubmission() { try { const isOfficialNotice = selectedSubmission.documentFamily === "OFFICIAL_NOTICE"; const url = isOfficialNotice ? `${submissionsEndpoint}/${selectedSubmission.id}/publish-course-selection-notice` : `${submissionsEndpoint}/${selectedSubmission.id}/publish`; const options = isOfficialNotice ? { method: "POST", headers: jsonHeaders(), body: JSON.stringify(noticePublicationPayload()) } : { method: "POST" }; const message = isOfficialNotice ? "当前选课通知已事务发布。请在问答页确认只返回当前有效通知。" : "资料已事务发布。现在可以打开问答验证页确认引用与页码。"; const published = await requestAndReload(url, options, message, "VERIFY"); if (published) { verifyStage.dataset.locked = "false"; } } catch (error) { showError(error.message || "通知发布信息不完整。"); } }
+-    function submissionStatusLabel(status) { return ({ DRAFT: "审核草稿", IN_REVIEW: "审核中", PUBLISHED: "已发布", ARCHIVED: "已归档" })[status] || "状态待确认"; } function candidateStatusLabel(status) { return ({ PENDING_REVIEW: "待审核", APPROVED: "已通过", DISCARDED: "已丢弃" })[status] || "状态待确认"; }
++    function submissionStatusLabel(status) { return ({ DRAFT: "审核草稿", EXTRACTED: "已提取", IN_REVIEW: "审核中", PUBLISHED: "已发布", ARCHIVED: "已归档" })[status] || "状态待确认"; } function candidateStatusLabel(status) { return ({ PENDING_REVIEW: "待审核", APPROVED: "已通过", DISCARDED: "已丢弃" })[status] || "状态待确认"; }
+     function jsonHeaders() { return { "Content-Type": "application/json; charset=UTF-8" }; } async function readJson(response) { try { return await response.json(); } catch (error) { return {}; } } function clearMessage() { pageError.hidden = true; pageSuccess.hidden = true; pageError.textContent = ""; pageSuccess.textContent = ""; } function showError(message) { pageError.textContent = message; pageError.hidden = false; } function showSuccess(message) { pageSuccess.textContent = message; pageSuccess.hidden = false; } function setBusy(form, busy) { form.querySelectorAll("button, input, textarea").forEach(control => { control.disabled = busy; }); }
+     // 配置回显与聚合是两个独立只读接口：任一失败都不该掩盖另一个的结果，故分开处理。
+     async function loadFeedback() { clearMessage(); await loadFeedbackData(); }
+--- a/knowledge/src/test/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminControllerTest.java
++++ b/knowledge/src/test/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminControllerTest.java
+@@ -217,7 +217,7 @@
+     }
+ 
+     @Test
+-    void shouldUpdateCandidateWithoutReturningRawText() throws Exception {
++    void shouldUpdateCandidateWithAdminOriginalTextButWithoutStorageKey() throws Exception {
+         when(reviewService.update(any(), any())).thenReturn(candidate());
+ 
+         mockMvc.perform(patch("/zhku/local-admin/candidates/{id}", CANDIDATE_ID)
+@@ -232,7 +232,7 @@
+                 .andExpect(jsonPath("$.id").value(CANDIDATE_ID.toString()))
+                 .andExpect(jsonPath("$.editedText")
+                         .value("公共选修课最高不得超过 4 学分。"))
+-                .andExpect(jsonPath("$.rawText").doesNotExist())
++                .andExpect(jsonPath("$.rawText").value("原始文本"))
+                 .andExpect(jsonPath("$.storageKey").doesNotExist());
+     }
+ 
+@@ -279,7 +279,7 @@
+         mockMvc.perform(get("/zhku/local-admin/submissions/{id}", SUBMISSION_ID))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$.title").value("测试学生手册"))
+-                .andExpect(jsonPath("$.candidates[0].rawText").doesNotExist())
++                .andExpect(jsonPath("$.candidates[0].rawText").value("原始文本"))
+                 .andExpect(jsonPath("$.storageKey").doesNotExist());
+     }
+ 
+@@ -332,7 +332,7 @@
+ 
+     private static KnowledgeCandidate candidateWithId(UUID id) {
+         return new KnowledgeCandidate(
+-                id, SUBMISSION_ID, 77, 77, "不应从接口返回的原始文本",
++                id, SUBMISSION_ID, 77, 77, "原始文本",
+                 "公共选修课最高不得超过 4 学分。", "公共选修课程学分上限",
+                 "PDF 第 77 页，第 10 条", CandidateReviewStatus.PENDING_REVIEW,
+                 null, null, Instant.parse("2026-09-12T00:00:00Z"),
+--- a/docs/superpowers/plans/2026-10-07-rule-check-p0-plan.md
++++ b/docs/superpowers/plans/2026-10-07-rule-check-p0-plan.md
+@@ -10,7 +10,7 @@
+ 
+ **Spec:** [产品范围约定](../../product/rule-check-scope.md)、[主路线图](2026-10-07-rule-check-refactor-roadmap.md) 与 [诊断报告](../../reviews/2026-10-07-refactor-design.md)。五种查证业务状态是后续目标，不修改本批ModelResponse四字段协议。
+ 
+-日期：2026-10-07；状态：Task 1工程部分完成技术验证，资料/人工参考仍待确认，G0未通过。用户再次授权下一步后独立推进Task 2，RC-02截断缺陷已修复并复验，预算调优仍待人工参考；Task 3–6未开始。实际执行见 [R0验收](../../evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md)、[R1验收](../../evidence/rule-check-refactor/2026-10-07/r1-fusion-01/acceptance.md)。此次局部修复不代替G0资料门禁，也不宣称产品收益。
++日期：2026-10-07；状态：Task 1工程部分完成技术验证，资料/人工参考仍待确认，G0未通过。Task 2的RC-02截断缺陷已修复复验，预算调优仍待人工参考；Task 3的RC-03管理员原文对照已完成工程及真实浏览器验收；Task 4–6未开始。实际执行见 [R0验收](../../evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md)、[R1验收](../../evidence/rule-check-refactor/2026-10-07/r1-fusion-01/acceptance.md)、[R2验收](../../evidence/rule-check-refactor/2026-10-07/r2-admin-01/acceptance.md)。局部修复不代替G0资料门禁，也不宣称产品收益。
+ 
+ 评估口径沿用 [Eval 协议](../../product/rule-check-eval-contract.md)：R0准备人工参考和原子rubric，P0以确定性回归为主，不要求先引入付费模型裁判或通用平台。质量、已知风险与裁判验证样本用途分开。
+ 
+@@ -128,7 +128,7 @@
+ 
+ **Consumes：**当前KnowledgeCandidate原文与既有本机管理边界。**Produces：**CandidateResponse.rawText、原文/编辑对照与20条DOM切片。问题：RC-03。
+ 
+-- [ ] **Step 1：添加DTO映射断言。** 在治理web同包的映射测试使用真实record，所需imports为UUID/Instant、KnowledgeCandidate、CandidateReviewStatus和JUnit/AssertJ：
++- [x] **Step 1：添加DTO映射断言。** CandidateResponseMappingTest用真实record覆盖原文/已编辑分离、HTML/换行保留及空白页状态；先用旧MockMvc接口获得字段缺失的行为RED，未将accessor编译缺失当复现。示例：
+ 
+ ```java
+ @Test
+@@ -144,8 +144,8 @@
+ }
+ ```
+ 
+-- [ ] **Step 2：先记录旧JSON/网页失败。** 新accessor尚不存在时属于结构RED，另外保存旧JSON无原文字段及真实新候选空编辑区观察；不得仅凭编译失败声称用户问题已复现。
+-- [ ] **Step 3：DTO最小扩展与页面显示。** from复制rawText；原文只读，编辑区草稿初始化，不自动调用保存/approve。渲染方式：
++- [x] **Step 2：先记录旧JSON/网页失败。** r2-red-01的12项中2个JSON断言失败；browser-before真实临时库候选显示25卡/原文区域0/编辑区空。保存JSON、截图、DOM和数据库终态，未用编译失败冒充行为RED。
++- [x] **Step 3：DTO最小扩展与页面显示。** from复制rawText；原文只读，编辑区草稿初始化，不自动调用保存/approve。渲染方式：
+ 
+ ```javascript
+ const original = document.createElement('pre')
+@@ -154,9 +154,9 @@
+ editor.value = candidate.editedText ?? candidate.rawText ?? ''
+ ```
+ 
+-- [ ] **Step 4：状态/分页/恶意文本验证。** 页面每次渲染20条，切页/筛选不丢待审状态；HTML作为字面文本；空白页提示人工处理；APPROVED/DISCARDED维持既有不可编辑约束。服务端仍全量返回的限制写入报告，不说后端已分页。
+-- [ ] **Step 5：单测与真实本机管理浏览器验收。** 真库只由专用入口准备少量合成夹具；对照原文→编辑→保存→审核→发布资格各步观察。
+-- [ ] **Step 6：保存JSON脱敏样例、页面观察、哈希、回归和真实/替身标识。** 不把管理原文加到学生v1响应。
++- [x] **Step 4：状态/分页/恶意文本验证。** 真实页面验证20+5卡，切页/筛选保留草稿及全局待审计数；HTML字面显示，无注入img；空白页提示人工核对；APPROVED/DISCARDED只读；拆分清理旧草稿。仅DOM切片，服务端仍全量返回。
++- [x] **Step 5：单测与真实本机管理浏览器验收。** r2-green-01三类16项通过，最终r2-regression-01八类60项通过；专用随机无卷临时库V21，10个浏览器场景通过。显式保存/通过/丢弃/发布5个事件（含拆分）；发布仍INTERNAL_ONLY且分享未确认。两次容器/Java退出、连接0。本轮SQL准备提取态候选，未实际上传或提取PDF。
++- [x] **Step 6：保存JSON脱敏样例、页面观察、哈希、回归和真实/替身标识。** 见R2验收；原文仅扩展管理响应，学生v1类未修改。本批局部自审不等于完整P0最终独立审查。
+ 
+ ## Task 4：结构、范围与空引用守卫
+ 
+--- a/docs/superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md
++++ b/docs/superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md
+@@ -10,7 +10,7 @@
+ 
+ **Spec:** 产品定位、回答边界与成功标准以 [范围约定](../../product/rule-check-scope.md) 为统一依据；问题和架构论证见 [完整诊断与重构报告，尤其第 8 点](../../reviews/2026-10-07-refactor-design.md)。本路线图调整原计划的验证顺序：用户价值评测提前到单主题完成时，而不是扩展完成后才验证。
+ 
+-日期：2026-10-07；状态：**R0工程基线通过，资料/人工参考仍待确认；R1融合前截断缺陷已修复复验，预算调优和产品收益未实测**。G0仍未通过；此次独立局部修复不放行学生试点或后续产品阶段。执行说明见 [P0 实施计划](2026-10-07-rule-check-p0-plan.md)；问题与证据见 [证据目录](../../evidence/rule-check-refactor/2026-10-07/README.md)。
++日期：2026-10-07；状态：**R0工程基线通过，资料/人工参考仍待确认；R1融合截断、R2管理原文对照均已修复复验，预算调优和产品收益未实测**。G0仍未通过；局部修复不放行学生试点或后续产品阶段。执行说明见 [P0 实施计划](2026-10-07-rule-check-p0-plan.md)；问题与证据见 [证据目录](../../evidence/rule-check-refactor/2026-10-07/README.md)。
+ 
+ **Eval 约定：**以 [评估协议](../../product/rule-check-eval-contract.md) 定义样本用途、原子评分、评分器验证与版本比较。评估从 R0 开始，首轮以人工为准；不先建设通用评估平台。下列数值是有限样本验收线，不能直接证明总体质量或统计提升。
+ 
+--- a/docs/evidence/rule-check-refactor/2026-10-07/issues.json
++++ b/docs/evidence/rule-check-refactor/2026-10-07/issues.json
+@@ -3,7 +3,7 @@
+   "program": "rule-check-refactor",
+   "createdDate": "2026-10-07",
+   "timezone": "Asia/Shanghai",
+-  "deliveryStage": "LOCAL_DEFECT_TECHNICAL_VALIDATION",
++  "deliveryStage": "LOCAL_ADMIN_BROWSER_TECHNICAL_VALIDATION",
+   "productScopePath": "docs/product/rule-check-scope.md",
+   "evalContractPath": "docs/product/rule-check-eval-contract.md",
+   "evaluationDesignStatus": "DOCUMENTED_NOT_EXECUTED",
+@@ -86,18 +86,46 @@
+       "tasks": [
+         "R2"
+       ],
+-      "status": "OPEN",
++      "status": "CLOSED",
+       "problem": "管理DTO与页面未展示候选原文",
+-      "evidenceKind": "STATIC_REVIEW",
++      "evidenceKind": "BROWSER_REAL_CHAIN",
+       "sourcePaths": [
+         "knowledge/src/main/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminController.java",
+         "knowledge/src/main/resources/zhku/local-admin/index.html"
+       ],
+-      "verificationStatus": "NOT_RUN",
++      "verificationStatus": "PASSED",
+       "closeWhen": [
+         "原问题JSON与网页复现",
+         "原文对照与编辑安全渲染",
+         "待审到批准流程验证且学生端无原文越界"
++      ],
++      "additionalEvidenceKinds": [
++        "UNIT_TEST",
++        "HTTP_PROCESS",
++        "DB_INTEGRATION"
++      ],
++      "closedAt": "2026-10-07T22:57:02.286529+08:00",
++      "closureScope": "本机管理员原文对照与明确编辑/审核边界；不代表整本手册导入、后端分页、OCR、学生端完整链或正式上线",
++      "evidencePaths": [
++        "docs/evidence/rule-check-refactor/2026-10-07/r2-red-01/results.json",
++        "docs/evidence/rule-check-refactor/2026-10-07/r2-regression-01/results.json",
++        "docs/evidence/rule-check-refactor/2026-10-07/r2-admin-01/browser-after/observations.json",
++        "docs/evidence/rule-check-refactor/2026-10-07/r2-admin-01/browser-after/database-final.json",
++        "docs/evidence/rule-check-refactor/2026-10-07/r2-admin-01/integrity-check.json"
++      ],
++      "verifiedSourceHashes": [
++        {
++          "path": "knowledge/src/main/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminController.java",
++          "sha256": "1a1aff6a5daaa6e203a1147636c2ad48779bd97f22c1292f8534e86ecdf3cc07"
++        },
++        {
++          "path": "knowledge/src/main/resources/zhku/local-admin/index.html",
++          "sha256": "6d3f17a28dac0ed98d313cb54c71f71646d57a16e4712b456bf716bfd1825e5a"
++        },
++        {
++          "path": "knowledge/src/test/java/com/zhku/knowledge/governance/web/CandidateResponseMappingTest.java",
++          "sha256": "842b81e849573d27560d996c7e4d8a049390ff7fe824db82156102eb0e08cd0b"
++        }
+       ]
+     },
+     {
+@@ -396,13 +424,16 @@
+   ],
+   "verificationInfrastructureImplemented": true,
+   "latestExecution": {
+-    "stage": "R1_CODE_VERIFIED_CALIBRATION_PENDING",
+-    "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r1-fusion-01/acceptance.md",
++    "stage": "R2_VERIFIED_LOCAL_SYNTHETIC",
++    "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r2-admin-01/acceptance.md",
+     "testsExecuted": true,
+     "businessCodeChanged": true,
++    "browserRealChainRun": true,
++    "databaseOperationRun": true,
++    "databaseScope": "DEDICATED_RANDOM_TEMP_CONTAINER_SYNTHETIC_ONLY",
++    "pdfIngestionRun": false,
+     "productEvaluationRun": false,
+     "providerCalled": false,
+-    "databaseOperationRun": false,
+     "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
+     "budgetCalibration": "NOT_RUN_HUMAN_REFERENCE_NOT_LOCKED",
+     "planningTurnFieldsAreHistorical": true
+@@ -417,6 +448,18 @@
+       "providerCalled": false,
+       "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
+       "planningTurnFieldsAreHistorical": true
++    },
++    {
++      "stage": "R1_CODE_VERIFIED_CALIBRATION_PENDING",
++      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r1-fusion-01/acceptance.md",
++      "testsExecuted": true,
++      "businessCodeChanged": true,
++      "productEvaluationRun": false,
++      "providerCalled": false,
++      "databaseOperationRun": false,
++      "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
++      "budgetCalibration": "NOT_RUN_HUMAN_REFERENCE_NOT_LOCKED",
++      "planningTurnFieldsAreHistorical": true
+     }
+   ]
+ }
+--- a/docs/evidence/rule-check-refactor/2026-10-07/README.md
++++ b/docs/evidence/rule-check-refactor/2026-10-07/README.md
+@@ -1,6 +1,6 @@
+ # 校园规则查证重构：问题与开发证据
+ 
+-日期：2026-10-07。当前交付阶段：**R1局部缺陷技术验证，R0资料/评估准备部分完成**。本目录保留历史规划记录，追加 [R0验收](r0-baseline-01/acceptance.md)、[R1验收](r1-fusion-01/acceptance.md)及每次执行的独立证据；**RC-02已修复复验，没有真实模型评估或用户收益数据**。
++日期：2026-10-07。当前交付阶段：**R2本机管理原文对照工程与真实浏览器技术验证，R0资料/评估准备部分完成**。本目录保留历史规划记录，追加 [R0验收](r0-baseline-01/acceptance.md)、[R1验收](r1-fusion-01/acceptance.md)、[R2验收](r2-admin-01/acceptance.md)及独立批次；**RC-02/03已修复复验，没有真实模型评估或用户收益数据**。
+ 
+ - [主路线图](../../../superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md)
+ - [P0任务级计划](../../../superpowers/plans/2026-10-07-rule-check-p0-plan.md)
+@@ -11,7 +11,7 @@
+ - `scope-alignment-manifest.json`：后续定位、五种回答状态与验收口径整理后的文档指纹；同样不代表业务已实现。
+ - `eval-alignment-manifest.json`：本次参照学习材料同步评估设计的文档指纹，保留前两份历史记录；不含项目评估成绩。
+ 
+-定位已由用户确定；R0隔离入口和工程基线已验证，当前资料、人工金标准与查证流程未完成，G0未通过。RC-02截断缺陷已CLOSED，RC-09/10部分推进，其余仍OPEN。R1候选预算调优尚未执行，默认20不表示最优。RC-04语义验证加入部分回答/关键例外边界，RC-09加入样本/评分可信度/配对比较；工程通过不能关闭产品价值问题。
++定位已由用户确定；R0隔离入口和工程基线已验证，当前资料、人工金标准与查证流程未完成，G0未通过。RC-02/03已CLOSED，RC-09/10部分推进，其余仍OPEN。R1候选预算调优尚未执行，默认20不表示最优；R2仅DOM分页，没有完成PDF/OCR/整本手册治理。RC-04语义验证加入部分回答/关键例外边界，RC-09加入样本/评分可信度/配对比较；工程通过不能关闭产品价值问题。
+ 
+ ## 1. 初始问题索引
+ 
+@@ -19,7 +19,7 @@
+ | --- | --- | --- | --- |
+ | RC-01 定位/入口错位 | R0/R5 | 静态确认，OPEN | 范围卡、真实查证流程、用户对照结果 |
+ | RC-02 融合前截断 | R1 | CLOSED，UNIT_TEST | r1-red-02真实排名失败、r1-green-01及r1-regression-01通过；见R1验收 |
+-| RC-03 管理候选原文未展示 | R2 | 静态确认，OPEN | 当前JSON/网页复现、映射修复、真实原文/编辑对照 |
++| RC-03 管理候选原文未展示 | R2 | CLOSED，本机技术验证 | JSON行为RED、60项单元回归、10个真实浏览器场景及临时库终态；见R2验收 |
+ | RC-04 输出协议与事实支撑不足 | R3/R5 | 静态确认，OPEN | 结构和事实两个子项分开；严格字段/空证据，以及数字/对象/例外反例 |
+ | RC-05 激活/资格/时间约束不完整 | R4/R6 | 静态确认，OPEN | 临时库profile/版本/hash矩阵；完整时效/撤回/清单合同 |
+ | RC-06 受控咨询链与通用RAG分离 | R5 | 静态确认，OPEN | 统一应用链的实际装配与网页整链证据 |
+--- a/docs/product/rule-check-scope.md
++++ b/docs/product/rule-check-scope.md
+@@ -1,6 +1,6 @@
+ # 校园规则查证助手：产品定位与范围约定
+ 
+-版本：1.2；日期：2026-10-07。用户已确定产品方向，本文件整理该方向及回答、验证和实施约定。**R0工程基线已技术验证；R1融合前截断缺陷已修复复验；新查证流程、回答协议和预期收益尚未验收。G0仍待资料及人工参考。**
++版本：1.3；日期：2026-10-07。用户已确定产品方向，本文件整理该方向及回答、验证和实施约定。**R0工程基线已技术验证；R1融合截断、R2管理员原文对照已修复复验；新查证流程、回答协议和预期收益尚未验收。G0仍待资料及人工参考。**
+ 
+ 本文件作为后续产品定位、回答协议和验收口径的统一依据。开发步骤见 [路线图](../superpowers/plans/2026-10-07-rule-check-refactor-roadmap.md)，首批细节见 [P0计划](../superpowers/plans/2026-10-07-rule-check-p0-plan.md)，实施证据见 [问题与证据目录](../evidence/rule-check-refactor/2026-10-07/README.md)。
+ 
+--- a/.superpowers/sdd/2026-10-07-rule-check-p0-plan/progress.md
++++ b/.superpowers/sdd/2026-10-07-rule-check-p0-plan/progress.md
+@@ -35,3 +35,19 @@
+ Task 2: GREEN两类19项；相关回归五类44项，无错误/失败/跳过；源码无漂移、Java退出，未运行数据库或供应商。已恢复四参兼容和独立预算；RC-02闭环只针对融合前截断。
+ 
+ Task 2: CODE_VERIFIED_CALIBRATION_PENDING — Steps1–4/6完成；Step5工程回归完成，真实开发集10/20/40预算比较NOT_RUN。G0未通过，R2–R4未开始。按本批增量与计划自审；不等于完整P0/分支的最终独立审查，不提交已有dirty。
++
++Task 3: Ruling: 用户授权下一步承接R2 — 只扩展本机管理DTO和页面，保留学生v1响应及服务端审核/发布约束；R0显式入口与专用临时库用于验收，G0仍未通过。代价是全量HTTP候选仍有大文档传输成本，不声称后端分页已完成。
++
++Task 3: in_progress; evidence: docs/evidence/rule-check-refactor/2026-10-07/r2-admin-01/。先用既有MockMvc断言管理员JSON包含rawText获得行为RED，避免新accessor不存在导致的编译RED；另留真实浏览器旧页面观察。
++
++Task 3: Ruling: 真库验收使用本批新增local-browser-service.ps1与fixtures.sql — 现有单元/Database入口会立即清理资源，无法保留服务供浏览器操作；新增仅证据目录中的专用辅助入口，固定回环目标、随机无卷容器、随机临时口令、逐次刷新凭证并finally清理。代价是本批只验证SQL提取态合成候选，PDF上传/提取仍NOT_RUN，不能声称导入全链已完成。
++
++Task 3: Ruling: 页面草稿与已保存数据显式分离 — 草稿跨切页/筛选保留，未保存变化禁止通过；保存后保留说明、审核结束只读、拆分清除父草稿。代价是页面刷新仍会丢草稿，已在界面提示；不新增自动保存或服务端草稿协议。
++
++Task 3: RED12项中2个JSON断言失败；旧真实页面25卡、无原文区域、编辑区空。GREEN16项通过，局部自审补拆分草稿清理和只读数据来源后，最终八类60项回归通过，无源码漂移/错误/跳过。未新增页面源码字符串镜像测试，以真实浏览器行为补证据。
++
++Task 3: 首次辅助脚本因before目录冲突启动前拒绝，改browser-before/after；一次受限会话无法读取已配置Windows凭证，获准本机权限后重查成功。严格标签选择器包含选项文字时未匹配，按DOM观察改用select ID；异步保存/拆分刷新后重新观察终态，不把提前读取当已完成。
++
++Task 3: 10个浏览器场景通过；浏览/输入/翻页/筛选时DB事件0，显式保存/通过/丢弃/发布/拆分产生5事件。真实readonly PATCH 409；合成资料发布仍INTERNAL_ONLY/分享未确认，片段1。前后服务临时库均V21，Java/容器退出、连接0，未调用模型或触达原库。
++
++Task 3: VERIFIED_LOCAL_SYNTHETIC — RC-03仅本机原文对照缺陷CLOSED，Task 3本批步骤完成；R3/R4未开始，G0仍未通过，R1真实预算校准仍NOT_RUN。按最小增量自审，未做完整P0最终独立审查、不提交/部署或清理其他dirty文件。
+--- /dev/null
++++ b/knowledge/src/test/java/com/zhku/knowledge/governance/web/CandidateResponseMappingTest.java
+@@ -0,0 +1,53 @@
++package com.zhku.knowledge.governance.web;
++
++import com.zhku.knowledge.governance.CandidateReviewStatus;
++import com.zhku.knowledge.governance.KnowledgeCandidate;
++import org.junit.jupiter.api.Test;
++
++import java.time.Instant;
++import java.util.UUID;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++class CandidateResponseMappingTest {
++
++    @Test
++    void pendingOriginalRemainsSeparateFromSavedTextAndReviewState() {
++        var candidate = pending("原文：最高修读4学分。", null);
++        var response = ZhkuLocalAdminController.CandidateResponse.from(candidate);
++
++        assertThat(response.rawText()).isEqualTo(candidate.rawText());
++        assertThat(response.editedText()).isNull();
++        assertThat(response.reviewStatus()).isEqualTo("PENDING_REVIEW");
++        assertThat(candidate.editedText()).isNull();
++    }
++
++    @Test
++    void savedEditsDoNotReplaceOriginalIncludingHtmlAndLineBreaks() {
++        String original = "<img src=x onerror=alert(1)>\n原始文本。";
++        var response = ZhkuLocalAdminController.CandidateResponse.from(
++                pending(original, "人工保存的正文"));
++
++        assertThat(response.rawText()).isEqualTo(original);
++        assertThat(response.editedText()).isEqualTo("人工保存的正文");
++        assertThat(response.reviewStatus()).isEqualTo("PENDING_REVIEW");
++    }
++
++    @Test
++    void blankPhysicalPagesRemainVisibleToReviewer() {
++        for (String blank : new String[]{"", "  \n  "}) {
++            var response = ZhkuLocalAdminController.CandidateResponse.from(pending(blank, null));
++            assertThat(response.rawText()).isEqualTo(blank);
++            assertThat(response.startPageNumber()).isEqualTo(2);
++            assertThat(response.endPageNumber()).isEqualTo(3);
++            assertThat(response.reviewStatus()).isEqualTo("PENDING_REVIEW");
++        }
++    }
++
++    private static KnowledgeCandidate pending(String raw, String edited) {
++        var now = Instant.parse("2026-10-07T00:00:00Z");
++        return new KnowledgeCandidate(UUID.randomUUID(), UUID.randomUUID(), 2, 3,
++                raw, edited, null, null, CandidateReviewStatus.PENDING_REVIEW,
++                null, null, now, now);
++    }
++}

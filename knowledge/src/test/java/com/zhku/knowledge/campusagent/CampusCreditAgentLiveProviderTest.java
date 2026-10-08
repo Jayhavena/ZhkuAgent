@@ -70,16 +70,17 @@ class CampusCreditAgentLiveProviderTest {
                 "https://dashscope.aliyuncs.com/compatible-mode/v1", "DASHSCOPE_API_KEY",
                 "qwen-plus", "text-embedding-v4", 1024, Duration.ofSeconds(30),
                 "dashscope-text-embedding-v4-1024");
-        var model = CourseCreditChatModelFactory.create(profile, ApiKeyResolver.systemEnvironment());
-
-        try (var timer = Executors.newSingleThreadScheduledExecutor()) {
+        try (var transport = CourseCreditChatModelFactory.open(profile, ApiKeyResolver.systemEnvironment());
+                var timer = Executors.newSingleThreadScheduledExecutor()) {
+            var model = transport.model();
             var service = new CampusCreditAgentService(model,
                     new CampusToolRegistry(List.of(new CourseCreditSummaryTool())), question -> {
                         UUID sessionId = facade.createConversation().sessionId();
                         return facade.sendMessage(sessionId, question);
                     }, 3);
             var manager = new CampusCreditAgentManager(service, Runnable::run, timer, Duration.ofSeconds(60));
-            var mvc = MockMvcBuilders.standaloneSetup(new CampusAgentPreviewController(manager)).build();
+            var mvc = MockMvcBuilders.standaloneSetup(new CampusAgentPreviewController(manager,
+                    new com.zhku.knowledge.campusagent.CampusAgentResultVisibility(dataSource))).build();
 
             mvc.perform(post("/zhku/local-preview/campus-agent/v1/runs")
                             .contentType(MediaType.APPLICATION_JSON)

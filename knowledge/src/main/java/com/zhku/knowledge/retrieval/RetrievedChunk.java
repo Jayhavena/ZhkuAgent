@@ -16,8 +16,15 @@ public record RetrievedChunk(
         String sourceLocator,
         Integer pageNumber,
         String sourceVersion,
-        String contentChecksum
+        String contentChecksum,
+        UUID sourceId
 ) {
+
+    // 旧链路及离线夹具保持兼容；null身份不能进入新查证核验，不能以chunkId推造来源。
+    public RetrievedChunk(UUID chunkId, String content, String sourceTitle, String sourceLocator,
+                          Integer pageNumber, String sourceVersion, String contentChecksum) {
+        this(chunkId, content, sourceTitle, sourceLocator, pageNumber, sourceVersion, contentChecksum, null);
+    }
 
     public RetrievedChunk {
         Objects.requireNonNull(chunkId, "片段标识不能为空");

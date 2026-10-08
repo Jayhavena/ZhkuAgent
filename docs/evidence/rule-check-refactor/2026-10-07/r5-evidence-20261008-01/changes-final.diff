@@ -1,0 +1,548 @@
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceSnapshot.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceSnapshot.java
+@@ -0,0 +1,17 @@
++package com.zhku.knowledge.rulecheck;
++
++import java.util.Objects;
++import java.util.UUID;
++
++/** 服务端取得的片段快照；不能将学生或模型提供的字段当作资料资格。 */
++public record RuleCheckEvidenceSnapshot(String citationId, UUID sourceId, UUID chunkId,
++                                        String revision, String checksum, String text, boolean eligible) {
++    public RuleCheckEvidenceSnapshot {
++        Objects.requireNonNull(citationId);
++        Objects.requireNonNull(sourceId);
++        Objects.requireNonNull(chunkId);
++        Objects.requireNonNull(revision);
++        Objects.requireNonNull(checksum);
++        Objects.requireNonNull(text);
++    }
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceSpan.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceSpan.java
+@@ -0,0 +1,5 @@
++package com.zhku.knowledge.rulecheck;
++
++/** 不可信的摘录提议。位置按UTF-16计数，起点包含、终点不包含；非法值由核验器拒绝。 */
++public record RuleCheckEvidenceSpan(String citationId, int startInclusive, int endExclusive, String quote) {
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckVerifiedExcerpt.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckVerifiedExcerpt.java
+@@ -0,0 +1,9 @@
++package com.zhku.knowledge.rulecheck;
++
++import java.util.UUID;
++
++/** 只用于核验器产物，证明摘录来源一致；不证明语义完整、相关或个人适用。 */
++public record RuleCheckVerifiedExcerpt(String citationId, UUID sourceId, UUID chunkId,
++                                       String revision, String checksum, int startInclusive,
++                                       int endExclusive, String text) {
++}
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceVerifier.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceVerifier.java
+@@ -0,0 +1,145 @@
++package com.zhku.knowledge.rulecheck;
++
++import java.util.List;
++import java.util.HashSet;
++import java.util.HexFormat;
++import java.util.Objects;
++import java.util.Optional;
++import java.util.UUID;
++import java.nio.charset.StandardCharsets;
++import java.security.MessageDigest;
++import java.security.NoSuchAlgorithmException;
++
++public final class RuleCheckEvidenceVerifier {
++    private final CurrentEvidenceReader reader;
++
++    public RuleCheckEvidenceVerifier(CurrentEvidenceReader reader) {
++        this.reader = Objects.requireNonNull(reader);
++    }
++
++    public VerificationResult verify(RuleCheckEvidenceSpan proposal, List<RuleCheckEvidenceSnapshot> approved) {
++        if (proposal == null || proposal.citationId() == null || proposal.citationId().isBlank()
++                || proposal.quote() == null || proposal.quote().isBlank()) {
++            return VerificationResult.rejected(RejectionReason.INVALID_PROPOSAL);
++        }
++        if (approved == null) {
++            return VerificationResult.rejected(RejectionReason.INVALID_EVIDENCE);
++        }
++        var ids = new HashSet<String>();
++        RuleCheckEvidenceSnapshot captured = null;
++        for (var evidence : approved) {
++            if (evidence == null || evidence.citationId().isBlank() || evidence.revision().isBlank()) {
++                return VerificationResult.rejected(RejectionReason.INVALID_EVIDENCE);
++            }
++            // 本轮标识有歧义时不取第一条，否则模型可把相同标识绑定到另一个片段。
++            if (!ids.add(evidence.citationId())) {
++                return VerificationResult.rejected(RejectionReason.DUPLICATE_CITATION);
++            }
++            if (evidence.citationId().equals(proposal.citationId())) {
++                captured = evidence;
++            }
++        }
++        if (captured == null) {
++            return VerificationResult.rejected(RejectionReason.UNKNOWN_CITATION);
++        }
++        if (!captured.eligible()) {
++            return VerificationResult.rejected(RejectionReason.INELIGIBLE_EVIDENCE);
++        }
++        if (!wellFormedUtf16(captured.text())) {
++            return VerificationResult.rejected(RejectionReason.INVALID_EVIDENCE);
++        }
++        if (!validChecksum(captured)) {
++            return VerificationResult.rejected(RejectionReason.INVALID_CHECKSUM);
++        }
++        int start = proposal.startInclusive();
++        int end = proposal.endExclusive();
++        if (start < 0 || end <= start || end > captured.text().length()
++                || splitsSurrogate(captured.text(), start) || splitsSurrogate(captured.text(), end)) {
++            return VerificationResult.rejected(RejectionReason.INVALID_SPAN);
++        }
++        String actualQuote = captured.text().substring(start, end);
++        // 只核对引用ID会放行4→40；必须逐字符相等，不能以trim、模糊匹配代替。
++        if (!actualQuote.equals(proposal.quote())) {
++            return VerificationResult.rejected(RejectionReason.QUOTE_MISMATCH);
++        }
++
++        Optional<RuleCheckEvidenceSnapshot> current;
++        try {
++            current = reader.read(captured.sourceId(), captured.chunkId());
++        } catch (RuntimeException unavailable) {
++            // 不返回底层异常或提议正文，读取失败只能阻断，不能沿用过期快照。
++            return VerificationResult.rejected(RejectionReason.CURRENT_EVIDENCE_UNAVAILABLE);
++        }
++        if (current == null || current.isEmpty()) {
++            return VerificationResult.rejected(RejectionReason.CURRENT_EVIDENCE_UNAVAILABLE);
++        }
++        var latest = current.get();
++        // citationId是本轮别名，持久身份由source/chunk决定；文字相同也不能省略版本复核。
++        if (!latest.eligible() || !captured.sourceId().equals(latest.sourceId())
++                || !captured.chunkId().equals(latest.chunkId()) || !captured.revision().equals(latest.revision())
++                || !captured.text().equals(latest.text()) || !validChecksum(latest)
++                || !captured.checksum().equalsIgnoreCase(latest.checksum())) {
++            return VerificationResult.rejected(RejectionReason.CURRENT_EVIDENCE_CHANGED);
++        }
++        // 产物来自核验过的服务端原文；摘录来源一致不等于条件/例外完整或个人适用。
++        return new VerificationResult(new RuleCheckVerifiedExcerpt(captured.citationId(), captured.sourceId(),
++                captured.chunkId(), captured.revision(), captured.checksum(), start, end, actualQuote), null);
++    }
++
++    private static boolean validChecksum(RuleCheckEvidenceSnapshot evidence) {
++        if (!evidence.checksum().matches("[0-9a-fA-F]{64}")) {
++            return false;
++        }
++        try {
++            var hash = MessageDigest.getInstance("SHA-256").digest(evidence.text().getBytes(StandardCharsets.UTF_8));
++            return HexFormat.of().formatHex(hash).equalsIgnoreCase(evidence.checksum());
++        } catch (NoSuchAlgorithmException unsupportedRuntime) {
++            throw new IllegalStateException("运行时缺少SHA-256", unsupportedRuntime);
++        }
++    }
++
++    private static boolean splitsSurrogate(String text, int position) {
++        return position > 0 && position < text.length() && Character.isHighSurrogate(text.charAt(position - 1))
++                && Character.isLowSurrogate(text.charAt(position));
++    }
++
++    private static boolean wellFormedUtf16(String text) {
++        for (int i = 0; i < text.length(); i++) {
++            char c = text.charAt(i);
++            if (Character.isHighSurrogate(c)) {
++                if (++i >= text.length() || !Character.isLowSurrogate(text.charAt(i))) {
++                    return false;
++                }
++            } else if (Character.isLowSurrogate(c)) {
++                return false;
++            }
++        }
++        return true;
++    }
++
++    @FunctionalInterface
++    public interface CurrentEvidenceReader {
++        Optional<RuleCheckEvidenceSnapshot> read(UUID sourceId, UUID chunkId);
++    }
++
++    public enum RejectionReason {
++        INVALID_PROPOSAL, INVALID_EVIDENCE, UNKNOWN_CITATION, DUPLICATE_CITATION,
++        INELIGIBLE_EVIDENCE, INVALID_CHECKSUM, INVALID_SPAN, QUOTE_MISMATCH,
++        CURRENT_EVIDENCE_UNAVAILABLE, CURRENT_EVIDENCE_CHANGED
++    }
++
++    public record VerificationResult(RuleCheckVerifiedExcerpt excerpt, RejectionReason rejectionReason) {
++        public VerificationResult {
++            // 失败不得携带提议文字，避免调用者把“部分验证”误当可下发。
++            if ((excerpt == null) == (rejectionReason == null)) {
++                throw new IllegalArgumentException("核验结果必须且只能包含成功摘录或拒绝原因");
++            }
++        }
++
++        public boolean accepted() { return excerpt != null; }
++
++        public static VerificationResult rejected(RejectionReason reason) {
++            return new VerificationResult(null, Objects.requireNonNull(reason));
++        }
++    }
++}
+--- before/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceVerifierTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceVerifierTest.java
+@@ -0,0 +1,179 @@
++package com.zhku.knowledge.rulecheck;
++
++import org.junit.jupiter.api.Test;
++
++import java.nio.charset.StandardCharsets;
++import java.security.MessageDigest;
++import java.security.NoSuchAlgorithmException;
++import java.util.ArrayList;
++import java.util.HexFormat;
++import java.util.List;
++import java.util.Optional;
++import java.util.UUID;
++import java.util.concurrent.atomic.AtomicInteger;
++
++import static com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifier.RejectionReason.*;
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
++
++class RuleCheckEvidenceVerifierTest {
++    private static final UUID SOURCE = UUID.fromString("00000000-0000-0000-0000-000000000001");
++    private static final UUID CHUNK = UUID.fromString("00000000-0000-0000-0000-000000000002");
++    // 合成合同数据，无审核或学生发布资格；不能作为真实政策参考。
++    private static final String TEXT = "合成条款：上限4学分。特殊情形另行审核。";
++    private static final String QUOTE = "上限4学分。";
++    private static final int START = TEXT.indexOf(QUOTE);
++    private static final RuleCheckEvidenceSnapshot ORIGINAL = snapshot(TEXT);
++    private static final RuleCheckEvidenceSpan PROPOSAL = new RuleCheckEvidenceSpan("ev-1", START, START + QUOTE.length(), QUOTE);
++
++    @Test void validExcerptUsesServerIdentityAndReadsCurrentEvidenceExactlyOnce() {
++        var calls = new AtomicInteger();
++        var result = new RuleCheckEvidenceVerifier((source, chunk) -> {
++            calls.incrementAndGet();
++            assertThat(source).isEqualTo(SOURCE); assertThat(chunk).isEqualTo(CHUNK);
++            return Optional.of(ORIGINAL);
++        }).verify(PROPOSAL, List.of(ORIGINAL));
++        assertThat(result.accepted()).isTrue();
++        assertThat(result.rejectionReason()).isNull();
++        assertThat(result.excerpt()).isEqualTo(new RuleCheckVerifiedExcerpt("ev-1", SOURCE, CHUNK,
++                "v1", ORIGINAL.checksum(), START, START + QUOTE.length(), QUOTE));
++        assertThat(calls).hasValue(1);
++    }
++
++    @Test void validCitationAndRangeCannotChangeFourIntoForty() {
++        rejectBeforeRead(new RuleCheckEvidenceSpan("ev-1", START, START + QUOTE.length(), "上限40学分。"), List.of(ORIGINAL), QUOTE_MISMATCH);
++    }
++
++    @Test void unknownCitationCannotCauseCurrentRead() {
++        rejectBeforeRead(new RuleCheckEvidenceSpan("forged", START, START + QUOTE.length(), QUOTE), List.of(ORIGINAL), UNKNOWN_CITATION);
++    }
++
++    @Test void nullOrBlankProposalIsControlledRejection() {
++        rejectBeforeRead(null, List.of(ORIGINAL), INVALID_PROPOSAL);
++        for (var proposal : List.of(new RuleCheckEvidenceSpan(null, 0, 1, "x"),
++                new RuleCheckEvidenceSpan(" ", 0, 1, "x"),new RuleCheckEvidenceSpan("ev-1", 0, 1, null),
++                new RuleCheckEvidenceSpan("ev-1", 0, 1, " \n"))) {
++            rejectBeforeRead(proposal, List.of(ORIGINAL), INVALID_PROPOSAL);
++        }
++    }
++
++    @Test void duplicateIdentifiersRejectEvenIfOneWouldMatch() {
++        var other = new RuleCheckEvidenceSnapshot("ev-1", SOURCE, UUID.randomUUID(), "v1", sha(TEXT), TEXT, true);
++        rejectBeforeRead(PROPOSAL, List.of(ORIGINAL, other), DUPLICATE_CITATION);
++        var unrelated = new RuleCheckEvidenceSnapshot("ev-2", SOURCE, CHUNK, "v1", sha(TEXT), TEXT, true);
++        rejectBeforeRead(PROPOSAL, List.of(ORIGINAL, unrelated, unrelated), DUPLICATE_CITATION);
++    }
++
++    @Test void malformedApprovedListIsRejectedBeforeRead() {
++        rejectBeforeRead(PROPOSAL, null, INVALID_EVIDENCE);
++        var rows = new ArrayList<RuleCheckEvidenceSnapshot>(); rows.add(null);
++        rejectBeforeRead(PROPOSAL, rows, INVALID_EVIDENCE);
++        rejectBeforeRead(PROPOSAL, List.of(copy(" ", SOURCE, CHUNK, "v1", sha(TEXT), TEXT, true)), INVALID_EVIDENCE);
++        rejectBeforeRead(PROPOSAL, List.of(copy("ev-1", SOURCE, CHUNK, " ", sha(TEXT), TEXT, true)), INVALID_EVIDENCE);
++    }
++
++    @Test void capturedIneligibleEvidenceCannotCauseRead() {
++        rejectBeforeRead(PROPOSAL, List.of(copy("ev-1", SOURCE, CHUNK, "v1", sha(TEXT), TEXT, false)), INELIGIBLE_EVIDENCE);
++    }
++
++    @Test void capturedChecksumMustBeRealUtf8Sha256() {
++        for (var checksum : List.of("", "not-sha", "0".repeat(64), sha(TEXT).substring(1))) {
++            rejectBeforeRead(PROPOSAL, List.of(copy("ev-1", SOURCE, CHUNK, "v1", checksum, TEXT, true)), INVALID_CHECKSUM);
++        }
++    }
++
++    @Test void checksumHexCaseDoesNotChangeItsValue() {
++        var upper = copy("ev-1", SOURCE, CHUNK, "v1", sha(TEXT).toUpperCase(), TEXT, true);
++        assertThat(new RuleCheckEvidenceVerifier((s,c)->Optional.of(upper)).verify(PROPOSAL,List.of(ORIGINAL)).accepted()).isTrue();
++        assertThat(new RuleCheckEvidenceVerifier((s,c)->Optional.of(ORIGINAL)).verify(PROPOSAL,List.of(upper)).accepted()).isTrue();
++    }
++
++    @Test void negativeEmptyReversedAndOverflowRangesAreControlled() {
++        for (int[] range : List.of(new int[]{-1,3},new int[]{0,0},new int[]{4,2},
++                new int[]{0,TEXT.length()+1},new int[]{Integer.MAX_VALUE,Integer.MAX_VALUE},
++                new int[]{Integer.MIN_VALUE,1})) {
++            rejectBeforeRead(new RuleCheckEvidenceSpan("ev-1",range[0],range[1],QUOTE),List.of(ORIGINAL),INVALID_SPAN);
++        }
++    }
++
++    @Test void utf16SpanCannotSplitSurrogatePair() {
++        var source=snapshot("合成😀条款4。");
++        rejectBeforeRead(new RuleCheckEvidenceSpan("ev-1",2,3,source.text().substring(2,3)),List.of(source),INVALID_SPAN);
++        rejectBeforeRead(new RuleCheckEvidenceSpan("ev-1",3,4,source.text().substring(3,4)),List.of(source),INVALID_SPAN);
++        var valid=new RuleCheckEvidenceSpan("ev-1",2,4,"😀");
++        assertThat(new RuleCheckEvidenceVerifier((s,c)->Optional.of(source)).verify(valid,List.of(source)).excerpt().text()).isEqualTo("😀");
++    }
++
++    @Test void malformedUnicodeSourceCannotBecomeAnExcerpt() {
++        var source=snapshot("条款\uD83D4。");
++        rejectBeforeRead(new RuleCheckEvidenceSpan("ev-1",0,2,"条款"),List.of(source),INVALID_EVIDENCE);
++    }
++
++    @Test void repeatedTextIsVerifiedAtSpecifiedPosition() {
++        var source=snapshot("4学分；4学分。");
++        var proposal=new RuleCheckEvidenceSpan("ev-1",4,7,"4学分");
++        var result=new RuleCheckEvidenceVerifier((s,c)->Optional.of(source)).verify(proposal,List.of(source));
++        assertThat(result.accepted()).isTrue();assertThat(result.excerpt().startInclusive()).isEqualTo(4);
++        rejectBeforeRead(new RuleCheckEvidenceSpan("ev-1",3,6,"4学分"),List.of(source),QUOTE_MISMATCH);
++    }
++
++    @Test void currentMissingOrReaderFailureCannotLeakProposalText() {
++        var calls=new AtomicInteger();
++        var missing=new RuleCheckEvidenceVerifier((s,c)->{calls.incrementAndGet();return Optional.empty();}).verify(PROPOSAL,List.of(ORIGINAL));
++        assertRejected(missing,CURRENT_EVIDENCE_UNAVAILABLE);assertThat(calls).hasValue(1);
++        assertRejected(new RuleCheckEvidenceVerifier((s,c)->{throw new IllegalStateException("内部错误");}).verify(PROPOSAL,List.of(ORIGINAL)),CURRENT_EVIDENCE_UNAVAILABLE);
++        assertRejected(new RuleCheckEvidenceVerifier((s,c)->null).verify(PROPOSAL,List.of(ORIGINAL)),CURRENT_EVIDENCE_UNAVAILABLE);
++    }
++
++    @Test void currentWithdrawalIsRejected() {
++        rejectCurrent(copy("ev-1",SOURCE,CHUNK,"v1",sha(TEXT),TEXT,false));
++    }
++
++    @Test void identicalTextDoesNotBypassRevisionChange() {
++        rejectCurrent(copy("ev-1",SOURCE,CHUNK,"v2",sha(TEXT),TEXT,true));
++    }
++
++    @Test void currentIdentityCannotSubstituteAnotherSourceOrChunk() {
++        rejectCurrent(copy("ev-1",UUID.randomUUID(),CHUNK,"v1",sha(TEXT),TEXT,true));
++        rejectCurrent(copy("ev-1",SOURCE,UUID.randomUUID(),"v1",sha(TEXT),TEXT,true));
++    }
++
++    @Test void currentTextOrChecksumChangeIsRejectedEvenWithSameQuote() {
++        var changed=TEXT+"追加例外。";
++        rejectCurrent(copy("ev-1",SOURCE,CHUNK,"v1",sha(changed),changed,true));
++        rejectCurrent(copy("ev-1",SOURCE,CHUNK,"v1",sha(TEXT),changed,true));
++        rejectCurrent(copy("ev-1",SOURCE,CHUNK,"v1","0".repeat(64),TEXT,true));
++    }
++
++    @Test void resultCannotRepresentSuccessAndFailureTogether() {
++        assertThatThrownBy(()->new RuleCheckEvidenceVerifier.VerificationResult(null,null)).isInstanceOf(IllegalArgumentException.class);
++        var excerpt=new RuleCheckVerifiedExcerpt("ev-1",SOURCE,CHUNK,"v1",sha(TEXT),START,START+QUOTE.length(),QUOTE);
++        assertThatThrownBy(()->new RuleCheckEvidenceVerifier.VerificationResult(excerpt,INVALID_PROPOSAL)).isInstanceOf(IllegalArgumentException.class);
++    }
++
++    private static void rejectCurrent(RuleCheckEvidenceSnapshot current) {
++        var calls=new AtomicInteger();
++        var result=new RuleCheckEvidenceVerifier((s,c)->{calls.incrementAndGet();return Optional.of(current);}).verify(PROPOSAL,List.of(ORIGINAL));
++        assertRejected(result,CURRENT_EVIDENCE_CHANGED);assertThat(calls).hasValue(1);
++    }
++
++    private static void rejectBeforeRead(RuleCheckEvidenceSpan proposal,List<RuleCheckEvidenceSnapshot> approved,
++                                         RuleCheckEvidenceVerifier.RejectionReason expected) {
++        var calls=new AtomicInteger();
++        var result=new RuleCheckEvidenceVerifier((s,c)->{calls.incrementAndGet();return Optional.of(ORIGINAL);}).verify(proposal,approved);
++        assertRejected(result,expected);assertThat(calls).hasValue(0);
++    }
++
++    private static void assertRejected(RuleCheckEvidenceVerifier.VerificationResult result, RuleCheckEvidenceVerifier.RejectionReason expected) {
++        assertThat(result.accepted()).isFalse();assertThat(result.excerpt()).isNull();assertThat(result.rejectionReason()).isEqualTo(expected);
++    }
++
++    private static RuleCheckEvidenceSnapshot snapshot(String text) {return copy("ev-1",SOURCE,CHUNK,"v1",sha(text),text,true);}
++    private static RuleCheckEvidenceSnapshot copy(String id,UUID source,UUID chunk,String version,String hash,String text,boolean eligible) {
++        return new RuleCheckEvidenceSnapshot(id,source,chunk,version,hash,text,eligible);
++    }
++    private static String sha(String text) {
++        try {return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));}
++        catch (NoSuchAlgorithmException error) {throw new AssertionError(error);}
++    }
++}
+--- before/knowledge/scripts/verify-rule-check-refactor.ps1
++++ after/knowledge/scripts/verify-rule-check-refactor.ps1
+@@ -21,9 +21,11 @@
+     $unit=@('HybridRetrievalServiceTest','HybridCandidateFusionTest','GroundedAnswerComposerTest',
+         'RetrievalAugmentedAnswerServiceTest','RetrievalEligibilityFilterTest','ZhkuLocalAdminControllerTest',
+         'ZhkuLocalAdminPageResourceTest','ModelOutputParserTest','AnswerEvidenceGuardTest','CandidateResponseMappingTest',
+-        'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest')
++        'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest',
++        'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest')
+     $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+-        'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest')
++        'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
++        'JdbcRuleCheckEvidenceReaderTest')
+     $selected=@($Tests.Split(',')|ForEach-Object {$_.Trim()})
+     if (@($selected|Sort-Object -Unique).Count -ne $selected.Count) {throw '测试选择不能重复'}
+     foreach ($selector in $selected) {
+--- before/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
++++ after/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
+@@ -10,7 +10,7 @@
+ 
+ **Spec:** [范围约定](../../product/rule-check-scope.md)、[主路线图R5](2026-10-07-rule-check-refactor-roadmap.md)、[Eval协议](../../product/rule-check-eval-contract.md)。细化已有“已审模板/校验原文跨度”设计，不重新确定产品方向。受限工作列于[卡点表](../../product/rule-check-blockers.md)。
+ 
+-日期：2026-10-08。P0工程收口进行中，进入Task1前必须确认最终回归与审查补修证据。G0当前资料和人工参考未通过；允许Task1合成工程组件开发，不允许据此进入学生试点。Task2–4数据依赖单独记录，不能用编造政策补齐。
++日期：2026-10-08。P0工程收口已完成20类151项及独立审查补修；Task1和Task2A已验证，尚未装配学生入口。G0当前资料和人工参考未通过；允许Task1合成工程组件开发，不允许据此进入学生试点。Task2–4数据依赖单独记录，不能用编造政策补齐。
+ 
+ ## Global Constraints
+ 
+@@ -48,14 +48,24 @@
+ 
+ ## Task1：原文跨度核验组件（可独立推进）
+ 
+-- [ ] **Step1：准备基线与任务证据。** 确认拟新增路径不存在、P0最终源码测试一致；记G0与本批未接学生端。创建本计划独立账本，不复写P0历史。
+-- [ ] **Step2：编写合同反例。** 正常摘录、4→40、伪造/重复ID、负数/越界/空/空白范围、错误SHA、版本/身份/正文改变、撤回、reader缺失/异常、UTF-16边界。非法提议在调用reader前拒绝，计数必须0；正常核验reader一次。
+-- [ ] **Step3：观察RED。** Java新API最小壳只默认拒绝，不连接或生成事实；测试应暴露正常路径与详细拒绝合同未实现。该RED是新组件合同缺失，不冒充旧生产链已复现或修复。
+-- [ ] **Step4：最小实现。** 本轮标识唯一→核验原文与SHA/跨度/quote→读取当前服务端快照→资格/身份/版本/hash/text一致→仅从原文生成输出；异常受控拒绝，不加通用语义裁判或关键词证明器。
+-- [ ] **Step5：定向与相关回归。** 显式Unit入口、无真实模型/DB；保存XML、源码哈希和资源退出。将同一4→40作为新组件反例拒绝，同时保留旧RAG仍放行的R3已知风险，不混淆两条路径。
+-- [ ] **Step6：更新证据与职责边界。** 标`COMPONENT_VERIFIED_NOT_INTEGRATED`；RC-04-SEMANTICS仍OPEN。仅原文组件不能勾掉整个主路线图R5或关闭G2。
++- [x] **Step1：准备基线与任务证据。** 确认拟新增路径不存在、P0最终源码测试一致；记G0与本批未接学生端。创建本计划独立账本，不复写P0历史。
++- [x] **Step2：编写合同反例。** 正常摘录、4→40、伪造/重复ID、负数/越界/空/空白范围、错误SHA、版本/身份/正文改变、撤回、reader缺失/异常、UTF-16边界。非法提议在调用reader前拒绝，计数必须0；正常核验reader一次。
++- [x] **Step3：观察RED。** Java新API最小壳只默认拒绝，不连接或生成事实；测试应暴露正常路径与详细拒绝合同未实现。该RED是新组件合同缺失，不冒充旧生产链已复现或修复。
++- [x] **Step4：最小实现。** 本轮标识唯一→核验原文与SHA/跨度/quote→读取当前服务端快照→资格/身份/版本/hash/text一致→仅从原文生成输出；异常受控拒绝，不加通用语义裁判或关键词证明器。
++- [x] **Step5：定向与相关回归。** 显式Unit入口、无真实模型/DB；保存XML、源码哈希和资源退出。将同一4→40作为新组件反例拒绝，同时保留旧RAG仍放行的R3已知风险，不混淆两条路径。
++- [x] **Step6：更新证据与职责边界。** 标`COMPONENT_VERIFIED_NOT_INTEGRATED`；RC-04-SEMANTICS仍OPEN。仅原文组件不能勾掉整个主路线图R5或关闭G2。
+ 
+ ## Task2：审核模板与应用链（受B-01/B-02资料条件限制）
++
++### Task2A：数据库当前证据读取准备（可独立推进，不开放学生入口）
++
++2026-10-08依赖复核：真实审核模板依赖B-01/B-02，但现有schema的输出前读取适配可用专用临时库合成夹具验证，不必等待人工参考。
++
++- [x] 保存新增`knowledge/src/main/java/com/zhku/knowledge/rulecheck/JdbcRuleCheckEvidenceReader.java`、`knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRuleCheckEvidenceReaderTest.java`、同测试包`JdbcRuleCheckEvidenceReaderTargetTest.java`缺失基线，及runner当前字节。只实现CurrentEvidenceReader，不加controller或模板。
++- [x] API最小壳与合同RED→GREEN；以server配置的profile/切分版本/scope及请求source/chunk参数绑定读取，要求ACTIVE与R4同口径的现有元数据资格；不允许BUILDING回退，不混用切分版本。
++- [x] 真库验证读取后撤回/可见性/分享资格/scope/profile退役/run/版本/正文/hash漂移；连接中断只使核验拒绝。声明是两次顺序真实数据库读写之间的变更，不伪称并发线性化或已完成流式输出撤回。
++- [x] 新DB测试在任何连接/迁移前复用严格临时目标guard，AfterEach拒绝后不连接；增加实际setup/cleanup纯单元反例。凭证每次运行重新检查，数据库写入仅随机无卷临时库。
++- [x] 保存真库与相关纯单元XML/源哈希/退出证据，标`DB_ADAPTER_VERIFIED_NOT_INTEGRATED`；完整时间/清单/审核模板/真实质量仍OPEN。新读取不是新检索引擎，不复制候选排序。
+ 
+ - [ ] 锁定一个具有当前有效、可传播且人工已审资料的主题；明示对象、前提、结论、例外、原文位置及审核责任。
+ - [ ] 采用既定v2前缀，复用混合检索/引用审计，不复制学分loop；可信身份、CSRF、模式绑定及输入限长继承当前controlled合同。
+@@ -81,3 +91,5 @@
+ ## 回退与收口
+ 
+ Task1新组件未装配时，只涉及新增文件和显式验收白名单；回退按当前哈希逐项审核新增清单，不重写旧RAG链或删除历史证据。Task2以后先关闭受影响v2入口再恢复对应增量，旧v1不借回退改变语义。每项工程状态、真实资料/模型/数据库/浏览器/用户状态分别报告。
++
++**本批实际：**Task1 19项定向，Task2A 15项真库+3项目标/故障合同；最终18类172项相关回归通过，合同29项。见[R5组件](../../evidence/rule-check-refactor/2026-10-07/r5-evidence-20261008-01/acceptance.md)和[DB适配](../../evidence/rule-check-refactor/2026-10-07/r5-db-20261008-01/acceptance.md)。完整Task2/3/4仍待外部审核与真实参与者；不将部分勾选解释为整个R5完成。
+--- before/docs/product/rule-check-blockers.md
++++ after/docs/product/rule-check-blockers.md
+@@ -12,3 +12,9 @@
+ 未执行的真实供应商评测、PDF整本导入和用户对照属于待实施/门禁依赖，不写成凭证缺失，也不拿合成测试补成“已完成”。有新证据时追加实际日期、批次和解除理由，不覆盖历史失败。
+ 
+ 下一次上下文恢复先读P0计划、执行账本和本文件；已验证任务按最终源码哈希复核，不重复重写。若所有剩余任务都依赖外部资料或人工判断，明确报告阻断范围和已备妥的接续入口。
++
++## 2026-10-08可独立工程已推进
++
++P0局部收口、R5原文组件与真库当前读取准备已验证，尚未装配学生入口。B-03仅完成摘录来源/现有字段复核部分，旧RAG4→40仍开放。Task2A不等待B-01/B-02已实施；剩余真实审核模板/五状态应用/学生页面依赖B-01/B-02，16题质量与5–8位用户对照还需真实审核者/参与者。
++
++接续顺序：确认当前资料完整来源、适用与传播资格→人工审核规则模板及参考题→Task2应用/账号/输出链真验收→Task3页面→Task4真实质量与用户对照。不需要再次说“开始下一步”来批准同一已授权范围；缺少外部证据时不能伪造审核或参与者。
+--- before/docs/evidence/rule-check-refactor/2026-10-07/issues.json
++++ after/docs/evidence/rule-check-refactor/2026-10-07/issues.json
+@@ -3,7 +3,7 @@
+   "program": "rule-check-refactor",
+   "createdDate": "2026-10-07",
+   "timezone": "Asia/Shanghai",
+-  "deliveryStage": "P0_LOCAL_ENGINEERING_VALIDATION",
++  "deliveryStage": "R5_EVIDENCE_COMPONENTS_VERIFIED_NOT_INTEGRATED",
+   "productScopePath": "docs/product/rule-check-scope.md",
+   "evalContractPath": "docs/product/rule-check-eval-contract.md",
+   "evaluationDesignStatus": "DOCUMENTED_NOT_EXECUTED",
+@@ -179,7 +179,20 @@
+             "人工支撑性与留出门禁"
+           ],
+           "manualEvaluationStatus": "NOT_RUN",
+-          "knownRiskEvidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r3-output-20261008-01/semantic-gap.json"
++          "knownRiskEvidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r3-output-20261008-01/semantic-gap.json",
++          "engineeringComponents": [
++            {
++              "name": "RuleCheckEvidenceVerifier",
++              "stage": "COMPONENT_VERIFIED_NOT_INTEGRATED",
++              "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-evidence-20261008-01/acceptance.md"
++            },
++            {
++              "name": "JdbcRuleCheckEvidenceReader",
++              "stage": "DB_ADAPTER_VERIFIED_NOT_INTEGRATED",
++              "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-db-20261008-01/acceptance.md"
++            }
++          ],
++          "closureReminder": "只证明摘录来源一致及现有字段输出前真库重读；审核模板/条件例外/账号链/人工真实评分仍未通过"
+         }
+       ],
+       "verificationStatus": "STRUCTURE_PASSED_SEMANTICS_OPEN",
+@@ -453,18 +466,20 @@
+   ],
+   "verificationInfrastructureImplemented": true,
+   "latestExecution": {
+-    "stage": "P0_LOCAL_ENGINEERING_VERIFIED_G0_PENDING",
+-    "executedAt": "2026-10-08T01:21:46.793082+08:00",
+-    "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/p0-closeout-20261008-01/acceptance.md",
++    "stage": "R5_EVIDENCE_AND_DB_ADAPTER_VERIFIED_NOT_INTEGRATED",
++    "executedAt": "2026-10-08T01:57:51.553040+08:00",
++    "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-db-20261008-01/acceptance.md",
+     "testsExecuted": true,
+     "businessCodeChanged": true,
+-    "testCount": 151,
+-    "testClassCount": 20,
++    "testCount": 172,
++    "testClassCount": 18,
+     "databaseOperationRun": true,
+     "databaseScope": "DEDICATED_RANDOM_TEMP_CONTAINER_SYNTHETIC_ONLY",
+     "providerCalled": false,
+     "productEvaluationRun": false,
++    "studentIntegrated": false,
+     "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
++    "semanticKnownRisk": "OLD_RAG_4_TO_40_STILL_OPEN",
+     "planningTurnFieldsAreHistorical": true
+   },
+   "executionHistory": [
+@@ -521,6 +536,21 @@
+       "budgetCalibration": "NOT_RUN_HUMAN_REFERENCE_NOT_LOCKED",
+       "semanticKnownRisk": "4_TO_40_WITH_VALID_CITATION_STILL_ANSWERED",
+       "planningTurnFieldsAreHistorical": true
++    },
++    {
++      "stage": "P0_LOCAL_ENGINEERING_VERIFIED_G0_PENDING",
++      "executedAt": "2026-10-08T01:21:46.793082+08:00",
++      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/p0-closeout-20261008-01/acceptance.md",
++      "testsExecuted": true,
++      "businessCodeChanged": true,
++      "testCount": 151,
++      "testClassCount": 20,
++      "databaseOperationRun": true,
++      "databaseScope": "DEDICATED_RANDOM_TEMP_CONTAINER_SYNTHETIC_ONLY",
++      "providerCalled": false,
++      "productEvaluationRun": false,
++      "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
++      "planningTurnFieldsAreHistorical": true
+     }
+   ],
+   "reviewFindings": [
+@@ -529,6 +559,20 @@
+       "severity": "Important",
+       "status": "FIXED_VERIFIED",
+       "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/p0-closeout-20261008-01/acceptance.md"
++    },
++    {
++      "id": "R5-TASK1-REVIEW-M1",
++      "severity": "Minor",
++      "status": "DEFERRED_COVERAGE",
++      "problem": "当前别名不同的独立组件正向用例未补；实现正确，后续DB正常流程已消费不同别名",
++      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-evidence-20261008-01/review.md"
++    },
++    {
++      "id": "R5-DB-REVIEW-M1",
++      "severity": "Minor",
++      "status": "DEFERRED_COVERAGE",
++      "problem": "缺run/entry跨profile专项真库反例；当前SQL正确阻断",
++      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-db-20261008-01/review.md"
+     }
+   ]
+ }

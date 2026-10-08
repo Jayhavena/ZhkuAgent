@@ -16,4 +16,4 @@ RUN mvn -pl agent -am clean package -DskipTests
 EXPOSE 8123
 
 # 使用生产环境配置启动应用
-CMD ["java", "-jar", "/app/agent/target/agent-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=prod"]
+CMD ["java", "-jar", "/app/agent/target/agent-0.1.0-rc.1.jar", "--spring.profiles.active=prod"]

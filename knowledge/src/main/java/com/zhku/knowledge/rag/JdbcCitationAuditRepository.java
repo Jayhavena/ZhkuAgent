@@ -30,6 +30,9 @@ public final class JdbcCitationAuditRepository implements CitationAuditRepositor
     @Override
     public void record(CitationAuditRecord record) {
         Objects.requireNonNull(record, "审计记录不能为空");
+        // 查证捕获必须绑定核验时的profile/切分/来源版本，误装旧仓储不能退回latest解析。
+        if ("RULE_CHECK_CAPTURE".equals(record.route()))
+            throw new IllegalArgumentException("查证捕获必须使用固定索引绑定审计仓储");
         try (Connection connection = dataSource.getConnection()) {
             UUID entryId = resolveLatestEntryId(connection, record.chunkId())
                     .orElseThrow(() -> new IllegalStateException(

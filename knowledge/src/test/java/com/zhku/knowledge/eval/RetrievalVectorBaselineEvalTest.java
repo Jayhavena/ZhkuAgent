@@ -69,9 +69,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @EnabledIfSystemProperty(named = "zhku.rag.smoke", matches = "true")
 class RetrievalVectorBaselineEvalTest {
 
-    private static final String DATABASE_URL = System.getProperty(
-            "zhku.db.url", "jdbc:postgresql://127.0.0.1:54329/zhkuagent"
-    );
+    private static final String DATABASE_URL = com.zhku.knowledge.ZhkuDatabaseTestConfig.databaseUrl();
     private static final String DATABASE_USER = System.getProperty(
             "zhku.db.user", "zhkuagent"
     );
@@ -163,9 +161,9 @@ class RetrievalVectorBaselineEvalTest {
 
         // ③ 评测：词法路 + 真实向量路，RRF 融合；与首份基线同 K、同分母、同数据集版本。
         HybridRetrievalService hybrid = new HybridRetrievalService(new HybridCandidateFuser());
-        JdbcLexicalCandidateRetriever lexical = new JdbcLexicalCandidateRetriever(
+        JdbcLexicalCandidateRetriever lexical = JdbcLexicalCandidateRetriever.forOfflineEvaluation(
                 dataSource, filter, PROFILE, SCOPE);
-        JdbcVectorCandidateRetriever vector = new JdbcVectorCandidateRetriever(
+        JdbcVectorCandidateRetriever vector = JdbcVectorCandidateRetriever.forOfflineEvaluation(
                 dataSource, filter, PROFILE, SCOPE, embeddingClient);
 
         List<Double> recalls = new ArrayList<>();

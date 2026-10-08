@@ -1,0 +1,31 @@
+{
+  "stage": "V2_ENTRY_IDENTITY_RACE_AND_RECOVERY_VERIFIED",
+  "backendClasses": 48,
+  "backendTests": 503,
+  "pureTests": 358,
+  "databaseTests": 133,
+  "actualHttpTests": 22,
+  "configurationTests": 12,
+  "runnerContractChecks": 29,
+  "sourceDrift": 0,
+  "resourcesVerified": true,
+  "providerCalled": false,
+  "originalDatabaseWritten": false,
+  "frontendTestsLast": 80,
+  "frontendRerun": false,
+  "postTestJavaChange": "COMMENT_ONLY_EQUIVALENCE_VERIFIED",
+  "protectedFiles": 594,
+  "review": {
+    "criticalRemaining": 0,
+    "importantRemaining": 0,
+    "fixed": [
+      "M1 正式合同同步v2失效身份401/no-store/fresh许可，不自动删除Cookie/Session；显式logout和闲置超时回收，15分钟并非绝对寿命。",
+      "M2 scope-extension独立保存原Controller字节，仅同步中文注释；去除Java注释后与before完全相同，不重新执行业务测试。"
+    ],
+    "rulings": [
+      "一次独立审查C0/I0/M2；合同/中文注释同步属于原业务边界维护，显式扩为10项增量，原9项before不覆盖。",
+      "最终503全回归发生于注释同步前；后续唯一Java变化为注释，由源码等价检查验证，不冒称测试覆盖后补语义变化。",
+      "旧v1、显式logout和匿名csrf创建会话仍有网络Cookie交付窗口，未称全系统原子性。"
+    ]
+  }
+}

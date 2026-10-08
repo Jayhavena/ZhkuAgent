@@ -18,8 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RetrievalEligibilityFilterTest {
 
     private static final Clock CLOCK = Clock.fixed(
-            Instant.parse("2026-09-17T00:00:00Z"), ZoneOffset.UTC
-    );
+            Instant.parse("2026-09-17T00:00:00Z"), ZoneOffset.UTC);
     private static final String SCOPE = "PUBLIC_ELECTIVE";
 
     private final RetrievalEligibilityFilter filter = new RetrievalEligibilityFilter(CLOCK);
@@ -153,20 +152,50 @@ class RetrievalEligibilityFilterTest {
         private Instant validFrom;
         private Instant validUntil;
 
-        SnapshotBuilder sourceId(UUID value) { this.sourceId = value; return this; }
-        SnapshotBuilder publicationStatus(String value) { this.publicationStatus = value; return this; }
-        SnapshotBuilder visibilityScope(String value) { this.visibilityScope = value; return this; }
-        SnapshotBuilder sharingRightsConfirmed(boolean value) { this.sharingRightsConfirmed = value; return this; }
-        SnapshotBuilder superseded(boolean value) { this.superseded = value; return this; }
-        SnapshotBuilder knowledgeScope(String value) { this.knowledgeScope = value; return this; }
-        SnapshotBuilder validFrom(Instant value) { this.validFrom = value; return this; }
-        SnapshotBuilder validUntil(Instant value) { this.validUntil = value; return this; }
+        SnapshotBuilder sourceId(UUID value) {
+            this.sourceId = value;
+            return this;
+        }
+
+        SnapshotBuilder publicationStatus(String value) {
+            this.publicationStatus = value;
+            return this;
+        }
+
+        SnapshotBuilder visibilityScope(String value) {
+            this.visibilityScope = value;
+            return this;
+        }
+
+        SnapshotBuilder sharingRightsConfirmed(boolean value) {
+            this.sharingRightsConfirmed = value;
+            return this;
+        }
+
+        SnapshotBuilder superseded(boolean value) {
+            this.superseded = value;
+            return this;
+        }
+
+        SnapshotBuilder knowledgeScope(String value) {
+            this.knowledgeScope = value;
+            return this;
+        }
+
+        SnapshotBuilder validFrom(Instant value) {
+            this.validFrom = value;
+            return this;
+        }
+
+        SnapshotBuilder validUntil(Instant value) {
+            this.validUntil = value;
+            return this;
+        }
 
         SourceEligibilitySnapshot build() {
             return new SourceEligibilitySnapshot(
                     sourceId, publicationStatus, visibilityScope, sharingRightsConfirmed,
-                    superseded, knowledgeScope, validFrom, validUntil
-            );
+                    superseded, knowledgeScope, validFrom, validUntil);
         }
     }
 }

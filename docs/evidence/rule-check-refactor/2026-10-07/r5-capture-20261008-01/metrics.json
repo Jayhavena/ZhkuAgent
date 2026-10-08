@@ -1,0 +1,65 @@
+{
+  "stage": "RETRIEVAL_CAPTURE_VERIFIED_NOT_HTTP_INTEGRATED",
+  "verified": {
+    "r5-capture-regression-20261008-01": {
+      "tests": 177,
+      "classes": 18,
+      "sourceFiles": 538,
+      "xmlVerified": true,
+      "sourceCurrent": true,
+      "resourcesVerified": true
+    },
+    "r5-capture-db-green-20261008-01": {
+      "tests": 41,
+      "classes": 2,
+      "sourceFiles": 538,
+      "xmlVerified": true,
+      "sourceCurrent": true,
+      "resourcesVerified": true
+    }
+  },
+  "targetedTests": 12,
+  "runnerContractChecks": 29,
+  "database": {
+    "target": "jdbc:postgresql://127.0.0.1:55449/zhkuagent_rulecheck_e2e",
+    "container": "zhku-rulecheck-e44be56ab2a4",
+    "synthetic": true,
+    "migration": "21",
+    "expectedMigration": 21.0,
+    "connectionsAfterTests": 0,
+    "verified": true
+  },
+  "embedding": "SYNTHETIC_STUB",
+  "audit": "IN_MEMORY_STUB",
+  "sourceDrift": 0,
+  "original36Unchanged": true,
+  "ruleDefinitionReviewStatus": "DRAFT",
+  "runtimeActivated": false,
+  "studentVisible": false,
+  "qualityGatePassed": false,
+  "realProviderEvaluated": false,
+  "userBenefitEvaluated": false,
+  "review": {
+    "reviewer": "/root/r5_capture_review",
+    "model": "gpt-6-astra",
+    "reviewCount": 1,
+    "critical": 0,
+    "important": 0,
+    "minor": 0,
+    "criticalRemaining": 0,
+    "importantRemaining": 0,
+    "fixPassRequired": false,
+    "scope": "Task2C白名单before→当前增量；只读复核执行证据，不是重跑测试或完整R5",
+    "deferredMinors": [],
+    "rulings": [
+      "真实规则语义、条件完整性、匹配和展示资格不由合成连接测试裁定 — 保留B-01/B-02及DRAFT — 成本是审核完成前不能激活真实规则或学生试点。",
+      "自然语言/HTTP身份与CSRF/模型选择/学生页面未装配 — 本批只连接共享检索与核验 — 成本是完整应用仍须分别实施和验收。",
+      "顺序当前读不证明最终下发、历史再展示撤回或跨片段原子一致性 — 无并发线性化证据 — 成本是后续仍要补下发与撤回竞态。",
+      "实际JDBC审计持久化、最新索引条目解析及核验profile绑定未认可 — 本批审计为内存替身且旧仓储按chunk找最新entry — 成本是装配时须验证/限定profile与切分版本，不能将本次通过外推真实审计正确性。",
+      "公开record只按可信服务端链消费，不暴露客户端自证对象 — 本批无HTTP反序列化路径 — 成本是未来客户端DTO必须独立设计，不能直接接收模板或快照。",
+      "完整生命周期/有效期/发布清单保留R6门禁 — reader只验证已有字段 — 成本是扩展前仍须补完整时效控制，不能提前宣称当前适用。",
+      "供应商表现、费用、报告质量与用户收益保持NOT_RUN — 没有真实执行/参与者证据 — 成本是工程成绩不能支持产品收益或金额结论。",
+      "历史dirty、旧自由RAG事实风险及默认全仓测试风险不由本批关闭 — 按before白名单审查 — 成本是局部通过不能外推全仓通过，RC-04-SEMANTICS保持OPEN。"
+    ]
+  }
+}

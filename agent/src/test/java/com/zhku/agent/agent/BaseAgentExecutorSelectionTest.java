@@ -117,6 +117,7 @@ class BaseAgentExecutorSelectionTest {
                 );
             }
             stepCalls.incrementAndGet();
+            context.finish(AgentRunState.SUCCEEDED);
             return "executor-controlled";
         }
 

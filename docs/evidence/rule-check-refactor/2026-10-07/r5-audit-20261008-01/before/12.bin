@@ -1,0 +1,677 @@
+{
+  "schemaVersion": 1,
+  "program": "rule-check-refactor",
+  "createdDate": "2026-10-07",
+  "timezone": "Asia/Shanghai",
+  "deliveryStage": "R5_EVIDENCE_COMPONENTS_VERIFIED_NOT_INTEGRATED",
+  "productScopePath": "docs/product/rule-check-scope.md",
+  "evalContractPath": "docs/product/rule-check-eval-contract.md",
+  "evaluationDesignStatus": "DOCUMENTED_NOT_EXECUTED",
+  "productDirectionStatus": "CONFIRMED_BY_USER",
+  "plannedAnswerStatuses": [
+    "ANSWERED",
+    "PARTIALLY_ANSWERED",
+    "NEED_CLARIFICATION",
+    "INSUFFICIENT_EVIDENCE",
+    "CONFLICTING_EVIDENCE"
+  ],
+  "businessImplementationStarted": true,
+  "testsExecutedInThisPlanningTurn": false,
+  "issues": [
+    {
+      "id": "RC-01",
+      "priority": "P0",
+      "tasks": [
+        "R0",
+        "R5"
+      ],
+      "status": "OPEN",
+      "problem": "规则查证定位与默认学分入口不一致",
+      "evidenceKind": "STATIC_REVIEW",
+      "sourcePaths": [
+        "README.md",
+        "agent/frontend/src/views/Home.vue",
+        "agent/frontend/src/router/index.js"
+      ],
+      "verificationStatus": "NOT_RUN",
+      "scopeDocumentStatus": "DOCUMENTED",
+      "closeWhen": [
+        "范围约定与实际可审核试验主题一致",
+        "真实查证入口与承诺一致",
+        "G2用户对照达标"
+      ]
+    },
+    {
+      "id": "RC-02",
+      "priority": "P0",
+      "tasks": [
+        "R1"
+      ],
+      "status": "CLOSED",
+      "problem": "两路候选提前按最终K截断，现有替身不遵守limit",
+      "evidenceKind": "UNIT_TEST",
+      "sourcePaths": [
+        "knowledge/src/main/java/com/zhku/knowledge/retrieval/HybridRetrievalService.java",
+        "knowledge/src/test/java/com/zhku/knowledge/retrieval/HybridRetrievalServiceTest.java"
+      ],
+      "verificationStatus": "PASSED",
+      "closeWhen": [
+        "A/C与B/C行为RED已保存",
+        "候选2结果1返回C",
+        "稳定排序和降级回归通过"
+      ],
+      "closedAt": "2026-10-07T22:22:43.206232+08:00",
+      "closureScope": "仅融合前按最终K截断缺陷；不代表真实召回率、最优预算或整体查证事实质量",
+      "budgetCalibrationStatus": "NOT_RUN",
+      "evidencePaths": [
+        "docs/evidence/rule-check-refactor/2026-10-07/r1-red-02/results.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/r1-green-01/results.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/r1-regression-01/results.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/r1-fusion-01/integrity-check.json"
+      ],
+      "verifiedSourceHashes": [
+        {
+          "path": "knowledge/src/main/java/com/zhku/knowledge/retrieval/HybridRetrievalService.java",
+          "sha256": "5883d4dc59f4bbc9fcb1aaf735200c64fe4831ae487af643f6568005b49bbf4d"
+        },
+        {
+          "path": "knowledge/src/test/java/com/zhku/knowledge/retrieval/HybridRetrievalServiceTest.java",
+          "sha256": "2190bb0ed7d2b77c5b65aba32929e31ea275140483982f0aa5a569a4dbb1cc95"
+        }
+      ]
+    },
+    {
+      "id": "RC-03",
+      "priority": "P0",
+      "tasks": [
+        "R2"
+      ],
+      "status": "CLOSED",
+      "problem": "管理DTO与页面未展示候选原文",
+      "evidenceKind": "BROWSER_REAL_CHAIN",
+      "sourcePaths": [
+        "knowledge/src/main/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminController.java",
+        "knowledge/src/main/resources/zhku/local-admin/index.html"
+      ],
+      "verificationStatus": "PASSED",
+      "closeWhen": [
+        "原问题JSON与网页复现",
+        "原文对照与编辑安全渲染",
+        "待审到批准流程验证且学生端无原文越界"
+      ],
+      "additionalEvidenceKinds": [
+        "UNIT_TEST",
+        "HTTP_PROCESS",
+        "DB_INTEGRATION"
+      ],
+      "closedAt": "2026-10-07T22:57:02.286529+08:00",
+      "closureScope": "本机管理员原文对照与明确编辑/审核边界；不代表整本手册导入、后端分页、OCR、学生端完整链或正式上线",
+      "evidencePaths": [
+        "docs/evidence/rule-check-refactor/2026-10-07/r2-red-01/results.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/r2-regression-01/results.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/r2-admin-01/browser-after/observations.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/r2-admin-01/browser-after/database-final.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/r2-admin-01/integrity-check.json"
+      ],
+      "verifiedSourceHashes": [
+        {
+          "path": "knowledge/src/main/java/com/zhku/knowledge/governance/web/ZhkuLocalAdminController.java",
+          "sha256": "1a1aff6a5daaa6e203a1147636c2ad48779bd97f22c1292f8534e86ecdf3cc07"
+        },
+        {
+          "path": "knowledge/src/main/resources/zhku/local-admin/index.html",
+          "sha256": "6d3f17a28dac0ed98d313cb54c71f71646d57a16e4712b456bf716bfd1825e5a"
+        },
+        {
+          "path": "knowledge/src/test/java/com/zhku/knowledge/governance/web/CandidateResponseMappingTest.java",
+          "sha256": "842b81e849573d27560d996c7e4d8a049390ff7fe824db82156102eb0e08cd0b"
+        }
+      ]
+    },
+    {
+      "id": "RC-04",
+      "priority": "P0",
+      "tasks": [
+        "R3",
+        "R5"
+      ],
+      "status": "PARTIAL",
+      "problem": "输出结构和证据白名单不足以证明事实支撑",
+      "evidenceKind": "UNIT_TEST_AND_SYNTHETIC_KNOWN_RISK_PROBE",
+      "sourcePaths": [
+        "knowledge/src/main/java/com/zhku/knowledge/rag/ModelOutputParser.java",
+        "knowledge/src/main/java/com/zhku/knowledge/rag/AnswerEvidenceGuard.java"
+      ],
+      "subissues": [
+        {
+          "id": "RC-04-STRUCTURE",
+          "task": "R3",
+          "status": "CLOSED",
+          "verificationStatus": "PASSED",
+          "closeWhen": [
+            "字段类型/有限范围/非空引用反例通过",
+            "composer与适配器回归"
+          ],
+          "closedAt": "2026-10-08T00:31:21.485652+08:00",
+          "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r3-output-20261008-01/acceptance.md",
+          "closureScope": "仅字段类型、正文与引用非空、有限分值、引用白名单和受控降级；不证明一般事实支持",
+          "verifiedSourceHashes": {
+            "knowledge/src/main/java/com/zhku/knowledge/rag/ModelOutputParser.java": "8c62c9456595f1e0edbd3aabb78e3c70ab5d953ea3602132b283904e87e23253",
+            "knowledge/src/main/java/com/zhku/knowledge/rag/AnswerEvidenceGuard.java": "4f88d27c7e560b125c84dc09808606d40c158469800b241c05767aeeb3d8cd0f",
+            "knowledge/src/main/java/com/zhku/knowledge/rag/ModelResponse.java": "9eb42f86c500009a2904ce42a651ee4201c19b639ea4082087a35d710044d12e",
+            "knowledge/src/test/java/com/zhku/knowledge/rag/ModelOutputParserTest.java": "8561f80681fd1a42f92cd19c9f6a7ee5c02c853a646cdc0ae826f040e30e8872",
+            "knowledge/src/test/java/com/zhku/knowledge/rag/AnswerEvidenceGuardTest.java": "80dfa4e9b90cfdfffc85b51b53b5f45b0fcae1c73500c44940aa6202174d9a57",
+            "knowledge/src/test/java/com/zhku/knowledge/rag/GroundedAnswerComposerTest.java": "82f9dd11a12928f1986fa9610f15bcaa794d09f3efecc62ec4e4b8205ede9aac",
+            "knowledge/src/test/java/com/zhku/knowledge/rag/SpringAiAdapterContractTest.java": "5a5d55e4b240b5c9ba96939b389fe5e3944602fa165ac94ae931645ad106ed75",
+            "knowledge/scripts/verify-rule-check-refactor.ps1": "b714ae95b8934f09b5392febe5c250d12d89e847f0b02405c1629a926f8fc610"
+          }
+        },
+        {
+          "id": "RC-04-SEMANTICS",
+          "task": "R5",
+          "status": "OPEN",
+          "verificationStatus": "KNOWN_RISK_REPRODUCED",
+          "closeWhen": [
+            "数字/对象/条件/例外错误被阻断",
+            "部分回答只含独立有据事实，未知项明确且不暗示整体资格",
+            "关键条件或例外缺失时先澄清/缺证/冲突",
+            "原文跨度/审核模板验证",
+            "人工支撑性与留出门禁"
+          ],
+          "manualEvaluationStatus": "NOT_RUN",
+          "knownRiskEvidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r3-output-20261008-01/semantic-gap.json",
+          "engineeringComponents": [
+            {
+              "name": "RuleCheckEvidenceVerifier",
+              "stage": "COMPONENT_VERIFIED_NOT_INTEGRATED",
+              "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-evidence-20261008-01/acceptance.md"
+            },
+            {
+              "name": "JdbcRuleCheckEvidenceReader",
+              "stage": "DB_ADAPTER_VERIFIED_NOT_INTEGRATED",
+              "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-db-20261008-01/acceptance.md"
+            },
+            {
+              "name": "RuleCheckDecisionService",
+              "stage": "RULE_DECISION_COMPONENT_VERIFIED_NOT_INTEGRATED",
+              "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-decision-20261008-01/acceptance.md",
+              "ruleDefinitionReviewStatus": "DRAFT",
+              "manualEvaluationStatus": "NOT_RUN"
+            },
+            {
+              "name": "RuleCheckEvidenceCapture",
+              "stage": "RETRIEVAL_CAPTURE_VERIFIED_NOT_HTTP_INTEGRATED",
+              "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-capture-20261008-01/acceptance.md",
+              "manualEvaluationStatus": "NOT_RUN"
+            }
+          ],
+          "closureReminder": "共享检索已连接当前核验；真实2025资料与规则审核/展示资格、自然语言匹配、HTTP账号及最终下发、独立报告质量和用户收益仍未通过，旧自由RAG风险仍OPEN"
+        }
+      ],
+      "verificationStatus": "STRUCTURE_PASSED_SEMANTICS_OPEN",
+      "closeWhen": [
+        "两个子项均验证",
+        "关键错误零漏放，按独立样本报告"
+      ]
+    },
+    {
+      "id": "RC-05",
+      "priority": "P0",
+      "tasks": [
+        "R4",
+        "R6"
+      ],
+      "status": "PARTIAL",
+      "problem": "在线激活、已知资格和有效期数据未完整落实到查询",
+      "evidenceKind": "STATIC_REVIEW",
+      "sourcePaths": [
+        "knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcVectorCandidateRetriever.java",
+        "knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcLexicalCandidateRetriever.java",
+        "knowledge/src/main/java/com/zhku/knowledge/retrieval/RetrievalEligibilityFilter.java"
+      ],
+      "subissues": [
+        {
+          "id": "RC-05-READ",
+          "task": "R4",
+          "status": "CLOSED",
+          "verificationStatus": "PASSED",
+          "closeWhen": [
+            "ACTIVE与已知资格矩阵通过",
+            "版本/hash漂移拒绝",
+            "不合格近邻不挤掉合法结果"
+          ],
+          "closedAt": "2026-10-08T01:21:46.793082+08:00",
+          "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r4-read-20261008-01/acceptance.md",
+          "closureScope": "仅ACTIVE与现有schema资格/版本/hash/run一致性；完整时效与输出前竞态未完成",
+          "verifiedSourceHashes": {
+            "knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcLexicalCandidateRetriever.java": "a03a0952a0d13c5c566119425cc462e9dc1bc09dc4763b4845b99a729540f1c5",
+            "knowledge/src/main/java/com/zhku/knowledge/retrieval/JdbcVectorCandidateRetriever.java": "e121c4503964c547f1ac22659a533e091dc392faacbdfd8568914dd571aed76d"
+          }
+        },
+        {
+          "id": "RC-05-LIFECYCLE",
+          "task": "R6",
+          "status": "OPEN",
+          "verificationStatus": "NOT_RUN",
+          "closeWhen": [
+            "有效期未知与无上限分开",
+            "到期/撤回/清单切换合同验证"
+          ]
+        }
+      ],
+      "verificationStatus": "READ_PASSED_LIFECYCLE_OPEN",
+      "closeWhen": [
+        "两个子项均验证",
+        "查询与输出快照/复查边界可复现"
+      ]
+    },
+    {
+      "id": "RC-06",
+      "priority": "P1",
+      "tasks": [
+        "R5"
+      ],
+      "status": "OPEN",
+      "problem": "受控咨询与通用检索链能力分离",
+      "evidenceKind": "STATIC_REVIEW",
+      "sourcePaths": [
+        "knowledge/src/main/java/com/zhku/knowledge/controlled/ControlledConversationFacade.java",
+        "knowledge/src/main/java/com/zhku/knowledge/web/ZhkuLocalPreviewConfiguration.java"
+      ],
+      "verificationStatus": "NOT_RUN",
+      "closeWhen": [
+        "共享查证服务真实装配",
+        "真实网页到临时库的规则/检索流程通过",
+        "身份与旧v1兼容"
+      ]
+    },
+    {
+      "id": "RC-07",
+      "priority": "P1",
+      "tasks": [
+        "R6"
+      ],
+      "status": "OPEN",
+      "problem": "长文按页审核与整范围替换不支持高效安全的部分发布",
+      "evidenceKind": "STATIC_REVIEW",
+      "sourcePaths": [
+        "knowledge/src/main/java/com/zhku/knowledge/governance/KnowledgeSubmissionService.java",
+        "knowledge/src/main/java/com/zhku/knowledge/publication/ReviewedKnowledgePublisher.java"
+      ],
+      "verificationStatus": "NOT_RUN",
+      "closeWhen": [
+        "条款跨页/分页与失败可见",
+        "部分发布保留其他有效条款",
+        "失败回滚/并发发布/撤回验证",
+        "真实审核质量与耗时记录"
+      ]
+    },
+    {
+      "id": "RC-08",
+      "priority": "P1",
+      "tasks": [
+        "R7"
+      ],
+      "status": "OPEN",
+      "problem": "匿名反馈聚合不等于有负责人和复验的纠错问题",
+      "evidenceKind": "STATIC_REVIEW",
+      "sourcePaths": [
+        "knowledge/src/main/java/com/zhku/knowledge/feedback/AnonymousFeedbackService.java"
+      ],
+      "verificationStatus": "NOT_RUN",
+      "closeWhen": [
+        "独立纠错问题到修订/复验/关闭",
+        "无复验不能关闭",
+        "匿名与自愿跟踪分离"
+      ]
+    },
+    {
+      "id": "RC-09",
+      "priority": "P0",
+      "tasks": [
+        "R0",
+        "R5",
+        "R8"
+      ],
+      "status": "PARTIAL",
+      "problem": "工程验收缺少主张支撑与真实用户查证收益证据",
+      "evidenceKind": "EVIDENCE_GAP",
+      "sourcePaths": [
+        "knowledge/src/main/java/com/zhku/knowledge/eval/EvaluationRunner.java",
+        "docs/evidence/milestone-3c/2026-10-07/3c-3/acceptance.md"
+      ],
+      "subissues": [
+        {
+          "id": "RC-09-SAMPLING",
+          "tasks": [
+            "R0",
+            "R8"
+          ],
+          "status": "PARTIAL",
+          "verificationStatus": "NOT_RUN",
+          "closeWhen": [
+            "质量/边界/裁判集合用途分开，采样与分母明确",
+            "按任务家族隔离调优和报告，探索样本不推广总体"
+          ],
+          "draftCasesPrepared": true,
+          "reportSetLocked": false
+        },
+        {
+          "id": "RC-09-GRADING",
+          "tasks": [
+            "R0",
+            "R5",
+            "R8"
+          ],
+          "status": "OPEN",
+          "verificationStatus": "NOT_RUN",
+          "closeWhen": [
+            "原文人工参考、原子rubric和可复核输出齐备",
+            "使用模型裁判时独立验证漏放/误拦/未知，未达标保持人工",
+            "检索/答案支撑/执行结果分层记录"
+          ]
+        },
+        {
+          "id": "RC-09-COMPARISON",
+          "tasks": [
+            "R5",
+            "R8"
+          ],
+          "status": "OPEN",
+          "verificationStatus": "NOT_RUN",
+          "closeWhen": [
+            "同题配对改善/退步/未知与差值不确定性报告",
+            "用户分组对照含失败/超时，样本不足不声称总体提升",
+            "重复试验与失败成本按实际需要记录，不以缓存/幂等重放冒充"
+          ]
+        }
+      ],
+      "verificationStatus": "NOT_RUN",
+      "closeWhen": [
+        "三个子项验证完成",
+        "锁定留出与人工标注口径，覆盖五种回答状态",
+        "三主题G4质量门禁，区分样本通过与改善证明",
+        "用户匹配任务对照和失败记录",
+        "必要/无关/重复追问及澄清轮数记录",
+        "性能/用量/未知项报告"
+      ],
+      "latestEvidencePaths": [
+        "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/quality-cases-draft.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/cases-validation.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/source-audit.md",
+        "docs/evidence/rule-check-refactor/2026-10-07/human-reference-q01-q05-20261008-01/confirmed-development-subset.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/human-reference-q06-q10-20261008-01/confirmed-development-subset.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/human-reference-q11-q20-20261008-01/confirmed-development-subset.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/eval-preparation-20261008-01/report-family-isolation-audit.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/eval-preparation-20261008-01/development-rubric-draft.json"
+      ],
+      "evaluationPreparationStatus": "HUMAN_REFERENCE_20_DEV_CONFIRMED_REPORT_13_CANDIDATES_NEEDS_3_REPLACEMENTS",
+      "reportFamilyAuditStatus": "ARTICLE_OVERLAP_3_EXCLUDED_IN_SELECTION_TASK_FAMILY_REVIEW_PENDING"
+    },
+    {
+      "id": "RC-10",
+      "priority": "P0",
+      "tasks": [
+        "R0"
+      ],
+      "status": "PARTIAL",
+      "problem": "部分数据库测试默认连接原演示库，缺少新阶段隔离入口",
+      "evidenceKind": "STATIC_REVIEW",
+      "sourcePaths": [
+        "knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcCandidateRetrieverTest.java"
+      ],
+      "verificationStatus": "PARTIAL",
+      "closeWhen": [
+        "不安全目标在连接前拒绝",
+        "白名单/防覆写入口合同通过",
+        "仅专用临时库执行且资源退出"
+      ],
+      "latestEvidencePaths": [
+        "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/contract-current-green.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/actual-rejection-checks.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/r0-ordinary-unit-baseline/results.json",
+        "docs/evidence/rule-check-refactor/2026-10-07/r0-schema-baseline-03/results.json"
+      ],
+      "subissues": [
+        {
+          "id": "RC-10-ENTRY",
+          "task": "R0",
+          "status": "VERIFIED",
+          "verificationStatus": "PASSED",
+          "scope": "新显式选类/专用临时库入口；不代表旧测试裸运行安全",
+          "evidencePaths": [
+            "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/contract-current-green.json",
+            "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/actual-rejection-checks.json",
+            "docs/evidence/rule-check-refactor/2026-10-07/r0-ordinary-unit-baseline/results.json",
+            "docs/evidence/rule-check-refactor/2026-10-07/r0-schema-baseline-03/results.json"
+          ]
+        },
+        {
+          "id": "RC-10-LEGACY-DEFAULT",
+          "task": "FOLLOW_UP_SCOPING_REQUIRED",
+          "status": "OPEN",
+          "verificationStatus": "NOT_RUN",
+          "problem": "其他旧KnowledgeSchemaTest等直接运行仍存在默认原库风险；R4 JdbcCandidateRetrieverTest本轮已在setup/cleanup前拒绝不安全目标，不能据此关闭全仓旧默认风险"
+        },
+        {
+          "id": "RC-10-R4-ACTIVATION",
+          "task": "R4_REVIEW_FIX",
+          "status": "CLOSED",
+          "verificationStatus": "PASSED",
+          "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/p0-closeout-20261008-01/acceptance.md"
+        }
+      ]
+    },
+    {
+      "id": "RC-11",
+      "priority": "P1",
+      "tasks": [
+        "R5"
+      ],
+      "status": "OPEN",
+      "problem": "409通用提示不说明同键内容冲突，完成任务仍出现正在确认静态文案",
+      "evidenceKind": "HISTORICAL_ACCEPTANCE",
+      "sourcePaths": [
+        "docs/evidence/milestone-3c/2026-10-07/3c-3/browser-supplement/acceptance.md",
+        "agent/frontend/src/views"
+      ],
+      "verificationStatus": "NOT_RUN",
+      "closeWhen": [
+        "冲突与完成/未确认文案明确",
+        "真实网页对应状态复验",
+        "提交/派发计数不退步"
+      ]
+    }
+  ],
+  "verificationInfrastructureImplemented": true,
+  "latestExecution": {
+    "stage": "R5_EVIDENCE_AND_DB_ADAPTER_VERIFIED_NOT_INTEGRATED",
+    "executedAt": "2026-10-08T01:57:51.553040+08:00",
+    "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-db-20261008-01/acceptance.md",
+    "testsExecuted": true,
+    "businessCodeChanged": true,
+    "testCount": 172,
+    "testClassCount": 18,
+    "databaseOperationRun": true,
+    "databaseScope": "DEDICATED_RANDOM_TEMP_CONTAINER_SYNTHETIC_ONLY",
+    "providerCalled": false,
+    "productEvaluationRun": false,
+    "studentIntegrated": false,
+    "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
+    "semanticKnownRisk": "OLD_RAG_4_TO_40_STILL_OPEN",
+    "planningTurnFieldsAreHistorical": true
+  },
+  "executionHistory": [
+    {
+      "stage": "R0_PARTIAL",
+      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r0-baseline-01/acceptance.md",
+      "testsExecuted": true,
+      "businessCodeChanged": false,
+      "productEvaluationRun": false,
+      "providerCalled": false,
+      "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
+      "planningTurnFieldsAreHistorical": true
+    },
+    {
+      "stage": "R1_CODE_VERIFIED_CALIBRATION_PENDING",
+      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r1-fusion-01/acceptance.md",
+      "testsExecuted": true,
+      "businessCodeChanged": true,
+      "productEvaluationRun": false,
+      "providerCalled": false,
+      "databaseOperationRun": false,
+      "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
+      "budgetCalibration": "NOT_RUN_HUMAN_REFERENCE_NOT_LOCKED",
+      "planningTurnFieldsAreHistorical": true
+    },
+    {
+      "stage": "R2_VERIFIED_LOCAL_SYNTHETIC",
+      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r2-admin-01/acceptance.md",
+      "testsExecuted": true,
+      "businessCodeChanged": true,
+      "browserRealChainRun": true,
+      "databaseOperationRun": true,
+      "databaseScope": "DEDICATED_RANDOM_TEMP_CONTAINER_SYNTHETIC_ONLY",
+      "pdfIngestionRun": false,
+      "productEvaluationRun": false,
+      "providerCalled": false,
+      "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
+      "budgetCalibration": "NOT_RUN_HUMAN_REFERENCE_NOT_LOCKED",
+      "planningTurnFieldsAreHistorical": true
+    },
+    {
+      "stage": "R3_VERIFIED_STRUCTURE_SEMANTICS_OPEN",
+      "executedAt": "2026-10-08T00:31:21.485652+08:00",
+      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r3-output-20261008-01/acceptance.md",
+      "testsExecuted": true,
+      "businessCodeChanged": true,
+      "testCount": 96,
+      "browserRealChainRun": false,
+      "databaseOperationRun": false,
+      "pdfIngestionRun": false,
+      "providerCalled": false,
+      "productEvaluationRun": false,
+      "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
+      "budgetCalibration": "NOT_RUN_HUMAN_REFERENCE_NOT_LOCKED",
+      "semanticKnownRisk": "4_TO_40_WITH_VALID_CITATION_STILL_ANSWERED",
+      "planningTurnFieldsAreHistorical": true
+    },
+    {
+      "stage": "P0_LOCAL_ENGINEERING_VERIFIED_G0_PENDING",
+      "executedAt": "2026-10-08T01:21:46.793082+08:00",
+      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/p0-closeout-20261008-01/acceptance.md",
+      "testsExecuted": true,
+      "businessCodeChanged": true,
+      "testCount": 151,
+      "testClassCount": 20,
+      "databaseOperationRun": true,
+      "databaseScope": "DEDICATED_RANDOM_TEMP_CONTAINER_SYNTHETIC_ONLY",
+      "providerCalled": false,
+      "productEvaluationRun": false,
+      "g0": "NOT_PASSED_SOURCE_AND_HUMAN_REFERENCE_PENDING",
+      "planningTurnFieldsAreHistorical": true
+    }
+  ],
+  "reviewFindings": [
+    {
+      "id": "P0-REVIEW-01",
+      "severity": "Important",
+      "status": "FIXED_VERIFIED",
+      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/p0-closeout-20261008-01/acceptance.md"
+    },
+    {
+      "id": "R5-TASK1-REVIEW-M1",
+      "severity": "Minor",
+      "status": "DEFERRED_COVERAGE",
+      "problem": "当前别名不同的独立组件正向用例未补；实现正确，后续DB正常流程已消费不同别名",
+      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-evidence-20261008-01/review.md"
+    },
+    {
+      "id": "R5-DB-REVIEW-M1",
+      "severity": "Minor",
+      "status": "DEFERRED_COVERAGE",
+      "problem": "缺run/entry跨profile专项真库反例；当前SQL正确阻断",
+      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/r5-db-20261008-01/review.md"
+    }
+  ],
+  "scopeDecisions": [
+    {
+      "decidedDate": "2026-10-08",
+      "authority": "EXPLICIT_USER_DECISION",
+      "referenceRevision": "2025.9.2",
+      "sourceSnapshotSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
+      "referencePolicy": "EXPLICIT_2025_TEXT_SCOPE",
+      "requires2026DocumentForThisScope": false,
+      "humanReferenceApproved": false,
+      "studentVisibilityChanged": false,
+      "g0Passed": false,
+      "decisionPath": "docs/product/rule-check-2025-reference-decision.md"
+    }
+  ],
+  "humanReferenceReviewHistory": [
+    {
+      "reviewDate": "2026-10-08",
+      "reviewer": "用户（项目开发者，自核）",
+      "authority": "DIRECT_USER_MESSAGE",
+      "confirmedIds": [
+        "Q01",
+        "Q02",
+        "Q03",
+        "Q04",
+        "Q05"
+      ],
+      "approvedDevelopmentCount": 5,
+      "pendingDevelopmentCount": 15,
+      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/human-reference-q01-q05-20261008-01/confirmed-development-subset.json",
+      "productEvaluationRun": false,
+      "studentReleaseAuthorized": false,
+      "reportCandidatesLocked": false
+    },
+    {
+      "reviewDate": "2026-10-08",
+      "recordedAt": "2026-10-08T10:07:06.860984+08:00",
+      "reviewer": "用户（项目开发者，自核）",
+      "authority": "DIRECT_USER_MESSAGE",
+      "confirmationText": "确认",
+      "confirmationScope": "Q06–Q10",
+      "confirmedIds": [
+        "Q06",
+        "Q07",
+        "Q08",
+        "Q09",
+        "Q10"
+      ],
+      "approvedDevelopmentCount": 10,
+      "pendingDevelopmentCount": 10,
+      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/human-reference-q06-q10-20261008-01/confirmed-development-subset.json",
+      "productEvaluationRun": false,
+      "studentReleaseAuthorized": false,
+      "reportCandidatesLocked": false
+    },
+    {
+      "reviewDate": "2026-10-08",
+      "recordedAt": "2026-10-08T10:10:02.579084+08:00",
+      "reviewer": "用户（项目开发者，自核）",
+      "authority": "DIRECT_USER_MESSAGE",
+      "confirmationText": "11-20我都看过了，保持确认",
+      "confirmedIds": [
+        "Q11",
+        "Q12",
+        "Q13",
+        "Q14",
+        "Q15",
+        "Q16",
+        "Q17",
+        "Q18",
+        "Q19",
+        "Q20"
+      ],
+      "approvedDevelopmentCount": 20,
+      "pendingDevelopmentCount": 0,
+      "evidencePath": "docs/evidence/rule-check-refactor/2026-10-07/human-reference-q11-q20-20261008-01/confirmed-development-subset.json",
+      "productEvaluationRun": false,
+      "studentReleaseAuthorized": false,
+      "reportCandidatesLocked": false
+    }
+  ]
+}

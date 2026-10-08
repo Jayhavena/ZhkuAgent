@@ -150,6 +150,28 @@ class SpringAiAdapterContractTest {
         assertThat(lastAuthorization.get()).isEqualTo("Bearer " + API_KEY);
     }
 
+    @Test
+    void shouldRejectCoercedScoreFromLoopbackEndpoint() {
+        chatContent = """
+                {"answer":"合成回答","uncertainty":"0.9","citationIds":["cit-1"],"handoffRequired":false}
+                """;
+        SpringAiChatModelClient client = new SpringAiChatModelClient(chatModel("stub-chat"), "stub");
+        assertThatThrownBy(() -> client.call(new ModelRequest(
+                "约束", "问题", List.of(new ApprovedEvidence("cit-1", "合成证据", "测试资料")))))
+                .isInstanceOf(ModelOutputFormatException.class);
+    }
+
+    @Test
+    void shouldRejectMissingHandoffFromLoopbackEndpoint() {
+        chatContent = """
+                {"answer":"合成回答","uncertainty":0.9,"citationIds":["cit-1"]}
+                """;
+        SpringAiChatModelClient client = new SpringAiChatModelClient(chatModel("stub-chat"), "stub");
+        assertThatThrownBy(() -> client.call(new ModelRequest(
+                "约束", "问题", List.of(new ApprovedEvidence("cit-1", "合成证据", "测试资料")))))
+                .isInstanceOf(ModelOutputFormatException.class);
+    }
+
     private OpenAiChatModel chatModel(String model) {
         OpenAiApi api = OpenAiApi.builder()
                 .baseUrl(baseUrl)

@@ -1,12 +1,31 @@
 package com.zhku.knowledge.conversation;
 
 import javax.sql.DataSource;
+import com.zhku.knowledge.security.TrustedActor;
+import java.time.Clock;
 import java.util.Objects;
 
 /** 会话存储选择工厂。 */
 public final class ConversationStoreFactory {
 
     private ConversationStoreFactory() {
+    }
+
+    public static ConversationStore createOwned(String configuredStore, ConversationJdbcAccess access,
+            TrustedActor actor, Clock clock) {
+        requireOwnedJdbc(configuredStore);
+        return new JdbcConversationStore(access, actor, clock);
+    }
+
+    public static ConversationStore createOwned(String configuredStore, ConversationJdbcAccess access,
+            TrustedActor actor, Clock clock, ConversationOperationBudget budget) {
+        requireOwnedJdbc(configuredStore);
+        return new JdbcConversationStore(access, actor, clock, budget);
+    }
+
+    private static void requireOwnedJdbc(String configuredStore) {
+        // 用户归属必须持久化；缺配置/内存/未知值都不能静默回退单人匿名预览。
+        if (!"jdbc".equals(configuredStore)) throw new IllegalArgumentException("受控会话必须显式使用jdbc存储");
     }
 
     /**

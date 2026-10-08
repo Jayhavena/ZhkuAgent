@@ -1,0 +1,401 @@
+--- before/knowledge/src/main/java/com/zhku/knowledge/rag/CitationAuditRecord.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rag/CitationAuditRecord.java
+@@ -15,7 +15,13 @@
+  * @param route 下发时的路由级别（枚举名，便于审计聚合）
+  * @param issuedAt 下发时刻
+  */
+-public record CitationAuditRecord(String citationId, UUID chunkId, String route, Instant issuedAt) {
++public record CitationAuditRecord(String citationId, UUID chunkId, String route, Instant issuedAt,
++                                  UUID sourceId, String sourceRevision, String contentChecksum, String content) {
++
++    // 旧路由仍用四参；新查证捕获必须由服务端填完整绑定，不能凭chunk选择“最新”索引。
++    public CitationAuditRecord(String citationId, UUID chunkId, String route, Instant issuedAt) {
++        this(citationId, chunkId, route, issuedAt, null, null, null, null);
++    }
+ 
+     public CitationAuditRecord {
+         Objects.requireNonNull(citationId, "引用标识不能为空");
+--- before/knowledge/src/main/java/com/zhku/knowledge/rag/JdbcCitationAuditRepository.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rag/JdbcCitationAuditRepository.java
+@@ -30,6 +30,9 @@
+     @Override
+     public void record(CitationAuditRecord record) {
+         Objects.requireNonNull(record, "审计记录不能为空");
++        // 查证捕获必须绑定核验时的profile/切分/来源版本，误装旧仓储不能退回latest解析。
++        if ("RULE_CHECK_CAPTURE".equals(record.route()))
++            throw new IllegalArgumentException("查证捕获必须使用固定索引绑定审计仓储");
+         try (Connection connection = dataSource.getConnection()) {
+             UUID entryId = resolveLatestEntryId(connection, record.chunkId())
+                     .orElseThrow(() -> new IllegalStateException(
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceCapture.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceCapture.java
+@@ -63,7 +63,8 @@
+             // 仓储只有逐条接口；失败可留下部分尝试记录，但不会交出可消费证据。
+             // CAPTURE路由表示取得证据，不证明学生已经看到回答，也不声称事务原子性。
+             for (var snapshot : snapshots)
+-                audit.record(new CitationAuditRecord(snapshot.citationId(), snapshot.chunkId(), "RULE_CHECK_CAPTURE", issuedAt));
++                audit.record(new CitationAuditRecord(snapshot.citationId(), snapshot.chunkId(), "RULE_CHECK_CAPTURE", issuedAt,
++                        snapshot.sourceId(), snapshot.revision(), snapshot.checksum(), snapshot.text()));
+         } catch (RuntimeException unavailable) {
+             return rejected(RejectionReason.AUDIT_UNAVAILABLE);
+         }
+--- before/knowledge/src/main/java/com/zhku/knowledge/rulecheck/JdbcRuleCheckCitationAuditRepository.java
++++ after/knowledge/src/main/java/com/zhku/knowledge/rulecheck/JdbcRuleCheckCitationAuditRepository.java
+@@ -0,0 +1,77 @@
++package com.zhku.knowledge.rulecheck;
++
++import com.zhku.knowledge.rag.CitationAuditRecord;
++import com.zhku.knowledge.rag.CitationAuditRepository;
++import javax.sql.DataSource;
++import java.sql.SQLException;
++import java.sql.Timestamp;
++import java.util.Locale;
++import java.util.Objects;
++import java.util.UUID;
++
++/** 查证捕获的固定索引审计；不能沿用旧仓储按latest条目解析。 */
++public final class JdbcRuleCheckCitationAuditRepository implements CitationAuditRepository {
++    private final DataSource dataSource;
++    private final String profileId, chunkingVersion, requiredScope;
++
++    public JdbcRuleCheckCitationAuditRepository(DataSource dataSource, String profileId,
++                                                String chunkingVersion, String requiredScope) {
++        this.dataSource = Objects.requireNonNull(dataSource);
++        this.profileId = nonBlank(profileId);
++        this.chunkingVersion = nonBlank(chunkingVersion);
++        this.requiredScope = nonBlank(requiredScope);
++    }
++
++    private static String nonBlank(String text) {
++        if (text == null || text.isBlank()) throw new IllegalArgumentException("审计必须有明确服务端索引及范围配置");
++        return text;
++    }
++
++    @Override public void record(CitationAuditRecord record) {
++        Objects.requireNonNull(record);
++        // 四参旧记录没有捕获绑定；提前拒绝，不能连接后用latest“补齐”或由客户端自证。
++        if (!"RULE_CHECK_CAPTURE".equals(record.route()) || record.citationId().isBlank()
++                || record.sourceId() == null || record.sourceRevision() == null || record.sourceRevision().isBlank()
++                || record.contentChecksum() == null || !record.contentChecksum().matches("[0-9a-fA-F]{64}")
++                || record.content() == null || record.content().isBlank())
++            throw new IllegalArgumentException("查证捕获审计要求完整服务端证据绑定");
++        // 单条INSERT SELECT按一个SQL快照检查当前字段资格并绑定entry；不先查latest再插入。
++        // 这是捕获尝试留痕，仍不能消除语句完成到最终HTTP下发之间的撤回窗口。
++        String sql = """
++                INSERT INTO citation_audit(id, citation_id, index_entry_id, route, session_id, created_at)
++                SELECT ?, ?, entry.id, ?, NULL, ?
++                FROM retrieval_index_entry entry
++                JOIN knowledge_chunk chunk ON chunk.id = entry.chunk_id
++                JOIN knowledge_source source ON source.id = chunk.source_id
++                JOIN embedding_profile profile ON profile.profile_id = entry.profile_id
++                JOIN retrieval_index_run index_run ON index_run.id = entry.run_id
++                WHERE entry.profile_id = ? AND entry.chunking_version = ?
++                  AND source.knowledge_scope = ? AND source.id = ? AND chunk.id = ?
++                  AND profile.status = 'ACTIVE' AND index_run.status = 'COMPLETED'
++                  AND index_run.profile_id = entry.profile_id
++                  AND index_run.chunking_version = entry.chunking_version
++                  AND source.publication_status = 'PUBLISHED'
++                  AND source.visibility_scope = 'STUDENT_VISIBLE'
++                  AND source.sharing_rights_confirmed = TRUE
++                  AND source.source_version = ? AND entry.source_version = source.source_version
++                  AND lower(entry.content_checksum) = ? AND lower(chunk.content_checksum) = ?
++                  AND chunk.content = ?
++                """;
++        try (var connection = dataSource.getConnection(); var statement = connection.prepareStatement(sql)) {
++            statement.setObject(1, UUID.randomUUID());
++            statement.setString(2, record.citationId());
++            statement.setString(3, record.route());
++            statement.setTimestamp(4, Timestamp.from(record.issuedAt()));
++            statement.setString(5, profileId); statement.setString(6, chunkingVersion);
++            statement.setString(7, requiredScope); statement.setObject(8, record.sourceId());
++            statement.setObject(9, record.chunkId()); statement.setString(10, record.sourceRevision());
++            String checksum = record.contentChecksum().toLowerCase(Locale.ROOT);
++            statement.setString(11, checksum); statement.setString(12, checksum);
++            statement.setString(13, record.content());
++            // schema的profile/chunk/切分唯一约束保证至多一行；零行绝不能按其他profile回退。
++            if (statement.executeUpdate() != 1) throw new IllegalStateException("捕获证据当前不可审计或索引绑定不唯一");
++        } catch (SQLException unavailable) {
++            throw new IllegalStateException("无法写入绑定引用审计", unavailable);
++        }
++    }
++}
+--- before/knowledge/src/main/resources/db/migration/V22__allow_rule_check_capture_audit.sql
++++ after/knowledge/src/main/resources/db/migration/V22__allow_rule_check_capture_audit.sql
+@@ -0,0 +1,7 @@
++-- 捕获表示证据取得尝试，不能用旧回答路由混淆成学生已经看到结果。
++-- 只扩充枚举，保留全部旧路由；历史迁移及既有审计行不重写。
++ALTER TABLE citation_audit DROP CONSTRAINT ck_citation_audit_route;
++ALTER TABLE citation_audit ADD CONSTRAINT ck_citation_audit_route CHECK (route IN (
++    'AWAITING_CLARIFICATION', 'CURRENT_NOTICE', 'HIGH_RISK_RULE',
++    'RETRIEVAL_AUGMENTED', 'INSUFFICIENT_EVIDENCE', 'RULE_CHECK_CAPTURE'
++));
+--- before/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceCaptureTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckEvidenceCaptureTest.java
+@@ -59,7 +59,12 @@
+         assertThat(result.snapshots()).extracting(RuleCheckEvidenceSnapshot::text).containsExactly(a.content(),b.content());
+         assertThat(reads).hasValue(2);
+         assertThat(audit).extracting(CitationAuditRecord::chunkId).containsExactly(a.chunkId(),b.chunkId());
+-        assertThat(audit).allSatisfy(row->{ assertThat(row.route()).isEqualTo("RULE_CHECK_CAPTURE"); assertThat(row.issuedAt()).isEqualTo(now); });
++        assertThat(audit).allSatisfy(row->{
++            assertThat(row.route()).isEqualTo("RULE_CHECK_CAPTURE"); assertThat(row.issuedAt()).isEqualTo(now);
++            assertThat(row.sourceId()).isEqualTo(source); assertThat(row.sourceRevision()).isEqualTo("test-v1");
++            var original = current.get(row.chunkId());
++            assertThat(row.contentChecksum()).isEqualTo(original.checksum()); assertThat(row.content()).isEqualTo(original.text());
++        });
+         assertThatThrownBy(()->result.snapshots().clear()).isInstanceOf(UnsupportedOperationException.class);
+     }
+     @Test void rejectsLegacyChunkWithoutInventingSourceIdentity() {
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRuleCheckCitationAuditTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRuleCheckCitationAuditTest.java
+@@ -0,0 +1,165 @@
++package com.zhku.knowledge.retrieval;
++
++import com.zhku.knowledge.ZhkuDatabaseTestConfig;
++import com.zhku.knowledge.ZhkuFlywayTestSupport;
++import com.zhku.knowledge.rag.*;
++import com.zhku.knowledge.rulecheck.*;
++import org.junit.jupiter.api.*;
++import org.springframework.jdbc.datasource.DriverManagerDataSource;
++import javax.sql.DataSource;
++import java.nio.charset.StandardCharsets;
++import java.security.MessageDigest;
++import java.sql.SQLException;
++import java.time.Clock;
++import java.time.Instant;
++import java.time.ZoneOffset;
++import java.util.*;
++import java.util.concurrent.atomic.AtomicInteger;
++import static org.assertj.core.api.Assertions.*;
++
++class JdbcRuleCheckCitationAuditTest {
++    // 合成夹具只入专用临时库；发布字段不代表真实资料放行。
++    private static final String TEXT="合成条款：每期上限4。";
++    private final UUID source=UUID.randomUUID(), chunk=UUID.randomUUID(), run=UUID.randomUUID(), entry=UUID.randomUUID();
++    private final String profile="audit-"+UUID.randomUUID();
++    private final List<String> profiles=new ArrayList<>();
++    private final Instant now=Instant.parse("2026-10-08T10:00:00Z");
++    private DataSource dataSource;
++    private boolean targetVerified;
++    private JdbcRuleCheckCitationAuditRepository audit;
++
++    @BeforeEach void setUp() throws SQLException { setUpAt(System.getProperty("zhku.db.url")); }
++    void setUpAt(String target) throws SQLException {
++        targetVerified=false;
++        RuleCheckDatabaseTestTarget.verify(target);
++        targetVerified=true;
++        String user=System.getProperty("zhku.db.user","zhkuagent"), password=ZhkuDatabaseTestConfig.databasePassword();
++        dataSource=new DriverManagerDataSource(target,user,password);
++        ZhkuFlywayTestSupport.migrate(target,user,password);
++        update("""
++            INSERT INTO knowledge_source(id,title,source_type,source_version,publication_status,published_at,
++                content_checksum,visibility_scope,publication_scope,review_notice,sharing_rights_confirmed,document_family,knowledge_scope)
++            VALUES(?,'合成审计夹具','STUDENT_HANDBOOK','v1','PUBLISHED',CURRENT_TIMESTAMP,?,
++                'STUDENT_VISIBLE','本地验证','非真实审核',TRUE,'STUDENT_HANDBOOK','PUBLIC_ELECTIVE')
++            """,source,sha(TEXT));
++        update("INSERT INTO knowledge_chunk(id,source_id,chunk_index,source_locator,page_number,content,content_checksum) VALUES(?,?,0,'合成页1',1,?,?)",chunk,source,TEXT,sha(TEXT));
++        profiles.add(profile);
++        update("INSERT INTO embedding_profile(profile_id,provider,model,dimensions,status,activated_at) VALUES(?,'fixture','none',3,'ACTIVE',CURRENT_TIMESTAMP)",profile);
++        addEntry(entry,run,profile,"span-v1");
++        audit=new JdbcRuleCheckCitationAuditRepository(dataSource,profile,"span-v1","PUBLIC_ELECTIVE");
++    }
++    private void addEntry(UUID e,UUID r,String p,String version) throws SQLException {
++        update("INSERT INTO retrieval_index_run(id,profile_id,chunking_version,status,finished_at,indexed_entries) VALUES(?,?,?,'COMPLETED',CURRENT_TIMESTAMP,1)",r,p,version);
++        update("INSERT INTO retrieval_index_entry(id,run_id,profile_id,chunk_id,source_version,chunking_version,content_checksum,created_at) VALUES(?,?,?,?,'v1',?,?,CURRENT_TIMESTAMP + INTERVAL '1 day')",e,r,p,chunk,version,sha(TEXT));
++    }
++    @AfterEach void tearDown() throws SQLException {
++        if (!targetVerified || dataSource==null) return;
++        update("DELETE FROM citation_audit WHERE index_entry_id IN (SELECT id FROM retrieval_index_entry WHERE chunk_id=?)",chunk);
++        update("DELETE FROM retrieval_index_entry WHERE chunk_id=?",chunk);
++        for(String p:profiles) { update("DELETE FROM retrieval_index_run WHERE profile_id=?",p); update("DELETE FROM embedding_profile WHERE profile_id=?",p); }
++        update("DELETE FROM knowledge_chunk WHERE id=?",chunk); update("DELETE FROM knowledge_source WHERE id=?",source);
++    }
++    private CitationAuditRecord row() {
++        return new CitationAuditRecord("audit-"+UUID.randomUUID(),chunk,"RULE_CHECK_CAPTURE",now,source,"v1",sha(TEXT),TEXT);
++    }
++    private void persisted(CitationAuditRecord row,UUID expectedEntry) throws SQLException {
++        try(var connection=dataSource.getConnection(); var statement=connection.prepareStatement("SELECT index_entry_id,route,created_at FROM citation_audit WHERE citation_id=?")) {
++            statement.setString(1,row.citationId()); try(var rows=statement.executeQuery()) {
++                assertThat(rows.next()).isTrue(); assertThat(rows.getObject(1,UUID.class)).isEqualTo(expectedEntry);
++                assertThat(rows.getString(2)).isEqualTo(row.route()); assertThat(rows.getTimestamp(3).toInstant()).isEqualTo(now);
++                assertThat(rows.next()).isFalse();
++            }
++        }
++    }
++    private void refused(CitationAuditRecord row) throws SQLException {
++        assertThatThrownBy(()->audit.record(row)).isInstanceOf(IllegalStateException.class);
++        try(var connection=dataSource.getConnection();var statement=connection.prepareStatement("SELECT count(*) FROM citation_audit WHERE citation_id=?")) {
++            statement.setString(1,row.citationId()); try(var rows=statement.executeQuery()){rows.next();assertThat(rows.getInt(1)).isZero();}
++        }
++    }
++    private void recorded(CitationAuditRecord row) { assertThatCode(()->audit.record(row)).doesNotThrowAnyException(); }
++    @Test void captureRoutePersistsExactEntryAndTimestamp() throws SQLException { var row=row();recorded(row);persisted(row,entry); }
++    @Test void newerBuildingProfileCannotHijackAuditEntry() throws SQLException {
++        String other="building-"+UUID.randomUUID();profiles.add(other);
++        update("INSERT INTO embedding_profile(profile_id,provider,model,dimensions,status) VALUES(?,'fixture','none',3,'BUILDING')",other);
++        addEntry(UUID.randomUUID(),UUID.randomUUID(),other,"span-v1");
++        var row=row();recorded(row);persisted(row,entry);
++    }
++    @Test void newerDifferentChunkingCannotHijackAuditEntry() throws SQLException {
++        addEntry(UUID.randomUUID(),UUID.randomUUID(),profile,"span-v2");
++        var row=row();recorded(row);persisted(row,entry);
++    }
++    @Test void missingFixedProfileCannotFallBackToLatest() throws SQLException {
++        var wrong=new JdbcRuleCheckCitationAuditRepository(dataSource,"missing-profile","span-v1","PUBLIC_ELECTIVE");
++        assertThatThrownBy(()->wrong.record(row())).isInstanceOf(IllegalStateException.class);
++    }
++    @Test void wrongSourceIdentityIsRejected() throws SQLException {
++        var r=row();refused(new CitationAuditRecord(r.citationId(),chunk,r.route(),now,UUID.randomUUID(),"v1",sha(TEXT),TEXT));
++    }
++    @Test void capturedVersionCannotFollowReindexedNewVersion() throws SQLException {
++        update("UPDATE knowledge_source SET source_version='v2' WHERE id=?",source);
++        update("UPDATE retrieval_index_entry SET source_version='v2' WHERE id=?",entry);refused(row());
++    }
++    @Test void capturedHashCannotFollowChangedCurrentHashes() throws SQLException {
++        update("UPDATE knowledge_chunk SET content_checksum=? WHERE id=?","0".repeat(64),chunk);
++        update("UPDATE retrieval_index_entry SET content_checksum=? WHERE id=?","0".repeat(64),entry);refused(row());
++    }
++    @Test void changedBodyWithStaleStoredHashIsRejected() throws SQLException {
++        update("UPDATE knowledge_chunk SET content=? WHERE id=?",TEXT+"新增内容",chunk);refused(row());
++    }
++    @Test void withdrawnOrPrivateSourceCannotBeAudited() throws SQLException {
++        update("UPDATE knowledge_source SET publication_status='ARCHIVED',visibility_scope='INTERNAL_ONLY' WHERE id=?",source);refused(row());
++    }
++    @Test void unknownSharingAndWrongScopeAreRejected() throws SQLException {
++        update("UPDATE knowledge_source SET visibility_scope='INTERNAL_ONLY',sharing_rights_confirmed=FALSE WHERE id=?",source);refused(row());
++        update("UPDATE knowledge_source SET sharing_rights_confirmed=TRUE,visibility_scope='STUDENT_VISIBLE',knowledge_scope='OTHER' WHERE id=?",source);refused(row());
++    }
++    @Test void retiredProfileCannotBeAudited() throws SQLException {
++        update("UPDATE embedding_profile SET status='RETIRED' WHERE profile_id=?",profile);refused(row());
++    }
++    @Test void incompleteRunCannotBeAudited() throws SQLException {
++        update("UPDATE retrieval_index_run SET status='RUNNING',finished_at=NULL WHERE id=?",run);refused(row());
++    }
++    @Test void mismatchedRunProfileCannotBeAudited() throws SQLException {
++        String other="other-"+UUID.randomUUID();profiles.add(other);
++        update("INSERT INTO embedding_profile(profile_id,provider,model,dimensions,status) VALUES(?,'fixture','none',3,'BUILDING')",other);
++        update("UPDATE retrieval_index_run SET profile_id=? WHERE id=?",other,run);refused(row());
++    }
++    @Test void mismatchedRunChunkingCannotBeAudited() throws SQLException {
++        update("UPDATE retrieval_index_run SET chunking_version='span-v2' WHERE id=?",run);refused(row());
++    }
++    @Test void checksumHexCaseDoesNotChangeIdentity() throws SQLException {
++        var r=row();var upper=new CitationAuditRecord(r.citationId(),chunk,r.route(),now,source,"v1",sha(TEXT).toUpperCase(Locale.ROOT),TEXT);
++        recorded(upper);persisted(upper,entry);
++    }
++    @Test void duplicateCitationCannotBecomeSecondSuccessfulAudit() throws SQLException {
++        var r=row();recorded(r);assertThatThrownBy(()->audit.record(r)).isInstanceOf(IllegalStateException.class);persisted(r,entry);
++    }
++    @Test void oldRetrievalRouteRemainsSupported() throws SQLException {
++        var legacy=new JdbcCitationAuditRepository(dataSource);
++        var r=new CitationAuditRecord("legacy-"+UUID.randomUUID(),chunk,"RETRIEVAL_AUGMENTED",now);
++        legacy.record(r);persisted(r,entry);
++    }
++    @Test void realLexicalCaptureAuditAndDecisionAreConnected() throws SQLException {
++        var lexical=new JdbcLexicalCandidateRetriever(dataSource,new RetrievalEligibilityFilter(Clock.fixed(now,ZoneOffset.UTC)),profile,"PUBLIC_ELECTIVE");
++        var retrieved=new HybridRetrievalService(new HybridCandidateFuser()).retrieve("合成条款",10,1,lexical,(q,n)->List.of()).chunks();
++        var verifier=new RuleCheckEvidenceVerifier(new JdbcRuleCheckEvidenceReader(dataSource,profile,"span-v1","PUBLIC_ELECTIVE"));
++        var capture=new RuleCheckEvidenceCapture(verifier,()->"captured-"+UUID.randomUUID(),audit,Clock.fixed(now,ZoneOffset.UTC));
++        var captured=capture.capture(retrieved);assertThat(captured.accepted()).isTrue();
++        var snapshot=captured.snapshots().getFirst();
++        persisted(new CitationAuditRecord(snapshot.citationId(),chunk,"RULE_CHECK_CAPTURE",now),entry);
++        var binding=new RuleCheckRuleTemplate.EvidenceBinding(source,chunk,"v1",sha(TEXT),0,TEXT.length(),TEXT);
++        var rule=new RuleCheckRuleTemplate("synthetic-only","v1",RuleCheckRuleTemplate.ReviewState.APPROVED,"合成测试责任",java.time.LocalDate.of(2026,10,8),
++                List.of(new RuleCheckRuleTemplate.Fact("limit","合成规则每期上限4",true,Map.of(),List.of(binding))),List.of(),List.of(),List.of());
++        assertThat(new RuleCheckDecisionService(verifier).decide(rule,Map.of(),captured.snapshots()).status()).isEqualTo(RuleCheckDecision.Status.ANSWERED);
++        update("UPDATE knowledge_source SET publication_status='ARCHIVED',visibility_scope='INTERNAL_ONLY' WHERE id=?",source);
++        assertThat(new RuleCheckDecisionService(verifier).decide(rule,Map.of(),captured.snapshots()).status()).isEqualTo(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE);
++    }
++    private void update(String sql,Object...values) throws SQLException {
++        try(var c=dataSource.getConnection();var s=c.prepareStatement(sql)){for(int i=0;i<values.length;i++)s.setObject(i+1,values[i]);s.executeUpdate();}
++    }
++    private static String sha(String text) {
++        try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));}
++        catch(Exception e){throw new AssertionError(e);}
++    }
++}
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRuleCheckCitationAuditTargetTest.java
++++ after/knowledge/src/test/java/com/zhku/knowledge/retrieval/JdbcRuleCheckCitationAuditTargetTest.java
+@@ -0,0 +1,68 @@
++package com.zhku.knowledge.retrieval;
++
++import com.zhku.knowledge.rag.*;
++import com.zhku.knowledge.rulecheck.*;
++import org.junit.jupiter.api.Test;
++import org.springframework.jdbc.datasource.AbstractDataSource;
++import java.sql.Connection;
++import java.sql.SQLException;
++import java.time.Instant;
++import java.util.List;
++import java.util.UUID;
++import java.util.concurrent.atomic.AtomicInteger;
++import static org.assertj.core.api.Assertions.*;
++
++class JdbcRuleCheckCitationAuditTargetTest {
++    private final AtomicInteger connections = new AtomicInteger();
++    private final AbstractDataSource dataSource = new AbstractDataSource() {
++        public Connection getConnection() throws SQLException { connections.incrementAndGet(); throw new SQLException("unavailable"); }
++        public Connection getConnection(String u,String p) throws SQLException { return getConnection(); }
++    };
++    private CitationAuditRecord valid() {
++        return new CitationAuditRecord("a", UUID.randomUUID(), "RULE_CHECK_CAPTURE", Instant.now(), UUID.randomUUID(),
++                "v1", "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a", "4");
++    }
++    @Test void rejectedDatabaseSetupCannotReconnectDuringCleanup() {
++        for (String url : List.of("jdbc:postgresql://127.0.0.1:54329/zhkuagent", "jdbc:postgresql://remote:55459/zhkuagent_rulecheck_e2e")) {
++            var test = new JdbcRuleCheckCitationAuditTest();
++            assertThatThrownBy(()->test.setUpAt(url)).isInstanceOf(IllegalArgumentException.class);
++            assertThatCode(test::tearDown).doesNotThrowAnyException();
++        }
++        var test = new JdbcRuleCheckCitationAuditTest();
++        assertThatThrownBy(()->test.setUpAt(null)).isInstanceOf(IllegalArgumentException.class);
++        assertThatCode(test::tearDown).doesNotThrowAnyException();
++    }
++    @Test void missingFixedScopeConfigCannotConnect() {
++        assertThatThrownBy(()->new JdbcRuleCheckCitationAuditRepository(dataSource, " ", "v", "scope")).isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(()->new JdbcRuleCheckCitationAuditRepository(dataSource, "p", null, "scope")).isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(()->new JdbcRuleCheckCitationAuditRepository(dataSource, "p", "v", " ")).isInstanceOf(IllegalArgumentException.class);
++        assertThat(connections).hasValue(0);
++    }
++    @Test void legacyRepositoryCannotAcceptNewCaptureRoute() {
++        var legacy = new JdbcCitationAuditRepository(dataSource);
++        assertThatThrownBy(()->legacy.record(valid())).isInstanceOf(IllegalArgumentException.class);
++        assertThat(connections).hasValue(0);
++    }
++    @Test void legacyRecordWithoutCapturedBindingCannotConnect() {
++        var audit = new JdbcRuleCheckCitationAuditRepository(dataSource, "p", "v", "scope");
++        assertThatThrownBy(()->audit.record(new CitationAuditRecord("a",UUID.randomUUID(),"RULE_CHECK_CAPTURE",Instant.now())))
++                .isInstanceOf(IllegalArgumentException.class);
++        assertThat(connections).hasValue(0);
++    }
++    @Test void wrongRouteAndMalformedBindingCannotConnect() {
++        var audit = new JdbcRuleCheckCitationAuditRepository(dataSource, "p", "v", "scope");
++        var row=valid();
++        assertThatThrownBy(()->audit.record(new CitationAuditRecord("a",row.chunkId(),"RETRIEVAL_AUGMENTED",row.issuedAt(),
++                row.sourceId(),row.sourceRevision(),row.contentChecksum(),row.content()))).isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(()->audit.record(new CitationAuditRecord("a",row.chunkId(),row.route(),row.issuedAt(),
++                row.sourceId(),row.sourceRevision(),"bad-hash",row.content()))).isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(()->audit.record(new CitationAuditRecord("a",row.chunkId(),row.route(),row.issuedAt(),
++                row.sourceId()," ",row.contentChecksum(),row.content()))).isInstanceOf(IllegalArgumentException.class);
++        assertThat(connections).hasValue(0);
++    }
++    @Test void databaseFailureCannotBecomeSuccessfulAudit() {
++        var audit = new JdbcRuleCheckCitationAuditRepository(dataSource, "p", "v", "scope");
++        assertThatThrownBy(()->audit.record(valid())).isInstanceOf(IllegalStateException.class);
++        assertThat(connections).hasValue(1);
++    }
++}
+--- before/knowledge/scripts/verify-rule-check-refactor.ps1
++++ after/knowledge/scripts/verify-rule-check-refactor.ps1
+@@ -23,10 +23,10 @@
+         'ZhkuLocalAdminPageResourceTest','ModelOutputParserTest','AnswerEvidenceGuardTest','CandidateResponseMappingTest',
+         'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest',
+         'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest','RuleCheckDecisionServiceTest',
+-        'RuleCheckEvidenceCaptureTest')
++        'RuleCheckEvidenceCaptureTest','JdbcRuleCheckCitationAuditTargetTest')
+     $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+         'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
+-        'JdbcRuleCheckEvidenceReaderTest')
++        'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest')
+     $selected=@($Tests.Split(',')|ForEach-Object {$_.Trim()})
+     if (@($selected|Sort-Object -Unique).Count -ne $selected.Count) {throw '测试选择不能重复'}
+     foreach ($selector in $selected) {

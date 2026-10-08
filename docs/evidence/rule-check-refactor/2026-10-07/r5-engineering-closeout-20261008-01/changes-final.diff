@@ -1,0 +1,384 @@
+--- before/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckBrowserHttpTest.java
++++ current/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheckBrowserHttpTest.java
+@@ -0,0 +1,121 @@
++package com.zhku.knowledge.retrieval;
++
++import java.nio.file.*;
++import java.time.*;
++import java.util.*;
++import com.zhku.knowledge.rulecheck.*;
++import org.junit.jupiter.api.*;
++import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
++import static org.assertj.core.api.Assertions.*;
++import static com.zhku.knowledge.retrieval.RuleCheckPreviewHttpTest.*;
++
++/** 实际临时库/HTTP工程链；仅特定live批次等待本机浏览器，普通回归不等待。 */
++@Timeout(720)
++class RuleCheckBrowserHttpTest {
++    // 仅随机临时库账号的公开合成口令，不读取/复用真实用户密码，不进入生产配置。
++    static final String SYNTHETIC_PASSWORD="Synthetic-Rulecheck-Only-2026!";
++    @Test void actualAnswerOriginalAndOptionalBoundedBrowserLease() throws Exception {
++        withApp(RuleCheckOriginalHttpTest.FixtureConfiguration.class,app->{
++            var fixture=app.context().getBean(RuleCheckOriginalHttpTest.OriginalFixture.class);
++            UUID secondChunk=UUID.randomUUID(),secondEntry=UUID.randomUUID();
++            String secondText="合成条款：上限6学分。";
++            var base=fixture.catalogue.get().getFirst().template();
++            var secondBinding=new RuleCheckRuleTemplate.EvidenceBinding(fixture.source,secondChunk,base.referenceRevision(),
++                RuleCheckOriginalHttpTest.sha(secondText),0,secondText.length(),secondText);
++            withSecondChunk(fixture,secondChunk,secondEntry,fixture.run,secondText,()->{
++            try(var user=new User(app.port())) {
++                RuleCheckOriginalHttpTest.login(user,app.accounts().get(0));
++                // 同一真实SQL/Runtime链预检五状态；规则内容仅合成，不代表真实政策语义成绩。
++                for(String mode:List.of("ANSWERED","PARTIAL","CLARIFY","CONFLICT","EMPTY")) {
++                    configure(fixture,base,secondBinding,mode);
++                    var response=user.json(RuleCheckOriginalHttpTest.BODY,true,false);
++                    assertThat(response.statusCode()).isEqualTo(200);
++                    var body=JSON.readTree(response.body());
++                    String expected=switch(mode){case "PARTIAL"->"PARTIALLY_ANSWERED";case "CLARIFY"->"NEED_CLARIFICATION";case "CONFLICT"->"CONFLICTING_EVIDENCE";case "EMPTY"->"INSUFFICIENT_EVIDENCE";default->"ANSWERED";};
++                    assertThat(body.path("status").asText()).isEqualTo(expected);
++                    if(mode.equals("CLARIFY")) {
++                        String continuation=JSON.writeValueAsString(Map.of("question","合成条款","confirmedConditions",Map.of("year","A"),"clarificationToken",body.path("clarificationToken").asText()));
++                        var resumed=user.json(continuation,true,false);
++                        assertThat(resumed.statusCode()).isEqualTo(200);
++                        assertThat(JSON.readTree(resumed.body()).path("status").asText()).isEqualTo("ANSWERED");
++                    }
++                }
++                configure(fixture,base,secondBinding,"ANSWERED");
++                String handle=RuleCheckOriginalHttpTest.answer(user);
++                assertThat(user.get("/rule-check/originals/"+handle).statusCode()).isEqualTo(200);
++            }
++            String directory=System.getProperty("zhku.rulecheck.evidenceDir","");
++            if(directory.isBlank() || !Path.of(directory).getFileName().toString().startsWith("r5-browser-live-"))return;
++            Path evidence=Path.of(directory).toAbsolutePath().normalize();
++            assertThat(Files.isDirectory(evidence)).isTrue();
++            // 只修改本夹具随机账号，便于UI验收；不写口令/密钥进就绪文件或日志。
++            for(var account:app.accounts())fixture.update("UPDATE preview_identity SET password_hash=?,auth_revision=auth_revision+1 WHERE user_id=?",
++                new BCryptPasswordEncoder(10).encode(SYNTHETIC_PASSWORD),account.id());
++            var accounts=app.accounts().stream().map(a->Map.of("login",a.login(),"role",a.role(),"id",a.id().toString())).toList();
++            Files.writeString(evidence.resolve("browser-ready.json"),JSON.writeValueAsString(Map.of("backendPort",app.port(),"accounts",accounts,
++                "synthetic",true,"provider",false,"deadlineSeconds",600)));
++            // 有界人工浏览器租约留出完整矩阵时间；到期仍失败，不能靠延时把未验收算通过。
++            Instant deadline=Instant.now().plusSeconds(600);boolean stopped=false;
++            Path command=evidence.resolve("browser-command.txt");
++            while(Instant.now().isBefore(deadline)) {
++                if(Files.exists(command)) {
++                    String action=Files.readString(command).trim();Files.delete(command);
++                    if(action.equals("STOP")){stopped=true;break;}
++                    if(action.equals("WITHDRAW"))fixture.update("UPDATE knowledge_source SET publication_status='ARCHIVED',visibility_scope='INTERNAL_ONLY' WHERE id=?",fixture.source);
++                    else if(action.equals("RESTORE"))fixture.update("UPDATE knowledge_source SET publication_status='PUBLISHED',visibility_scope='STUDENT_VISIBLE' WHERE id=?",fixture.source);
++                    else if(Set.of("ANSWERED","PARTIAL","CLARIFY","CONFLICT","EMPTY").contains(action))configure(fixture,base,secondBinding,action);
++                    else throw new IllegalArgumentException("未知本机验收动作");
++                    Files.writeString(evidence.resolve("browser-command-ack.txt"),action);
++                }
++                Thread.sleep(100);
++            }
++            assertThat(stopped).as("浏览器必须显式结束；超时不能冒称验收完成").isTrue();
++            Files.writeString(evidence.resolve("browser-host-finished.json"),"{\"explicitStop\":true,\"synthetic\":true}");
++            });
++        });
++    }
++    @Test void secondInsertFailureMustRemoveFirstInsertWithoutDeletingBaseEvidence() throws Exception {
++        withApp(RuleCheckOriginalHttpTest.FixtureConfiguration.class,app->{
++            var fixture=app.context().getBean(RuleCheckOriginalHttpTest.OriginalFixture.class);
++            UUID chunk=UUID.randomUUID(),entry=UUID.randomUUID();
++            // 不mock连接：不存在的run使第二INSERT真实触发FK拒绝，第一INSERT已提交。
++            assertThatThrownBy(()->withSecondChunk(fixture,chunk,entry,UUID.randomUUID(),"合成条款：上限6学分。",()->{
++                throw new AssertionError("初始化失败后不得进入浏览器动作");
++            })).isInstanceOf(java.sql.SQLException.class);
++            try(var c=fixture.ds.getConnection();var p=c.prepareStatement("SELECT (SELECT count(*) FROM knowledge_chunk WHERE id=?),(SELECT count(*) FROM retrieval_index_entry WHERE id=?),(SELECT count(*) FROM knowledge_chunk WHERE id=?),(SELECT count(*) FROM knowledge_source WHERE id=?)")) {
++                p.setObject(1,chunk);p.setObject(2,entry);p.setObject(3,fixture.chunk);p.setObject(4,fixture.source);
++                try(var rows=p.executeQuery()){rows.next();assertThat(rows.getInt(1)).as("第一INSERT不得残留").isZero();assertThat(rows.getInt(2)).isZero();assertThat(rows.getInt(3)).isEqualTo(1);assertThat(rows.getInt(4)).isEqualTo(1);}
++            }
++        });
++    }
++    @FunctionalInterface interface CheckedAction {void run() throws Exception;}
++    static void withSecondChunk(RuleCheckOriginalHttpTest.OriginalFixture fixture,UUID chunk,UUID entry,UUID run,String text,CheckedAction action)throws Exception {
++        // 初始化也必须进入清理范围；第二条写入失败时第一条已提交，不能依赖外层只清原chunk。
++        try {
++        fixture.update("INSERT INTO knowledge_chunk(id,source_id,chunk_index,source_locator,page_number,content,content_checksum) VALUES(?,?,1,'合成页2',2,?,?)",chunk,fixture.source,text,RuleCheckOriginalHttpTest.sha(text));
++        fixture.update("INSERT INTO retrieval_index_entry(id,run_id,profile_id,chunk_id,source_version,chunking_version,content_checksum) VALUES(?,?,'synthetic-http',?,'2025.9.2','synthetic-v1',?)",entry,run,chunk,RuleCheckOriginalHttpTest.sha(text));
++        action.run();}
++        finally {
++            fixture.update("DELETE FROM citation_audit WHERE index_entry_id=?",entry);
++            fixture.update("DELETE FROM retrieval_index_entry WHERE id=?",entry);
++            fixture.update("DELETE FROM knowledge_chunk WHERE id=?",chunk);
++        }
++    }
++    static void configure(RuleCheckOriginalHttpTest.OriginalFixture fixture,RuleCheckRuleTemplate base,
++                          RuleCheckRuleTemplate.EvidenceBinding second,String mode) {
++        if(mode.equals("EMPTY")){fixture.catalogue.set(List.of());return;}
++        var facts=base.facts();var conditions=base.conditions();var gaps=base.evidenceGaps();var conflicts=base.conflicts();
++        if(mode.equals("PARTIAL"))gaps=List.of("合成例外尚未核实");
++        if(mode.equals("CLARIFY")) {
++            conditions=List.of(new RuleCheckRuleTemplate.Condition("year","合成年级",List.of("A","B")));
++            var fact=base.facts().getFirst();
++            facts=List.of(new RuleCheckRuleTemplate.Fact(fact.id(),fact.text(),false,Map.of("year","A"),fact.evidenceBindings()));
++        }
++        if(mode.equals("CONFLICT")) {
++            var other=new RuleCheckRuleTemplate.Fact("limit-six","合成上限6",true,Map.of(),List.of(second));
++            conflicts=List.of(new RuleCheckRuleTemplate.Conflict("合成上限条款冲突",List.of(base.facts().getFirst(),other)));
++        }
++        var rule=new RuleCheckRuleTemplate(base.ruleId(),base.referenceRevision(),base.reviewState(),base.reviewer(),base.reviewedAt(),facts,conditions,gaps,conflicts);
++        fixture.catalogue.set(List.of(new RuleCheckApplicationService.CatalogEntry(rule,"合成条款")));
++    }
++}
+--- before/knowledge/scripts/verify-rule-check-refactor.ps1
++++ current/knowledge/scripts/verify-rule-check-refactor.ps1
+@@ -27,7 +27,7 @@
+         'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest','RuleCheckControllerTest','RuleCheckClarificationStoreTest','BoundedRuleSelectorTest','RuleCheckOriginalEvidenceServiceTest','ZhkuDatabaseTestTargetTest','RuleCheckCitationStoreTest','RuleCheckReleaseGuardTest')
+     $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+         'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
+-        'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest','ControlledPreviewConfigurationTest','RuleCheckPreviewHttpTest','RuleCheckOriginalHttpTest',
++        'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest','ControlledPreviewConfigurationTest','RuleCheckPreviewHttpTest','RuleCheckOriginalHttpTest','RuleCheckBrowserHttpTest','RuleCheckLegacyBrowserHttpTest',
+         'RetrievalSchemaTest','ZhkuFlywayTestSupportTest','JdbcFeedbackRepositoryTest','JdbcAnonymousTelemetryRepositoryTest',
+         'JdbcCitationAuditRepositoryTest','JdbcKnowledgeGovernanceRepositoryTest','KnowledgeGovernanceSchemaTest','ReviewedKnowledgePublisherTest')
+     # 旧controlled配置类含需要进程数据库凭据的数据源装配，不能冒充无密钥纯单元。
+--- before/docs/product/rule-check-blockers.md
++++ current/docs/product/rule-check-blockers.md
+@@ -189,3 +189,7 @@
+ 有效37/3 Cookie RED、16/1 csrf恢复RED→48类503（358纯单元+133临时库含22实际HTTP+12配置）、0fail/error/skip/sourceDrift，V22/18迁移/连接0/退出核对；29合同计数替身。首次37/3并发夹具停在B登录，502回归含调用计数夹具，首次503回归1失败为登录后旧CSRF导致403；全部失败报告保留、不冒称对应行为RED/GREEN。最终[证据](../evidence/rule-check-refactor/2026-10-07/r5-entry-identity-20261008-01/acceptance.md)明确范围。审查C0/I0/M2；合同同步+Controller仅注释scope extension，原9项before保留，实际去注释语义等价，不重跑Java。前端80保护未改未重跑。
+ 
+ 本批仅v2入口身份失败，不解决旧v1、主动logout或匿名CSRF新Session的网络Cookie交付窗口；资料/规则顺序核验非最终交付原子性。A10整链/真实内容B/C/G2仍OPEN，无模型/原库写入。
++
++## 2026-10-08 核心浏览器链检查点（未整体验收通过）
++
++实际合成学生登录→回答→原文高亮、撤回后原文拒绝/缺证、退出清显示已观察。Java字段declaredConditions与前端条件夹具不一致已有效17/1 RED→85/85 GREEN，构建通过；runner合同29项通过。live03六分钟到期未显式STOP，JUnit失败保留，账号B/维护者/其余状态矩阵未验证，A10继续OPEN。专用DB/Java/Nginx与临时浏览器已退出，无真实模型/原库写入。旧v1两处文案已修复，待一次合并审查。[检查点与问题证据](../evidence/rule-check-refactor/2026-10-07/r5-browser-chain-20261008-01/checkpoint.md)。真实资料/B/C/G2不放行。
+--- before/docs/product/rule-check-remaining-tasks-2026-10-08.md
++++ current/docs/product/rule-check-remaining-tasks-2026-10-08.md
+@@ -1,12 +1,14 @@
+ # 校园规则查证：剩余任务清单
+ 
+ 核对日期：2026-10-08；基于主路线图、R5任务计划、执行账本、卡点表及Task2P/Task3B/Task3C1证据。本文整理既定范围，不批准部署、资料放行或P2扩张。
++
++当前完成/部分完成/未来任务的汇总见[2026-10-08状态快照](rule-check-status-2026-10-08.md)；以下历史测试数按批次表达，新增浏览器宿主超时失败不计整链通过。
+ 
+ ## 当前完成与未完成的分界
+ 
+ - 已完成：R1融合前截断修复、R2管理原文对照、R3结构/非空引用约束、R4在线激活与已有字段资格过滤；R5原文核验、当前数据库读取、五状态决策、共享检索捕获、精确JDBC审计及统一配置/内部应用编排。
+ - 首轮依据已确定为指定2025版；20道开发参考已由用户确认，不再列为待确认。
+-- 最新后端48类503项（358纯单元+133临时库含22实际HTTP+12配置）及29工具计数替身合同；前端80项与实际页面bundle；代理Nginx→Node夹具5项。三类分开，不称完整Java/浏览器/数据库整链或真实政策通过。
++- 前一后端完整批次48类503项（358纯单元+133临时库含22实际HTTP+12配置）及29工具计数替身合同；当前前端85项与实际页面bundle；代理Nginx→Node夹具5项。随后真实Java浏览器链仅有局部观察，live03超时失败；各类证据分开，不称完整整链或真实政策通过。
+ - 仍未完成：真实2025规则绑定/语义审核/展示资格、真实具体范围/例外审核、最终下发窗口及真实页码映射、完整学生浏览器链、真实模型语义评估、16题报告及用户对照。内部链路通过不代表完整R5或G2通过。
+ - 报告候选排除3道与开发集第18条重叠的题后剩13道，需补3道独立任务，复核家族后才能冻结16道；候选已被AI查看，不称盲测。
+ 
+@@ -26,8 +28,8 @@
+ | A06 | 原文查询与定位入口（HTTP/会话凭据已验收，真实页码/浏览器待续） | 学生点击后到达实际版本/页码/条款；来源元数据与引用绑定；不存在/内部/撤回资料拒绝；资料文本与地址安全展示 | Codex；A01/A03/B01 |
+ | A07 | 最终外发及再次展示边界（HTTP复查及v2入口迟到撤销/身份恢复已验收，网络窗口仍有局限） | 明确从取证到响应、历史再次展示的复查策略；真实HTTP层撤回/版本/hash/身份变化矩阵；阻断或重取证，不用顺序检查宣称全链原子性 | Codex；A03/A06；完整清单时效继续D组 |
+ | A08 | 学生查证页面与产品入口（v2客户端/状态与页面已验收，完整代理浏览器待续） | 提问、五状态、原文、条件/例外、独立确认项/未知项、版本说明；主入口改为规则查证，学分/通用Agent放实验导航；保留旧URL | Codex；可先合成页面，真实使用依赖B组 |
+-| A09 | 页面状态与兼容修复（身份/问题迟到状态已验收，旧v1文案/浏览器待续） | 修RC-11同键内容冲突说明和完成后仍“正在确认”；丢响应不能说未受理，不自动重复执行未知任务；换账号不展示旧正文；沿用实际涉及的3C合同 | Codex；A08，不把只读查证强塞进学分执行循环 |
+-| A10 | 浏览器端到端验收（v2代理夹具已通过，实际Java整链待续） | 实际Vue→Nginx→Java→专用临时库覆盖回答/部分回答/澄清/缺证/冲突、定位、撤回、换账号和旧v1；中文及普通用户终端验证 | Codex；A01–A09；替身效果与供应商效果分开 |
++| A09 | 页面状态与兼容修复（身份/问题迟到状态已验收，旧v1文案已修复待合并审查，完整浏览器待续） | 修RC-11同键内容冲突说明和完成后仍“正在确认”；丢响应不能说未受理，不自动重复执行未知任务；换账号不展示旧正文；沿用实际涉及的3C合同 | Codex；A08，不把只读查证强塞进学分执行循环 |
++| A10 | 浏览器端到端验收（实际合成回答/原文/撤回已观察，完整矩阵未通过） | 实际Vue→Nginx→Java→专用临时库覆盖回答/部分回答/澄清/缺证/冲突、定位、撤回、换账号和旧v1；中文及普通用户终端验证 | Codex；A01–A09；替身效果与供应商效果分开 |
+ 
+ ## B. 真实2025资料与规则门禁：R0遗留 / R5，必须完成
+ 
+@@ -107,7 +109,7 @@
+ |---|---|---|
+ | H01 / P0遗留已处理 | 旧默认入口已guard，完整测试分类仍F06 | 32默认站点统一显式专用目标，静态字段/迁移/子进程启动前拒绝原库；连接入口源审查，额外12旧DB类39项通过；不能据此称全部旧类已执行或完整CI完成 |
+ | H02 / 低优先覆盖 | 三项既有延期测试缺口 | 当前reader别名不同的核验组件正向单测；reader的run/entry跨profile反例；Task2E不同chunk/错误切片高排名/预算1挤占反例。已有集成/审计部分覆盖，补缺失组件反例，不重新实现已正确逻辑 |
+-| H03 / 记录维护 | 同步当前进度索引与发布说明 | 主路线图/问题索引部分摘要仍为较早批次，按最新证据追加当前状态、延期项和回退说明；保留旧记录，不让263工程测试替代质量/用户成绩 |
++| H03 / 记录维护 | 同步当前进度索引与发布说明 | 当前索引已同步至Task2P/3B/3C1；后续按新增证据维护，保留历史记录，不让工程测试替代质量/用户成绩 |
+ 
+ 每批持续要求：问题ID/明确白名单→实际失败→最小改动→定向与必要兼容验证→增量/XML/哈希/退出证据→问题状态。真实数据库、浏览器、供应商与用户证据分开；不按文件数、测试数累加或模型自评分判断价值。
+ 
+--- before/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
++++ current/docs/superpowers/plans/2026-10-08-rule-check-r5-plan.md
+@@ -314,3 +314,10 @@
+ 
+ - [x] 主路线/范围/证据索引/47项任务当前503/80/5分别表达，20开发参考已确认；合成、SSR、配置、计数替身和真实资料效果边界完整。
+ - [x] 证据链接/计数对照、before/after/diff/hash；不重跑无变化业务代码，真实B/C/G0/G2不放行。
++
++## Task3C2 / A09–A10 当前检查点
++
++- [x] 实际HTTP响应反例17/1 RED，客户端严格核验declaredConditions后映射页面；Node85/85及构建、runner29合同通过。
++- [x] 实际合成浏览器登录/回答/原文/资料撤回/退出观察已记录，专用资源退出。
++- [ ] 完整浏览器矩阵及普通终端；live03超时失败，不能标整体验收通过。
++- [ ] 旧文案与本批改动的一次合并审查；真实资料和G2另按门禁。
+--- before/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
++++ current/.superpowers/sdd/2026-10-08-rule-check-r5-plan/progress.md
+@@ -552,3 +552,9 @@
+ Task3C1: complete — 实际Nginx→Node代理有效404/403RED→5 GREEN，原v1段逐字相同，C0/I0/M0审查，58480/58184及独立容器/网络退出。仅代理工程，无Java/DB/provider/浏览器身份，完整Task3C2另续。
+ TaskH03: complete — 主路线/范围卡/证据README/任务清单当前状态按实际503/80/5分开更新，20开发参考已确认、真实DRAFT/B/C/G0/G2未放行；旧历史阶段保留，当前链接核验，无业务代码变化。
+ TaskH03: Ruling: 文档不能继续称人工20题待确认或停在R3，也不能用合成测试关闭产品父问题 — 所有完成声明按证据阶段和输入范围 — 成本：持续维护最新索引，历史批次保持原时点。
++
++Task3C2: partial — 实际Java响应字段不一致17/1有效RED→全Node85/85/构建，runner29合同通过。实际浏览器已观察登录/回答/原文高亮/撤回拒绝与缺证/退出清显示；live03六分钟到期、JUnit1fail，账号B/维护者/其他状态与旧v1仍未完成，不宣布A10通过。资源退出，失败日志保留。
++TaskA09: implemented, final-review-pending — 旧v1内容冲突与已有任务文案有效4/3 RED→全Node85/85；尚未最终合并审查。
++Ruling: 用户指出耗时过长后暂停外围整理和逐项审查，以完整可用核心链为下一交付点，不再无新风险重跑503全套 — 当前审查与浏览器矩阵保持未完成 — 成本：未审查改动暂不作最终交付/发布声明。
++
++工程收齐：本批仅扩充合成浏览器验收宿主场景，不改变生产目录/审批；先HTTP五状态预检再浏览器五状态、撤回、账号/角色与旧v1，普通终端最后验证，一次合并审查。原失败报告保留，不重复无变更的503全回归。
+--- before/agent/frontend/src/api/rule-check.js
++++ current/agent/frontend/src/api/rule-check.js
+@@ -30,7 +30,7 @@
+     || !list(value.unknownItems, v => text(v)) || !list(value.conflicts, c => object(c) && text(c.issue) && list(c.sides, fact, 32) && c.sides.length >= 2, 16)) return false
+   const { confirmedFacts: facts, unknownItems: unknown, clarificationQuestions: questions, conflicts } = value
+   if (value.status !== 'INSUFFICIENT_EVIDENCE' && (!object(value.scope) || !text(value.scope.ruleId, 128)
+-    || !text(value.scope.questionScope, 8192) || !list(value.scope.conditions, condition, 16) || !object(value.scope.factPreconditions))) return false
++    || !text(value.scope.questionScope, 8192) || !list(value.scope.declaredConditions, condition, 16) || !object(value.scope.factPreconditions))) return false
+   if (value.status === 'NEED_CLARIFICATION') {
+     // 当前协议逐轮只问一个会影响判断的条件；不把多项歧义问题自动猜成声明。
+     return questions.length === 1 && conflicts.length === 0 && id(value.clarificationToken)
+@@ -168,7 +168,8 @@
+       const body = { question, confirmedConditions, ...(clarificationToken == null ? {} : { clarificationToken }) }
+       const value = await write('/rule-check', body, { expectedRound })
+       if (!reply(value)) throw new RuleCheckError('BAD_RESPONSE')
+-      return value
++      // HTTP字段按后端合同核对，再投影为页面条件列表；不能用自行造的前端夹具替代接口对接。
++      return { ...value, scope: value.scope == null ? null : { ...value.scope, conditions: value.scope.declaredConditions } }
+     },
+     async original(token) {
+       if (!id(token)) throw new RuleCheckError('INVALID_ORIGINAL_TOKEN')
+--- before/agent/frontend/tests/rule-check-api.test.mjs
++++ current/agent/frontend/tests/rule-check-api.test.mjs
+@@ -1,5 +1,6 @@
+ import test from 'node:test'
+ import assert from 'node:assert/strict'
++import { readFile } from 'node:fs/promises'
+ import { createRuleCheckClient, PREFIX } from '../src/api/rule-check.js'
+ import { createControlledSession } from '../src/state/controlled-session.js'
+ const ID='22222222-2222-4222-8222-222222222222', HANDLE='33333333-3333-4333-8333-333333333333'
+@@ -8,10 +9,18 @@
+ const session=()=>{const s=createControlledSession();s.state.actor=actor();s.csrf={headerName:'X-CSRF-TOKEN',token:'synthetic'};return s}
+ export const answered=()=>({status:'ANSWERED',referenceRevision:'2025.9.2',knowledgeScope:'SYNTHETIC',conditionSource:'USER_DECLARED',confirmedConditions:{},
+   confirmedFacts:[{id:'limit',text:'合成事实',when:{},citations:[{citationId:'c',sourceId:ID,chunkId:ID,revision:'2025.9.2',startInclusive:2,endExclusive:4,text:'原文',originalToken:HANDLE}]}],
+-  clarificationQuestions:[],unknownItems:[],conflicts:[],scope:{ruleId:'fixture',questionScope:'合成范围',conditions:[],factPreconditions:{limit:{}}},clarificationToken:null})
++  clarificationQuestions:[],unknownItems:[],conflicts:[],scope:{ruleId:'fixture',questionScope:'合成范围',declaredConditions:[],factPreconditions:{limit:{}}},clarificationToken:null})
+ const original=()=>({citationId:'c',sourceId:ID,chunkId:ID,revision:'2025.9.2',title:'合成标题',sourceLocator:'合成定位',recordedPageNumber:1,pageNumberKind:'RECORDED_SOURCE_PAGE',sectionTitle:null,safeSourceUrl:null,
+   contextText:'前文原文后文',contextStartInclusive:0,quoteStartInclusive:2,quoteEndExclusive:4,unknownItems:['映射未知']})
+ const tick=()=>new Promise(resolve=>setImmediate(resolve))
++
++test('actual Java HTTP answer accepts declaredConditions and normalizes UI conditions',async()=>{
++  const value=JSON.parse(await readFile(new URL('./fixtures/rule-check-answer-http.json',import.meta.url),'utf8'))
++  const c=createRuleCheckClient({session:session(),fetchImpl:async()=>json(value)})
++  const result=await c.check('合成条款',{})
++  assert.equal(result.status,'ANSWERED');assert.deepEqual(result.scope.conditions,value.scope.declaredConditions)
++  assert.equal(result.confirmedFacts[0].citations[0].text,'合成条款：上限4学分。')
++})
+ test('v2 login renews CSRF and reads independent actor without v1 calls',async()=>{
+   const seen=[],s=createControlledSession();let count=0
+   const client=createRuleCheckClient({session:s,fetchImpl:async(url,options)=>{
+--- before/agent/frontend/tests/fixtures/rule-check-answer-http.json
++++ current/agent/frontend/tests/fixtures/rule-check-answer-http.json
+@@ -0,0 +1,38 @@
++{
++  "status": "ANSWERED",
++  "referenceRevision": "2025.9.2",
++  "knowledgeScope": "PUBLIC_ELECTIVE_CREDIT_LIMIT",
++  "conditionSource": "USER_DECLARED",
++  "confirmedConditions": {},
++  "confirmedFacts": [
++    {
++      "id": "limit",
++      "text": "合成上限4",
++      "when": {},
++      "citations": [
++        {
++          "citationId": "2c0d2cdf-3523-4230-94a3-6703e94ad477",
++          "sourceId": "3287e005-64e6-49fe-8174-fe78696f7edc",
++          "chunkId": "f8a7e268-5d6b-4c69-871b-e4c631f99100",
++          "revision": "2025.9.2",
++          "startInclusive": 0,
++          "endExclusive": 11,
++          "text": "合成条款：上限4学分。",
++          "originalToken": "2d1c96d6-f801-4138-9677-e43ba8d8cbdb"
++        }
++      ]
++    }
++  ],
++  "clarificationQuestions": [],
++  "unknownItems": [],
++  "conflicts": [],
++  "scope": {
++    "ruleId": "synthetic-only",
++    "questionScope": "合成条款",
++    "declaredConditions": [],
++    "factPreconditions": {
++      "limit": {}
++    }
++  },
++  "clarificationToken": null
++}
+--- before/knowledge/src/test/java/com/zhku/knowledge/controlled/RuleCheckLegacyBrowserHttpTest.java
++++ current/knowledge/src/test/java/com/zhku/knowledge/controlled/RuleCheckLegacyBrowserHttpTest.java
+@@ -0,0 +1,82 @@
++package com.zhku.knowledge.controlled;
++
++import com.zhku.knowledge.ZhkuDatabaseTestConfig;
++import java.nio.file.*;
++import java.time.*;
++import java.util.*;
++import org.flywaydb.core.Flyway;
++import org.junit.jupiter.api.*;
++import org.springframework.jdbc.datasource.DriverManagerDataSource;
++import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
++import static org.assertj.core.api.Assertions.*;
++import static com.zhku.knowledge.controlled.ControlledCampusTestFixtures.*;
++
++/** 旧v1真实鉴权/事务/派发兼容；合成模型仅在test classpath，不调用供应商。 */
++@Timeout(720)
++class RuleCheckLegacyBrowserHttpTest {
++    static final String PASSWORD="Synthetic-Rulecheck-Only-2026!";
++    @Test void legacySubmissionConflictAndOptionalBrowserLease() throws Exception {
++        String url=ZhkuDatabaseTestConfig.databaseUrl();
++        var ds=new DriverManagerDataSource(url,"zhkuagent",ZhkuDatabaseTestConfig.databasePassword());
++        Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
++        var accounts=new ArrayList<Account>(); UUID source=UUID.randomUUID();
++        Data data=null;
++        try {
++            try(var connection=ds.getConnection()) {
++                for(String role:List.of("USER","USER","MAINTAINER")) {
++                    var account=new Account(UUID.randomUUID(),"test-"+UUID.randomUUID().toString().substring(0,12),PASSWORD);
++                    accounts.add(account);
++                    try(var p=connection.prepareStatement("INSERT INTO preview_identity(user_id,login_name,password_hash,role,enabled,auth_revision) VALUES(?,?,?,?,true,0)")) {
++                        p.setObject(1,account.id());p.setString(2,account.login());p.setString(3,new BCryptPasswordEncoder(10).encode(PASSWORD));p.setString(4,role);p.executeUpdate();
++                    }
++                }
++                try(var p=connection.prepareStatement("INSERT INTO knowledge_source(id,title,source_type,source_version,publication_status,published_at,content_checksum,visibility_scope,publication_scope,sharing_rights_confirmed,document_family,knowledge_scope) VALUES(?,'合成学分规则','PDF','synthetic-v1','PUBLISHED',CURRENT_TIMESTAMP,?,'STUDENT_VISIBLE','合成本科生',true,'STUDENT_HANDBOOK','PUBLIC_ELECTIVE_CREDIT_LIMIT')")) {
++                    p.setObject(1,source);p.setString(2,"0".repeat(64));p.executeUpdate();
++                }
++                try(var p=connection.prepareStatement("INSERT INTO knowledge_chunk(id,source_id,chunk_index,source_locator,content,content_checksum) VALUES(?,?,0,'合成第1条','每学期公共选修课最高不得超过 4 学分',?)")) {
++                    p.setObject(1,UUID.randomUUID());p.setObject(2,source);p.setString(3,"0".repeat(64));p.executeUpdate();
++                }
++            }
++            data=new Data(ds,accounts.get(0),accounts.get(1),accounts.get(2),source);
++            var model=new Model();
++            try(var app=start(data,model);var user=app.user()) {
++                assertThat(user.login(data.a()).statusCode()).isEqualTo(200);
++                UUID key=UUID.randomUUID();
++                var accepted=user.submitWithKey(QUESTION,COURSES,key);assertThat(accepted.statusCode()).isEqualTo(202);
++                UUID run=UUID.fromString(JSON.readTree(accepted.body()).path("runId").asText());
++                user.awaitTerminal(run);
++                var conflict=user.submitWithKey(QUESTION,COURSES.replace("1.5","1.0"),key);
++                assertThat(conflict.statusCode()).isEqualTo(409);
++                assertThat(JSON.readTree(conflict.body()).path("code").asText()).isEqualTo("SUBMISSION_CONTENT_CONFLICT");
++                String directory=System.getProperty("zhku.rulecheck.evidenceDir","");
++                if(directory.isBlank()||!Path.of(directory).getFileName().toString().startsWith("r5-legacy-live-"))return;
++                Path evidence=Path.of(directory).toAbsolutePath().normalize();
++                assertThat(Files.isDirectory(evidence)).isTrue();
++                Files.writeString(evidence.resolve("browser-ready.json"),JSON.writeValueAsString(Map.of("backendPort",app.port,
++                    "accounts",accounts.stream().map(a->Map.of("login",a.login(),"id",a.id().toString())).toList(),
++                    "synthetic",true,"provider",false,"deadlineSeconds",600)));
++                Instant deadline=Instant.now().plusSeconds(600);boolean stopped=false;
++                Path command=evidence.resolve("browser-command.txt");
++                while(Instant.now().isBefore(deadline)) {
++                    if(Files.exists(command)) {
++                        String action=Files.readString(command).trim();Files.delete(command);
++                        if(!action.equals("STOP"))throw new IllegalArgumentException("旧v1浏览器验收只接受STOP");
++                        stopped=true;break;
++                    }
++                    Thread.sleep(100);
++                }
++                assertThat(stopped).as("旧v1浏览器必须显式结束，超时不算通过").isTrue();
++                assertThat(model.active).hasValue(0);
++                Files.writeString(evidence.resolve("browser-host-finished.json"),"{\"explicitStop\":true,\"synthetic\":true,\"providerCalls\":0}");
++            }
++        } finally {
++            // 只清本夹具身份和资料，不清表、不复用原库；Context先正常排空工作线程。
++            if(data!=null)cleanup(data);
++            else try(var c=ds.getConnection()) {
++                try(var p=c.prepareStatement("DELETE FROM knowledge_chunk WHERE source_id=?")){p.setObject(1,source);p.executeUpdate();}
++                try(var p=c.prepareStatement("DELETE FROM knowledge_source WHERE id=?")){p.setObject(1,source);p.executeUpdate();}
++                for(var a:accounts)try(var p=c.prepareStatement("DELETE FROM preview_identity WHERE user_id=?")){p.setObject(1,a.id());p.executeUpdate();}
++            }
++        }
++    }
++}
