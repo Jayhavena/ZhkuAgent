@@ -1,0 +1,47 @@
+{
+  "stage": "ENGINEERING_A10_ACCEPTED_REAL_POLICY_CLOSED",
+  "softwareVersion": "0.1.0-rc.1",
+  "testedCommit": "341a550031cbe7bb90a07e27573f1db76b91e60f",
+  "fullA10Passed": true,
+  "legacyBrowserPassed": true,
+  "synthetic": true,
+  "providerCalls": 0,
+  "realPolicyReleaseApproved": false,
+  "checks": [
+    {
+      "id": "legacy-submit",
+      "passed": true,
+      "observation": "Synthetic example submitted through UI; completed sum3.5/limit4/version synthetic-v1/source locator visible."
+    },
+    {
+      "id": "legacy-reload",
+      "passed": true,
+      "observation": "Reload, confirmed read, then a second reload without manual query restored same task URL automatically; completed state and record-found wording visible."
+    },
+    {
+      "id": "legacy-account-switch",
+      "passed": true,
+      "observation": "A logout login page cleared prior task; B login has blank question/courseId/credits/answer/source."
+    },
+    {
+      "id": "legacy-cross-account-url",
+      "passed": true,
+      "observation": "B opening exact observed A run URL denied; no prior answer/source."
+    },
+    {
+      "id": "legacy-normal-exit",
+      "passed": true,
+      "observation": "B normal logout; existing user tabs/client retained; explicit STOP; owned processes/ports/containers exited."
+    }
+  ],
+  "observedRunId": "d6372ae8-0edb-4a7e-af60-5b88e6c7001c",
+  "observedSubmissionKey": "d5bb0488-314c-4f36-9cd1-7f5861b9141f",
+  "priorV2AndTerminalEvidence": "r5-engineering-closeout-20261008-01",
+  "priorEvidenceNotRerun": true,
+  "browserTabId": "2",
+  "errorTabUntouched": "1",
+  "userManualErrorPageReload": true,
+  "policyBypassed": false,
+  "productionCodeChanged": false,
+  "deferredMinor": "Cross-account denial still shows generic querying state label; clear refusal and no content leak; copy polish deferred."
+}

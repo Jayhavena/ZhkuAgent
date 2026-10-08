@@ -134,3 +134,8 @@ G4初始线包括48题至少46正确、Recall@5≥95%、不当拒答≤5%；若�
 - [20题开发参考](rule-check-2025-human-reference-development.md)
 - [评估准备](rule-check-2025-eval-preparation.md)
 - [Eval协议](rule-check-eval-contract.md)
+
+
+## 2026-10-08 工程冻结补验收完成
+
+A09/A10工程收口完成：旧v1实际页面提交、刷新自动恢复、账号切换及跨账号旧URL拒绝通过；与此前v2/普通终端/审查证据合并，A10关闭。原候选341a550的运行代码无变更，软件仍0.1.0-rc.1，新增工程冻结验收标签，旧标签不移动。真实资料/供应商语义/学生试点仍未批准；下一阶段B01–B04，后续C评估。延期Minor：拒绝旧链接后通用查询状态标签文案。详见docs/releases/v0.1.0-rc.1-engineering-freeze.md及r5-legacy-live-final-20261008-02。

@@ -20,7 +20,7 @@
 
 ## 构建与入口
 
-Maven 项目坐标统一使用 `com.zhku`：父项目 `com.zhku:zhku-agent`，模块为 `agent-runtime`、`agent`、`knowledge`，独立图片工具为 `com.zhku:image-search`。当前候选版本为 `0.1.0-rc.1`，制品路径与启动器同步更新。工程验收及真实资料放行状态见 [候选版说明](docs/releases/v0.1.0-rc.1/README.md)。模块构建请从根目录使用 `-pl ... -am`，不要引用旧的 `com.yupi` 本地缓存。项目范围、非校园内容及保留建议见 [内容盘点](docs/zhkuagent/2026-10-06-项目范围与非校园内容盘点.md)。
+Maven 项目坐标统一使用 `com.zhku`：父项目 `com.zhku:zhku-agent`，模块为 `agent-runtime`、`agent`、`knowledge`，独立图片工具为 `com.zhku:image-search`。当前候选版本为 `0.1.0-rc.1`，制品路径与启动器同步更新。A10工程门禁已关闭，完整冻结验收及真实资料边界见 [工程冻结说明](docs/releases/v0.1.0-rc.1-engineering-freeze.md)；[原候选快照](docs/releases/v0.1.0-rc.1/README.md)保留。模块构建请从根目录使用 `-pl ... -am`，不要引用旧的 `com.yupi` 本地缓存。项目范围、非校园内容及保留建议见 [内容盘点](docs/zhkuagent/2026-10-06-项目范围与非校园内容盘点.md)。
 
 在仓库根目录的 PowerShell 中使用 JDK 21；首次构建可能需要下载 Maven 和依赖：
 
