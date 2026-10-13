@@ -94,6 +94,19 @@ class JdbcRuleCheckEvidenceReaderTest {
             update("UPDATE knowledge_source SET publication_status='PUBLISHED',visibility_scope='STUDENT_VISIBLE',sharing_rights_confirmed=true WHERE id=?",source);
         }
     }
+    @Test void unpublishedSourceCannotReadOrReopenCapturedOriginal() throws SQLException {
+        var service=new RuleCheckOriginalEvidenceService(reader::readLocated,"v1",java.util.Set.of());
+        var quote=new RuleCheckVerifiedExcerpt("round",source,chunk,"v1",sha(TEXT),0,TEXT.length(),TEXT);
+        assertThat(service.locate(quote).code()).isEqualTo(RuleCheckOriginalEvidenceService.Code.FOUND);
+        // 未发布必须转内部以满足库约束；历史已核验引文不能绕过当前发布状态。
+        for(String status:List.of("DRAFT","REVIEWING")) {
+            update("UPDATE knowledge_source SET publication_status=?,visibility_scope='INTERNAL_ONLY' WHERE id=?",status,source);
+            assertUnavailable();assertThat(reader.readLocated(source,chunk)).isEmpty();
+            var result=service.locate(quote);
+            assertThat(result.code()).isEqualTo(RuleCheckOriginalEvidenceService.Code.UNAVAILABLE);
+            assertThat(result.original()).isNull();
+        }
+    }
     @Test void oversizedCurrentChunkIsRejectedBeforeReturningDatabaseText() throws Exception {
         String huge="x".repeat(65537);update("UPDATE knowledge_chunk SET content=?,content_checksum=? WHERE id=?",huge,sha(huge),chunk);
         update("UPDATE retrieval_index_entry SET content_checksum=? WHERE chunk_id=?",sha(huge),chunk);

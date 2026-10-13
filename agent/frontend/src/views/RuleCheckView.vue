@@ -5,6 +5,7 @@ import RuleCheckFact from '../components/RuleCheckFact.vue'
 import { ruleCheckClient } from '../api/rule-check.js'
 import { ruleCheckSession } from '../state/rule-check-session.js'
 import { createRuleCheckWorkflow } from '../state/rule-check-workflow.js'
+import { ruleCheckConditionLabel } from '../state/rule-check-labels.js'
 
 // 测试可注入渲染状态；正式入口仍只从独立v2客户端取得结果，不提供URL资料自证参数。
 const runtime = inject('rule-check-runtime', null)
@@ -108,12 +109,17 @@ function newQuestion() { flow.reset(); question.value = ''; choice.value = '' }
         <section v-else-if="state.result" class="decision" aria-labelledby="decision-title" aria-live="polite">
           <header><p class="decision-question">本次问题：{{ state.question }}</p><h2 id="decision-title">{{ labels[state.result.status] }}</h2><p>依据版本 {{ state.result.referenceRevision }}</p></header>
           <p v-if="state.result.scope" class="question-scope">本次覆盖：{{ state.result.scope.questionScope }}</p>
-          <div v-if="Object.keys(state.result.confirmedConditions).length" class="declared-conditions"><h3>你已确认</h3><dl><template v-for="(value,key) in state.result.confirmedConditions" :key="key"><dt>{{ conditionName(key) }}</dt><dd>{{ value }}</dd></template></dl></div>
+          <div v-if="Object.keys(state.result.confirmedConditions).length" class="declared-conditions"><h3>你已确认</h3><dl><template v-for="(value,key) in state.result.confirmedConditions" :key="key"><dt>{{ conditionName(key) }}</dt><dd>{{ ruleCheckConditionLabel(key,value) }}</dd></template></dl></div>
           <form v-if="state.result.status === 'NEED_CLARIFICATION' && nextCondition" class="clarification" @submit.prevent="flow.clarify(nextCondition.key,choice)">
-            <label for="rule-condition">{{ nextCondition.question }}</label><select id="rule-condition" v-model="choice" required><option disabled value="">请选择你能确认的情况</option><option v-for="value in nextCondition.allowedValues" :key="value" :value="value">{{ value }}</option></select>
+            <label for="rule-condition">{{ nextCondition.question }}</label><select id="rule-condition" v-model="choice" required><option disabled value="">请选择你能确认的情况</option><option v-for="value in nextCondition.allowedValues" :key="value" :value="value">{{ ruleCheckConditionLabel(nextCondition.key,value) }}</option></select>
             <button class="rule-primary" type="submit" :disabled="!choice">确认条件并继续</button><p class="rule-hint">无法确认时保留未知，先核对相关资料。</p>
           </form>
           <RuleCheckFact v-for="fact in state.result.confirmedFacts" :key="fact.id" :fact="fact" :conditions="state.result.scope?.conditions || []" :disabled="state.originalBusy" @original="flow.openOriginal" />
+          <section v-if="state.result.supportingReferences?.length" class="rule-supporting"><h3>条件与适用范围依据</h3>
+            <p>这些原文用于核对条件或资料覆盖范围，不代表已作出结论。</p>
+            <div v-for="reference in state.result.supportingReferences" :key="reference.citationId"><blockquote>{{ reference.text }}</blockquote>
+              <button type="button" :disabled="state.originalBusy" @click="flow.openOriginal(reference.originalToken)">核对原文</button></div>
+          </section>
           <section v-for="(conflict,index) in state.result.conflicts" :key="index" class="rule-conflict"><h3>{{ conflict.issue }}</h3><p>这些依据尚未形成一致结论。</p>
             <RuleCheckFact v-for="(side,i) in conflict.sides" :key="i" :fact="side" :conditions="state.result.scope?.conditions || []" :disabled="state.originalBusy" @original="flow.openOriginal" /></section>
           <section v-if="state.result.unknownItems.length" class="rule-unknown"><h3>仍无法确认</h3><ul><li v-for="(unknown,i) in state.result.unknownItems" :key="i">{{ unknown }}</li></ul></section>

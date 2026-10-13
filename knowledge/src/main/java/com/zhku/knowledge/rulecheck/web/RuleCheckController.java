@@ -73,6 +73,11 @@ public final class RuleCheckController {
             var quotes=new ArrayList<RuleCheckVerifiedExcerpt>();
             decision.confirmedFacts().forEach(f->quotes.addAll(f.evidence()));
             decision.conflicts().forEach(c->c.sides().forEach(f->quotes.addAll(f.evidence())));
+            var supporting=service.supportingReferences(result);
+            // 非结论依据仍沿用同一会话凭据与原文复查；不能把内部定位字符串直接给客户端授权。
+            for(var quote:supporting)if(originals.locate(quote).code()!=RuleCheckOriginalEvidenceService.Code.FOUND)
+                throw new IllegalStateException("条件原文已变化");
+            quotes.addAll(supporting);
             Reply reply;
             synchronized(session) {
                 requireSessionActor(session,actor);
@@ -82,7 +87,7 @@ public final class RuleCheckController {
                 conditions,decision.confirmedFacts().stream().map(f->fact(f,result.scope(),handles)).toList(),
                 decision.clarificationQuestions(),decision.unknownItems(),
                 decision.conflicts().stream().map(c->new ConflictReply(c.issue(),c.sides().stream().map(f->fact(f,null,handles)).toList())).toList(),
-                result.scope(),token);
+                result.scope(),token,supporting.stream().map(q->citation(q,handles)).toList());
             }
             return ResponseEntity.ok().header("Cache-Control","no-store").body(reply);
         } catch(PreviewIdentityRepository.Failure identity) {
@@ -178,7 +183,7 @@ public final class RuleCheckController {
     private record Request(String question,Map<String,String> confirmedConditions,String clarificationToken) {}
     public record Reply(RuleCheckDecision.Status status,String referenceRevision,String knowledgeScope,String conditionSource,
         Map<String,String> confirmedConditions,List<FactReply> confirmedFacts,List<RuleCheckDecision.Clarification> clarificationQuestions,
-        List<String> unknownItems,List<ConflictReply> conflicts,RuleCheckScopedResult.Scope scope,String clarificationToken) {}
+        List<String> unknownItems,List<ConflictReply> conflicts,RuleCheckScopedResult.Scope scope,String clarificationToken,List<CitationReply> supportingReferences) {}
     public record FactReply(String id,String text,Map<String,String> when,List<CitationReply> citations) {}
     public record CitationReply(String citationId,UUID sourceId,UUID chunkId,String revision,int startInclusive,int endExclusive,String text,String originalToken) {}
     public record ConflictReply(String issue,List<FactReply> sides) {}

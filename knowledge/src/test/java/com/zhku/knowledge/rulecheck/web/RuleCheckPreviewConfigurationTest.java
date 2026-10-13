@@ -12,6 +12,36 @@ import org.springframework.core.io.ClassPathResource;
 import static org.assertj.core.api.Assertions.*;
 
 class RuleCheckPreviewConfigurationTest {
+    @Test @SuppressWarnings("unchecked") void productionTaskAssemblyReloadsReviewQualificationPerRequest()throws Exception {
+        var actual=org.mockito.Mockito.mock(com.zhku.knowledge.retrieval.Reviewed2025ControlledCatalogue.class);
+        var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();
+        org.mockito.Mockito.when(actual.reviewedCatalogue(root)).thenReturn(java.util.List.of()).thenThrow(new IllegalStateException("审核已撤销"));
+        org.springframework.beans.factory.ObjectProvider<com.zhku.knowledge.retrieval.Reviewed2025ControlledCatalogue> catalogue=org.mockito.Mockito.mock(org.springframework.beans.factory.ObjectProvider.class);
+        org.mockito.Mockito.when(catalogue.getObject()).thenReturn(actual);
+        org.springframework.beans.factory.ObjectProvider<com.zhku.knowledge.rulecheck.SealedRuleSelectionReplay> oldReplay=org.mockito.Mockito.mock(org.springframework.beans.factory.ObjectProvider.class);
+        org.springframework.beans.factory.ObjectProvider<com.zhku.knowledge.rulecheck.SealedRuleTaskReplay> newReplay=org.mockito.Mockito.mock(org.springframework.beans.factory.ObjectProvider.class);
+        var planner=org.mockito.Mockito.mock(com.zhku.knowledge.rulecheck.SealedRuleTaskReplay.class);org.mockito.Mockito.when(newReplay.getObject()).thenReturn(planner);
+        var ds=org.mockito.Mockito.mock(javax.sql.DataSource.class);
+        var environment=valid().withProperty("zhku.rule-check-preview.catalogue-mode","REVIEWED_2025_CONTROLLED")
+            .withProperty("zhku.rule-check-preview.selector-mode","TASK_PLAN_REPLAY").withProperty("zhku.rule-check-preview.repository-root",root.toString());
+        var app=new RuleCheckPreviewConfiguration().ruleCheckApplicationService(ds,null,new com.zhku.knowledge.rulecheck.RuleCheckRuntimeSettings("p","cut","scope","2025.9.2",20,5),
+            java.time.Clock.systemUTC(),environment,catalogue,oldReplay,newReplay);
+        assertThat(app.check("合成问题",java.util.Map.of()).status()).isEqualTo(com.zhku.knowledge.rulecheck.RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE);
+        org.mockito.Mockito.verify(actual,org.mockito.Mockito.times(2)).reviewedCatalogue(root);
+        org.mockito.Mockito.verifyNoInteractions(ds,planner);
+    }
+    @Test void newTaskModeCannotStartWithoutActualPinnedBatch() {
+        var e=valid().withProperty("zhku.rule-check-preview.catalogue-mode","REVIEWED_2025_CONTROLLED")
+            .withProperty("zhku.rule-check-preview.repository-root",java.nio.file.Path.of("..").toAbsolutePath().normalize().toString())
+            .withProperty("zhku.rule-check-preview.selector-mode","TASK_PLAN_REPLAY")
+            .withProperty("zhku.rule-check-preview.profile-id","controlled-2025-local")
+            .withProperty("zhku.rule-check-preview.chunking-version","handbook-2025-clause-verbatim-v1")
+            .withProperty("zhku.rule-check-preview.required-scope","RULE_CHECK_PUBLIC_ELECTIVE_2025")
+            .withProperty("zhku.rule-check-preview.candidate-limit","20");
+        assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
+        e.withProperty("zhku.rule-check-preview.task-package-sha256","a".repeat(64)).withProperty("zhku.rule-check-preview.task-summary-sha256","b".repeat(64));
+        assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
+    }
     static MockEnvironment valid() {
         var e=new MockEnvironment();e.setActiveProfiles("zhku-rule-check-preview");
         Map.ofEntries(
@@ -29,6 +59,22 @@ class RuleCheckPreviewConfigurationTest {
             Map.entry("zhku.rule-check-preview.reference-revision","2025.9.2"),Map.entry("zhku.rule-check-preview.candidate-limit","40"),
             Map.entry("zhku.rule-check-preview.result-limit","5")
         ).forEach(e::setProperty);return e;
+    }
+    @Test void reviewedControlledModeRequiresExactBoundaryAndExplicitTransport() {
+        var e=valid().withProperty("zhku.rule-check-preview.catalogue-mode","REVIEWED_2025_CONTROLLED")
+            .withProperty("zhku.rule-check-preview.repository-root",java.nio.file.Path.of("..").toAbsolutePath().normalize().toString())
+            .withProperty("zhku.rule-check-preview.selector-mode","SEALED_REPLAY")
+            .withProperty("zhku.rule-check-preview.profile-id","controlled-2025-local")
+            .withProperty("zhku.rule-check-preview.chunking-version","handbook-2025-clause-verbatim-v1")
+            .withProperty("zhku.rule-check-preview.required-scope","RULE_CHECK_PUBLIC_ELECTIVE_2025")
+            .withProperty("zhku.rule-check-preview.candidate-limit","20");
+        assertThatCode(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).doesNotThrowAnyException();
+        for(String key:java.util.List.of("selector-mode","chunking-version","required-scope","candidate-limit","repository-root")) {
+            String before=e.getProperty("zhku.rule-check-preview."+key);
+            e.setProperty("zhku.rule-check-preview."+key,"wrong");
+            assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
+            e.setProperty("zhku.rule-check-preview."+key,before);
+        }
     }
     @Test void explicitValidBoundaryDoesNotNeedCredentialsOrOpenResources() {
         assertThatCode(()->RuleCheckPreviewConfiguration.validateEnvironment(valid())).doesNotThrowAnyException();

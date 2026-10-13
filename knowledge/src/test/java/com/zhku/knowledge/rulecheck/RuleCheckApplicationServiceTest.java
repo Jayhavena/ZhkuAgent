@@ -189,6 +189,30 @@ class RuleCheckApplicationServiceTest {
         assertThat(service.resume(changed,Map.of("type","ordinary")).decision().status()).isEqualTo(INSUFFICIENT_EVIDENCE);
         assertThat(retrieved).hasValue(1);
     }
+    @Test void continuationCannotSkipIndependentCurrentScopeCheck() {
+        var service=app(conditional());var saved=context(service);
+        var changedQuestion=new RuleCheckScopedResult.Continuation(saved.settings(),saved.entry(),"今天选课入口是否开放？",saved.confirmedConditions(),saved.nextCondition());
+        var result=service.resume(changedQuestion,Map.of("type","ordinary"));
+        assertThat(result.decision().status()).isEqualTo(INSUFFICIENT_EVIDENCE);
+        assertThat(result.decision().confirmedFacts()).isEmpty();assertThat(retrieved).hasValue(1);assertThat(selected).hasValue(1);
+    }
+    @Test void firstPersonGeneralGradeRuleStillClarifiesCourseTypeAndAnswersKnownBranch() {
+        selector=(q,options)->"test-only";
+        var service=app(conditional());String question="我想了解选修课成绩不合格时的一般重修规则。";
+        var result=service.checkWithContext(question,Map.of());
+        assertThat(result.decision().status()).isEqualTo(NEED_CLARIFICATION);assertThat(result.continuation()).isNotNull();
+        assertThat(service.resume(result.continuation(),Map.of("type","ordinary")).decision().status()).isEqualTo(ANSWERED);
+        assertThat(service.check(question,Map.of("type","ordinary")).status()).isEqualTo(ANSWERED);
+    }
+    @Test void markedExamplePreservesClarificationAndOriginalQuestionOnResume() {
+        selector=(q,options)->"test-only";
+        var service=app(conditional());String question="“今天入口是否开放”只是例句；我想了解选修课成绩不合格时的一般重修规则。";
+        var result=service.checkWithContext(question,Map.of());
+        assertThat(result.decision().status()).isEqualTo(NEED_CLARIFICATION);assertThat(result.continuation().question()).isEqualTo(question);
+        assertThat(service.isCurrent(result)).isTrue();
+        var resumed=service.resume(result.continuation(),Map.of("type","ordinary"));
+        assertThat(resumed.decision().status()).isEqualTo(ANSWERED);assertThat(resumed.releaseBinding().question()).isEqualTo(question);assertThat(service.isCurrent(resumed)).isTrue();
+    }
     @Test void continuationOnlyAcceptsOnePendingAllowedCondition() {
         var service=app(conditional());var entry=catalogue.get().getFirst();
         var saved=new RuleCheckScopedResult.Continuation(settings,entry,"合成条款",Map.of(),entry.template().conditions().getFirst());

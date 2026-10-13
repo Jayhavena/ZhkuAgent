@@ -27,6 +27,7 @@ const fact = value => object(value) && text(value.id, 128) && text(value.text, 8
 function reply(value) {
   if (!object(value) || value.referenceRevision !== '2025.9.2' || !text(value.knowledgeScope, 128) || value.conditionSource !== 'USER_DECLARED'
     || !claims(value.confirmedConditions) || !list(value.confirmedFacts, fact, 32) || !list(value.clarificationQuestions, condition, 16)
+    || value.supportingReferences !== undefined && !list(value.supportingReferences, citation, 5)
     || !list(value.unknownItems, v => text(v)) || !list(value.conflicts, c => object(c) && text(c.issue) && list(c.sides, fact, 32) && c.sides.length >= 2, 16)) return false
   const { confirmedFacts: facts, unknownItems: unknown, clarificationQuestions: questions, conflicts } = value
   if (value.status !== 'INSUFFICIENT_EVIDENCE' && (!object(value.scope) || !text(value.scope.ruleId, 128)

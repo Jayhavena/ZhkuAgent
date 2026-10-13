@@ -1,0 +1,3585 @@
+{
+  "dataProvenance": "SYNTHETIC_CONTRACT_ONLY_NOT_REVIEWED_POLICY",
+  "snapshots": [
+    {
+      "name": "complete",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "partial-and-clarification",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "WAITING_USER",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "PARTIAL",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "合成必要类别？",
+                  "allowedValues": [
+                    "A",
+                    "B"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": "33333333-3333-4333-8333-333333333333",
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "partial-and-data-gap",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            },
+            {
+              "id": "q2",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "DATA_GAP",
+                  "reasonCode": "CURRENT_NOTICE_MISSING",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "partial-and-processing-failure",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "FAILED",
+        "runState": "FAILED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            },
+            {
+              "id": "q2",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "PROCESSING_FAILURE",
+                  "reasonCode": "MODEL_TIMEOUT",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "conflict-only-blocks-related-item",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            },
+            {
+              "id": "q2",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "CONFLICT",
+                  "reasonCode": "UNRESOLVED_CONFLICT",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            },
+            {
+              "id": "e2",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            },
+            {
+              "id": "e3",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            },
+            {
+              "evidenceId": "e2",
+              "subquestionId": "q2",
+              "role": "CONFLICT",
+              "targetId": "i1"
+            },
+            {
+              "evidenceId": "e3",
+              "subquestionId": "q2",
+              "role": "CONFLICT",
+              "targetId": "i1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "honest-data-gap",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "DATA_GAP",
+                  "reasonCode": "PERSONAL_RECORD_NOT_AVAILABLE",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "replay-not-covered",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "REPLAY_MISS",
+                  "reasonCode": "REPLAY_NOT_COVERED",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ENGINEERING_REPLAY",
+          "modelAttemptCount": 0,
+          "toolStepCount": 1,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "MISS"
+        }
+      }
+    },
+    {
+      "name": "cancel-request-is-not-termination",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 1,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "cancelled-with-safe-partial-content",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "STOPPED",
+        "runState": "CANCELLED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            },
+            {
+              "id": "q2",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "PROCESSING_FAILURE",
+                  "reasonCode": "CANCELLED",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "resume-can-retain-previous-result",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "33333333-3333-4333-8333-333333333333",
+        "version": 2,
+        "taskStatus": "ACTIVE",
+        "runState": "RUNNING",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "PARTIAL",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "合成必要类别？",
+                  "allowedValues": [
+                    "A",
+                    "B"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    }
+  ],
+  "actions": [
+    {
+      "type": "SEARCH_REVIEWED_RULES",
+      "subquestionId": "q1",
+      "query": "合成自然查询"
+    },
+    {
+      "type": "READ_VERIFIED_RULE",
+      "subquestionId": "q1",
+      "handles": [
+        "22222222-2222-4222-8222-222222222222",
+        "33333333-3333-4333-8333-333333333333"
+      ]
+    },
+    {
+      "type": "ASK_NECESSARY_CONDITION",
+      "subquestionId": "q1",
+      "conditionId": "courseType",
+      "reason": "合成必要性",
+      "supportingFactIds": [
+        "synthetic-fact"
+      ]
+    },
+    {
+      "type": "FINISH_CHECK",
+      "items": [
+        {
+          "subquestionId": "q1",
+          "factIds": [
+            "synthetic-fact"
+          ],
+          "issues": [],
+          "operation": null
+        }
+      ]
+    },
+    {
+      "type": "FINISH_CHECK",
+      "items": [
+        {
+          "subquestionId": "q1",
+          "factIds": [
+            "synthetic-fact"
+          ],
+          "issues": [],
+          "operation": {
+            "comparison": "GT",
+            "factOperandId": "threshold",
+            "declaredValue": "30",
+            "sourceSpan": {
+              "startInclusive": 0,
+              "endExclusive": 2,
+              "text": "30",
+              "source": "USER_DECLARED"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "observations": [
+    {
+      "actionId": "22222222-2222-4222-8222-222222222222",
+      "runId": "22222222-2222-4222-8222-222222222222",
+      "step": 1,
+      "status": "SUCCEEDED",
+      "reasonCode": null,
+      "dataLevel": "CANDIDATE",
+      "catalogueVersion": "synthetic-v1",
+      "candidates": [
+        {
+          "handle": "33333333-3333-4333-8333-333333333333",
+          "excerpt": "合成候选",
+          "revision": "2025.9.2"
+        }
+      ],
+      "evidence": [],
+      "factIds": []
+    },
+    {
+      "actionId": "22222222-2222-4222-8222-222222222222",
+      "runId": "22222222-2222-4222-8222-222222222222",
+      "step": 1,
+      "status": "SUCCEEDED",
+      "reasonCode": null,
+      "dataLevel": "VERIFIED_EVIDENCE",
+      "catalogueVersion": "synthetic-v1",
+      "candidates": [],
+      "evidence": [
+        {
+          "id": "e1",
+          "sourceId": "22222222-2222-4222-8222-222222222222",
+          "chunkId": "33333333-3333-4333-8333-333333333333",
+          "revision": "2025.9.2",
+          "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "startInclusive": 0,
+          "endExclusive": 4,
+          "quote": "合成原文",
+          "originalToken": "33333333-3333-4333-8333-333333333333"
+        }
+      ],
+      "factIds": []
+    },
+    {
+      "actionId": "22222222-2222-4222-8222-222222222222",
+      "runId": "22222222-2222-4222-8222-222222222222",
+      "step": 1,
+      "status": "SUCCEEDED",
+      "reasonCode": null,
+      "dataLevel": "VERIFIED_FACT",
+      "catalogueVersion": "synthetic-v1",
+      "candidates": [],
+      "evidence": [
+        {
+          "id": "e1",
+          "sourceId": "22222222-2222-4222-8222-222222222222",
+          "chunkId": "33333333-3333-4333-8333-333333333333",
+          "revision": "2025.9.2",
+          "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "startInclusive": 0,
+          "endExclusive": 4,
+          "quote": "合成原文",
+          "originalToken": "33333333-3333-4333-8333-333333333333"
+        }
+      ],
+      "factIds": [
+        "synthetic-fact"
+      ]
+    },
+    {
+      "actionId": "22222222-2222-4222-8222-222222222222",
+      "runId": "22222222-2222-4222-8222-222222222222",
+      "step": 1,
+      "status": "NO_MATCH",
+      "reasonCode": "RETRIEVAL_NO_MATCH",
+      "dataLevel": "NONE",
+      "catalogueVersion": "synthetic-v1",
+      "candidates": [],
+      "evidence": [],
+      "factIds": []
+    },
+    {
+      "actionId": "22222222-2222-4222-8222-222222222222",
+      "runId": "22222222-2222-4222-8222-222222222222",
+      "step": 1,
+      "status": "UNAVAILABLE",
+      "reasonCode": "RETRIEVAL_UNAVAILABLE",
+      "dataLevel": "NONE",
+      "catalogueVersion": "synthetic-v1",
+      "candidates": [],
+      "evidence": [],
+      "factIds": []
+    },
+    {
+      "actionId": "22222222-2222-4222-8222-222222222222",
+      "runId": "22222222-2222-4222-8222-222222222222",
+      "step": 1,
+      "status": "REJECTED",
+      "reasonCode": "EVIDENCE_CHANGED",
+      "dataLevel": "NONE",
+      "catalogueVersion": "synthetic-v1",
+      "candidates": [],
+      "evidence": [],
+      "factIds": []
+    }
+  ],
+  "requests": [
+    {
+      "method": "readCreate",
+      "value": {
+        "question": "合成问题",
+        "clientRequestId": "22222222-2222-4222-8222-222222222222"
+      }
+    },
+    {
+      "method": "readMessage",
+      "value": {
+        "message": "合成补充",
+        "continuationToken": "33333333-3333-4333-8333-333333333333",
+        "expectedVersion": 1,
+        "clientRequestId": "22222222-2222-4222-8222-222222222222"
+      }
+    },
+    {
+      "method": "readCancel",
+      "value": {
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "expectedVersion": 1,
+        "clientRequestId": "33333333-3333-4333-8333-333333333333"
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "name": "unknown-schema",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 2,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "unknown-field",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        },
+        "policyPermission": true
+      }
+    },
+    {
+      "name": "missing-field",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "invalid-uuid",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "other-task",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "unsafe-version",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 9007199254740992,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "numeric-enum",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": 0,
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "coverage-cannot-hide-unknown",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            },
+            {
+              "id": "q2",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "DATA_GAP",
+                  "reasonCode": "CURRENT_NOTICE_MISSING",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "partial-without-missing-item",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "unrelated-evidence",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            },
+            {
+              "id": "noise",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "claim-without-evidence",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "forged-relation",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "forged"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "duplicate-relation",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            },
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "quote-span-mismatch",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 5,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "source-revision-mismatch",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "other",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "conflict-with-one-side",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            },
+            {
+              "id": "q2",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "CONFLICT",
+                  "reasonCode": "UNRESOLVED_CONFLICT",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            },
+            {
+              "id": "e2",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            },
+            {
+              "evidenceId": "e2",
+              "subquestionId": "q2",
+              "role": "CONFLICT",
+              "targetId": "i1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "waiting-without-token",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "WAITING_USER",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "PARTIAL",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "合成必要类别？",
+                  "allowedValues": [
+                    "A",
+                    "B"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "resolved-with-open-clarification",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "PARTIAL",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "合成必要类别？",
+                  "allowedValues": [
+                    "A",
+                    "B"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "active-run-not-terminated",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": true,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 1,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "cancelled-but-resource-not-closed",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "STOPPED",
+        "runState": "CANCELLED",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            },
+            {
+              "id": "q2",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "PROCESSING_FAILURE",
+                  "reasonCode": "CANCELLED",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "failure-must-state-processing-reason",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "FAILED",
+        "runState": "FAILED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            },
+            {
+              "id": "q2",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "DATA_GAP",
+                  "reasonCode": "CURRENT_NOTICE_MISSING",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "current-result-run-mismatch",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "33333333-3333-4333-8333-333333333333",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "active-cannot-publish-current-version",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "33333333-3333-4333-8333-333333333333",
+        "version": 2,
+        "taskStatus": "ACTIVE",
+        "runState": "RUNNING",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "PARTIAL",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "合成必要类别？",
+                  "allowedValues": [
+                    "A",
+                    "B"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "replay-must-not-call-provider",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "REPLAY_MISS",
+                  "reasonCode": "REPLAY_NOT_COVERED",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ENGINEERING_REPLAY",
+          "modelAttemptCount": 1,
+          "toolStepCount": 1,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "MISS"
+        }
+      }
+    },
+    {
+      "name": "online-cannot-relabel-replay",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "SEALED_REPLAY",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "response-without-attempt",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "unknown-reason-code",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            },
+            {
+              "id": "q2",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "DATA_GAP",
+                  "reasonCode": "ALL_RULES_MISSING",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "inconsistent-reason-kind",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "FAILED",
+        "runState": "FAILED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            },
+            {
+              "id": "q2",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "DATA_GAP",
+                  "reasonCode": "MODEL_TIMEOUT",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "duplicate-question-id",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            },
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "candidate-not-publishable-fact",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "MODEL_GUESSED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "unicode-surrogate",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "\ud800",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "model-budget-exceeded",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 4,
+              "quote": "合成原文",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 5,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "evidence-byte-budget",
+      "method": "readSnapshot",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "c1",
+                  "factId": "synthetic-fact",
+                  "text": "合成已确认内容",
+                  "when": {
+                    "courseType": "A"
+                  },
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e0",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 1500,
+              "quote": "合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            },
+            {
+              "id": "e1",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 1500,
+              "quote": "合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            },
+            {
+              "id": "e2",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 1500,
+              "quote": "合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            },
+            {
+              "id": "e3",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 1500,
+              "quote": "合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            },
+            {
+              "id": "e4",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 1500,
+              "quote": "合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            },
+            {
+              "id": "e5",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 1500,
+              "quote": "合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            },
+            {
+              "id": "e6",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 1500,
+              "quote": "合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            },
+            {
+              "id": "e7",
+              "sourceId": "22222222-2222-4222-8222-222222222222",
+              "chunkId": "33333333-3333-4333-8333-333333333333",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 1500,
+              "quote": "合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合合",
+              "originalToken": "33333333-3333-4333-8333-333333333333"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e0",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            },
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            },
+            {
+              "evidenceId": "e2",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            },
+            {
+              "evidenceId": "e3",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            },
+            {
+              "evidenceId": "e4",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            },
+            {
+              "evidenceId": "e5",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            },
+            {
+              "evidenceId": "e6",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            },
+            {
+              "evidenceId": "e7",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "c1"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "name": "unknown-action",
+      "method": "readAction",
+      "value": {
+        "type": "RUN_SHELL",
+        "subquestionId": "q1",
+        "query": "q"
+      }
+    },
+    {
+      "name": "model-cannot-pick-scope",
+      "method": "readAction",
+      "value": {
+        "type": "SEARCH_REVIEWED_RULES",
+        "subquestionId": "q1",
+        "query": "合成自然查询",
+        "knowledgeScope": "all"
+      }
+    },
+    {
+      "name": "read-only-issued-handles",
+      "method": "readAction",
+      "value": {
+        "type": "READ_VERIFIED_RULE",
+        "subquestionId": "q1",
+        "handles": [
+          "/etc/passwd"
+        ]
+      }
+    },
+    {
+      "name": "duplicate-read-handles",
+      "method": "readAction",
+      "value": {
+        "type": "READ_VERIFIED_RULE",
+        "subquestionId": "q1",
+        "handles": [
+          "22222222-2222-4222-8222-222222222222",
+          "22222222-2222-4222-8222-222222222222"
+        ]
+      }
+    },
+    {
+      "name": "finish-cannot-submit-policy-text",
+      "method": "readAction",
+      "value": {
+        "type": "FINISH_CHECK",
+        "items": [
+          {
+            "subquestionId": "q1",
+            "factIds": [
+              "synthetic-fact"
+            ],
+            "issues": [],
+            "operation": null
+          }
+        ],
+        "answer": "模型自编规则"
+      }
+    },
+    {
+      "name": "model-cannot-assert-permission",
+      "method": "readCreate",
+      "value": {
+        "question": "合成问题",
+        "clientRequestId": "22222222-2222-4222-8222-222222222222",
+        "mode": "ONLINE"
+      }
+    },
+    {
+      "name": "message-cannot-pick-tool",
+      "method": "readMessage",
+      "value": {
+        "message": "合成补充",
+        "continuationToken": "33333333-3333-4333-8333-333333333333",
+        "expectedVersion": 1,
+        "clientRequestId": "22222222-2222-4222-8222-222222222222",
+        "tool": "read"
+      }
+    },
+    {
+      "name": "model-cannot-invent-operand-source",
+      "method": "readAction",
+      "value": {
+        "type": "FINISH_CHECK",
+        "items": [
+          {
+            "subquestionId": "q1",
+            "factIds": [
+              "synthetic-fact"
+            ],
+            "issues": [],
+            "operation": {
+              "comparison": "GT",
+              "factOperandId": "threshold",
+              "declaredValue": "30",
+              "sourceSpan": {
+                "startInclusive": 0,
+                "endExclusive": 2,
+                "text": "30",
+                "source": "MODEL_GUESSED"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "candidate-cannot-be-verified-fact",
+      "method": "readObservation",
+      "value": {
+        "actionId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "step": 1,
+        "status": "SUCCEEDED",
+        "reasonCode": null,
+        "dataLevel": "VERIFIED_FACT",
+        "catalogueVersion": "synthetic-v1",
+        "candidates": [
+          {
+            "handle": "33333333-3333-4333-8333-333333333333",
+            "excerpt": "合成候选",
+            "revision": "2025.9.2"
+          }
+        ],
+        "evidence": [],
+        "factIds": []
+      }
+    },
+    {
+      "name": "retrieval-failure-is-not-no-match",
+      "method": "readObservation",
+      "value": {
+        "actionId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "step": 1,
+        "status": "NO_MATCH",
+        "reasonCode": "RETRIEVAL_UNAVAILABLE",
+        "dataLevel": "NONE",
+        "catalogueVersion": "synthetic-v1",
+        "candidates": [],
+        "evidence": [],
+        "factIds": []
+      }
+    },
+    {
+      "name": "unavailable-is-not-policy-gap",
+      "method": "readObservation",
+      "value": {
+        "actionId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "step": 1,
+        "status": "UNAVAILABLE",
+        "reasonCode": "RETRIEVAL_NO_MATCH",
+        "dataLevel": "NONE",
+        "catalogueVersion": "synthetic-v1",
+        "candidates": [],
+        "evidence": [],
+        "factIds": []
+      }
+    },
+    {
+      "name": "missing-observation-fact-binding",
+      "method": "readObservation",
+      "value": {
+        "actionId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "step": 1,
+        "status": "SUCCEEDED",
+        "reasonCode": null,
+        "dataLevel": "VERIFIED_FACT",
+        "catalogueVersion": "synthetic-v1",
+        "candidates": [],
+        "evidence": [],
+        "factIds": [
+          "synthetic-fact"
+        ]
+      }
+    }
+  ]
+}

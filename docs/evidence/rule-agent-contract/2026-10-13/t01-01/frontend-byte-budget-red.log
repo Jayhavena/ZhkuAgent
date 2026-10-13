@@ -1,0 +1,67 @@
+✔ shared snapshot: complete (4.0834ms)
+✔ shared snapshot: partial-and-clarification (0.3095ms)
+✔ shared snapshot: partial-and-data-gap (0.2811ms)
+✔ shared snapshot: partial-and-processing-failure (0.3297ms)
+✔ shared snapshot: conflict-only-blocks-related-item (0.2326ms)
+✔ shared snapshot: honest-data-gap (0.1565ms)
+✔ shared snapshot: replay-not-covered (0.2022ms)
+✔ shared snapshot: cancel-request-is-not-termination (0.1524ms)
+✔ shared snapshot: cancelled-with-safe-partial-content (0.1817ms)
+✔ shared snapshot: resume-can-retain-previous-result (0.2001ms)
+✔ reject snapshot: unknown-schema (0.6824ms)
+✔ reject snapshot: unknown-field (0.1245ms)
+✔ reject snapshot: missing-field (0.0789ms)
+✔ reject snapshot: invalid-uuid (0.0636ms)
+✔ reject snapshot: unsafe-version (0.0555ms)
+✔ reject snapshot: numeric-enum (0.0884ms)
+✔ reject snapshot: coverage-cannot-hide-unknown (0.1125ms)
+✔ reject snapshot: partial-without-missing-item (0.0963ms)
+✔ reject snapshot: unrelated-evidence (0.0911ms)
+✔ reject snapshot: claim-without-evidence (0.0888ms)
+✔ reject snapshot: forged-relation (0.2587ms)
+✔ reject snapshot: duplicate-relation (0.2119ms)
+✔ reject snapshot: quote-span-mismatch (0.2608ms)
+✔ reject snapshot: source-revision-mismatch (0.1801ms)
+✔ reject snapshot: conflict-with-one-side (0.1842ms)
+✔ reject snapshot: waiting-without-token (0.1112ms)
+✔ reject snapshot: resolved-with-open-clarification (0.0885ms)
+✔ reject snapshot: active-run-not-terminated (0.1024ms)
+✔ reject snapshot: cancelled-but-resource-not-closed (0.0906ms)
+✔ reject snapshot: failure-must-state-processing-reason (0.1235ms)
+✔ reject snapshot: current-result-run-mismatch (0.0722ms)
+✔ reject snapshot: active-cannot-publish-current-version (0.0669ms)
+✔ reject snapshot: replay-must-not-call-provider (0.0521ms)
+✔ reject snapshot: online-cannot-relabel-replay (0.047ms)
+✔ reject snapshot: response-without-attempt (0.0587ms)
+✔ reject snapshot: unknown-reason-code (0.0908ms)
+✔ reject snapshot: inconsistent-reason-kind (0.162ms)
+✔ reject snapshot: duplicate-question-id (0.0867ms)
+✔ reject snapshot: candidate-not-publishable-fact (0.0718ms)
+✔ reject snapshot: unicode-surrogate (0.0859ms)
+✔ reject snapshot: model-budget-exceeded (0.0577ms)
+✖ reject snapshot: evidence-byte-budget (1.2727ms)
+✔ old reply cannot be silently upgraded to the new task schema (0.1453ms)
+ℹ tests 43
+ℹ suites 0
+ℹ pass 42
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 107.911
+
+✖ failing tests:
+
+test at agent\frontend\tests\rule-agent-contract.test.mjs:10:68
+✖ reject snapshot: evidence-byte-budget (1.2727ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception (RuleAgentContractError).
+      at TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/rule-agent-contract.test.mjs:12:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { name: 'RuleAgentContractError' },
+    operator: 'throws',
+    diff: 'simple'
+  }

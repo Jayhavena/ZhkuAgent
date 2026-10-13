@@ -1,4 +1,5 @@
 <script setup>
+import { ruleCheckConditionLabel } from '../state/rule-check-labels.js'
 defineProps({ fact: { type: Object, required: true }, conditions: { type: Array, default: () => [] }, disabled: Boolean })
 defineEmits(['original'])
 </script>
@@ -6,7 +7,7 @@ defineEmits(['original'])
   <article class="rule-fact">
     <h3>{{ fact.text }}</h3>
     <div v-if="Object.keys(fact.when).length" class="fact-conditions"><p>仅在这些条件下确认</p>
-      <dl><template v-for="(value, key) in fact.when" :key="key"><dt>{{ conditions.find(c => c.key === key)?.question || key }}</dt><dd>{{ value }}</dd></template></dl>
+      <dl><template v-for="(value, key) in fact.when" :key="key"><dt>{{ conditions.find(c => c.key === key)?.question || key }}</dt><dd>{{ ruleCheckConditionLabel(key,value) }}</dd></template></dl>
     </div>
     <div v-for="citation in fact.citations" :key="citation.originalToken" class="fact-citation">
       <!-- 资料和政策文本只作为文字展示，不能把原文中的HTML变成浏览器指令。 -->

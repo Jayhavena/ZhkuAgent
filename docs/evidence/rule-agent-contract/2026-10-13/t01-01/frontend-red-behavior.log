@@ -1,0 +1,131 @@
+✖ shared snapshot: complete (3.0669ms)
+✖ shared snapshot: partial-and-clarification (0.981ms)
+✖ shared snapshot: partial-and-data-gap (0.1807ms)
+✖ shared snapshot: partial-and-processing-failure (0.1167ms)
+✖ shared snapshot: conflict-only-blocks-related-item (0.4016ms)
+✖ shared snapshot: honest-data-gap (0.1295ms)
+✖ shared snapshot: replay-not-covered (0.1363ms)
+✖ shared snapshot: cancel-request-is-not-termination (0.1185ms)
+✖ shared snapshot: cancelled-with-safe-partial-content (0.1104ms)
+✖ shared snapshot: resume-can-retain-previous-result (0.3617ms)
+✔ reject snapshot: unknown-schema (0.8973ms)
+✔ reject snapshot: unknown-field (0.1123ms)
+✔ reject snapshot: missing-field (0.0825ms)
+✔ reject snapshot: invalid-uuid (0.0592ms)
+✔ reject snapshot: unsafe-version (0.0471ms)
+✔ reject snapshot: numeric-enum (0.0654ms)
+✔ reject snapshot: coverage-cannot-hide-unknown (0.0728ms)
+✔ reject snapshot: partial-without-missing-item (0.0519ms)
+✔ reject snapshot: unrelated-evidence (0.0609ms)
+✔ reject snapshot: claim-without-evidence (0.0601ms)
+✔ reject snapshot: forged-relation (0.069ms)
+✔ reject snapshot: duplicate-relation (0.0565ms)
+✔ reject snapshot: quote-span-mismatch (0.0863ms)
+✔ reject snapshot: source-revision-mismatch (0.0524ms)
+✔ reject snapshot: conflict-with-one-side (0.0719ms)
+✔ reject snapshot: waiting-without-token (0.0427ms)
+✔ reject snapshot: resolved-with-open-clarification (0.0722ms)
+✔ reject snapshot: active-run-not-terminated (0.0634ms)
+✔ reject snapshot: cancelled-but-resource-not-closed (0.0454ms)
+✔ reject snapshot: failure-must-state-processing-reason (0.0725ms)
+✔ reject snapshot: current-result-run-mismatch (0.0647ms)
+✔ reject snapshot: active-cannot-publish-current-version (0.0532ms)
+✔ reject snapshot: replay-must-not-call-provider (0.0366ms)
+✔ reject snapshot: online-cannot-relabel-replay (0.0342ms)
+✔ reject snapshot: response-without-attempt (0.0457ms)
+✔ reject snapshot: unknown-reason-code (0.0433ms)
+✔ reject snapshot: inconsistent-reason-kind (0.0468ms)
+✔ reject snapshot: duplicate-question-id (0.0419ms)
+✔ reject snapshot: candidate-not-publishable-fact (0.0413ms)
+✔ reject snapshot: unicode-surrogate (0.0293ms)
+✔ old reply cannot be silently upgraded to the new task schema (0.1281ms)
+ℹ tests 41
+ℹ suites 0
+ℹ pass 31
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 107.7737
+
+✖ failing tests:
+
+test at agent\frontend\tests\rule-agent-contract.test.mjs:6:33
+✖ shared snapshot: complete (3.0669ms)
+  Error [RuleAgentContractError]: CONTRACT_NOT_IMPLEMENTED
+      at validateRuleAgentSnapshot (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/src/api/rule-agent-contract.js:4:51)
+      at TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/rule-agent-contract.test.mjs:8:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at agent\frontend\tests\rule-agent-contract.test.mjs:6:33
+✖ shared snapshot: partial-and-clarification (0.981ms)
+  Error [RuleAgentContractError]: CONTRACT_NOT_IMPLEMENTED
+      at validateRuleAgentSnapshot (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/src/api/rule-agent-contract.js:4:51)
+      at TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/rule-agent-contract.test.mjs:8:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at agent\frontend\tests\rule-agent-contract.test.mjs:6:33
+✖ shared snapshot: partial-and-data-gap (0.1807ms)
+  Error [RuleAgentContractError]: CONTRACT_NOT_IMPLEMENTED
+      at validateRuleAgentSnapshot (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/src/api/rule-agent-contract.js:4:51)
+      at TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/rule-agent-contract.test.mjs:8:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at agent\frontend\tests\rule-agent-contract.test.mjs:6:33
+✖ shared snapshot: partial-and-processing-failure (0.1167ms)
+  Error [RuleAgentContractError]: CONTRACT_NOT_IMPLEMENTED
+      at validateRuleAgentSnapshot (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/src/api/rule-agent-contract.js:4:51)
+      at TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/rule-agent-contract.test.mjs:8:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at agent\frontend\tests\rule-agent-contract.test.mjs:6:33
+✖ shared snapshot: conflict-only-blocks-related-item (0.4016ms)
+  Error [RuleAgentContractError]: CONTRACT_NOT_IMPLEMENTED
+      at validateRuleAgentSnapshot (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/src/api/rule-agent-contract.js:4:51)
+      at TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/rule-agent-contract.test.mjs:8:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at agent\frontend\tests\rule-agent-contract.test.mjs:6:33
+✖ shared snapshot: honest-data-gap (0.1295ms)
+  Error [RuleAgentContractError]: CONTRACT_NOT_IMPLEMENTED
+      at validateRuleAgentSnapshot (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/src/api/rule-agent-contract.js:4:51)
+      at TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/rule-agent-contract.test.mjs:8:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at agent\frontend\tests\rule-agent-contract.test.mjs:6:33
+✖ shared snapshot: replay-not-covered (0.1363ms)
+  Error [RuleAgentContractError]: CONTRACT_NOT_IMPLEMENTED
+      at validateRuleAgentSnapshot (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/src/api/rule-agent-contract.js:4:51)
+      at TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/rule-agent-contract.test.mjs:8:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at agent\frontend\tests\rule-agent-contract.test.mjs:6:33
+✖ shared snapshot: cancel-request-is-not-termination (0.1185ms)
+  Error [RuleAgentContractError]: CONTRACT_NOT_IMPLEMENTED
+      at validateRuleAgentSnapshot (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/src/api/rule-agent-contract.js:4:51)
+      at TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/rule-agent-contract.test.mjs:8:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at agent\frontend\tests\rule-agent-contract.test.mjs:6:33
+✖ shared snapshot: cancelled-with-safe-partial-content (0.1104ms)
+  Error [RuleAgentContractError]: CONTRACT_NOT_IMPLEMENTED
+      at validateRuleAgentSnapshot (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/src/api/rule-agent-contract.js:4:51)
+      at TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/rule-agent-contract.test.mjs:8:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at agent\frontend\tests\rule-agent-contract.test.mjs:6:33
+✖ shared snapshot: resume-can-retain-previous-result (0.3617ms)
+  Error [RuleAgentContractError]: CONTRACT_NOT_IMPLEMENTED
+      at validateRuleAgentSnapshot (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/src/api/rule-agent-contract.js:4:51)
+      at TestContext.<anonymous> (file:///D:/alldesk/Projects/ZhkuAgent/agent/frontend/tests/rule-agent-contract.test.mjs:8:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

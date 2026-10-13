@@ -25,6 +25,8 @@ public final class JdbcLexicalCandidateRetriever implements ChunkCandidateRetrie
     private final String requiredScope;
     private final boolean offlineEvaluation;
     private final String chunkingVersion;
+    private final boolean chineseBigram;
+    private boolean diversity=true;
 
     public JdbcLexicalCandidateRetriever(DataSource dataSource, RetrievalEligibilityFilter eligibilityFilter,
             String profileId, String requiredScope, String chunkingVersion) {
@@ -43,12 +45,30 @@ public final class JdbcLexicalCandidateRetriever implements ChunkCandidateRetrie
 
     private JdbcLexicalCandidateRetriever(DataSource dataSource, RetrievalEligibilityFilter eligibilityFilter,
             String profileId, String requiredScope, boolean offlineEvaluation, String chunkingVersion) {
+        this(dataSource,eligibilityFilter,profileId,requiredScope,offlineEvaluation,chunkingVersion,false);
+    }
+    private JdbcLexicalCandidateRetriever(DataSource dataSource, RetrievalEligibilityFilter eligibilityFilter,
+            String profileId, String requiredScope, boolean offlineEvaluation, String chunkingVersion,boolean chineseBigram) {
         this.dataSource = Objects.requireNonNull(dataSource, "数据源不能为空");
         this.eligibilityFilter = Objects.requireNonNull(eligibilityFilter, "资格过滤器不能为空");
         this.profileId = Objects.requireNonNull(profileId, "profile 标识不能为空");
         this.requiredScope = requiredScope;
         this.offlineEvaluation = offlineEvaluation;
         this.chunkingVersion = chunkingVersion;
+        this.chineseBigram=chineseBigram;
+    }
+
+    /** 显式中文词法实验；默认构造/应用装配保留旧基线，不能凭开发集召回自动切换。 */
+    public static JdbcLexicalCandidateRetriever forChineseBigramEvaluation(DataSource dataSource,
+            RetrievalEligibilityFilter eligibilityFilter,String profileId,String requiredScope,String chunkingVersion){
+        if(chunkingVersion==null||chunkingVersion.isBlank())throw new IllegalArgumentException("实验切片版本必须固定");
+        return new JdbcLexicalCandidateRetriever(dataSource,eligibilityFilter,profileId,requiredScope,false,chunkingVersion,true);
+    }
+    /** 仅本地对照实验使用旧排序；默认应用装配和资料资格过滤不变。 */
+    public static JdbcLexicalCandidateRetriever forChineseBigramBaselineEvaluation(DataSource dataSource,
+            RetrievalEligibilityFilter eligibilityFilter,String profileId,String requiredScope,String chunkingVersion){
+        var retriever=forChineseBigramEvaluation(dataSource,eligibilityFilter,profileId,requiredScope,chunkingVersion);
+        retriever.diversity=false;return retriever;
     }
 
     /** 评测必须在激活前完成；此显式入口允许BUILDING，但不放宽资料资格或允许RETIRED。 */
@@ -62,6 +82,10 @@ public final class JdbcLexicalCandidateRetriever implements ChunkCandidateRetrie
         List<String> terms = QueryTerms.extract(query);
         if (terms.isEmpty() || limit <= 0) {
             return List.of();
+        }
+        if(chineseBigram){
+            var eligible=loadRows().stream().filter(row->eligibilityFilter.evaluate(row.source(),requiredScope).eligible()).map(CandidateRow::chunk).toList();
+            return diversity?ChineseBigramLexicalRanker.rank(query,eligible,limit):ChineseBigramLexicalRanker.rankWithoutDiversification(query,eligible,limit);
         }
         List<Scored> matched = new ArrayList<>();
         for (CandidateRow row : loadRows()) {

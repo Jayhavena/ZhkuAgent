@@ -1,0 +1,198 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] ZhkuAgent                                                          [pom]
+[INFO] ZhkuAgent Shared Runtime                                           [jar]
+[INFO] ZhkuAgent Knowledge                                                [jar]
+[INFO] 
+[INFO] ------------------------< com.zhku:zhku-agent >-------------------------
+[INFO] Building ZhkuAgent 0.1.0-rc.1                                      [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] -----------------------< com.zhku:agent-runtime >-----------------------
+[INFO] Building ZhkuAgent Shared Runtime 0.1.0-rc.1                       [2/3]
+[INFO]   from agent-runtime\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ agent-runtime ---
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.1.0-rc.1                            [3/3]
+[INFO]   from knowledge\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 5 resources from src\main\resources to target\classes
+[INFO] Copying 21 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 315 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 3 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 266 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /D:/alldesk/Projects/ZhkuAgent/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheck2025LexicalCalibrationTest.java: ĳЩ�����ļ�ʹ����δ�����򲻰�ȫ�Ĳ�����
+[INFO] /D:/alldesk/Projects/ZhkuAgent/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheck2025LexicalCalibrationTest.java: �й���ϸ��Ϣ, ��ʹ�� -Xlint:unchecked ���±��롣
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[WARNING] file.encoding cannot be set as system property, use <argLine>-Dfile.encoding=...</argLine> instead
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentContractTest
+[ERROR] Tests run: 5, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.513 s <<< FAILURE! -- in com.zhku.knowledge.ruleagent.RuleAgentContractTest
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentContractTest.sharedSnapshotsAreAcceptedAndRoundTripWithoutDroppingFields -- Time elapsed: 0.066 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[complete] 
+expected: "{"schemaVersion":3,"taskId":"22222222-2222-4222-8222-222222222222","turnId":"22222222-2222-4222-8222-222222222222","runId":"22222222-2222-4222-8222-222222222222","version":1,"taskStatus":"RESOLVED","runState":"SUCCEEDED","terminated":true,"result":{"publishedVersion":1,"originatingRunId":"22222222-2222-4222-8222-222222222222","catalogueVersion":"synthetic-v1","referenceRevision":"2025.9.2","coverage":"COMPLETE","items":[{"id":"q1","coverage":"COMPLETE","claims":[{"id":"c1","factId":"synthetic-fact","text":"�ϳ���ȷ������","when":{"courseType":"A"},"conditionSource":"USER_DECLARED"}],"issues":[],"clarification":[]}],"evidence":[{"id":"e1","sourceId":"22222222-2222-4222-8222-222222222222","chunkId":"33333333-3333-4333-8333-333333333333","revision":"2025.9.2","checksum":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","startInclusive":0,"endExclusive":4,"quote":"�ϳ�ԭ��","originalToken":"33333333-3333-4333-8333-333333333333"}],"evidenceRelations":[{"evidenceId":"e1","subquestionId":"q1","role":"CLAIM","targetId":"c1"}]},"continuationToken":null,"execution":{"mode":"ONLINE","modelAttemptCount":2,"toolStepCount":2,"providerResponseReceived":true,"answerSource":"LIVE_AGENT","replayCoverage":"NOT_APPLICABLE"}} (ObjectNode@45905bff)"
+ but was: "{"schemaVersion":3,"taskId":"22222222-2222-4222-8222-222222222222","turnId":"22222222-2222-4222-8222-222222222222","runId":"22222222-2222-4222-8222-222222222222","version":1,"taskStatus":"RESOLVED","runState":"SUCCEEDED","terminated":true,"result":{"publishedVersion":1,"originatingRunId":"22222222-2222-4222-8222-222222222222","catalogueVersion":"synthetic-v1","referenceRevision":"2025.9.2","coverage":"COMPLETE","items":[{"id":"q1","coverage":"COMPLETE","claims":[{"id":"c1","factId":"synthetic-fact","text":"�ϳ���ȷ������","when":{"courseType":"A"},"conditionSource":"USER_DECLARED"}],"issues":[],"clarification":[]}],"evidence":[{"id":"e1","sourceId":"22222222-2222-4222-8222-222222222222","chunkId":"33333333-3333-4333-8333-333333333333","revision":"2025.9.2","checksum":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","startInclusive":0,"endExclusive":4,"quote":"�ϳ�ԭ��","originalToken":"33333333-3333-4333-8333-333333333333"}],"evidenceRelations":[{"evidenceId":"e1","subquestionId":"q1","role":"CLAIM","targetId":"c1"}]},"continuationToken":null,"execution":{"mode":"ONLINE","modelAttemptCount":2,"toolStepCount":2,"providerResponseReceived":true,"answerSource":"LIVE_AGENT","replayCoverage":"NOT_APPLICABLE"}} (ObjectNode@31aa3ca5)"
+	at com.zhku.knowledge.ruleagent.RuleAgentContractTest.sharedSnapshotsAreAcceptedAndRoundTripWithoutDroppingFields(RuleAgentContractTest.java:26)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest
+[INFO] Tests run: 42, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.146 s -- in com.zhku.knowledge.rulecheck.RuleCheckDecisionServiceTest
+[INFO] Running com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.078 s -- in com.zhku.knowledge.rulecheck.RuleCheckEvidenceVerifierTest
+[INFO] Running com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build what is described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (C:\Users\nangua\.m2\repository\net\bytebuddy\byte-buddy-agent\1.15.11\byte-buddy-agent-1.15.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+10:16:33.829 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:33.830 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:33.836 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 3 ms
+10:16:33.989 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:33.989 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:33.989 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.186 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.186 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.186 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.248 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.248 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.248 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.262 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.263 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.263 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.277 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.277 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.277 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.303 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.303 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.303 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.329 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.330 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.330 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.353 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.353 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.353 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.365 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.365 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.365 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.395 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.395 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.395 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.428 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.428 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.429 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 1 ms
+10:16:34.442 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.442 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.442 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.464 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.464 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.464 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.524 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.524 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.524 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.535 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.535 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.535 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.558 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.558 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.558 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.573 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.573 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.573 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.641 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.641 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.641 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.675 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.676 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.676 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.695 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.695 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.696 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 1 ms
+10:16:34.713 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.713 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.714 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 1 ms
+10:16:34.729 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.729 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.730 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 1 ms
+10:16:34.748 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.748 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.748 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+10:16:34.763 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+10:16:34.764 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+10:16:34.764 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+[INFO] Tests run: 25, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.006 s -- in com.zhku.knowledge.rulecheck.web.RuleCheckControllerTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   RuleAgentContractTest.sharedSnapshotsAreAcceptedAndRoundTripWithoutDroppingFields:26 [complete] 
+expected: "{"schemaVersion":3,"taskId":"22222222-2222-4222-8222-222222222222","turnId":"22222222-2222-4222-8222-222222222222","runId":"22222222-2222-4222-8222-222222222222","version":1,"taskStatus":"RESOLVED","runState":"SUCCEEDED","terminated":true,"result":{"publishedVersion":1,"originatingRunId":"22222222-2222-4222-8222-222222222222","catalogueVersion":"synthetic-v1","referenceRevision":"2025.9.2","coverage":"COMPLETE","items":[{"id":"q1","coverage":"COMPLETE","claims":[{"id":"c1","factId":"synthetic-fact","text":"�ϳ���ȷ������","when":{"courseType":"A"},"conditionSource":"USER_DECLARED"}],"issues":[],"clarification":[]}],"evidence":[{"id":"e1","sourceId":"22222222-2222-4222-8222-222222222222","chunkId":"33333333-3333-4333-8333-333333333333","revision":"2025.9.2","checksum":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","startInclusive":0,"endExclusive":4,"quote":"�ϳ�ԭ��","originalToken":"33333333-3333-4333-8333-333333333333"}],"evidenceRelations":[{"evidenceId":"e1","subquestionId":"q1","role":"CLAIM","targetId":"c1"}]},"continuationToken":null,"execution":{"mode":"ONLINE","modelAttemptCount":2,"toolStepCount":2,"providerResponseReceived":true,"answerSource":"LIVE_AGENT","replayCoverage":"NOT_APPLICABLE"}} (ObjectNode@45905bff)"
+ but was: "{"schemaVersion":3,"taskId":"22222222-2222-4222-8222-222222222222","turnId":"22222222-2222-4222-8222-222222222222","runId":"22222222-2222-4222-8222-222222222222","version":1,"taskStatus":"RESOLVED","runState":"SUCCEEDED","terminated":true,"result":{"publishedVersion":1,"originatingRunId":"22222222-2222-4222-8222-222222222222","catalogueVersion":"synthetic-v1","referenceRevision":"2025.9.2","coverage":"COMPLETE","items":[{"id":"q1","coverage":"COMPLETE","claims":[{"id":"c1","factId":"synthetic-fact","text":"�ϳ���ȷ������","when":{"courseType":"A"},"conditionSource":"USER_DECLARED"}],"issues":[],"clarification":[]}],"evidence":[{"id":"e1","sourceId":"22222222-2222-4222-8222-222222222222","chunkId":"33333333-3333-4333-8333-333333333333","revision":"2025.9.2","checksum":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","startInclusive":0,"endExclusive":4,"quote":"�ϳ�ԭ��","originalToken":"33333333-3333-4333-8333-333333333333"}],"evidenceRelations":[{"evidenceId":"e1","subquestionId":"q1","role":"CLAIM","targetId":"c1"}]},"continuationToken":null,"execution":{"mode":"ONLINE","modelAttemptCount":2,"toolStepCount":2,"providerResponseReceived":true,"answerSource":"LIVE_AGENT","replayCoverage":"NOT_APPLICABLE"}} (ObjectNode@31aa3ca5)"
+[INFO] 
+[ERROR] Tests run: 91, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ZhkuAgent 0.1.0-rc.1:
+[INFO] 
+[INFO] ZhkuAgent .......................................... SUCCESS [  0.003 s]
+[INFO] ZhkuAgent Shared Runtime ........................... SUCCESS [  1.486 s]
+[INFO] ZhkuAgent Knowledge ................................ FAILURE [ 19.819 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  21.801 s
+[INFO] Finished at: 2026-10-13T10:16:34+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: There are test failures.
+[ERROR] 
+[ERROR] See D:\alldesk\Projects\ZhkuAgent\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :knowledge

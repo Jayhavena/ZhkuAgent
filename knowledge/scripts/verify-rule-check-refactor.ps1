@@ -5,29 +5,30 @@ param(
     [string]$Tests='',
     [int]$Port=55439,
     [string]$DatabaseUrl='',
-    [switch]$CheckEnvironment
+    [switch]$CheckEnvironment,
+    [string]$EvidenceRoot=''
 )
 $ErrorActionPreference='Stop'
 $runnerUtf8=[Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding=$runnerUtf8; [Console]::OutputEncoding=$runnerUtf8; $OutputEncoding=$runnerUtf8
 
 function Get-RuleCheckVerificationPlan {
-    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='')
+    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='',[string]$EvidenceRoot='')
     # 全部准入在任何外部进程与证据写入之前完成，连接失败不能替代目标隔离。
     if ($Mode -notin @('Unit','Database','Acceptance')) {throw '未知验收模式'}
     if ($Phase -notmatch '^[a-z0-9][a-z0-9-]{0,79}$') {throw '批次必须是1至80位小写字母、数字或连字符'}
     if ($Port -lt 1024 -or $Port -gt 65535 -or $Port -eq 54329) {throw '拒绝原演示库端口或非法端口'}
     if ([string]::IsNullOrWhiteSpace($Tests)) {throw '测试必须显式选类'}
-    $unit=@('HybridRetrievalServiceTest','HybridCandidateFusionTest','GroundedAnswerComposerTest',
+    $unit=@('RuleAgentRunnerTest','RuleAgentEvidenceToolsTest','RuleAgentContractTest','FinalBatchReplayConfigurationTest','SealedRuleTaskReplayTest','RuleCheckEvidenceFirstTest','BoundedRuleTaskPlannerTest','HybridRetrievalServiceTest','HybridCandidateFusionTest','GroundedAnswerComposerTest',
         'RetrievalAugmentedAnswerServiceTest','RetrievalEligibilityFilterTest','ZhkuLocalAdminControllerTest',
         'ZhkuLocalAdminPageResourceTest','ModelOutputParserTest','AnswerEvidenceGuardTest','CandidateResponseMappingTest',
         'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest',
         'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest','RuleCheckDecisionServiceTest',
-        'RuleCheckEvidenceCaptureTest','JdbcRuleCheckCitationAuditTargetTest','RuleCheckApplicationServiceTest',
-        'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest','RuleCheckControllerTest','RuleCheckClarificationStoreTest','BoundedRuleSelectorTest','RuleCheckOriginalEvidenceServiceTest','ZhkuDatabaseTestTargetTest','RuleCheckCitationStoreTest','RuleCheckReleaseGuardTest')
-    $database=@('KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+        'RuleCheckEvidenceCaptureTest','JdbcRuleCheckCitationAuditTargetTest','RuleCheckApplicationServiceTest','RuleCheckApplicabilityTest','RuleCheckTopicGuardTest','RuleCheckSelectionNarrowingTest','RuleCheckScopeLanguageTest',
+        'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest','RuleCheckControllerTest','RuleCheckClarificationStoreTest','BoundedRuleSelectorTest','RuleCheckOriginalEvidenceServiceTest','ZhkuDatabaseTestTargetTest','RuleCheckCitationStoreTest','RuleCheckReleaseGuardTest','RuleCheckDevelopmentCaptureTest','RuleCheckDevelopmentInputsTest','ChineseBigramLexicalRankerTest','RuleCheckEmbeddingArtifactsTest','RuleCheckNoiseFixturesTest')
+    $database=@('RuleAgentLoopDatabaseTest','RuleAgentEvidenceDatabaseTest','RuleCheck2025FinalPreparationTest','RuleCheck2025TargetedRepairTest','RuleCheck2025QualityReplayTest','RuleCheck2025QualityPreparationTest','RuleCheck2025ReliabilityReplayTest','RuleCheck2025ReportReplayTest','RuleCheck2025ReportPreparationTest','RuleCheck2025ReportAssemblyTest','RuleCheck2025ScopedSelectionReplayTest','KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
         'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
-        'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest','ControlledPreviewConfigurationTest','RuleCheckPreviewHttpTest','RuleCheckOriginalHttpTest','RuleCheckBrowserHttpTest','RuleCheckLegacyBrowserHttpTest',
+        'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest','RuleCheck2025TrialTest','RuleCheck2025SelectionPreparationTest','RuleCheck2025SelectionReplayTest','RuleCheck2025TopicSelectionReplayTest','RuleCheck2025TopicValidationTest','RuleCheck2025NarrowingValidationTest','RuleCheck2025HttpTest','RuleCheck2025BrowserHttpTest','RuleCheck2025DevelopmentCaptureTest','RuleCheck2025LexicalCalibrationTest','RuleCheck2025VectorCalibrationTest','RuleCheck2025RobustnessTest','RuleCheck2025ApplicabilityTest','ControlledPreviewConfigurationTest','RuleCheckPreviewHttpTest','RuleCheckOriginalHttpTest','RuleCheckBrowserHttpTest','RuleCheckLegacyBrowserHttpTest',
         'RetrievalSchemaTest','ZhkuFlywayTestSupportTest','JdbcFeedbackRepositoryTest','JdbcAnonymousTelemetryRepositoryTest',
         'JdbcCitationAuditRepositoryTest','JdbcKnowledgeGovernanceRepositoryTest','KnowledgeGovernanceSchemaTest','ReviewedKnowledgePublisherTest')
     # 旧controlled配置类含需要进程数据库凭据的数据源装配，不能冒充无密钥纯单元。
@@ -42,11 +43,32 @@ function Get-RuleCheckVerificationPlan {
         if ($found.Count -ne 1) {throw '测试源码必须唯一存在'}
     }
     $usesDatabase=@($selected|Where-Object {$_ -in $database}).Count -gt 0
+    # 临时数据库不等于资料也是合成；真实2025验收与合成回归须分别说明来源。
+    $dataProvenance='SYNTHETIC_FIXTURES'
+    $realTextTests=@('RuleAgentLoopDatabaseTest','RuleAgentEvidenceDatabaseTest','RuleCheck2025FinalPreparationTest','RuleCheck2025TargetedRepairTest','RuleCheck2025QualityReplayTest','RuleCheck2025QualityPreparationTest','RuleCheck2025ReliabilityReplayTest','RuleCheck2025ReportReplayTest','RuleCheck2025ReportPreparationTest','RuleCheck2025ReportAssemblyTest','RuleCheck2025ScopedSelectionReplayTest','RuleCheck2025TrialTest','RuleCheck2025SelectionPreparationTest','RuleCheck2025SelectionReplayTest','RuleCheck2025TopicSelectionReplayTest','RuleCheck2025TopicValidationTest','RuleCheck2025NarrowingValidationTest','RuleCheck2025HttpTest','RuleCheck2025BrowserHttpTest','RuleCheck2025DevelopmentCaptureTest','RuleCheck2025LexicalCalibrationTest','RuleCheck2025VectorCalibrationTest','RuleCheck2025ApplicabilityTest')
+    # 鲁棒性类自身混合实际旧10条与合成近词语料，不能因其他选类都是实际资料而误标。
+    if ($selected -contains 'RuleCheck2025RobustnessTest') {$dataProvenance='MIXED_REVIEWED_2025_AND_SYNTHETIC_FIXTURES'}
+    if ($selected -notcontains 'RuleCheck2025RobustnessTest' -and @($selected|Where-Object {$_ -in $realTextTests}).Count) {
+        # 此字段描述整个选类批次；真实DB类加合成单元类也不能宣称全部资料真实。
+        $syntheticClasses=@($selected|Where-Object {$_ -notin $realTextTests})
+        $dataProvenance=if($syntheticClasses.Count){'MIXED_REVIEWED_2025_AND_SYNTHETIC_FIXTURES'}else{'REVIEWED_2025_TEXT'}
+    }
     $target="jdbc:postgresql://127.0.0.1:$Port/zhkuagent_rulecheck_e2e"
     if ($DatabaseUrl -and (!$usesDatabase -or $DatabaseUrl -cne $target)) {throw 'URL必须与专用临时库、回环host和Port完全一致'}
-    $directory=Join-Path $Root ('docs/evidence/rule-check-refactor/2026-10-07/'+$Phase)
+    $package04Replay=$selected.Count -eq 1 -and $selected[0] -eq 'RuleCheck2025ReliabilityReplayTest' -and $Phase -eq 'package04-application-replay'
+    $directory=if($package04Replay){Join-Path $Root 'docs/evidence/rule-check-refactor/2026-10-11/package-04/application-replay'}else{Join-Path $Root ('docs/evidence/rule-check-refactor/2026-10-07/'+$Phase)}
+    if ($EvidenceRoot) {
+        # 新合同证据与旧批次身份分开；参数不能逃逸或经目录链接写到仓库外。
+        if($package04Replay-or $EvidenceRoot -notmatch '^docs/evidence/[A-Za-z0-9_-]+(/[A-Za-z0-9_-]+)*$'){throw '证据根必须为仓库docs/evidence内的相对目录'}
+        $directory=Join-Path $Root ($EvidenceRoot+'/'+$Phase)
+        $ancestor=Split-Path $directory -Parent
+        while($ancestor.Length-gt $Root.Length){
+            if((Test-Path -LiteralPath $ancestor)-and ((Get-Item -LiteralPath $ancestor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)){throw '证据根不能包含目录链接'}
+            $ancestor=Split-Path $ancestor -Parent
+        }
+    }
     if (Test-Path -LiteralPath $directory) {throw '证据批次已存在，禁止覆盖'}
-    [pscustomobject]@{Root=$Root;Mode=$Mode;Phase=$Phase;Selected=$selected;Port=$Port;Database=$usesDatabase;
+    [pscustomobject]@{Root=$Root;Mode=$Mode;Phase=$Phase;Selected=$selected;Port=$Port;Database=$usesDatabase;DataProvenance=$dataProvenance;Package04Replay=$package04Replay;
         DatabaseUrl=$target;Directory=$directory;Maven=(Join-Path $Root 'mvnw.cmd')}
 }
 
@@ -99,7 +121,7 @@ function Get-RuleCheckDatabaseResult {
     & $importer -RequireDatabase
     $connections=@(docker exec $Container psql -U zhkuagent -d zhkuagent_rulecheck_e2e -Atc "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND backend_type='client backend' AND pid<>pg_backend_pid()" 2>$null)
     if ($LASTEXITCODE -ne 0 -or !$connections.Count) {throw '临时库连接退出检查失败'}
-    [ordered]@{target=$Plan.DatabaseUrl;container=$Container;synthetic=$true;migration=$version[-1];expectedMigration=$expected;
+    [ordered]@{target=$Plan.DatabaseUrl;container=$Container;synthetic=$(if($Plan.DataProvenance -eq 'SYNTHETIC_FIXTURES'){$true}elseif($Plan.DataProvenance -eq 'REVIEWED_2025_TEXT'){$false}else{$null});dataProvenance=$Plan.DataProvenance;migration=$version[-1];expectedMigration=$expected;
         connectionsAfterTests=[int]$connections[-1];verified=($version[-1] -eq [string]$expected -and $connections[-1] -eq '0')}
 }
 
@@ -129,7 +151,7 @@ function Invoke-RuleCheckMaven {
 }
 
 function Invoke-RuleCheckVerificationCore {
-    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='')
+    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='',[string]$EvidenceRoot='')
     $plan=Get-RuleCheckVerificationPlan @PSBoundParameters -ErrorAction Stop
     if (!(Test-Path -LiteralPath $plan.Maven)) {throw '根Maven wrapper不可用'}
     if (!(Get-Command java.exe -ErrorAction SilentlyContinue)) {throw '当前用户终端没有Java'}
@@ -151,6 +173,7 @@ function Invoke-RuleCheckVerificationCore {
     $arguments=@('-o',"-Dmaven.repo.local=$env:USERPROFILE/.m2/repository",'-Dfile.encoding=UTF-8','-pl','knowledge','-am',
         "-Dtest=$($plan.Selected -join ',')",'-Dsurefire.failIfNoSpecifiedTests=false',"-Dzhku.db.url=$($plan.DatabaseUrl)",
         "-Dzhku.rulecheck.evidenceDir=$($plan.Directory)",'-Dzhku.db.user=zhkuagent','test')
+    if($plan.Package04Replay){$arguments=@($arguments[0..($arguments.Count-2)])+'-Dzhku.rulecheck.package04.requireCapture=true'+$arguments[-1]}
     Save-RuleCheckJson ([ordered]@{mode=$Mode;phase=$Phase;selectedClasses=$plan.Selected;providerAllowed=$false;database=$plan.Database;
         databaseUrl=$plan.DatabaseUrl;startedAt=$started.ToString('o');maven=$plan.Maven;arguments=$arguments;sourceHead=$headBefore}) (Join-Path $plan.Directory 'command.json')
     try {
@@ -210,7 +233,7 @@ function Invoke-RuleCheckVerificationCore {
 }
 
 function Invoke-RuleCheckVerification {
-    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='')
+    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='',[string]$EvidenceRoot='')
     $null=Get-RuleCheckVerificationPlan @PSBoundParameters
     $lockDirectory=Join-Path $Root '.superpowers'
     New-Item -ItemType Directory -Path $lockDirectory -Force|Out-Null
@@ -223,14 +246,14 @@ function Invoke-RuleCheckVerification {
 $runnerRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 try {
     if ($CheckEnvironment) {
-        $runnerPlan=Get-RuleCheckVerificationPlan -Root $runnerRoot -Mode $Mode -Phase $Phase -Tests $Tests -Port $Port -DatabaseUrl $DatabaseUrl
+        $runnerPlan=Get-RuleCheckVerificationPlan -Root $runnerRoot -Mode $Mode -Phase $Phase -Tests $Tests -Port $Port -DatabaseUrl $DatabaseUrl -EvidenceRoot $EvidenceRoot
         [ordered]@{powerShellVersion=$PSVersionTable.PSVersion.ToString();mavenWrapperAvailable=(Test-Path -LiteralPath $runnerPlan.Maven);
             javaAvailable=($null -ne (Get-Command java.exe -ErrorAction SilentlyContinue));dockerAvailable=($null -ne (Get-Command docker.exe -ErrorAction SilentlyContinue));
             mode=$Mode;selectedClasses=$runnerPlan.Selected;databaseUrl=$runnerPlan.DatabaseUrl;consoleCodePage=[Console]::OutputEncoding.CodePage;
             encodingSample='中文验收：临时库、拒绝原库';requiresRipgrep=$false;externalStarts=0}|ConvertTo-Json
         exit 0
     }
-    $runnerResult=Invoke-RuleCheckVerification -Root $runnerRoot -Mode $Mode -Phase $Phase -Tests $Tests -Port $Port -DatabaseUrl $DatabaseUrl
+    $runnerResult=Invoke-RuleCheckVerification -Root $runnerRoot -Mode $Mode -Phase $Phase -Tests $Tests -Port $Port -DatabaseUrl $DatabaseUrl -EvidenceRoot $EvidenceRoot
     Write-Output "RULECHECK phase=$Phase passed=$($runnerResult.passed) tests=$($runnerResult.testCount) database=$($runnerResult.database) resources=$($runnerResult.resourcesVerified)"
     if (!$runnerResult.passed) {exit 1}
 } catch {Write-Error $_.Exception.Message;exit 1}

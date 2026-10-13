@@ -25,6 +25,15 @@ test('student page has independent login and explicit first reference boundary',
   const html=await render({actor:null});assert.match(html,/登录规则查证/);assert.match(html,/2025/);assert.match(html,/现行/)
   assert.match(html,/autocomplete="username"/);assert.match(html,/autocomplete="current-password"/)
 })
+test('clarification and refusal show separate original controls without confirmed facts',async()=>{
+  for(const status of ['NEED_CLARIFICATION','INSUFFICIENT_EVIDENCE']) {
+    const result=decision(status);result.confirmedFacts=[];result.supportingReferences=[quote()];result.unknownItems=['适用条件尚不能确认']
+    if(status==='NEED_CLARIFICATION'){result.clarificationQuestions=[{key:'type',question:'哪类课程',allowedValues:['普通','其他']}];result.clarificationToken=ID}
+    else result.scope=null
+    const html=await render({result});assert.match(html,/条件与适用范围依据/);assert.match(html,/不代表已作出结论/);assert.match(html,/核对原文/)
+    assert.doesNotMatch(html,/合成确认事实/)
+  }
+})
 test('all five decisions have distinct visible outcomes',async()=>{
   for(const [status,label] of Object.entries({ANSWERED:'有原文支持',PARTIALLY_ANSWERED:'有部分依据',NEED_CLARIFICATION:'需要确认条件',INSUFFICIENT_EVIDENCE:'暂无充分依据',CONFLICTING_EVIDENCE:'依据存在冲突'})) {
     const result=decision(status)
@@ -44,6 +53,15 @@ test('necessary clarification displays only allowed choices and no invented fact
   const result={...decision('NEED_CLARIFICATION'),confirmedFacts:[],clarificationQuestions:[{key:'type',question:'合成类型是什么',allowedValues:['普通','其他']}],clarificationToken:ID}
   const html=await render({result});assert.match(html,/合成类型是什么/);assert.match(html,/>普通</);assert.match(html,/>其他</)
   assert.match(html,/确认条件并继续/);assert.doesNotMatch(html,/合成确认事实/)
+})
+test('reviewed course type choices and confirmed facts use student labels while preserving submitted codes',async()=>{
+  const condition={key:'courseType',question:'这门课属于公共选修还是专业选修？',allowedValues:['PUBLIC','PROFESSIONAL']}
+  const clarified={...decision('NEED_CLARIFICATION'),confirmedFacts:[],confirmedConditions:{},clarificationQuestions:[condition],clarificationToken:ID}
+  clarified.scope.conditions=[condition]
+  const choices=await render({result:clarified})
+  assert.match(choices,/value="PUBLIC"[^>]*>公共选修课/);assert.match(choices,/value="PROFESSIONAL"[^>]*>专业选修课/)
+  const answered=decision();answered.confirmedConditions={courseType:'PUBLIC'};answered.scope.conditions=[condition];answered.confirmedFacts[0].when={courseType:'PUBLIC'}
+  const html=await render({result:answered});assert.doesNotMatch(html,/>PUBLIC</);assert.match(html,/<dd[^>]*>公共选修课<\/dd>/)
 })
 test('original highlight uses relative span and recorded page mapping remains unknown',async()=>{
   const original={title:'合成手册',sourceLocator:'合成定位',revision:'2025.9.2',recordedPageNumber:1,pageNumberKind:'RECORDED_SOURCE_PAGE',contextText:'前文原文后文',contextStartInclusive:10,quoteStartInclusive:12,quoteEndExclusive:14,safeSourceUrl:'https://official.example/a.pdf',unknownItems:['物理页与印刷页映射尚未核实']}

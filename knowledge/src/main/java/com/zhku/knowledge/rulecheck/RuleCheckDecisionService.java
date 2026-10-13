@@ -36,6 +36,9 @@ public final class RuleCheckDecisionService {
         var candidates = template.facts().stream().filter(fact -> compatible(fact, values, definitions)).toList();
         var relevantKeys = new HashSet<String>();
         candidates.forEach(fact -> relevantKeys.addAll(fact.when().keySet()));
+        var compatibleGaps=template.conditionalEvidenceGaps().stream()
+                .filter(gap -> compatible(gap.when(),values,definitions)).toList();
+        compatibleGaps.forEach(gap -> relevantKeys.addAll(gap.when().keySet()));
         for (var condition : template.conditions()) {
             if (!relevantKeys.contains(condition.key())) continue;
             var value = values.get(condition.key());
@@ -60,6 +63,9 @@ public final class RuleCheckDecisionService {
         var known = new ArrayList<SupportedFact>();
         var independent = new ArrayList<SupportedFact>();
         var gaps = new ArrayList<>(template.evidenceGaps());
+        // 先等决定性条件明确，再启用匹配分支的缺口；专业缓考缺证不能污染公共分支或抢先阻断类别澄清。
+        template.conditionalEvidenceGaps().stream().filter(gap -> requirementsKnown(gap.when(),values))
+                .forEach(gap -> gaps.add(gap.reason()));
         int compatibleCount = 0;
         for (var fact : candidates) {
             compatibleCount++;
@@ -73,7 +79,8 @@ public final class RuleCheckDecisionService {
                 if (fact.independentlyAnswerable()) independent.add(verified.get());
             }
         }
-        if (compatibleCount == 0) return insufficient(template, "本规则没有覆盖该问题条件的事实");
+        // 只问专业缓考时，合法分支可能只有缺证声明；仍要完成必要澄清并保留具体缺口，不能当成范围未覆盖。
+        if (compatibleCount == 0 && compatibleGaps.isEmpty()) return insufficient(template, "本规则没有覆盖该问题条件的事实");
         if (!gaps.isEmpty()) {
             // 缺资料不能通过重复询问用户掩盖；部分事实必须由审核显式声明可独立成立。
             return new RuleCheckDecision(independent.isEmpty() ? INSUFFICIENT_EVIDENCE : PARTIALLY_ANSWERED,
@@ -115,14 +122,20 @@ public final class RuleCheckDecisionService {
         return Optional.of(new SupportedFact(fact.id(), fact.text(), excerpts));
     }
     private static boolean compatible(Fact fact, Map<String,String> values, Map<String,Condition> definitions) {
+        return compatible(fact.when(),values,definitions);
+    }
+    private static boolean compatible(Map<String,String> requirements, Map<String,String> values, Map<String,Condition> definitions) {
         // 非法值不能用来消除仍可能适用的规则，再由相关键校验拒绝；否则可绕过必要前提。
-        return fact.when().entrySet().stream().allMatch(e -> values.get(e.getKey()) == null
+        return requirements.entrySet().stream().allMatch(e -> values.get(e.getKey()) == null
                 || values.get(e.getKey()).isBlank()
                 || !definitions.get(e.getKey()).allowedValues().contains(values.get(e.getKey()))
                 || e.getValue().equals(values.get(e.getKey())));
     }
     private static boolean requirementsKnown(Fact fact, Map<String,String> values) {
-        return fact.when().entrySet().stream().allMatch(e -> e.getValue().equals(values.get(e.getKey())));
+        return requirementsKnown(fact.when(),values);
+    }
+    private static boolean requirementsKnown(Map<String,String> requirements, Map<String,String> values) {
+        return requirements.entrySet().stream().allMatch(e -> e.getValue().equals(values.get(e.getKey())));
     }
     private static RuleCheckDecision insufficient(RuleCheckRuleTemplate rule, String reason) {
         return new RuleCheckDecision(INSUFFICIENT_EVIDENCE, rule.referenceRevision(), List.of(), List.of(), List.of(reason), List.of());

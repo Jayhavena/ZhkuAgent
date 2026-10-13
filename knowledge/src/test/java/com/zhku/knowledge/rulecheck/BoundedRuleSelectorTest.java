@@ -97,6 +97,8 @@ class BoundedRuleSelectorTest {
         }
     }
     @Test void simultaneousRequestIsRejectedWithoutWaitingOrCallingProvider() throws Exception {
+        // 并发断言不应把冷启动时的JSON类初始化时间误判为worker未进入供应商调用。
+        try(var warmup=selector(r->"{\"ruleId\":null}")){warmup.selectOutcome("warmup",OPTIONS);awaitIdle(warmup);}
         var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var calls=new AtomicInteger();
         var callers=Executors.newSingleThreadExecutor();var s=selector(r->{calls.incrementAndGet();entered.countDown();await(release);return "{\"ruleId\":\"r-a\"}";});
         try {

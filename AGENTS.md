@@ -17,3 +17,10 @@
 - 人工演示优先使用`knowledge\scripts\start-controlled-manual-demo.cmd`；它查找可用PowerShell 7并保留参数和退出码，不修改全局PATH。`-CheckEnvironment`仅检查启动环境，不运行数据库、模型或Maven。
 - 交付给用户的命令须在普通用户终端环境验证；不能用Codex中的`Get-Command pwsh/rg`成功来证明用户也能调用。不必要的辅助CLI依赖应移除或提供明确替代路径。
 - 中文终端验收还须覆盖Windows PowerShell5.1的GBK解码边界；Java的file.encoding不等于终端/父进程编码。发生乱码时先q退出，在调用启动器前把当前会话Console.InputEncoding、Console.OutputEncoding及OutputEncoding一并设置为UTF8Encoding(false)，再启动；不修改系统语言或全局编码。演示内层也显式使用UTF-8，不依赖Agent终端的默认值。
+
+## 开发检查点与 Git 提交
+
+- 执行 [Git提交流程](docs/git-commit-workflow.md)：明确结果 → 验收通过 → 核对暂存差异 → 本地提交 → 记录SHA → 下一任务。
+- 用户于2026-10-13授权本项目后续按该规则自动保存本地提交，不再逐次询问；push、PR、标签、部署和历史改写不在此授权内。
+- 只暂存本任务及必要依赖的明确文件清单，不混入既有无关改动、凭证、数据库、整本PDF、构建产物或临时恢复包。验收未通过不得标成完成提交。
+- 提交记录说明问题、实现、实际验证、未验证范围和恢复方式；源码与验收身份须一致。工程检查点不等于产品上线或收益达标。

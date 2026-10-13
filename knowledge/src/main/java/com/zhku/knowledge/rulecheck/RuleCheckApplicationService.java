@@ -19,6 +19,9 @@ public final class RuleCheckApplicationService {
     private final ChunkCandidateRetriever lexical, vector;
     private final RuleCheckEvidenceCapture capture;
     private final RuleCheckDecisionService decisions;
+    private final RuleCheckApplicabilityGuard applicability=new RuleCheckApplicabilityGuard();
+    private final RuleCheckTopicGuard topics=new RuleCheckTopicGuard();
+    private RuleCheckEvidenceFirstFlow evidenceFirst;
     public RuleCheckApplicationService(RuleCheckRuntimeSettings settings, Supplier<List<CatalogEntry>> catalogue,
             RuleSelector selector, HybridRetrievalService retrieval, ChunkCandidateRetriever lexical,
             ChunkCandidateRetriever vector, RuleCheckEvidenceCapture capture, RuleCheckDecisionService decisions) {
@@ -29,14 +32,27 @@ public final class RuleCheckApplicationService {
         this.lexical=Objects.requireNonNull(lexical);this.vector=Objects.requireNonNull(vector);
         this.capture=Objects.requireNonNull(capture);this.decisions=Objects.requireNonNull(decisions);
     }
+    public static RuleCheckApplicationService evidenceFirst(RuleCheckRuntimeSettings settings,Supplier<List<CatalogEntry>> catalogue,
+            RuleCheckTaskPlan.Planner planner,HybridRetrievalService retrieval,ChunkCandidateRetriever lexical,ChunkCandidateRetriever vector,
+            RuleCheckEvidenceCapture capture,RuleCheckDecisionService decisions) {
+        var service=new RuleCheckApplicationService(settings,catalogue,(q,options)->{throw new IllegalStateException("新路径不调用旧单规则选择器");},retrieval,lexical,vector,capture,decisions);
+        service.evidenceFirst=new RuleCheckEvidenceFirstFlow(settings,catalogue,Objects.requireNonNull(planner),retrieval,lexical,vector,capture,decisions);
+        return service;
+    }
     public RuleCheckDecision check(String question, Map<String,String> confirmedConditions) {
         return checkWithContext(question,confirmedConditions).decision();
     }
     public RuleCheckScopedResult checkWithContext(String question,Map<String,String> confirmedConditions) {
+        if(evidenceFirst!=null)return evidenceFirst.check(question,validatedConditions(question,confirmedConditions),null);
         return execute(question,validatedConditions(question,confirmedConditions),null);
     }
     public boolean isCurrent(RuleCheckScopedResult result) {
         if(result==null||!settings.referenceRevision().equals(result.decision().referenceRevision()))return false;
+        if(result.evidencePlan()!=null) {
+            try {var binding=result.releaseBinding();if(binding==null)return false;validatedConditions(binding.question(),binding.confirmedConditions());
+                return evidenceFirst!=null&&evidenceFirst.isCurrent(result);
+            }catch(RuntimeException invalid){return false;}
+        }
         if(result.decision().status()==RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE)
             return result.scope()==null&&result.continuation()==null&&result.releaseBinding()==null;
         try {
@@ -64,12 +80,37 @@ public final class RuleCheckApplicationService {
             }
             // 不扩大原检索集合；重跑确定性决策也涵盖尚无输出摘录的必要澄清。
             // decide内部verifier继续fresh读与全文hash/跨度核验，绝不把currentSnapshot直接当事实。
-            var replay=scoped(decisions.decide(entry.template(),binding.confirmedConditions(),snapshots),entry,
-                binding.question(),binding.confirmedConditions(),snapshots);
+            if(topics.assess(binding.question(),entry.topicCoverage()).blocked())return false;
+            var assessment=applicability.assess(binding.question(),entry.coverage(),settings.referenceRevision());
+            if(assessment.blocked())return false;
+            var replay=scoped(decisions.decide(applicability.constrain(entry.template(),assessment),binding.confirmedConditions(),snapshots),entry,
+                binding.question(),binding.confirmedConditions(),snapshots,assessment);
             // 后置目录复查阻断重读期间变化；这仍是顺序检查，HTTP身份/Session及网络窗口另有边界。
             return entry.equals(approvedCatalogue().get(id))&&result.decision().equals(replay.decision())
-                &&Objects.equals(result.scope(),replay.scope())&&Objects.equals(result.continuation(),replay.continuation());
+                &&Objects.equals(result.scope(),replay.scope())&&Objects.equals(result.continuation(),replay.continuation())
+                &&Objects.equals(result.applicability(),replay.applicability());
         }catch(RuntimeException unavailable){return false;}
+    }
+    /** 查证条件/对象的依据单独发布，不把缺证或澄清变成已回答事实。 */
+    public List<RuleCheckVerifiedExcerpt> supportingReferences(RuleCheckScopedResult result) {
+        if(result==null||result.retrievalTrace()==null
+            ||!(result.decision().status()==RuleCheckDecision.Status.NEED_CLARIFICATION
+                ||result.decision().status()==RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE))return List.of();
+        if(!isCurrent(result))throw new IllegalStateException("条件依据已变化");
+        var entries=approvedCatalogue().values();var found=new ArrayList<RuleCheckVerifiedExcerpt>();
+        for(var ref:result.retrievalTrace().references()) {
+            var binding=entries.stream().flatMap(e->e.template().facts().stream()).flatMap(f->f.evidenceBindings().stream())
+                .filter(b->b.sourceId().equals(ref.sourceId())&&b.chunkId().equals(ref.chunkId())&&b.revision().equals(ref.revision())
+                    &&b.checksum().equalsIgnoreCase(ref.checksum())).findFirst().orElse(null);
+            if(binding==null)continue; // 检索噪声不等于审核目录内可展示的引用跨度。
+            var snapshot=decisions.currentSnapshot(ref.sourceId(),ref.chunkId()).orElseThrow(()->new IllegalStateException("条件依据不可用"));
+            var captured=new RuleCheckEvidenceSnapshot(ref.citationId(),snapshot.sourceId(),snapshot.chunkId(),snapshot.revision(),snapshot.checksum(),snapshot.text(),snapshot.eligible());
+            var verifier=new RuleCheckEvidenceVerifier(decisions::currentSnapshot);
+            var checked=verifier.verify(new RuleCheckEvidenceSpan(ref.citationId(),binding.startInclusive(),binding.endExclusive(),binding.quote()),List.of(captured));
+            if(!checked.accepted()||!isReferenceApproved(checked.excerpt()))throw new IllegalStateException("条件依据未通过当前核验");
+            found.add(checked.excerpt());if(found.size()==settings.resultLimit())break;
+        }
+        return List.copyOf(found);
     }
     public boolean isReferenceApproved(RuleCheckVerifiedExcerpt reference) {
         if(reference==null||reference.sourceId()==null||reference.chunkId()==null||!settings.referenceRevision().equals(reference.revision())
@@ -97,6 +138,10 @@ public final class RuleCheckApplicationService {
         String previous=context.confirmedConditions().get(key);
         if (previous!=null && !previous.isBlank()) throw new IllegalArgumentException("更改已声明条件须重新查证");
         var values=new LinkedHashMap<>(context.confirmedConditions());values.put(key,delta.get(key));
+        if(context.evidencePlan()!=null) {
+            if(evidenceFirst==null||!evidenceFirst.continuationIsCurrent(context))return rejected("澄清所用条款或原证据已变化，请重新查证");
+            return evidenceFirst.check(context.question(),validatedConditions(context.question(),values),context.evidencePlan());
+        }
         // 续答不重新选题，也不能沿用旧证据；配置/目录复核后仍走完整捕获与当前核验。
         return execute(context.question(),validatedConditions(context.question(),values),context);
     }
@@ -104,7 +149,17 @@ public final class RuleCheckApplicationService {
         try {
             var approved=approvedCatalogue();
             if (approved.isEmpty()) return rejected("当前引用版本没有可用的已审核规则");
-            var options=approved.values().stream().map(e->new RuleOption(e.template().ruleId(),e.questionScope())).toList();
+            var candidates=List.copyOf(approved.values());
+            if(expected==null&&selector.requiresScopedCandidates()) {
+                // 仅显式启用的选择器收窄；缺失声明不能被自由文案补成权限，旧封存请求保留原流程。
+                if(candidates.stream().anyMatch(e->!e.topicCoverage().enabled()||e.coverage().audiences().isEmpty()))
+                    return rejected("候选规则缺少服务端主题或培养对象覆盖声明，尚不能进行受控选题");
+                candidates=candidates.stream().filter(e->!topics.assess(question,e.topicCoverage()).blocked()
+                    &&e.coverage().audiences().containsAll(applicability.assess(question,e.coverage(),settings.referenceRevision()).requestedAudiences())).toList();
+                // 不替模型自动选唯一项；未知、多主题无共同覆盖或未覆盖对象不触发模型/检索。
+                if(candidates.isEmpty())return rejected("没有同时覆盖问题主题与培养对象的已审核候选，请明确需求或补充依据");
+            }
+            var options=candidates.stream().map(e->new RuleOption(e.template().ruleId(),e.questionScope())).toList();
             // 选择器只能选目录ID，不能回传规则正文、引用资格或猜测学生个人条件。
             String id;
             if (expected==null) id=selector.select(question,options);
@@ -113,7 +168,14 @@ public final class RuleCheckApplicationService {
                 if (!expected.entry().equals(approved.get(id))) return rejected("澄清所用规则已变化或退役，请重新查证");
             }
             var entry=approved.get(id);
-            if (entry==null) return rejected("尚不能确定该问题对应的已审核规则");
+            if (entry==null||options.stream().noneMatch(o->o.ruleId().equals(id))) return rejected("尚不能确定该问题对应的已审核规则");
+            // 对象核对独立于主题；即使主题未知，也保留明确培养对象未覆盖的拒绝原因。
+            var assessment=applicability.assess(question,entry.coverage(),settings.referenceRevision());
+            if(assessment.blocked())return new RuleCheckScopedResult(new RuleCheckDecision(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE,
+                settings.referenceRevision(),List.of(),List.of(),assessment.blockingReasons(),List.of()),null,null,null,assessment);
+            // 合法ID只证明目录准入；问题需求必须独立核对，不能让选择器自证范围匹配。
+            var topic=topics.assess(question,entry.topicCoverage());
+            if(topic.blocked())return rejected(String.join("；",topic.blockingReasons()));
             var declared=entry.template().conditions().stream().map(RuleCheckRuleTemplate.Condition::key).toList();
             if (!declared.containsAll(values.keySet())) return rejected("输入包含本规则未声明的条件");
             var outcome=retrieval.retrieve(question,settings.candidateLimit(),settings.resultLimit(),lexical,vector);
@@ -124,15 +186,15 @@ public final class RuleCheckApplicationService {
             // 捕获可能耗时；审核目录变化时不能用旧模板回答。资料资格另由决策reader再读。
             // 这仍是顺序复核，不代表目录、数据库与最终HTTP外发的原子提交。
             if (!entry.equals(approvedCatalogue().get(id))) return rejected("规则在处理过程中发生变化，请重新查证");
-            return scoped(decisions.decide(entry.template(),values,captured.snapshots()),entry,question,values,captured.snapshots());
+            return scoped(decisions.decide(applicability.constrain(entry.template(),assessment),values,captured.snapshots()),entry,question,values,captured.snapshots(),assessment);
         } catch (RuntimeException unavailable) {
             // 供应商或目录异常文本可能含敏感内容，不能作为学生回答正文返回。
             return rejected("查证链路暂不可用，尚不能确认结论");
         }
     }
-    private RuleCheckScopedResult scoped(RuleCheckDecision decision,CatalogEntry entry,String question,Map<String,String> values,List<RuleCheckEvidenceSnapshot> snapshots) {
+    private RuleCheckScopedResult scoped(RuleCheckDecision decision,CatalogEntry entry,String question,Map<String,String> values,List<RuleCheckEvidenceSnapshot> snapshots,RuleCheckApplicabilityGuard.Assessment assessment) {
         if (decision.status()==RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE)
-            return new RuleCheckScopedResult(decision,null,null);
+            return new RuleCheckScopedResult(decision,null,null,null,assessment);
         var rule=entry.template();var when=new LinkedHashMap<String,Map<String,String>>();
         rule.facts().forEach(fact->when.put(fact.id(),fact.when()));
         var scope=new RuleCheckScopedResult.Scope(rule.ruleId(),entry.questionScope(),rule.conditions(),when);
@@ -149,7 +211,7 @@ public final class RuleCheckApplicationService {
         }
         var refs=snapshots.stream().map(snapshot->new RuleCheckScopedResult.CapturedReference(snapshot.citationId(),snapshot.sourceId(),
             snapshot.chunkId(),snapshot.revision(),snapshot.checksum())).toList();
-        return new RuleCheckScopedResult(decision,scope,continuation,new RuleCheckScopedResult.ReleaseBinding(settings,entry,question,values,refs));
+        return new RuleCheckScopedResult(decision,scope,continuation,new RuleCheckScopedResult.ReleaseBinding(settings,entry,question,values,refs),assessment);
     }
     private RuleCheckScopedResult rejected(String reason) {return new RuleCheckScopedResult(refused(reason),null,null);}
     private Map<String,CatalogEntry> approvedCatalogue() {
@@ -177,16 +239,23 @@ public final class RuleCheckApplicationService {
         return new RuleCheckDecision(RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE,settings.referenceRevision(),
                 List.of(),List.of(),List.of(reason),List.of());
     }
-    /** 问题范围须与模板一起审核；目录ID在范围内并不自动证明问题语义匹配。 */
-    public record CatalogEntry(RuleCheckRuleTemplate template, String questionScope) {
+    /** 覆盖由服务端单独声明；自由范围文字和目录ID不能自动授予主题或对象权限。 */
+    public record CatalogEntry(RuleCheckRuleTemplate template, String questionScope,RuleCheckApplicabilityGuard.Coverage coverage,
+                               RuleCheckTopicGuard.Coverage topicCoverage) {
+        public CatalogEntry(RuleCheckRuleTemplate template,String questionScope){this(template,questionScope,RuleCheckApplicabilityGuard.Coverage.unspecified());}
+        public CatalogEntry(RuleCheckRuleTemplate template,String questionScope,RuleCheckApplicabilityGuard.Coverage coverage){this(template,questionScope,coverage,RuleCheckTopicGuard.Coverage.unspecified());}
         public CatalogEntry {
             Objects.requireNonNull(template);
+            Objects.requireNonNull(coverage);
+            Objects.requireNonNull(topicCoverage);
             if (questionScope==null || questionScope.isBlank() || questionScope.length()>2048)
                 throw new IllegalArgumentException("规则选择范围必须明确且有界");
         }
     }
     public record RuleOption(String ruleId, String questionScope) {}
     @FunctionalInterface public interface RuleSelector {
+        /** 明确启用候选准入；默认false避免隐式改写既有请求包、人工控制与历史回放。 */
+        default boolean requiresScopedCandidates(){return false;}
         String select(String question, List<RuleOption> approvedOptions);
     }
 }

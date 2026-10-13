@@ -12,13 +12,20 @@ import java.util.Objects;
 public record RuleCheckRuleTemplate(String ruleId, String referenceRevision, ReviewState reviewState,
                                     String reviewer, LocalDate reviewedAt, List<Fact> facts,
                                     List<Condition> conditions, List<String> evidenceGaps,
-                                    List<Conflict> conflicts) {
+                                    List<Conflict> conflicts, List<ConditionalEvidenceGap> conditionalEvidenceGaps) {
+    /** 旧模板的缺口仍为全局缺口；不能默默把旧规则改成仅在部分分支阻断。 */
+    public RuleCheckRuleTemplate(String ruleId, String referenceRevision, ReviewState reviewState,
+                                String reviewer, LocalDate reviewedAt, List<Fact> facts,
+                                List<Condition> conditions, List<String> evidenceGaps, List<Conflict> conflicts) {
+        this(ruleId,referenceRevision,reviewState,reviewer,reviewedAt,facts,conditions,evidenceGaps,conflicts,List.of());
+    }
     public RuleCheckRuleTemplate {
         requireText(ruleId); requireText(referenceRevision); Objects.requireNonNull(reviewState);
         if (reviewState == ReviewState.APPROVED && (reviewer == null || reviewer.isBlank() || reviewedAt == null))
             throw new IllegalArgumentException("已审规则必须保留实际审核责任");
         facts = List.copyOf(facts); conditions = List.copyOf(conditions);
         evidenceGaps = List.copyOf(evidenceGaps); conflicts = List.copyOf(conflicts);
+        conditionalEvidenceGaps = List.copyOf(conditionalEvidenceGaps);
         evidenceGaps.forEach(RuleCheckRuleTemplate::requireText);
         var definitions = new LinkedHashMap<String,Condition>();
         for (var condition : conditions)
@@ -33,8 +40,22 @@ public record RuleCheckRuleTemplate(String ruleId, String referenceRevision, Rev
                     throw new IllegalArgumentException("事实前提必须属于已声明条件及允许值");
             }
         }
+        for (var gap : conditionalEvidenceGaps)
+            for (var requirement : gap.when().entrySet()) {
+                var condition = definitions.get(requirement.getKey());
+                if (condition == null || !condition.allowedValues().contains(requirement.getValue()))
+                    throw new IllegalArgumentException("条件缺口必须属于已声明条件及允许值");
+            }
     }
     public enum ReviewState { DRAFT, APPROVED, RETIRED }
+    /** 只表达经审核的分支资料缺口；问题范围仍由服务端目录项限定，不能由模型提交缺口。 */
+    public record ConditionalEvidenceGap(String reason, Map<String,String> when) {
+        public ConditionalEvidenceGap {
+            requireText(reason); when=Map.copyOf(when);
+            if(when.isEmpty())throw new IllegalArgumentException("无条件资料缺口必须使用全局缺口");
+            when.forEach((key,value)->{requireText(key);requireText(value);});
+        }
+    }
     public record EvidenceBinding(UUID sourceId, UUID chunkId, String revision, String checksum,
                                   int startInclusive, int endExclusive, String quote) {
         public EvidenceBinding {

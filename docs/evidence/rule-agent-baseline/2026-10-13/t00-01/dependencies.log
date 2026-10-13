@@ -1,0 +1,58 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] ZhkuAgent                                                          [pom]
+[INFO] ZhkuAgent Shared Runtime                                           [jar]
+[INFO] ZhkuAgent Knowledge                                                [jar]
+[INFO] 
+[INFO] ------------------------< com.zhku:zhku-agent >-------------------------
+[INFO] Building ZhkuAgent 0.1.0-rc.1                                      [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- dependency:3.8.1:tree (default-cli) @ zhku-agent ---
+[INFO] 
+[INFO] -----------------------< com.zhku:agent-runtime >-----------------------
+[INFO] Building ZhkuAgent Shared Runtime 0.1.0-rc.1                       [2/3]
+[INFO]   from agent-runtime\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- dependency:3.8.1:tree (default-cli) @ agent-runtime ---
+[INFO] com.zhku:agent-runtime:jar:0.1.0-rc.1
+[INFO] \- org.springframework.ai:spring-ai-model:jar:1.0.0:compile
+[INFO]    +- org.springframework.ai:spring-ai-commons:jar:1.0.0:compile (version managed from 1.0.0)
+[INFO]    \- org.springframework.ai:spring-ai-template-st:jar:1.0.0:compile (version managed from 1.0.0)
+[INFO]       \- (org.springframework.ai:spring-ai-commons:jar:1.0.0:compile - version managed from 1.0.0; omitted for duplicate)
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.1.0-rc.1                            [3/3]
+[INFO]   from knowledge\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- dependency:3.8.1:tree (default-cli) @ knowledge ---
+[INFO] com.zhku:knowledge:jar:0.1.0-rc.1
+[INFO] +- com.zhku:agent-runtime:jar:0.1.0-rc.1:compile
+[INFO] |  \- org.springframework.ai:spring-ai-model:jar:1.0.9:compile (version managed from 1.0.0)
+[INFO] |     +- org.springframework.ai:spring-ai-commons:jar:1.0.9:compile (version managed from 1.0.9)
+[INFO] |     \- org.springframework.ai:spring-ai-template-st:jar:1.0.9:compile (version managed from 1.0.9)
+[INFO] |        \- (org.springframework.ai:spring-ai-commons:jar:1.0.9:compile - version managed from 1.0.9; omitted for duplicate)
+[INFO] +- org.springframework.ai:spring-ai-openai:jar:1.0.9:compile
+[INFO] |  +- (org.springframework.ai:spring-ai-model:jar:1.0.9:compile - version managed from 1.0.9; omitted for duplicate)
+[INFO] |  \- org.springframework.ai:spring-ai-retry:jar:1.0.9:compile (version managed from 1.0.9)
+[INFO] \- org.springframework.ai:spring-ai-pgvector-store:jar:1.0.9:compile
+[INFO]    \- org.springframework.ai:spring-ai-vector-store:jar:1.0.9:compile (version managed from 1.0.9)
+[INFO]       \- (org.springframework.ai:spring-ai-model:jar:1.0.9:compile - version managed from 1.0.9; omitted for duplicate)
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ZhkuAgent 0.1.0-rc.1:
+[INFO] 
+[INFO] ZhkuAgent .......................................... SUCCESS [  1.535 s]
+[INFO] ZhkuAgent Shared Runtime ........................... SUCCESS [  0.767 s]
+[INFO] ZhkuAgent Knowledge ................................ SUCCESS [  0.489 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.498 s
+[INFO] Finished at: 2026-10-13T09:36:17+08:00
+[INFO] ------------------------------------------------------------------------
+

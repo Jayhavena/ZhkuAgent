@@ -1,0 +1,103 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] ZhkuAgent                                                          [pom]
+[INFO] ZhkuAgent Shared Runtime                                           [jar]
+[INFO] ZhkuAgent Knowledge                                                [jar]
+[INFO] 
+[INFO] ------------------------< com.zhku:zhku-agent >-------------------------
+[INFO] Building ZhkuAgent 0.1.0-rc.1                                      [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] -----------------------< com.zhku:agent-runtime >-----------------------
+[INFO] Building ZhkuAgent Shared Runtime 0.1.0-rc.1                       [2/3]
+[INFO]   from agent-runtime\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent\agent-runtime\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ agent-runtime ---
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.1.0-rc.1                            [3/3]
+[INFO]   from knowledge\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 5 resources from src\main\resources to target\classes
+[INFO] Copying 21 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 3 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[WARNING] file.encoding cannot be set as system property, use <argLine>-Dfile.encoding=...</argLine> instead
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.retrieval.RuleAgentLoopDatabaseTest
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+15:38:06.724 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55514/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+15:38:06.818 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Schema history table "public"."flyway_schema_history" does not exist yet
+15:38:06.825 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.064s)
+15:38:06.844 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "public"."flyway_schema_history" ...
+15:38:06.936 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": << Empty Schema >>
+15:38:06.936 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+15:38:06.958 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "1 - create zhku knowledge schema"
+15:38:07.065 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "2 - add knowledge source visibility governance"
+15:38:07.114 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "3 - create zhku knowledge governance staging"
+15:38:07.206 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "4 - add zhku knowledge source version scope"
+15:38:07.242 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "5 - allow archived knowledge submission reimport"
+15:38:07.276 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "6 - add official notice lifecycle"
+15:38:07.344 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "7 - allow superseded notice audit visibility"
+15:38:07.369 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "8 - support reviewed internal official notice material"
+15:38:07.397 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "9 - add retrieval catalog and index audit"
+15:38:07.486 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "12 - create conversation session store"
+15:38:07.521 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "15 - create service guides"
+15:38:07.641 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "16 - create anonymous feedback"
+15:38:07.679 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "17 - create anonymous telemetry"
+15:38:07.728 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "18 - create campus agent run archive"
+15:38:07.791 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "19 - create preview identity and run ownership"
+15:38:07.836 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "20 - add conversation session ownership"
+15:38:07.866 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "21 - create campus run submission"
+15:38:07.901 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "22 - allow rule check capture audit"
+15:38:07.923 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 18 migrations to schema "public", now at version v22 (execution time 00:00.599s)
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.421 s -- in com.zhku.knowledge.retrieval.RuleAgentLoopDatabaseTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ZhkuAgent 0.1.0-rc.1:
+[INFO] 
+[INFO] ZhkuAgent .......................................... SUCCESS [  0.002 s]
+[INFO] ZhkuAgent Shared Runtime ........................... SUCCESS [  1.746 s]
+[INFO] ZhkuAgent Knowledge ................................ SUCCESS [  7.285 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  9.488 s
+[INFO] Finished at: 2026-10-13T15:38:10+08:00
+[INFO] ------------------------------------------------------------------------

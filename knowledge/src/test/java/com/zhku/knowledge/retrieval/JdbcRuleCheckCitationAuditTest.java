@@ -113,6 +113,16 @@ class JdbcRuleCheckCitationAuditTest {
     @Test void withdrawnOrPrivateSourceCannotBeAudited() throws SQLException {
         update("UPDATE knowledge_source SET publication_status='ARCHIVED',visibility_scope='INTERNAL_ONLY' WHERE id=?",source);refused(row());
     }
+    @Test void unpublishedSourceCannotBeAuditedWithOldCapturedIdentity() throws SQLException {
+        // 资格撤回不改变原chunk/version/hash，审计仍须按当前状态拒绝；未发布行按库约束转内部。
+        for(String status:List.of("DRAFT","REVIEWING")) {
+            update("UPDATE knowledge_source SET publication_status=?,visibility_scope='INTERNAL_ONLY' WHERE id=?",status,source);
+            refused(row());
+        }
+    }
+    @Test void publishedButInternalSourceCannotBeAudited() throws SQLException {
+        update("UPDATE knowledge_source SET visibility_scope='INTERNAL_ONLY' WHERE id=?",source);refused(row());
+    }
     @Test void unknownSharingAndWrongScopeAreRejected() throws SQLException {
         update("UPDATE knowledge_source SET visibility_scope='INTERNAL_ONLY',sharing_rights_confirmed=FALSE WHERE id=?",source);refused(row());
         update("UPDATE knowledge_source SET sharing_rights_confirmed=TRUE,visibility_scope='STUDENT_VISIBLE',knowledge_scope='OTHER' WHERE id=?",source);refused(row());

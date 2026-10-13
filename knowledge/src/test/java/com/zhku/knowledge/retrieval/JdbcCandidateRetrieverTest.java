@@ -132,6 +132,25 @@ class JdbcCandidateRetrieverTest {
     }
 
     @Test
+    void internalCorpusCannotAlterChineseIdfRankingOfEligibleCandidates() throws Exception {
+        activateProfile();
+        String hidden="缓考";
+        update("UPDATE knowledge_chunk SET content=?,content_checksum=? WHERE id=?",hidden,checksum(hidden),INTERNAL_CHUNK);
+        update("UPDATE retrieval_index_entry SET content_checksum=? WHERE chunk_id=?",checksum(hidden),INTERNAL_CHUNK);
+        var experimental=JdbcLexicalCandidateRetriever.forChineseBigramEvaluation(dataSource,filter,PROFILE,"PUBLIC_ELECTIVE",CHUNKING_VERSION);
+        var actual=experimental.retrieve("修读 缓考",2);
+        var unsafePool=new java.util.ArrayList<>(actual);
+        unsafePool.add(new RetrievedChunk(INTERNAL_CHUNK,hidden,"合成内部标题","合成内部第1条",1,"内部细则",checksum(hidden),INTERNAL_SOURCE));
+        // 同分改为正文hash序后B排在A前；故意把内部“缓考”加入df会让A超过B，反例仍须能识别泄漏。
+        var deliberatelyUnsafe=ChineseBigramLexicalRanker.rank("修读 缓考",unsafePool,3).stream().filter(c->!c.chunkId().equals(INTERNAL_CHUNK)).toList();
+        String directory=System.getProperty("zhku.rulecheck.evidenceDir");
+        if(directory!=null)Files.write(Path.of(directory).resolve("c04-internal-idf-control.json"),new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsBytes(
+            Map.of("fixtureKind","SYNTHETIC","actualEligibleRanking",actual,"deliberatelyUnsafeDfControlNotProduction",deliberatelyUnsafe)),java.nio.file.StandardOpenOption.CREATE_NEW);
+        assertThat(actual).extracting(RetrievedChunk::chunkId).containsExactly(ELIGIBLE_CHUNK_B,ELIGIBLE_CHUNK_A);
+        assertThat(deliberatelyUnsafe).extracting(RetrievedChunk::chunkId).containsExactly(ELIGIBLE_CHUNK_A,ELIGIBLE_CHUNK_B);
+    }
+
+    @Test
     void sharedHybridCandidatesCanBeCapturedAndReverifiedWithRealReader() {
         activateProfile();
         var lexical = new JdbcLexicalCandidateRetriever(dataSource, filter, PROFILE, "PUBLIC_ELECTIVE");

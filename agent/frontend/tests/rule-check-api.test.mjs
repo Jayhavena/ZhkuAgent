@@ -38,6 +38,13 @@ test('check sends only explicit conditions and server continuation token',async(
   assert.deepEqual(JSON.parse(seen[0].options.body),{question:'合成问题',confirmedConditions:{year:'A'},clarificationToken:HANDLE})
   assert.equal(seen[0].url,PREFIX+'/rule-check');assert.equal(seen[0].options.headers['X-CSRF-TOKEN'],'synthetic')
 })
+test('supporting references obey the same citation contract and a five item limit',async()=>{
+  const base=answered();const cite=base.confirmedFacts[0].citations[0]
+  for(const refs of [[{...cite,originalToken:'untrusted'}],Array.from({length:6},()=>cite)]) {
+    const c=createRuleCheckClient({session:session(),fetchImpl:async()=>json({...base,supportingReferences:refs})})
+    await assert.rejects(c.check('q',{}),e=>e.code==='BAD_RESPONSE')
+  }
+})
 test('new question discards late successful answer even when abort ignored',async()=>{
   const pending=[];const c=createRuleCheckClient({session:session(),fetchImpl:()=>new Promise(r=>pending.push(r))})
   const first=c.check('first',{});const rejected=assert.rejects(first,e=>e.code==='STALE_RESPONSE');await tick();assert.equal(pending.length,1)

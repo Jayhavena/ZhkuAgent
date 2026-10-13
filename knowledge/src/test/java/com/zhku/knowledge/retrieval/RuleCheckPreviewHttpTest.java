@@ -198,6 +198,9 @@ class RuleCheckPreviewHttpTest {
         withApp(clarificationFixture?ClarificationFixtureConfiguration.class:null,action);
     }
     static void withApp(Class<?> testConfiguration,Checked action) throws Exception {
+        withApp(testConfiguration,Map.of(),action);
+    }
+    static void withApp(Class<?> testConfiguration,Map<String,String> overrides,Checked action) throws Exception {
         String url=System.getProperty("zhku.db.url");RuleCheckDatabaseTestTarget.verify(url);
         String password=System.getenv("ZHKU_DB_PASSWORD");if(password==null||password.isBlank())throw new IllegalArgumentException("缺少数据库环境凭据");
         var source=new DriverManagerDataSource(url,"zhkuagent",password);
@@ -215,13 +218,16 @@ class RuleCheckPreviewHttpTest {
             var application=RuleCheckPreviewApplication.application();
             // 仅JUnit测试源码显式装配合成服务替身；生产没有目录审批开关，原CLOSED工厂保留。
             if(testConfiguration!=null)application.addPrimarySources(List.of(testConfiguration));
-            context=(ServletWebServerApplicationContext)application.run(
+            var arguments=new ArrayList<>(List.of(
                 "--server.port=0","--spring.main.banner-mode=off","--logging.level.root=ERROR",
                 "--zhku.rule-check-preview.enabled=true","--zhku.rule-check-preview.initialize=true",
                 "--zhku.db.url="+url,"--zhku.db.username=zhkuagent",
                 "--zhku.rule-check-preview.profile-id=synthetic-http","--zhku.rule-check-preview.chunking-version=synthetic-v1",
                 "--zhku.rule-check-preview.required-scope=PUBLIC_ELECTIVE_CREDIT_LIMIT","--zhku.rule-check-preview.reference-revision=2025.9.2",
-                "--zhku.rule-check-preview.candidate-limit=40","--zhku.rule-check-preview.result-limit=5");
+                "--zhku.rule-check-preview.candidate-limit=40","--zhku.rule-check-preview.result-limit=5"));
+            // 准入测试消费正式Bean而非Primary替身；同一键先移除，避免依赖重复参数的覆盖顺序。
+            overrides.forEach((key,value)->{arguments.removeIf(argument->argument.startsWith("--"+key+"="));arguments.add("--"+key+"="+value);});
+            context=(ServletWebServerApplicationContext)application.run(arguments.toArray(String[]::new));
             port=context.getWebServer().getPort();identity=context.getBean(PreviewIdentityRepository.class);
             action.run(new App(context,port,source,accounts));
         } finally {

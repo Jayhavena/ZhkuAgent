@@ -35,6 +35,22 @@ test('failed original retrieval clears old original and outcome remains explicit
   await flow.start('q');await flow.openOriginal(ID);fail=true;await flow.openOriginal(ID)
   assert.equal(flow.state.original,null);assert.match(flow.state.error,/变化|重新查证/);flow.dispose()
 })
+test('explicitly expired or changed original invalidates the supported answer without automatic retry',async()=>{
+  for(const status of [404,409]) {
+    let calls=0;const {flow}=setup({check:async()=>{calls++;return {status:'ANSWERED'}},original:async()=>{throw {status,code:'ORIGINAL_CHANGED'}},cancelResults(){}})
+    await flow.start('q');await flow.openOriginal(ID)
+    assert.equal(flow.state.result,null);assert.equal(flow.state.original,null);assert.equal(flow.state.question,'q');assert.equal(calls,1);assert.match(flow.state.error,/重新查证/);flow.dispose()
+  }
+})
+test('an original network failure alone does not claim that the already received answer was revoked',async()=>{
+  const {flow}=setup({check:async()=>({status:'ANSWERED'}),original:async()=>{throw {code:'NETWORK_UNAVAILABLE'}},cancelResults(){}})
+  await flow.start('q');await flow.openOriginal(ID);assert.equal(flow.state.result.status,'ANSWERED');assert.equal(flow.state.original,null);flow.dispose()
+})
+test('a late expired original response cannot invalidate a newer answer',async()=>{
+  let rejectOriginal;const {flow}=setup({check:async q=>({status:'ANSWERED',question:q}),original:()=>new Promise((_,reject)=>{rejectOriginal=reject}),cancelResults(){}})
+  await flow.start('old');const old=flow.openOriginal(ID);await flow.start('new');rejectOriginal({status:404,code:'ORIGINAL_UNAVAILABLE'});await old
+  assert.equal(flow.state.result.question,'new');assert.equal(flow.state.error,'');flow.dispose()
+})
 test('connection loss records unconfirmed result and never automatically resubmits',async()=>{
   let calls=0;const {flow}=setup({check:async()=>{calls++;throw {code:'NETWORK_UNAVAILABLE'}},cancelResults(){}})
   await flow.start('q');assert.equal(flow.state.result,null);assert.equal(calls,1);assert.match(flow.state.error,/未确认/);assert.doesNotMatch(flow.state.error,/未受理|已受理/);flow.dispose()

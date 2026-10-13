@@ -35,7 +35,13 @@ export function createRuleCheckWorkflow({ client = ruleCheckClient, session = ru
       state.original = null; state.originalBusy = true; state.error = ''
       const current = () => alive && expected === generation && originalRound === originalGeneration && epoch === session.state.epoch
       try { const original = await client.original(token); if (current()) state.original = original }
-      catch (error) { if (current() && error.code !== 'STALE_RESPONSE') state.error = ruleCheckErrorMessage(error) }
+      catch (error) {
+        if (current() && error.code !== 'STALE_RESPONSE') {
+          // 明确失效时不能继续挂着“有原文支持”；网络故障本身不证明资料撤回，也不自动重问。
+          if (error.status === 404 || error.status === 409) state.result = null
+          state.error = ruleCheckErrorMessage(error)
+        }
+      }
       finally { if (current()) state.originalBusy = false }
     },
     reset,

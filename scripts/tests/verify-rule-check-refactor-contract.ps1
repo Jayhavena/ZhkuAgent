@@ -53,9 +53,49 @@ foreach ($testCase in $testCases) {
 }
 $testGood=Get-RuleCheckVerificationPlan @testBase
 if ($testGood.Database -or $testGood.Selected.Count -ne 1) {throw '合法Unit选择结果错误'}
+# 新Agent证据不能默默写入旧日期；检查真实生产函数，不创建批次或外部进程。
+$newAgentRoot='docs/evidence/rule-agent-contract/2026-10-13'
+$newAgentPlan=Get-RuleCheckVerificationPlan -Root $testRoot -Mode Unit -Phase $testPhase -Tests RuleAgentContractTest -Port 55439 -EvidenceRoot $newAgentRoot
+$newAgentPass=$newAgentPlan.Directory -eq (Join-Path $testRoot "$newAgentRoot/$testPhase") -and !$newAgentPlan.Database
+$testResults+=@{name='新Agent测试登记与显式证据根';passed=$newAgentPass}
+Write-Output "$(if($newAgentPass){'PASS'}else{'FAIL'}) 新Agent证据根"
+foreach($badRoot in @('../outside','C:/outside','docs/evidence/../outside','knowledge/evidence','docs/evidence/')){
+    $rejected=$false
+    try{Get-RuleCheckVerificationPlan -Root $testRoot -Mode Unit -Phase $testPhase -Tests RuleAgentContractTest -Port 55439 -EvidenceRoot $badRoot|Out-Null}catch{$rejected=$true}
+    $testResults+=@{name="拒绝证据根-$badRoot";passed=$rejected}
+}
 $testDatabase=Get-RuleCheckVerificationPlan -Root $testRoot -Mode Database -Phase $testPhase -Tests KnowledgeSchemaTest -Port 55439 -DatabaseUrl ''
 if ($testDatabase.DatabaseUrl -ne 'jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e') {throw '合法临时库目标错误'}
+$testPackage04Root=Join-Path $testRoot ('.superpowers/sdd/2026-10-07-rule-check-p0-plan/package04-plan-fixture-'+[guid]::NewGuid().ToString('N'))
+$testPackage04Java=Join-Path $testPackage04Root 'knowledge/src/test/java/RuleCheck2025ReliabilityReplayTest.java'
+New-Item -ItemType Directory -Path (Split-Path $testPackage04Java) -Force|Out-Null
+'fixture'|Set-Content -LiteralPath $testPackage04Java
+# 正式回放目录完成后必须拒绝覆盖；独立根用于继续核对特殊目录映射，而不触碰历史证据。
+$testPackage04=Get-RuleCheckVerificationPlan -Root $testPackage04Root -Mode Database -Phase package04-application-replay -Tests RuleCheck2025ReliabilityReplayTest -Port 55439 -DatabaseUrl ''
+$testPackage04Expected=Join-Path $testPackage04Root 'docs/evidence/rule-check-refactor/2026-10-11/package-04/application-replay'
+if ($testPackage04.Directory -ne $testPackage04Expected -or $testPackage04.DataProvenance -ne 'REVIEWED_2025_TEXT') {throw '第四包必须写入独立证据目录并标记审核资料'}
 $testResults+=@{name='合法Unit和Database计划不启动进程';passed=($script:testExternalStarts -eq 0);externalStarts=$script:testExternalStarts}
+foreach($testProvenanceCase in @(
+    @{tests='KnowledgeSchemaTest';expected='SYNTHETIC_FIXTURES'},
+    @{tests='RuleCheck2025RobustnessTest';expected='MIXED_REVIEWED_2025_AND_SYNTHETIC_FIXTURES'},
+    @{tests='RuleCheck2025RobustnessTest,RuleCheck2025TrialTest';expected='MIXED_REVIEWED_2025_AND_SYNTHETIC_FIXTURES'},
+    @{tests='RuleCheck2025TrialTest';expected='REVIEWED_2025_TEXT'},
+    @{tests='RuleCheck2025ApplicabilityTest';expected='REVIEWED_2025_TEXT'},
+    @{tests='RuleCheck2025ApplicabilityTest,JdbcCandidateRetrieverTest';expected='MIXED_REVIEWED_2025_AND_SYNTHETIC_FIXTURES'},
+    @{tests='RuleCheck2025ApplicabilityTest,RuleCheckApplicabilityTest';mode='Acceptance';expected='MIXED_REVIEWED_2025_AND_SYNTHETIC_FIXTURES'},
+    @{tests='RuleCheck2025TrialTest,RuleCheckApplicationServiceTest';mode='Acceptance';expected='MIXED_REVIEWED_2025_AND_SYNTHETIC_FIXTURES'},
+    @{tests='RuleCheck2025DevelopmentCaptureTest';expected='REVIEWED_2025_TEXT'},
+    @{tests='RuleCheck2025LexicalCalibrationTest';expected='REVIEWED_2025_TEXT'},
+    @{tests='RuleCheck2025LexicalCalibrationTest,JdbcCandidateRetrieverTest';expected='MIXED_REVIEWED_2025_AND_SYNTHETIC_FIXTURES'},
+    @{tests='RuleCheck2025TrialTest,RuleCheck2025DevelopmentCaptureTest';expected='REVIEWED_2025_TEXT'},
+    @{tests='RuleCheck2025TrialTest,JdbcRuleCheckEvidenceReaderTest';expected='MIXED_REVIEWED_2025_AND_SYNTHETIC_FIXTURES'}
+)) {
+    $testProvenanceMode=if($testProvenanceCase.mode){$testProvenanceCase.mode}else{'Database'}
+    $testProvenance=Get-RuleCheckVerificationPlan -Root $testRoot -Mode $testProvenanceMode -Phase $testPhase -Tests $testProvenanceCase.tests -Port 55439 -DatabaseUrl ''
+    $testProvenancePass=$testProvenance.DataProvenance -eq $testProvenanceCase.expected
+    $testResults+=@{name="资料来源分类-$($testProvenanceCase.expected)";passed=$testProvenancePass;externalStarts=$script:testExternalStarts}
+    Write-Output "$(if($testProvenancePass){'PASS'}else{'FAIL'}) 资料来源分类-$($testProvenanceCase.expected)"
+}
 $testFixture=Join-Path $testRoot ('.superpowers/sdd/2026-10-07-rule-check-p0-plan/contract-fixture-'+[guid]::NewGuid().ToString('N'))
 $testFiles=@('pom.xml','knowledge/pom.xml','agent-runtime/pom.xml','AGENTS.md','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties',
     'scripts/Import-ZhkuCredentials.ps1','knowledge/scripts/verify-rule-check-refactor.ps1','knowledge/scripts/verify-rule-check-refactor.cmd',

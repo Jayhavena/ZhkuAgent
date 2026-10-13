@@ -13,6 +13,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.zhku.knowledge.security.RuleCheckPreviewSecurityConfiguration;
 import com.zhku.knowledge.security.PreviewIdentityRepository;
 import com.zhku.knowledge.rulecheck.*;
+import com.zhku.knowledge.retrieval.Reviewed2025ControlledCatalogue;
+import com.zhku.knowledge.retrieval.Reviewed2025ReportCatalogue;
+import org.springframework.beans.factory.ObjectProvider;
 import com.zhku.knowledge.retrieval.EmbeddingClient;
 import com.zhku.knowledge.retrieval.RetrieverUnavailableException;
 import java.time.Clock;
@@ -22,7 +25,7 @@ import java.util.regex.Pattern;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 
-/** 当前仅装配关闭目录与身份验收；不提供真实资料或供应商激活开关。 */
+/** 默认关闭；已审核2025单主题只由专用回环临时库的显式受控入口装配。 */
 @Configuration(proxyBeanMethods=false)
 public class RuleCheckPreviewConfiguration {
     private static final String PREFIX="zhku.rule-check-preview.";
@@ -55,10 +58,33 @@ public class RuleCheckPreviewConfiguration {
                 ||!"false".equals(environment.getProperty("spring.flyway.enabled"))
                 ||!"false".equals(environment.getProperty("spring.flyway.out-of-order")))
             throw new IllegalArgumentException("查证迁移要求显式同意且禁止自动与乱序迁移");
-        if(!"CLOSED".equals(environment.getProperty(PREFIX+"catalogue-mode")))
+        if(!"CLOSED".equals(environment.getProperty(PREFIX+"catalogue-mode"))&&!controlled(environment))
             throw new IllegalArgumentException("真实资料未通过时查证目录必须关闭");
         runtimeSettings(environment);
+        if(controlled(environment)) {
+            if(!java.util.Set.of("SEALED_REPLAY","TASK_PLAN_REPLAY").contains(environment.getProperty(PREFIX+"selector-mode",""))
+                    ||!"controlled-2025-local".equals(environment.getProperty(PREFIX+"profile-id"))
+                    ||!"handbook-2025-clause-verbatim-v1".equals(environment.getProperty(PREFIX+"chunking-version"))
+                    ||!"RULE_CHECK_PUBLIC_ELECTIVE_2025".equals(environment.getProperty(PREFIX+"required-scope"))
+                    ||!"20".equals(environment.getProperty(PREFIX+"candidate-limit"))
+                    ||!"5".equals(environment.getProperty(PREFIX+"result-limit")))
+                throw new IllegalArgumentException("受控2025组合必须完整且显式，当前只允许封存回放");
+            try {
+                var root=java.nio.file.Path.of(environment.getProperty(PREFIX+"repository-root","")).normalize();
+                if(!root.isAbsolute()||!java.nio.file.Files.isDirectory(root.resolve("knowledge/src")))throw new IllegalArgumentException();
+                // 资料和回放资格在数据库连接/迁移/监听前检查；目录开关不能代替原件及直接审核记录。
+                if(taskReplay(environment)) {
+                    new Reviewed2025ReportCatalogue(root).close();
+                    try(var replay=new SealedRuleTaskReplay(root,environment.getProperty(PREFIX+"task-batch-directory",SealedRuleTaskReplay.BASE),environment.getProperty(PREFIX+"task-package-sha256"),environment.getProperty(PREFIX+"task-summary-sha256"))){}
+                } else {
+                    new Reviewed2025ControlledCatalogue(root).close();
+                    try(var replay=new SealedRuleSelectionReplay(root)){}
+                }
+            }catch(Exception invalid){throw new IllegalArgumentException("受控资料、回放或根目录不合格");}
+        }
     }
+    static boolean controlled(Environment e){return "REVIEWED_2025_CONTROLLED".equals(e.getProperty(PREFIX+"catalogue-mode"));}
+    static boolean taskReplay(Environment e){return controlled(e)&&"TASK_PLAN_REPLAY".equals(e.getProperty(PREFIX+"selector-mode"));}
     static RuleCheckRuntimeSettings runtimeSettings(Environment environment) {
         try {
             String[] keys={"profile-id","chunking-version","required-scope","reference-revision"};
@@ -96,9 +122,37 @@ public class RuleCheckPreviewConfiguration {
         // 未审核官网host前只提供库内定位，不把资料字段自动升级为安全原件链接。
         return new RuleCheckOriginalEvidenceService(reader::readLocated,settings.referenceRevision(),java.util.Set.of());
     }
-    @Bean public RuleCheckRuntimeSettings ruleCheckRuntimeSettings(Environment environment) {return runtimeSettings(environment);}
+    @Bean(destroyMethod="close") public Reviewed2025ControlledCatalogue reviewed2025Catalogue(Environment environment,
+            DataSource ruleCheckDataSource,Flyway ruleCheckMigration)throws Exception {
+        if(!controlled(environment))return null;
+        var root=java.nio.file.Path.of(environment.getProperty(PREFIX+"repository-root"));
+        Reviewed2025ControlledCatalogue catalogue=taskReplay(environment)?new Reviewed2025ReportCatalogue(root):new Reviewed2025ControlledCatalogue(root);
+        catalogue.installOnIsolatedDatabase(ruleCheckDataSource);return catalogue;
+    }
+    @Bean(destroyMethod="close") public SealedRuleSelectionReplay ruleCheckSelectionReplay(Environment environment)throws Exception {
+        return controlled(environment)&&!taskReplay(environment)?new SealedRuleSelectionReplay(java.nio.file.Path.of(environment.getProperty(PREFIX+"repository-root"))):null;
+    }
+    @Bean(destroyMethod="close") public SealedRuleTaskReplay ruleCheckTaskReplay(Environment environment)throws Exception {
+        return taskReplay(environment)?new SealedRuleTaskReplay(java.nio.file.Path.of(environment.getProperty(PREFIX+"repository-root")),
+            environment.getProperty(PREFIX+"task-batch-directory",SealedRuleTaskReplay.BASE),
+            environment.getProperty(PREFIX+"task-package-sha256"),environment.getProperty(PREFIX+"task-summary-sha256")):null;
+    }
+    @Bean public RuleCheckRuntimeSettings ruleCheckRuntimeSettings(Environment environment,ObjectProvider<Reviewed2025ControlledCatalogue> catalogue) {
+        var actual=catalogue.getIfAvailable();return actual==null?runtimeSettings(environment):actual.settings();
+    }
     @Bean public RuleCheckApplicationService ruleCheckApplicationService(DataSource ruleCheckDataSource,Flyway ruleCheckMigration,
-            RuleCheckRuntimeSettings settings,Clock ruleCheckClock) {
+            RuleCheckRuntimeSettings settings,Clock ruleCheckClock,Environment environment,
+            ObjectProvider<Reviewed2025ControlledCatalogue> catalogue,ObjectProvider<SealedRuleSelectionReplay> replay,
+            ObjectProvider<SealedRuleTaskReplay> taskReplay)throws Exception {
+        if(controlled(environment)) {
+            var actual=catalogue.getObject();var entries=actual.reviewedCatalogue(java.nio.file.Path.of(environment.getProperty(PREFIX+"repository-root")));
+            if(taskReplay(environment))return RuleCheckRuntimeFactory.createEvidenceFirst2025(ruleCheckDataSource,settings,()->{
+                // 审核资格不是启动时的永久许可；每次选择、发布和续答都重新核对直接审核记录。
+                try{return actual.reviewedCatalogue(java.nio.file.Path.of(environment.getProperty(PREFIX+"repository-root")));}
+                catch(Exception revoked){throw new IllegalStateException("审核目录资格已变化");}
+            },taskReplay.getObject(),()->java.util.UUID.randomUUID().toString(),ruleCheckClock);
+            return RuleCheckRuntimeFactory.createControlled2025(ruleCheckDataSource,settings,()->entries,replay.getObject(),()->java.util.UUID.randomUUID().toString(),ruleCheckClock);
+        }
         // 关闭目录在选择/检索之前返回缺证；不能用合成模板或一般RAG偷接真实学生入口。
         return RuleCheckRuntimeFactory.create(ruleCheckDataSource,settings,List::of,
             (question,options)->{throw new IllegalStateException("规则选择尚未启用");},

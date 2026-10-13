@@ -25,8 +25,10 @@ class RuleCheckControllerTest {
     RuleCheckApplicationService service;MockMvc mvc;
     MockHttpSession session;TrustedActor actor;
     PreviewIdentityRepository identities;RuleCheckOriginalEvidenceService originals;
+    List<RuleCheckVerifiedExcerpt> supportingFixture=List.of();
     @BeforeEach void setup() {
-        service=mock(RuleCheckApplicationService.class);
+        service=mock(RuleCheckApplicationService.class,i->i.getMethod().getName().equals("supportingReferences")
+            ?supportingFixture:org.mockito.Answers.RETURNS_DEFAULTS.answer(i));
         session=new MockHttpSession();actor=new TrustedActor(UUID.randomUUID(),TrustedActor.Role.USER,0);authenticate(actor);
         session.setAttribute(org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
             org.springframework.security.core.context.SecurityContextHolder.getContext());
@@ -51,6 +53,23 @@ class RuleCheckControllerTest {
                 List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"))));
     }
     static RuleCheckRuntimeSettings settings(){return new RuleCheckRuntimeSettings("p","c","SYNTHETIC_SCOPE","2025.9.2",40,5);}
+    @Test void clarificationAndRefusalExposeSessionBoundOriginalsWithoutInventingFacts()throws Exception {
+        supportingFixture=fact("support","原文只是条件依据").evidence();
+        for(var decision:states().filter(d->d.status()==RuleCheckDecision.Status.NEED_CLARIFICATION||d.status()==RuleCheckDecision.Status.INSUFFICIENT_EVIDENCE).toList()) {
+            when(service.checkWithContext("q",Map.of())).thenReturn(scoped(decision,"q",Map.of()));
+            var response=mvc.perform(post(P).contentType("application/json").content(payload("q",Map.of())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.confirmedFacts.length()").value(0))
+                .andExpect(jsonPath("$.supportingReferences.length()").value(1)).andReturn();
+            var body=JSON.readTree(response.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+            String token=body.path("supportingReferences").get(0).path("originalToken").asText();
+            mvc.perform(get(P+"/originals/"+token)).andExpect(status().isOk());
+            when(service.isReferenceApproved(any())).thenReturn(false);
+            mvc.perform(get(P+"/originals/"+token)).andExpect(status().isConflict());
+            when(service.isReferenceApproved(any())).thenReturn(true);
+            mvc.perform(post(P).contentType("application/json").content(payload("q",Map.of()))).andExpect(status().isOk());
+            mvc.perform(get(P+"/originals/"+token)).andExpect(status().isNotFound());
+        }
+    }
     static RuleCheckDecision.SupportedFact fact(String id,String text) {
         return new RuleCheckDecision.SupportedFact(id,text,List.of(new RuleCheckVerifiedExcerpt("cite-"+id,UUID.randomUUID(),UUID.randomUUID(),"2025.9.2","a".repeat(64),3,5,"原文")));
     }
