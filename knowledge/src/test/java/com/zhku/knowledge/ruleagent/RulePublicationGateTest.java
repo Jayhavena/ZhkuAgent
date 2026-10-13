@@ -199,4 +199,44 @@ class RulePublicationGateTest {
             proposal(professional.id(),publicCourse.id()),review,arrangement))
             .hasMessage(Code.REVIEW_SCHEMA_INVALID.name());
     }
+
+    @Test void thirdNonterminalDecisionStopsWithoutSpendingReservedReviewCall()throws Exception {
+        var fixture=new RuleAgentRunnerTest();
+        var calls=new java.util.concurrent.atomic.AtomicInteger();
+        var reviews=new java.util.concurrent.atomic.AtomicInteger();
+        RuleAgentRunner.DecisionPort decision=(view,timeout)->{
+            try{return new RuleAgentRunner.Reply(new ObjectMapper().writeValueAsString(new Search("q1","类别"+calls.incrementAndGet())),false);}
+            catch(Exception invalid){throw new IllegalStateException("模拟动作编码失败");}
+        };
+        RuleSemanticReviewPort reviewer=(safe,timeout)->{reviews.incrementAndGet();throw new AssertionError("预算停止后不应核验");};
+        var original=RuleAgentRunner.Input.single(fixture.owner,fixture.task,"选修课程类别有哪些？");
+        var context=com.zhku.agent.agent.runtime.AgentRunContext.create(original.question());
+        var outcome=new RuleAgentRunner(decision,new RuleActionBroker(fixture.tools(true,true,false)),java.time.Clock.systemUTC(),reviewer).run(context,original);
+        assertThat(calls.get()).isEqualTo(3);
+        assertThat(reviews.get()).isZero();
+        assertThat(outcome.snapshot().taskStatus()).isEqualTo(TaskStatus.STOPPED);
+        assertThat(outcome.snapshot().execution().modelAttemptCount()).isEqualTo(3);
+        assertThat(outcome.snapshot().result().items().getFirst().issues().getFirst().reasonCode()).isEqualTo(ReasonCode.BUDGET_EXCEEDED);
+    }
+
+    @Test void cancelDuringIndependentReviewDoesNotPublishAndClosesReviewPort()throws Exception {
+        var fixture=new RuleAgentRunnerTest();
+        var closed=new java.util.concurrent.atomic.AtomicBoolean();
+        var original=RuleAgentRunner.Input.single(fixture.owner,fixture.task,"选修课程类别有哪些？");
+        var context=com.zhku.agent.agent.runtime.AgentRunContext.create(original.question());
+        RuleSemanticReviewPort reviewer=new RuleSemanticReviewPort(){
+            public SemanticAssessment assess(SemanticInput safe,java.time.Duration timeout){
+                context.requestStop(com.zhku.agent.agent.runtime.AgentStopReason.USER_REQUEST);
+                return null;
+            }
+            public void close(){closed.set(true);}
+        };
+        var outcome=new RuleAgentRunner(fixture.responding(false),new RuleActionBroker(fixture.tools(true,true,false)),java.time.Clock.systemUTC(),reviewer).run(context,original);
+        assertThat(closed.get()).isTrue();
+        assertThat(outcome.snapshot().taskStatus()).isEqualTo(TaskStatus.STOPPED);
+        assertThat(outcome.snapshot().execution().modelAttemptCount()).isEqualTo(4);
+        assertThat(outcome.snapshot().result().items().getFirst().claims()).isEmpty();
+        assertThat(outcome.snapshot().result().evidence()).isEmpty();
+        assertThat(context.snapshot().terminated()).isTrue();
+    }
 }
