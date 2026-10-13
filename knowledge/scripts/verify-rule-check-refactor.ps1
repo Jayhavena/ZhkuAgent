@@ -19,7 +19,7 @@ function Get-RuleCheckVerificationPlan {
     if ($Phase -notmatch '^[a-z0-9][a-z0-9-]{0,79}$') {throw '批次必须是1至80位小写字母、数字或连字符'}
     if ($Port -lt 1024 -or $Port -gt 65535 -or $Port -eq 54329) {throw '拒绝原演示库端口或非法端口'}
     if ([string]::IsNullOrWhiteSpace($Tests)) {throw '测试必须显式选类'}
-    $unit=@('RuleAgentOnlineFactoryTest','RuleAgentProviderTest','RuleAgentTaskStoreTest','RuleAgentRunnerTest','RuleAgentEvidenceToolsTest','RuleAgentContractTest','FinalBatchReplayConfigurationTest','SealedRuleTaskReplayTest','RuleCheckEvidenceFirstTest','BoundedRuleTaskPlannerTest','HybridRetrievalServiceTest','HybridCandidateFusionTest','GroundedAnswerComposerTest',
+    $unit=@('RulePublicationGateTest','RuleAgentOnlineFactoryTest','RuleAgentProviderTest','RuleAgentTaskStoreTest','RuleAgentRunnerTest','RuleAgentEvidenceToolsTest','RuleAgentContractTest','FinalBatchReplayConfigurationTest','SealedRuleTaskReplayTest','RuleCheckEvidenceFirstTest','BoundedRuleTaskPlannerTest','HybridRetrievalServiceTest','HybridCandidateFusionTest','GroundedAnswerComposerTest',
         'RetrievalAugmentedAnswerServiceTest','RetrievalEligibilityFilterTest','ZhkuLocalAdminControllerTest',
         'ZhkuLocalAdminPageResourceTest','ModelOutputParserTest','AnswerEvidenceGuardTest','CandidateResponseMappingTest',
         'SpringAiAdapterContractTest','CandidateReviewServiceTest','RetrievalIndexingRepeatTest','RuleCheckDatabaseTestTargetTest',
