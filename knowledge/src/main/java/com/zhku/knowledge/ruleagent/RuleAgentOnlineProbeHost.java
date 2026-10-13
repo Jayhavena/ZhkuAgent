@@ -15,7 +15,7 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 /** 独立工程探针宿主；学生HTTP入口由T06另行接入。 */
 public final class RuleAgentOnlineProbeHost {
     private static final ObjectMapper JSON=new ObjectMapper().findAndRegisterModules();
-    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-13/t05-probe-02/request-package.json";
+    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-13/t05-probe-03/request-package.json";
     private static final String P01_QUESTION="专业选修课和公共选修课在修读安排上有什么不同？";
     public static Map<String,Object> environmentCheck(Map<String,String> env){
         var settings=RuleAgentProvider.Settings.environment(env);String sha=env.get("ZHKU_RULE_AGENT_PROBE_SHA256");
@@ -26,7 +26,10 @@ public final class RuleAgentOnlineProbeHost {
     static void validatePackage(JsonNode pack){
         var expectedCase=JSON.createObjectNode().put("id","P01").put("question",P01_QUESTION);
         // 哈希绑定外发许可；预算/载荷身份另行验证，禁止新jar消费旧5秒包或追加已成功的P02。
-        if(!pack.path("endpoint").asText().equals(RuleAgentProvider.BEIJING.toString())||!pack.path("model").asText().equals("qwen-plus")||!pack.path("budgetRevision").asText().equals(BUDGET_REVISION)
+        if(!pack.path("protocolRevision").asText().equals(RuleAgentProtocol.REVISION)
+            ||!pack.path("actionContract").equals(RuleAgentProtocol.description())
+            ||!pack.path("remainingBudgetMaximum").equals(RuleAgentProtocol.remainingBudget(DEFAULT_BUDGET.maxModelAttemptsPerRun(),DEFAULT_BUDGET.maxToolStepsPerRun()))
+            ||!pack.path("endpoint").asText().equals(RuleAgentProvider.BEIJING.toString())||!pack.path("model").asText().equals("qwen-plus")||!pack.path("budgetRevision").asText().equals(BUDGET_REVISION)
             ||pack.path("maximumProviderCalls").asInt(-1)!=4||pack.path("perRunCalls").asInt(-1)!=DEFAULT_BUDGET.maxModelAttemptsPerRun()||pack.path("timeoutMillis").asInt(-1)!=DEFAULT_BUDGET.maxModelMillis()
             ||pack.path("runTimeoutMillis").asInt(-1)!=DEFAULT_BUDGET.maxRunMillis()||pack.path("maximumOutputTokens").asInt(-1)!=DEFAULT_BUDGET.maxOutputTokens()||pack.path("automaticRetries").asInt(-1)!=0
             ||!pack.path("systemPrompt").asText().equals(RuleAgentProvider.SYSTEM)||!pack.path("budget").equals(JSON.valueToTree(DEFAULT_BUDGET))||!pack.path("cases").isArray()||pack.path("cases").size()!=1||!pack.path("cases").get(0).equals(expectedCase))throw new IllegalArgumentException("请求包预算、问题或协议身份变化");
@@ -36,10 +39,17 @@ public final class RuleAgentOnlineProbeHost {
         if(args[0].equals("--CheckEnvironment")){System.out.println(JSON.writeValueAsString(environmentCheck(System.getenv())));return;}
         Path root=Path.of(required("ZHKU_RULE_AGENT_ROOT")).toRealPath();
         if(args[0].equals("--PrepareProbe")){prepare(root);return;}
-        if(!args[0].equals("--Probe"))throw new IllegalArgumentException("未知探针操作");
-        int maximum=(Integer)environmentCheck(System.getenv()).get("maximumProviderCalls");byte[] bytes=Files.readAllBytes(root.resolve(PACKAGE));
+        boolean checkOnly=args[0].equals("--CheckPackage");
+        if(!checkOnly&&!args[0].equals("--Probe"))throw new IllegalArgumentException("未知探针操作");
+        int maximum=checkOnly?DEFAULT_BUDGET.maxModelAttemptsPerRun():(Integer)environmentCheck(System.getenv()).get("maximumProviderCalls");
+        byte[] bytes=Files.readAllBytes(root.resolve(PACKAGE));
         if(!sha(bytes).equals(required("ZHKU_RULE_AGENT_PROBE_SHA256")))throw new IllegalArgumentException("请求包与授权指纹不同");
         JsonNode pack=JSON.readTree(bytes);validatePackage(pack);if(!pack.equals(packageNode(root)))throw new IllegalArgumentException("本机审核资产或请求定义已漂移");
+        if(checkOnly) {
+            // 只核对包/本机审核资产；在构造数据源与模型工厂前退出，不要求或读取实际凭证。
+            System.out.println(JSON.writeValueAsString(Map.of("mode","PACKAGE_CHECK_ONLY","passed",true,"packageSha256",sha(bytes),"protocolRevision",RuleAgentProtocol.REVISION,"maximumProviderCalls",maximum,"providerCalls",0,"databaseOperations",0)));
+            return;
+        }
         String url=required("ZHKU_DB_URL");var matcher=java.util.regex.Pattern.compile("^jdbc:postgresql://127\\.0\\.0\\.1:([0-9]{4,5})/zhkuagent_rulecheck_e2e$").matcher(url);
         if(!matcher.matches()||Integer.parseInt(matcher.group(1))==54329)throw new IllegalArgumentException("拒绝原库或非专用临时库");
         Path evidence=root.resolve(required("ZHKU_RULE_AGENT_EVIDENCE")).normalize();if(!evidence.startsWith(root.resolve("docs/evidence/rule-agent-provider"))||Files.exists(evidence))throw new IllegalArgumentException("证据目录越界或已存在");Files.createDirectories(evidence);
@@ -72,7 +82,25 @@ public final class RuleAgentOnlineProbeHost {
         // 构造审核目录只验证本机资产；不安装数据库、不创建模型客户端。
         try(var qualification=new Reviewed2025ControlledCatalogue(root)){
             var bundle=JSON.readTree(Files.readAllBytes(root.resolve("docs/product/rule-check-2025-verbatim-import-draft.json")));var semantics=JSON.readTree(Files.readAllBytes(root.resolve("docs/product/rule-check-2025-b02-semantic-review.json")));var overlay=JSON.readTree(Files.readAllBytes(root.resolve("docs/evidence/rule-agent-evidence/2026-10-13/t02-01/article4-overlay-draft.json")));
-            var pack=JSON.createObjectNode();pack.put("purpose","T05_P01_BOUNDED_BUDGET_CORRECTION_NOT_LANGUAGE_QUALITY_EVAL");pack.put("endpoint",RuleAgentProvider.BEIJING.toString());pack.put("model","qwen-plus");pack.put("budgetRevision",BUDGET_REVISION);pack.set("budget",JSON.valueToTree(DEFAULT_BUDGET));pack.put("maximumProviderCalls",4);pack.put("perRunCalls",DEFAULT_BUDGET.maxModelAttemptsPerRun());pack.put("timeoutMillis",DEFAULT_BUDGET.maxModelMillis());pack.put("runTimeoutMillis",DEFAULT_BUDGET.maxRunMillis());pack.put("maximumOutputTokens",DEFAULT_BUDGET.maxOutputTokens());pack.put("automaticRetries",0);pack.put("referenceRevision","2025.9.2");pack.put("authorizationStatus","NOT_AUTHORIZED");pack.put("systemPrompt",RuleAgentProvider.SYSTEM);
+            var pack=JSON.createObjectNode();
+            pack.put("purpose","T05_P01_ACTION_PROTOCOL_VALIDATION_NOT_LANGUAGE_QUALITY_EVAL");
+            pack.put("protocolRevision",RuleAgentProtocol.REVISION);
+            pack.set("actionContract",RuleAgentProtocol.description());
+            pack.set("remainingBudgetMaximum",RuleAgentProtocol.remainingBudget(DEFAULT_BUDGET.maxModelAttemptsPerRun(),DEFAULT_BUDGET.maxToolStepsPerRun()));
+            pack.put("remainingBudgetRule","每轮从当前View重建，modelAttemptsIncludingThisCall包含当前决策，toolSteps为剩余动作；不超过此包上限。候选UUID动态签发，不固定原文答案或截断相关候选。");
+            pack.put("endpoint",RuleAgentProvider.BEIJING.toString());
+            pack.put("model","qwen-plus");
+            pack.put("budgetRevision",BUDGET_REVISION);
+            pack.set("budget",JSON.valueToTree(DEFAULT_BUDGET));
+            pack.put("maximumProviderCalls",4);
+            pack.put("perRunCalls",DEFAULT_BUDGET.maxModelAttemptsPerRun());
+            pack.put("timeoutMillis",DEFAULT_BUDGET.maxModelMillis());
+            pack.put("runTimeoutMillis",DEFAULT_BUDGET.maxRunMillis());
+            pack.put("maximumOutputTokens",DEFAULT_BUDGET.maxOutputTokens());
+            pack.put("automaticRetries",0);
+            pack.put("referenceRevision","2025.9.2");
+            pack.put("authorizationStatus","NOT_AUTHORIZED");
+            pack.put("systemPrompt",RuleAgentProvider.SYSTEM);
             var cases=pack.putArray("cases");cases.addObject().put("id","P01").put("question",P01_QUESTION);
             var excerpts=pack.putArray("maximumReviewedExcerpts");for(var item:bundle.path("chunks")){var e=excerpts.addObject();e.put("article",item.path("article").asInt());e.put("content",item.path("content").asText());e.put("checksum",item.path("contentChecksum").asText());}
             var rules=pack.putArray("maximumReviewedRuleSemantics");for(var rule:semantics.path("rules")){var e=rules.addObject();e.put("article",rule.path("article").asInt());e.put("scope",rule.path("questionScopeDraft").asText());var facts=e.putArray("facts");for(var fact:rule.path("facts")){var f=facts.addObject();f.put("id",fact.path("id").asText());f.put("text",fact.path("text").asText());f.set("when",fact.path("when"));}e.set("conditions",rule.path("conditionsDraft"));}pack.set("article4ApprovedFacts",overlay.path("facts"));

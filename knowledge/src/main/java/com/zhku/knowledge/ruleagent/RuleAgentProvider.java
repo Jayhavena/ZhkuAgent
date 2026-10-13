@@ -89,9 +89,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort {
         data.set("userConditions",JSON.valueToTree(view.userConditions()));
         data.set("ruleContexts",JSON.valueToTree(view.ruleContexts()));
         data.set("actionContract",RuleAgentProtocol.description());
-        data.putObject("remainingBudget")
-        .put("modelAttemptsIncludingThisCall",view.attemptsRemaining())
-        .put("toolSteps",view.stepsRemaining());
+        data.set("remainingBudget",RuleAgentProtocol.remainingBudget(view.attemptsRemaining(),view.stepsRemaining()));
         var facts=data.putArray("facts");
         for(var fact:view.facts()){
             var item=facts.addObject();

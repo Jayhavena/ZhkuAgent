@@ -9,6 +9,7 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 
 /** 模型约束投影与解码使用同一动作类型/record字段及领域预算，不另建宽松协议。 */
 public final class RuleAgentProtocol {
+    public static final String REVISION="RULE_AGENT_ACTION_CONTRACT_01";
     private RuleAgentProtocol() {}
     public enum Stage { NONE, SUPPLIER_RESPONSE, ACTION_JSON, ACTION_FIELDS, ACTION_PARAMETERS, PRE_EXECUTION, TRANSPORT, AUDIT }
     public enum Code {
@@ -37,6 +38,7 @@ public final class RuleAgentProtocol {
     }
     public static ObjectNode description() {
         var root=JSON.createObjectNode();
+        root.put("revision",REVISION);
         var rows=root.putArray("actions");
         actions().forEach((name,type)->{
             var row=rows.addObject();
@@ -62,6 +64,11 @@ public final class RuleAgentProtocol {
             }
         });
         return root;
+    }
+    public static ObjectNode remainingBudget(int modelAttempts,int toolSteps) {
+        return JSON.createObjectNode()
+            .put("modelAttemptsIncludingThisCall",modelAttempts)
+            .put("toolSteps",toolSteps);
     }
     private static JsonNode fields(Class<?> type) {
         var values=JSON.createArrayNode();

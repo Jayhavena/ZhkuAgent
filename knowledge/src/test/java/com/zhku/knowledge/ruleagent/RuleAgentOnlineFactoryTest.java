@@ -116,6 +116,9 @@ class RuleAgentOnlineFactoryTest {
         p.put("maximumOutputTokens",1024);
         p.put("automaticRetries",0);
         p.put("systemPrompt",RuleAgentProvider.SYSTEM);
+        p.put("protocolRevision","RULE_AGENT_ACTION_CONTRACT_01");
+        p.set("actionContract",RuleAgentProtocol.description());
+        p.putObject("remainingBudgetMaximum").put("modelAttemptsIncludingThisCall",DEFAULT_BUDGET.maxModelAttemptsPerRun()).put("toolSteps",DEFAULT_BUDGET.maxToolStepsPerRun());
         p.set("budget",new ObjectMapper().valueToTree(DEFAULT_BUDGET));
         p.putArray("cases").addObject().put("id","P01").put("question","专业选修课和公共选修课在修读安排上有什么不同？");
         return p;
@@ -141,5 +144,21 @@ class RuleAgentOnlineFactoryTest {
         var budget=packet();
         ((com.fasterxml.jackson.databind.node.ObjectNode)budget.path("budget")).put("maxReadHandles",4);
         assertThatThrownBy(()->validate(budget)).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test void packetRejectsEditedActionContractAndDynamicBudget()throws Throwable {
+        var edited=packet();
+        ((com.fasterxml.jackson.databind.node.ObjectNode)edited.path("actionContract")).put("unexpected","changed");
+        assertThatThrownBy(()->validate(edited)).isInstanceOf(IllegalArgumentException.class);
+        var budget=packet();
+        ((com.fasterxml.jackson.databind.node.ObjectNode)budget.path("remainingBudgetMaximum")).put("toolSteps",99);
+        assertThatThrownBy(()->validate(budget)).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test void packetRejectsMissingOrOldProtocolIdentity()throws Throwable {
+        var old=packet();
+        old.remove("protocolRevision");
+        assertThatThrownBy(()->validate(old)).isInstanceOf(IllegalArgumentException.class);
+        var prompt=packet();
+        prompt.put("systemPrompt","historical prompt");
+        assertThatThrownBy(()->validate(prompt)).isInstanceOf(IllegalArgumentException.class);
     }
 }
