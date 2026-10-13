@@ -70,15 +70,17 @@ public final class RuleAgentRunner {
                     events.add(new Event(attempts,name,null,reason));
                 }catch(Rejected invalid){events.add(new Event(attempts,name,null,invalid.reason));}
             }
-        }catch(Rejected failure){published=new RuleResultPublisher(broker,input,context.runId()).failed(failure.reason);}
+        }catch(RuleAgentProvider.Failure failure){received|=failure.received;published=new RuleResultPublisher(broker,input,context.runId()).failed(failure.reason);}
+        catch(Rejected failure){published=new RuleResultPublisher(broker,input,context.runId()).failed(failure.reason);}
         catch(RuntimeException unavailable){published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.INVALID_MODEL_RESPONSE);}
         finally{
             // 等待学生不占用工作线程；端口必须是本轮独占资源，不关闭宿主共享线程池。
             if(context.isStopRequested())published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.CANCELLED);
+            // 清理失败须在终态CAS前确定，避免runtime成功但结果失败的不可发布快照。
+            try{context.cleanupOnce(decision::close);}catch(RuntimeException cleanupFailure){/* runtime已记录清理异常，仍需完成失败状态与终止收尾。 */}
+            if(context.hasCleanupFailure())published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.TASK_EXECUTION_UNAVAILABLE);
             var target=published==null?TaskStatus.FAILED:published.status();var state=target==TaskStatus.STOPPED?(context.isStopRequested()?AgentRunState.CANCELLED:AgentRunState.INCOMPLETE):target==TaskStatus.FAILED?AgentRunState.FAILED:target==TaskStatus.WAITING_USER||published.result().coverage()!=Coverage.COMPLETE?AgentRunState.INCOMPLETE:AgentRunState.SUCCEEDED;
             if(!context.finish(state)&&context.isStopRequested()){published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.CANCELLED);context.finish(AgentRunState.CANCELLED);}
-            context.cleanupOnce(decision::close);
-            if(context.hasCleanupFailure())published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.INVALID_MODEL_RESPONSE);
             context.signalTermination();context.publishTermination();
         }
         var execution=new Execution(Mode.ONLINE,attempts,steps,received,published.result().evidence().isEmpty()?AnswerSource.NONE:received?AnswerSource.LIVE_AGENT:AnswerSource.VERIFIED_RULE_ONLY,ReplayCoverage.NOT_APPLICABLE);

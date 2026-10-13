@@ -1,0 +1,185 @@
+package com.zhku.knowledge.ruleagent;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.*;
+import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
+
+/** 模型约束投影与解码使用同一动作类型/record字段及领域预算，不另建宽松协议。 */
+public final class RuleAgentProtocol {
+    private RuleAgentProtocol() {}
+    public enum Stage { NONE, SUPPLIER_RESPONSE, ACTION_JSON, ACTION_FIELDS, ACTION_PARAMETERS, PRE_EXECUTION, TRANSPORT, AUDIT }
+    public enum Code {
+        NONE, RESPONSE_JSON_INVALID, RESPONSE_STRUCTURE_INVALID, FINISH_REASON_INVALID, CONTENT_INVALID,
+        ACTION_JSON_INVALID, ACTION_TYPE_UNKNOWN, ACTION_FIELDS_INVALID, ACTION_PARAMETER_INVALID,
+        READ_HANDLE_COUNT, READ_HANDLE_DUPLICATE, READ_HANDLE_UUID, READ_HANDLE_NOT_CURRENT,
+        SUBQUESTION_NOT_CURRENT, OPERATION_NOT_ALLOWED, BUDGET_UNAVAILABLE, TRANSPORT_FAILURE, AUDIT_FAILURE
+    }
+    public record Validation(Stage stage, Code code) {}
+    public static final Validation VALID=new Validation(Stage.NONE,Code.NONE);
+    public static final class Rejected extends IllegalArgumentException {
+        final Validation validation;
+        Rejected(Stage stage,Code code) {
+            super(code.name());
+            validation=new Validation(stage,code);
+        }
+    }
+    private static final ObjectMapper JSON=new ObjectMapper();
+    private static final boolean ALLOW_OPERATIONS=false;
+    private static Map<String,Class<?>> actions() {
+        var result=new LinkedHashMap<String,Class<?>>();
+        for(var type:NextAction.class.getAnnotation(JsonSubTypes.class).value()) {
+            result.put(type.name(),type.value());
+        }
+        return result;
+    }
+    public static ObjectNode description() {
+        var root=JSON.createObjectNode();
+        var rows=root.putArray("actions");
+        actions().forEach((name,type)->{
+            var row=rows.addObject();
+            row.put("type",name);
+            row.put("additionalFieldsAllowed",false);
+            var fields=row.putArray("requiredFields");
+            fields.add("type");
+            for(var field:type.getRecordComponents()) {
+                fields.add(field.getName());
+            }
+            if(type==Read.class) {
+                row.putObject("readHandles")
+                    .put("min",MIN_READ_HANDLES)
+                    .put("max",DEFAULT_BUDGET.maxReadHandles())
+                    .put("unique",true)
+                    .put("format","UUID")
+                    .put("source","当前observations中成功检索的candidate.handle，不是条款号、索引或自造ID");
+            }
+            if(type==Finish.class) {
+                row.put("operationMustBeNull",!ALLOW_OPERATIONS);
+                row.set("itemRequiredFields",fields(Proposal.class));
+                row.set("issueRequiredFields",fields(ProposedIssue.class));
+            }
+        });
+        return root;
+    }
+    private static JsonNode fields(Class<?> type) {
+        var values=JSON.createArrayNode();
+        for(var c:type.getRecordComponents()) {
+            values.add(c.getName());
+        }
+        return values;
+    }
+    public static NextAction decode(String input) {
+        JsonNode node;
+        try {
+            node=RuleAgentJson.readTreeStrict(input);
+        } catch(IllegalArgumentException invalid) {
+            throw new Rejected(Stage.ACTION_JSON,Code.ACTION_JSON_INVALID);
+        }
+        if(!node.isObject()||!node.path("type").isTextual()) {
+            throw new Rejected(Stage.ACTION_FIELDS,Code.ACTION_FIELDS_INVALID);
+        }
+        Class<?> type=actions().get(node.path("type").textValue());
+        if(type==null) {
+            throw new Rejected(Stage.ACTION_FIELDS,Code.ACTION_TYPE_UNKNOWN);
+        }
+        checkFields(node,type,true);
+        if(type==Read.class) {
+            checkRead(node.path("handles"));
+        }
+        if(type==Finish.class&&node.path("items").isArray()) {
+            for(var item:node.path("items")) {
+                checkFields(item,Proposal.class,false);
+                if(item.path("issues").isArray()) {
+                    for(var issue:item.path("issues")) {
+                        checkFields(issue,ProposedIssue.class,false);
+                    }
+                }
+            }
+        }
+        try {
+            // record构造器仍是值约束的最终守卫；不记录Jackson异常消息或自由输入。
+            return RuleAgentJson.bindAction(node);
+        } catch(IllegalArgumentException invalid) {
+            throw new Rejected(Stage.ACTION_PARAMETERS,Code.ACTION_PARAMETER_INVALID);
+        }
+    }
+    private static void checkFields(JsonNode node,Class<?> type,boolean action) {
+        var expected=new HashSet<String>();
+        if(action) {
+            expected.add("type");
+        }
+        for(var c:type.getRecordComponents()) {
+            expected.add(c.getName());
+        }
+        var actual=new HashSet<String>();
+        node.fieldNames().forEachRemaining(actual::add);
+        if(!node.isObject()||!actual.equals(expected)) {
+            throw new Rejected(Stage.ACTION_FIELDS,Code.ACTION_FIELDS_INVALID);
+        }
+        for(var c:type.getRecordComponents()) {
+            var value=node.path(c.getName());
+            // Jackson的String绑定可能接受数字；先按record声明检查，禁止动作参数隐式转换。
+            if(c.getType()==String.class&&!value.isTextual()) {
+                throw new Rejected(Stage.ACTION_PARAMETERS,Code.ACTION_PARAMETER_INVALID);
+            }
+            if(c.getType()==List.class&&!value.isArray()) {
+                throw new Rejected(Stage.ACTION_PARAMETERS,Code.ACTION_PARAMETER_INVALID);
+            }
+            if(c.getGenericType() instanceof java.lang.reflect.ParameterizedType generic&&generic.getActualTypeArguments()[0]==String.class) {
+                for(var item:value) {
+                    if(!item.isTextual()) {
+                        throw new Rejected(Stage.ACTION_PARAMETERS,Code.ACTION_PARAMETER_INVALID);
+                    }
+                }
+            }
+        }
+    }
+    private static void checkRead(JsonNode handles) {
+        if(!handles.isArray()||handles.size()<MIN_READ_HANDLES||handles.size()>DEFAULT_BUDGET.maxReadHandles()) {
+            throw new Rejected(Stage.ACTION_PARAMETERS,Code.READ_HANDLE_COUNT);
+        }
+        var unique=new HashSet<UUID>();
+        for(var handle:handles) {
+            UUID uuid;
+            try {
+                uuid=UUID.fromString(handle.textValue());
+                if(!uuid.toString().equalsIgnoreCase(handle.textValue())) {
+                    throw new IllegalArgumentException();
+                }
+            } catch(Exception invalid) {
+                throw new Rejected(Stage.ACTION_PARAMETERS,Code.READ_HANDLE_UUID);
+            }
+            if(!unique.add(uuid)) {
+                throw new Rejected(Stage.ACTION_PARAMETERS,Code.READ_HANDLE_DUPLICATE);
+            }
+        }
+    }
+    public static void preflight(NextAction action,RuleAgentRunner.View view) {
+        if(view.attemptsRemaining()<1||view.stepsRemaining()<1) {
+            throw new Rejected(Stage.PRE_EXECUTION,Code.BUDGET_UNAVAILABLE);
+        }
+        String question=action instanceof Search s?s.subquestionId():action instanceof Read r?r.subquestionId():action instanceof Ask a?a.subquestionId():null;
+        if(question!=null&&view.questions().stream().noneMatch(q->q.id().equals(question))) {
+            throw new Rejected(Stage.PRE_EXECUTION,Code.SUBQUESTION_NOT_CURRENT);
+        }
+        if(action instanceof Read read) {
+            var current=new HashSet<UUID>();
+            view.observations().stream()
+                .filter(o->o.status()==ObservationStatus.SUCCEEDED&&o.dataLevel()==DataLevel.CANDIDATE)
+                .flatMap(o->o.candidates().stream())
+                .forEach(c->current.add(c.handle()));
+            if(!current.containsAll(read.handles())) {
+                throw new Rejected(Stage.PRE_EXECUTION,Code.READ_HANDLE_NOT_CURRENT);
+            }
+        }
+        if(action instanceof Finish finish&&finish.items().stream().anyMatch(p->view.questions().stream().noneMatch(q->q.id().equals(p.subquestionId())))) {
+            throw new Rejected(Stage.PRE_EXECUTION,Code.SUBQUESTION_NOT_CURRENT);
+        }
+        if(!ALLOW_OPERATIONS&&action instanceof Finish finish&&finish.items().stream().anyMatch(p->p.operation()!=null)) {
+            throw new Rejected(Stage.PRE_EXECUTION,Code.OPERATION_NOT_ALLOWED);
+        }
+        // 这层只校验模型可见动作权限；owner、修订、审核资格和证据支持仍由broker/发布守卫验证。
+    }
+}

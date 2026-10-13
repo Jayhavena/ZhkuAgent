@@ -10,8 +10,10 @@ public final class RuleAgentContract {
     private RuleAgentContract() {}
     public static final int SCHEMA_VERSION=3;
     public static final long MAX_SAFE_VERSION=9007199254740991L;
-    // 首期防御上限，不是延迟承诺或外发许可；T05实测调整必须记录新合同身份。
-    public static final BudgetPolicy DEFAULT_BUDGET=new BudgetPolicy(4,6,5000,25000,3,12,2,3,8,32768,65536,1024,300000,900000);
+    public static final String BUDGET_REVISION="T05_READ_BUDGET_02";
+    public static final int MIN_READ_HANDLES=1;
+    // 两次真实读取决策触及旧5秒上限；仅放宽时间作有界验证，次数/权限不变，不是SLA或外发许可。
+    public static final BudgetPolicy DEFAULT_BUDGET=new BudgetPolicy(4,6,10000,45000,3,12,2,3,8,32768,65536,1024,300000,900000);
     public record BudgetPolicy(int maxModelAttemptsPerRun,int maxToolStepsPerRun,int maxModelMillis,int maxRunMillis,
             int maxTaskRuns,int maxModelAttemptsPerTask,int maxClarificationTurns,int maxReadHandles,
             int maxEvidenceFragments,int maxEvidenceBytes,int maxRequestBytes,int maxOutputTokens,
@@ -31,7 +33,8 @@ public final class RuleAgentContract {
         CURRENT_APPLICABILITY_UNKNOWN(IssueKind.SCOPE_LIMIT),MISSING_CONDITION(IssueKind.CLARIFICATION),
         UNRESOLVED_CONFLICT(IssueKind.CONFLICT),REPLAY_NOT_COVERED(IssueKind.REPLAY_MISS),
         RETRIEVAL_UNAVAILABLE,MODEL_TIMEOUT,MODEL_RATE_LIMIT,INVALID_MODEL_RESPONSE,UNKNOWN_TOOL,
-        EVIDENCE_CHANGED,AUDIT_UNAVAILABLE,BUDGET_EXCEEDED,CLARIFICATION_EXPIRED,CANCELLED,NO_PROGRESS,TASK_EXECUTION_UNAVAILABLE;
+        EVIDENCE_CHANGED,AUDIT_UNAVAILABLE,BUDGET_EXCEEDED,CLARIFICATION_EXPIRED,CANCELLED,NO_PROGRESS,TASK_EXECUTION_UNAVAILABLE,
+        MODEL_AUTH_FAILURE,MODEL_UNAVAILABLE,MODEL_CONNECTION_FAILURE;
         final IssueKind kind;
         ReasonCode(){this(IssueKind.PROCESSING_FAILURE);}
         ReasonCode(IssueKind kind){this.kind=kind;}
@@ -147,7 +150,11 @@ public final class RuleAgentContract {
         public Search {identifier(subquestionId);RuleAgentContract.text(query,2048);}
     }
     public record Read(String subquestionId,List<UUID> handles) implements NextAction {
-        public Read {identifier(subquestionId);handles=RuleAgentContract.items(handles,1,3);unique(handles);}
+        public Read {
+            identifier(subquestionId);
+            handles=RuleAgentContract.items(handles,MIN_READ_HANDLES,DEFAULT_BUDGET.maxReadHandles());
+            unique(handles);
+        }
     }
     public record Ask(String subquestionId,String conditionId,String reason,List<String> supportingFactIds) implements NextAction {
         public Ask {identifier(subquestionId);identifier(conditionId);RuleAgentContract.text(reason,2048);supportingFactIds=RuleAgentContract.items(supportingFactIds,0,16);supportingFactIds.forEach(RuleAgentContract::identifier);unique(supportingFactIds);}

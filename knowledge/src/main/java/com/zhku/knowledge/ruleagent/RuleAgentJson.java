@@ -17,7 +17,26 @@ public final class RuleAgentJson {
             .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT)
             .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION).build();
     public static TaskSnapshot readSnapshot(String input){return read(input,TaskSnapshot.class);}
-    public static NextAction readAction(String input){return read(input,NextAction.class);}
+    public static NextAction readAction(String input) {
+        return RuleAgentProtocol.decode(input);
+    }
+    static JsonNode readTreeStrict(String input) {
+        if(input==null||input.getBytes(StandardCharsets.UTF_8).length>DEFAULT_BUDGET.maxRequestBytes()) {
+            throw new IllegalArgumentException("合同输入超出预算");
+        }
+        try {
+            JsonNode value=JSON.readTree(input);
+            if(value==null||value.isNull()) {
+                throw new IllegalArgumentException("空合同");
+            }
+            return value;
+        } catch(Exception invalid) {
+            throw new IllegalArgumentException("非法规则查证JSON");
+        }
+    }
+    static NextAction bindAction(JsonNode node) {
+        return read(node.toString(),NextAction.class);
+    }
     public static CreateTask readCreate(String input){return read(input,CreateTask.class);}
     public static Message readMessage(String input){return read(input,Message.class);}
     public static Cancel readCancel(String input){return read(input,Cancel.class);}

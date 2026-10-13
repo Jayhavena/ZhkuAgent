@@ -1,0 +1,306 @@
+package com.zhku.knowledge.ruleagent;
+import com.sun.net.httpserver.HttpServer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import static org.assertj.core.api.Assertions.*;
+import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
+@Timeout(15)
+class RuleAgentProviderTest {
+    final List<RuleAgentProvider.Trace> traces=new CopyOnWriteArrayList<>();
+    final AtomicInteger calls=new AtomicInteger();
+    final AtomicReference<String> request=new AtomicReference<>();
+    HttpServer server;
+    ExecutorService workers;
+    RuleAgentProvider port;
+    RuleAgentRunner.View view(){
+        return new RuleAgentRunner.View("选修课怎么区分？",List.of(new RuleAgentRunner.Question("q1","选修课怎么区分？")),Map.of(),List.of(),List.of(),List.of(),List.of(),4,6);
+    }
+    void start(int status,String body,long delay)throws Exception{
+        start(status,body,delay,0);
+    }
+    void start(int status,String body,long delay,long bodyDelay)throws Exception{
+        workers=Executors.newFixedThreadPool(2);
+        server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+        server.setExecutor(workers);
+        server.createContext("/chat/completions",e->{
+            calls.incrementAndGet();
+            request.set(new String(e.getRequestBody().readAllBytes(),StandardCharsets.UTF_8));
+            try{
+                if(delay>0)Thread.sleep(delay);
+                byte[] data=body.getBytes(StandardCharsets.UTF_8);
+                e.getResponseHeaders().add("x-request-id","local-request-01");
+                e.sendResponseHeaders(status,data.length);
+                if(bodyDelay>0){
+                    e.getResponseBody().write(data,0,1);
+                    e.getResponseBody().flush();
+                    Thread.sleep(bodyDelay);
+                    e.getResponseBody().write(data,1,data.length-1);
+                }
+                else e.getResponseBody().write(data);
+            }
+            catch(Exception ignored){
+            }
+            finally{
+                e.close();
+            }
+        });
+        server.start();
+        port=new RuleAgentProvider(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),"qwen-plus","LOCAL_TEST_ONLY"),UUID.randomUUID(),UUID.randomUUID(),()->"local-test-placeholder",traces::add,new AtomicInteger(4));
+    }
+    String good()throws Exception{
+        return new ObjectMapper().writeValueAsString(Map.of("id","local-response","choices",List.of(Map.of("finish_reason","stop","message",Map.of("content","{\"type\":\"SEARCH_REVIEWED_RULES\",\"subquestionId\":\"q1\",\"query\":\"选修课程类型\"}"))),"usage",Map.of("prompt_tokens",10,"completion_tokens",8)));
+    }
+    @AfterEach void close()throws Exception{
+        if(port!=null){
+            port.close();
+            assertThat(port.isTerminated()).isTrue();
+        }
+        if(server!=null)server.stop(0);
+        if(workers!=null){
+            workers.shutdownNow();
+            assertThat(workers.awaitTermination(2,TimeUnit.SECONDS)).isTrue();
+        }
+    }
+    @Test void validActionAndUsageAreRecordedWithoutCredentials()throws Exception{
+        start(200,good(),0);
+        var reply=port.decide(view(),Duration.ofSeconds(1));
+        assertThat(reply.providerResponseReceived()).isFalse();
+        assertThat(RuleAgentJson.readAction(reply.actionJson())).isInstanceOf(Search.class);
+        assertThat(calls).hasValue(1);
+        assertThat(traces).hasSize(3);
+        assertThat(traces.getLast().responseReceived()).isTrue();
+        assertThat(traces.getLast().inputTokens()).isEqualTo(10);
+        assertThat(new ObjectMapper().writeValueAsString(traces)).doesNotContain("local-test-placeholder");
+        var json=new ObjectMapper().readTree(request.get());
+        assertThat(json.path("response_format").path("type").asText()).isEqualTo("json_object");
+        assertThat(json.path("enable_thinking").asBoolean()).isFalse();
+        assertThat(json.path("max_completion_tokens").asInt()).isEqualTo(1024);
+    }
+    @Test void badJsonIsProcessingFailureWithoutRetry()throws Exception{
+        start(200,"bad-json",0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls).hasValue(1);
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);
+    }
+    @Test void unknownActionCannotBecomeATool()throws Exception{
+        start(200,good().replace("SEARCH_REVIEWED_RULES","EXECUTE_SQL"),0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls).hasValue(1);
+    }
+    @Test void rateLimitIsClassifiedWithoutRetry()throws Exception{
+        start(429,"{}",0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.MODEL_RATE_LIMIT);
+        assertThat(calls).hasValue(1);
+    }
+    @Test void authorizationAndServerErrorsDoNotBecomeMissingEvidence()throws Exception{
+        start(401,"{}",0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(traces.getLast().reason().name()).isEqualTo("MODEL_AUTH_FAILURE");
+        assertThat(calls).hasValue(1);
+    }
+    @Test void serverFailureIsClassified()throws Exception{
+        start(503,"{}",0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(traces.getLast().reason().name()).isEqualTo("MODEL_UNAVAILABLE");
+    }
+    @Test void timeoutIncludesWholeResponseAndConsumesAllowance()throws Exception{
+        start(200,good(),500);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofMillis(70))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.MODEL_TIMEOUT);
+        assertThat(calls.get()).isLessThanOrEqualTo(1);
+    }
+    @Test void exhaustedAllowanceMakesNoHttpCall()throws Exception{
+        start(200,good(),0);
+        port.close();
+        port=new RuleAgentProvider(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),"qwen-plus","LOCAL_TEST_ONLY"),UUID.randomUUID(),UUID.randomUUID(),()->"local-test-placeholder",traces::add,new AtomicInteger(0));
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls).hasValue(0);
+    }
+    @Test void auditFailureBlocksExternalCall()throws Exception{
+        start(200,good(),0);
+        port.close();
+        port=new RuleAgentProvider(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),"qwen-plus","LOCAL_TEST_ONLY"),UUID.randomUUID(),UUID.randomUUID(),()->"local-test-placeholder",t->{
+            throw new IllegalStateException("local");
+        },new AtomicInteger(1));
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls).hasValue(0);
+    }
+    @Test void oversizedResponseIsRejected()throws Exception{
+        start(200,"x".repeat(70000),0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls).hasValue(1);
+    }
+    @Test void onlineEnvironmentRejectsReplayAndMissingAuthorization(){
+        var env=new HashMap<String,String>();
+        env.put("ZHKU_RULE_AGENT_MODE","ONLINE");
+        env.put("DASHSCOPE_API_KEY","local-test-placeholder");
+        assertThatThrownBy(()->RuleAgentProvider.Settings.environment(env)).isInstanceOf(IllegalArgumentException.class);
+        env.put("ZHKU_RULE_AGENT_AUTHORIZATION_ID","local-approved-package");
+        env.put("ZHKU_RULECHECK_TASK_BATCH_DIRECTORY","old-replay");
+        assertThatThrownBy(()->RuleAgentProvider.Settings.environment(env)).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test void onlineEnvironmentPinsDestinationAndModel(){
+        var env=Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","local-approved-package");
+        var settings=RuleAgentProvider.Settings.environment(env);
+        assertThat(settings.endpoint()).isEqualTo(RuleAgentProvider.BEIJING);
+        assertThat(settings.model()).isEqualTo("qwen-plus");
+    }
+    @Test void truncatedCompletionIsRejected()throws Exception{
+        start(200,good().replace("\"stop\"","\"length\""),0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);
+    }
+    @Test void missingKeyMakesNoHttpCall()throws Exception{
+        start(200,good(),0);
+        port.close();
+        port=new RuleAgentProvider(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),"qwen-plus","LOCAL_TEST_ONLY"),UUID.randomUUID(),UUID.randomUUID(),()->null,traces::add,new AtomicInteger(1));
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls).hasValue(0);
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.MODEL_AUTH_FAILURE);
+    }
+    @Test void disconnectedEndpointIsFailureWithoutRetry()throws Exception{
+        start(200,good(),0);
+        server.stop(0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.MODEL_CONNECTION_FAILURE);
+    }
+    // 响应头已到不等于完整响应；正文超时仍须失败，不能把HTTP200当作动作成功。
+    @Test void bodyTimeoutRetainsHeaderAndPartialBodyDiagnostics()throws Exception{
+        start(200,good(),0,1500);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofMillis(600))).isInstanceOf(RuleAgentProvider.Failure.class);
+        var trace=new ObjectMapper().valueToTree(traces.getLast());
+        var d=trace.path("diagnostics");
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.MODEL_TIMEOUT);
+        assertThat(traces.getLast().responseReceived()).isFalse();
+        assertThat(trace.path("status").asInt()).isEqualTo(200);
+        assertThat(d.path("headersMillis").isNumber()).isTrue();
+        assertThat(d.path("firstBodyMillis").isNumber()).isTrue();
+        assertThat(d.path("bodyCompletedMillis").isNull()).isTrue();
+        assertThat(d.path("responseBytes").asInt()).isEqualTo(1);
+        assertThat(d.path("requestId").asText()).isEqualTo("local-request-01");
+        assertThat(calls).hasValue(1);
+    }
+    @Test void headerTimeoutDoesNotInventReceivedResponse()throws Exception{
+        start(200,good(),1500);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofMillis(500))).isInstanceOf(RuleAgentProvider.Failure.class);
+        var d=new ObjectMapper().valueToTree(traces.getLast()).path("diagnostics");
+        assertThat(d.path("dispatchedMillis").isNumber()).isTrue();
+        assertThat(d.path("headersMillis").isNull()).isTrue();
+        assertThat(d.path("firstBodyMillis").isNull()).isTrue();
+        assertThat(d.path("responseBytes").asInt()).isZero();
+        assertThat(traces.getLast().responseReceived()).isFalse();
+    }
+    @Test void completeResponseRecordsMonotonicTimingAndExactPayloadBytes()throws Exception{
+        start(200,good(),0);
+        port.decide(view(),Duration.ofSeconds(2));
+        var d=new ObjectMapper().valueToTree(traces.getLast()).path("diagnostics");
+        assertThat(d.path("requestBytes").asInt()).isEqualTo(request.get().getBytes(StandardCharsets.UTF_8).length);
+        assertThat(d.path("responseBytes").asInt()).isEqualTo(good().getBytes(StandardCharsets.UTF_8).length);
+        assertThat(d.path("headersMillis").isNumber()).isTrue();
+        assertThat(d.path("bodyCompletedMillis").isNumber()).isTrue();
+        assertThat(d.path("elapsedMillis").asLong()).isGreaterThanOrEqualTo(d.path("bodyCompletedMillis").asLong());
+        assertThat(d.path("bodyCompletedMillis").asLong()).isGreaterThanOrEqualTo(d.path("headersMillis").asLong());
+        assertThat(new ObjectMapper().writeValueAsString(traces)).doesNotContain("local-test-placeholder");
+    }
+    @Test void revisedBudgetCanReceiveBeyondFiveSecondsWithoutAutomaticRetry()throws Exception{
+        start(200,good(),5500);
+        var reply=port.decide(view(),Duration.ofSeconds(7));
+        assertThat(RuleAgentJson.readAction(reply.actionJson())).isInstanceOf(Search.class);
+        assertThat(calls).hasValue(1);
+        assertThat(traces.getLast().diagnostics().headersMillis()).isGreaterThanOrEqualTo(5000);
+    }
+    static java.util.stream.Stream<String[]> protocolFailures(){
+        String id="aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
+        String prefix="{\"type\":\"READ_VERIFIED_RULE\",\"subquestionId\":\"q1\",\"handles\":";
+        return java.util.stream.Stream.of(
+        new String[]{
+            prefix+"[\""+id+"\",\""+id+"\",\""+id+"\",\""+id+"\"]}","stop","ACTION_PARAMETERS","READ_HANDLE_COUNT"
+        },
+        new String[]{
+            prefix+"[\""+id+"\",\""+id+"\"]}","stop","ACTION_PARAMETERS","READ_HANDLE_DUPLICATE"
+        },
+        new String[]{
+            prefix+"[\"bad-sensitive-uuid\"]}","stop","ACTION_PARAMETERS","READ_HANDLE_UUID"
+        },
+        new String[]{
+            prefix+"[\""+id+"\"]}","stop","PRE_EXECUTION","READ_HANDLE_NOT_CURRENT"
+        },
+        new String[]{
+            "{sensitive-invalid-json","stop","ACTION_JSON","ACTION_JSON_INVALID"
+        },
+        new String[]{
+            "{\"type\":\"EXECUTE_SQL\",\"secret\":\"sensitive-free-body\"}","stop","ACTION_FIELDS","ACTION_TYPE_UNKNOWN"
+        },
+        new String[]{
+            "{\"type\":\"SEARCH_REVIEWED_RULES\",\"subquestionId\":\"q1\"}","stop","ACTION_FIELDS","ACTION_FIELDS_INVALID"
+        },
+        new String[]{
+            "{\"type\":\"SEARCH_REVIEWED_RULES\",\"subquestionId\":\"q1\",\"query\":\"课程\",\"extra\":\"sensitive-free-body\"}","stop","ACTION_FIELDS","ACTION_FIELDS_INVALID"
+        },
+        new String[]{
+            "{\"type\":\"SEARCH_REVIEWED_RULES\",\"subquestionId\":\"q1\",\"query\":7}","stop","ACTION_PARAMETERS","ACTION_PARAMETER_INVALID"
+        },
+        new String[]{
+            "{\"type\":\"SEARCH_REVIEWED_RULES\",\"type\":\"FINISH_CHECK\"}","stop","ACTION_JSON","ACTION_JSON_INVALID"
+        },
+        new String[]{
+            "{}","length","SUPPLIER_RESPONSE","FINISH_REASON_INVALID"
+        });
+    }
+    String response(String action,String finish)throws Exception{
+        return new ObjectMapper().writeValueAsString(Map.of("model","qwen-plus","usage",Map.of("prompt_tokens",25,"completion_tokens",12),"choices",List.of(Map.of("finish_reason",finish,"message",Map.of("content",action)))));
+    }
+    @ParameterizedTest @MethodSource("protocolFailures")
+    void failuresAreSafeClassifiedAndDoNotExecuteTools(String action,String finish,String stage,String code)throws Exception{
+        start(200,response(action,finish),0);
+        var fixture=new RuleAgentRunnerTest();
+        var outcome=fixture.run(fixture.tools(true,true,false),port);
+        assertThat(outcome.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);
+        assertThat(outcome.snapshot().execution().toolStepCount()).isZero();
+        assertThat(outcome.snapshot().result().items().getFirst().claims()).isEmpty();
+        assertThat(outcome.events()).isEmpty();
+        assertThat(port.isTerminated()).isTrue();
+        var finalTrace=new ObjectMapper().valueToTree(traces.getLast());
+        assertThat(finalTrace.path("validation").path("stage").asText()).isEqualTo(stage);
+        assertThat(finalTrace.path("validation").path("code").asText()).isEqualTo(code);
+        assertThat(traces.getLast().inputTokens()).isEqualTo(25);
+        assertThat(traces.getLast().outputTokens()).isEqualTo(12);
+        assertThat(traces.stream().map(t->new ObjectMapper().<com.fasterxml.jackson.databind.JsonNode>valueToTree(t)).anyMatch(t->t.path("phase").asText().equals("RECEIVED")&&t.path("inputTokens").asInt()==25)).isTrue();
+        assertThat(new ObjectMapper().writeValueAsString(traces)).doesNotContain("sensitive", "local-test-placeholder");
+        assertThat(calls).hasValue(1);
+    }
+    @Test void legalReadUsesCurrentCandidateAndAdvertisesAuthoritativeLimits()throws Exception{
+        var handle=UUID.randomUUID();
+        var action=new ObjectMapper().writeValueAsString(Map.of("type","READ_VERIFIED_RULE","subquestionId","q1","handles",List.of(handle.toString())));
+        start(200,response(action,"stop"),0);
+        var observation=new ToolObservation(UUID.randomUUID(),UUID.randomUUID(),1,ObservationStatus.SUCCEEDED,null,DataLevel.CANDIDATE,"synthetic",List.of(new Candidate(handle,"合成原文","2025.9.2")),List.of(),List.of());
+        var base=view();
+        var input=new RuleAgentRunner.View(base.question(),base.questions(),base.userConditions(),List.of(observation),List.of(),List.of(),List.of(),3,5);
+        assertThat(RuleAgentJson.readAction(port.decide(input,Duration.ofSeconds(1)).actionJson())).isEqualTo(new Read("q1",List.of(handle)));
+        var data=new ObjectMapper().readTree(new ObjectMapper().readTree(request.get()).path("messages").get(1).path("content").asText());
+        var read=java.util.stream.StreamSupport.stream(data.path("actionContract").path("actions").spliterator(),false).filter(n->n.path("type").asText().equals("READ_VERIFIED_RULE")).findFirst().orElseThrow();
+        assertThat(read.path("readHandles").path("max").asInt()).isEqualTo(DEFAULT_BUDGET.maxReadHandles());
+        assertThat(read.path("readHandles").path("min").asInt()).isEqualTo(1);
+        assertThat(read.path("readHandles").path("unique").asBoolean()).isTrue();
+        assertThat(read.path("requiredFields").toString()).contains("subquestionId","handles");
+        assertThat(data.path("remainingBudget").path("modelAttemptsIncludingThisCall").asInt()).isEqualTo(3);
+        assertThat(data.path("remainingBudget").path("toolSteps").asInt()).isEqualTo(5);
+    }
+    @Test void invalidEnvelopeKeepsKnownUsageAndMissingUsageStaysUnknown()throws Exception{
+        start(200,"{\"usage\":{\"prompt_tokens\":7,\"completion_tokens\":2}}",0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        var trace=new ObjectMapper().valueToTree(traces.getLast());
+        assertThat(trace.path("validation").path("code").asText()).isEqualTo("RESPONSE_STRUCTURE_INVALID");
+        assertThat(traces.getLast().inputTokens()).isEqualTo(7);
+        assertThat(traces.getLast().outputTokens()).isEqualTo(2);
+    }
+}
