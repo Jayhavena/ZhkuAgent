@@ -53,6 +53,7 @@ public class PreviewSecurityConfiguration {
                 .formLogin(login -> login.loginProcessingUrl(prefix + "/auth/login")
                         .successHandler((request, response, authentication) -> {
                             var actor = ((PreviewPrincipal)authentication.getPrincipal()).actor();
+                            if(ruleCheck){var session=request.getSession(false);if(session!=null)synchronized(session){session.removeAttribute("ZHKU_RULE_AGENT_OWNER");}}
                             json(mapper, response, 200, new LoginReply(actor.userId(), actor.role(), actor.authRevision()));
                         }).failureHandler((request, response, exception) -> {
                             String code = "LOGIN_RATE_LIMIT".equals(exception.getMessage()) ? "LOGIN_RATE_LIMIT"
@@ -88,9 +89,11 @@ public class PreviewSecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, prefix + "/auth/me").authenticated()
                         .requestMatchers(HttpMethod.POST, prefix + "/auth/logout").authenticated();
                     if (ruleCheck) {
-                        // v2只预留查证POST，不继承v1任务、历史、实验或管理路由。
+                        // v2只开放查证和异步任务合同，身份不能继承v1历史、实验或管理权限。
                         access.requestMatchers(HttpMethod.POST,prefix+"/rule-check").hasRole("USER")
-                            .requestMatchers(HttpMethod.GET,prefix+"/rule-check/originals/*").hasRole("USER");
+                            .requestMatchers(HttpMethod.GET,prefix+"/rule-check/originals/*").hasRole("USER")
+                            .requestMatchers(HttpMethod.POST,prefix+"/tasks",prefix+"/tasks/*/messages",prefix+"/tasks/*/cancel").hasRole("USER")
+                            .requestMatchers(HttpMethod.GET,prefix+"/tasks/capabilities",prefix+"/tasks/*",prefix+"/tasks/requests/*/*",prefix+"/tasks/*/originals/*").hasRole("USER");
                     } else {
                         access.requestMatchers(HttpMethod.POST, prefix + "/runs", prefix + "/runs/*/cancel").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, prefix + "/runs/*", prefix + "/history", prefix + "/history/*",
@@ -110,6 +113,7 @@ public class PreviewSecurityConfiguration {
         if (ruleCheck) {
             http.addFilterBefore(new com.zhku.knowledge.rulecheck.web.RuleCheckMediaTypeFilter(),CsrfFilter.class);
             http.addFilterAfter(new ControlledRunRequestLimitFilter(prefix+"/rule-check",32768),AuthorizationFilter.class);
+            http.addFilterAfter(new com.zhku.knowledge.ruleagent.web.RuleAgentRequestLimitFilter(),AuthorizationFilter.class);
         } else http.addFilterAfter(new ControlledRunRequestLimitFilter(), AuthorizationFilter.class);
         return http.build();
     }
