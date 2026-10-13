@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 const root=fileURLToPath(new URL('..',import.meta.url))
 const vite=await createServer({root,server:{middlewareMode:true,hmr:false},appType:'custom',logLevel:'silent'})
 after(()=>vite.close())
-const component=(await vite.ssrLoadModule('/src/views/RuleCheckView.vue')).default
+const component=(await vite.ssrLoadModule('/src/views/RuleCheckReplayView.vue')).default
 const ID='22222222-2222-4222-8222-222222222222'
 const quote=()=>({citationId:'c',sourceId:ID,chunkId:ID,revision:'2025.9.2',startInclusive:2,endExclusive:4,text:'原文',originalToken:ID})
 const fact=()=>({id:'limit',text:'合成确认事实',when:{year:'A'},citations:[quote()]})

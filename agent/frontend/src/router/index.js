@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { studentRoutes } from './student-routes.js'
 import { controlledClient } from '../api/controlled.js'
 import { controlledSession } from '../state/controlled-session.js'
 
-const routes = [
+const routes = import.meta.env.VITE_ENTRY_MODE === 'engineering' ? [
   { path: '/rules', name: 'RuleCheck', component: () => import('../views/RuleCheckView.vue'), meta: { title: '校园规则查证 - 仲园' } },
   { path: '/campus/login', component: () => import('../views/ControlledLogin.vue'), meta: { title: '登录 - 仲园 Agent' } },
   { path: '/campus', component: () => import('../components/ControlledLayout.vue'), meta: { requiresControlledAuth: true }, children: [
@@ -29,7 +30,8 @@ const routes = [
       description: '仲园 Agent 的任务助手演示页面，可提交任务并查看处理过程与结果。'
     }
   }
-]
+  ,{path:'/engineering/rules-replay',component:()=>import('../views/RuleCheckReplayView.vue'),meta:{title:'工程回放 - 仲园'}}
+] : studentRoutes
 
 const router = createRouter({
   history: createWebHistory(),
@@ -42,7 +44,7 @@ router.beforeEach(async (to) => {
   if (to.meta.title) {
     document.title = to.meta.title
   }
-  if (to.meta.requiresControlledAuth && !controlledSession.state.actor) {
+  if (import.meta.env.VITE_ENTRY_MODE === 'engineering' && to.meta.requiresControlledAuth && !controlledSession.state.actor) {
     try { await controlledClient.me() }
     catch (error) {
       if (error.code === 'STALE_RESPONSE') return false

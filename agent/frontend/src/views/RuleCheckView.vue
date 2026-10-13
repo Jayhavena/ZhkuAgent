@@ -2,25 +2,26 @@
 import { ref, computed, watch, inject, onMounted, onUnmounted } from 'vue'
 import PasswordInput from '../components/PasswordInput.vue'
 import RuleCheckFact from '../components/RuleCheckFact.vue'
-import { ruleCheckClient } from '../api/rule-check.js'
+import { ruleTaskClient } from '../api/rule-task.js'
 import { ruleCheckSession } from '../state/rule-check-session.js'
-import { createRuleCheckWorkflow } from '../state/rule-check-workflow.js'
+import { createRuleTaskWorkflow } from '../state/rule-task-workflow.js'
 import { ruleCheckConditionLabel } from '../state/rule-check-labels.js'
 
 // 测试可注入渲染状态；正式入口仍只从独立v2客户端取得结果，不提供URL资料自证参数。
-const runtime = inject('rule-check-runtime', null)
-const session = runtime?.session || ruleCheckSession, api = runtime?.client || ruleCheckClient
-const flow = runtime?.workflow || createRuleCheckWorkflow(), state = flow.state
+const runtime = inject('rule-task-runtime', null)
+const session = runtime?.session || ruleCheckSession, api = runtime?.client || ruleTaskClient
+const flow = runtime?.workflow || createRuleTaskWorkflow({client:api,session}), state = flow.state
 const username = ref(''), password = ref(''), question = ref(''), choice = ref(''), loginError = ref('')
 const loginBusy = ref(false), authChecking = ref(!runtime)
 let alive = true
 const student = computed(() => session.state.actor?.role === 'USER')
-const nextCondition = computed(() => state.result?.clarificationQuestions?.[0])
-const labels = { ANSWERED: '有原文支持', PARTIALLY_ANSWERED: '有部分依据', NEED_CLARIFICATION: '需要确认条件', INSUFFICIENT_EVIDENCE: '暂无充分依据', CONFLICTING_EVIDENCE: '依据存在冲突' }
+const result = computed(() => state.evidenceUnavailable ? null : state.snapshot?.result)
+const nextCondition = computed(() => result.value?.items.flatMap(q => q.clarification)[0])
+const active = computed(() => !!state.ticket && (!state.snapshot || state.snapshot.taskStatus === 'ACTIVE'))
+const title = computed(() => state.snapshot?.taskStatus === 'WAITING_USER' ? '需要补充条件' : state.snapshot?.taskStatus === 'STOPPED' ? '本轮已停止' : state.snapshot?.taskStatus === 'FAILED' ? '本轮处理失败' : result.value?.coverage === 'COMPLETE' ? '有依据可确认' : result.value?.coverage === 'PARTIAL' ? '有部分依据' : '仍有未确认项')
 const identityMessage = computed(() => session.state.reason === 'LOGOUT_UNCONFIRMED' ? '退出尚未确认，请重试退出。'
   : session.state.reason === 'LOGIN_UNCONFIRMED' ? '登录结果尚未确认，请先核对登录状态。'
   : session.state.reason === 'AUTH_EXPIRED' ? '登录已失效，请重新登录。' : '')
-const conditionName = key => state.result?.scope?.conditions.find(c => c.key === key)?.question || key
 const originalParts = computed(() => {
   const original = state.original
   if (!original) return { before: '', quote: '', after: '' }
@@ -34,11 +35,11 @@ const originalLink = computed(() => {
   try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password && (!url.port || url.port === '443') ? value : null }
   catch { return null }
 })
-watch(() => state.result, () => { choice.value = '' })
+watch(() => state.snapshot, () => { choice.value = '' })
 watch(() => session.state.epoch, () => { question.value = ''; username.value = ''; password.value = ''; choice.value = ''; loginError.value = '' }, { flush: 'sync' })
 watch(question, value => {
   // 编辑问题后旧依据不再对应当前输入；不能让用户以新题的视角误读上轮回答。
-  if (state.result && value !== state.question) flow.reset()
+  if ((state.snapshot || state.ticket) && value !== state.question) flow.reset()
 })
 onMounted(async () => {
   if (runtime || session.state.identityBusy) { authChecking.value = false; return }
@@ -73,24 +74,22 @@ async function logout() {
   try { await api.logout() }
   catch (error) { if (alive && error.code !== 'STALE_RESPONSE') loginError.value = '退出尚未确认，请重试退出。' }
 }
-function newQuestion() { flow.reset(); question.value = ''; choice.value = '' }
+function newQuestion() { if (active.value || state.pending || state.busy) return; flow.reset(); question.value = ''; choice.value = '' }
+const issueLabels = { DATA_GAP: '资料缺口', CLARIFICATION: '需要补充条件', PROCESSING_FAILURE: '处理未完成', SCOPE_LIMIT: '适用范围待确认', CONFLICT: '依据存在冲突', REPLAY_MISS: '回放未覆盖' }
+const relatedEvidence = q => result.value.evidence.filter(e => result.value.evidenceRelations.some(r => r.subquestionId === q.id && r.evidenceId === e.id))
 </script>
-
 <template>
   <main class="rule-page">
-    <header class="rule-header"><RouterLink to="/" class="rule-brand">仲园规则查证</RouterLink>
-      <nav aria-label="查证导航"><RouterLink to="/campus/run">学分实验</RouterLink><RouterLink to="/super-agent">通用助手实验</RouterLink>
-        <button v-if="session.state.actor" type="button" :disabled="session.state.identityBusy" @click="logout">退出登录</button></nav>
+    <header class="rule-header"><RouterLink to="/rules" class="rule-brand">仲园规则查证</RouterLink>
+      <nav aria-label="查证导航"><button v-if="session.state.actor" type="button" :disabled="session.state.identityBusy" @click="logout">退出登录</button></nav>
     </header>
-    <section class="rule-intro"><h1>先找到依据，再理解规则。</h1><p>用你的话提问，确认必要条件，逐条核对原文。</p>
-      <p class="reference-note">首轮以2025版文本为依据；现行适用性仍需核实。</p></section>
+    <section class="rule-intro"><h1>先找到依据，再理解规则。</h1><p>用你的话提问，确认必要条件，逐条核对原文。</p><p class="reference-note">首轮以2025版文本为依据；现行适用性仍需核实。</p>
+      <p v-if="$route.query.entry === 'rules'" class="rule-hint">学生入口提供规则查证，请在这里提交问题。</p></section>
     <section v-if="!session.state.actor" class="rule-login" aria-labelledby="rule-login-title">
-      <h2 id="rule-login-title">登录规则查证</h2><p>使用受控演示账号，查看当前可查证的规则。</p>
-      <p v-if="authChecking" role="status">正在核对登录状态…</p>
+      <h2 id="rule-login-title">登录规则查证</h2><p>使用受控演示账号，查看当前可查证的规则。</p><p v-if="authChecking" role="status">正在核对登录状态…</p>
       <form @submit.prevent="login"><label for="username">账号</label><input id="username" v-model="username" name="username" autocomplete="username" required maxlength="32" :disabled="authChecking || loginBusy || session.state.identityBusy" />
         <label for="password">密码</label><PasswordInput v-model="password" :disabled="authChecking || loginBusy || session.state.identityBusy" />
-        <p id="password-hint" class="rule-hint">请输入演示账号的密码（16～64位英文字符）。</p>
-        <p id="login-feedback" role="status" aria-live="polite">{{ loginError || identityMessage }}</p>
+        <p id="password-hint" class="rule-hint">请输入演示账号的密码（16～64位英文字符）。</p><p id="login-feedback" role="status" aria-live="polite">{{ loginError || identityMessage }}</p>
         <button class="rule-primary" type="submit" :disabled="authChecking || loginBusy || session.state.identityBusy || session.state.reason === 'LOGIN_UNCONFIRMED'">{{ loginBusy || session.state.identityBusy ? '正在切换登录状态…' : '登录' }}</button>
       </form>
       <button v-if="session.state.reason === 'LOGOUT_UNCONFIRMED'" type="button" :disabled="session.state.identityBusy" @click="logout">重试退出</button>
@@ -99,50 +98,52 @@ function newQuestion() { flow.reset(); question.value = ''; choice.value = '' }
     <p v-else-if="!student" class="rule-notice">当前账号不是学生查证身份，请退出后使用学生查证身份登录。</p>
     <div v-else class="rule-desk">
       <section class="question-column" aria-label="问题与查证结果">
-        <p v-if="authChecking" role="status">正在核对登录状态…</p>
         <form class="question-form" @submit.prevent="flow.start(question)"><label for="rule-question">你想查证什么？</label>
-          <textarea id="rule-question" v-model="question" required maxlength="2048" rows="4" :disabled="authChecking || state.busy || session.state.identityBusy" placeholder="例如：公共选修课有什么学分限制？"></textarea>
-          <div class="question-actions"><span>{{ question.length }}/2048</span><button type="button" @click="newQuestion">新问题</button><button class="rule-primary" type="submit" :disabled="!question.trim() || authChecking || state.busy || session.state.identityBusy">{{ state.busy ? '正在查证…' : '查证规则' }}</button></div>
+          <textarea id="rule-question" v-model="question" required maxlength="2048" rows="4" :disabled="authChecking || state.busy || active || !!state.pending || session.state.identityBusy" placeholder="例如：公共选修课有什么学分限制？"></textarea>
+          <div class="question-actions"><span>{{ question.length }}/2048</span><button type="button" :disabled="active || !!state.pending || state.busy" @click="newQuestion">新问题</button><button class="rule-primary" type="submit" :disabled="!question.trim() || authChecking || state.busy || active || !!state.pending || session.state.identityBusy">{{ state.busy ? '正在提交…' : '查证规则' }}</button></div>
         </form>
         <p v-if="state.error" class="rule-notice" role="alert">{{ state.error }}</p>
-        <p v-if="state.busy" class="query-progress" role="status" aria-live="polite">正在查证，请等待本次结果。</p>
-        <section v-else-if="state.result" class="decision" aria-labelledby="decision-title" aria-live="polite">
-          <header><p class="decision-question">本次问题：{{ state.question }}</p><h2 id="decision-title">{{ labels[state.result.status] }}</h2><p>依据版本 {{ state.result.referenceRevision }}</p></header>
-          <p v-if="state.result.scope" class="question-scope">本次覆盖：{{ state.result.scope.questionScope }}</p>
-          <div v-if="Object.keys(state.result.confirmedConditions).length" class="declared-conditions"><h3>你已确认</h3><dl><template v-for="(value,key) in state.result.confirmedConditions" :key="key"><dt>{{ conditionName(key) }}</dt><dd>{{ ruleCheckConditionLabel(key,value) }}</dd></template></dl></div>
-          <form v-if="state.result.status === 'NEED_CLARIFICATION' && nextCondition" class="clarification" @submit.prevent="flow.clarify(nextCondition.key,choice)">
-            <label for="rule-condition">{{ nextCondition.question }}</label><select id="rule-condition" v-model="choice" required><option disabled value="">请选择你能确认的情况</option><option v-for="value in nextCondition.allowedValues" :key="value" :value="value">{{ ruleCheckConditionLabel(nextCondition.key,value) }}</option></select>
-            <button class="rule-primary" type="submit" :disabled="!choice">确认条件并继续</button><p class="rule-hint">无法确认时保留未知，先核对相关资料。</p>
-          </form>
-          <RuleCheckFact v-for="fact in state.result.confirmedFacts" :key="fact.id" :fact="fact" :conditions="state.result.scope?.conditions || []" :disabled="state.originalBusy" @original="flow.openOriginal" />
-          <section v-if="state.result.supportingReferences?.length" class="rule-supporting"><h3>条件与适用范围依据</h3>
-            <p>这些原文用于核对条件或资料覆盖范围，不代表已作出结论。</p>
-            <div v-for="reference in state.result.supportingReferences" :key="reference.citationId"><blockquote>{{ reference.text }}</blockquote>
-              <button type="button" :disabled="state.originalBusy" @click="flow.openOriginal(reference.originalToken)">核对原文</button></div>
+        <button v-if="state.pending" :disabled="state.busy || session.state.identityBusy" @click="flow.recover">查询原请求</button>
+        <button v-else-if="state.ticket && !state.polling && !state.busy" :disabled="session.state.identityBusy" @click="flow.refresh">继续查询</button>
+        <div v-if="active" class="query-progress" role="status" aria-live="polite"><p>{{ state.cancelRequested ? '停止请求已受理，等待本轮结束。' : '问题已受理，正在查证。' }}</p>
+          <button type="button" :disabled="state.busy || !!state.pending || state.cancelRequested || session.state.identityBusy" @click="flow.cancel">停止本次查证</button></div>
+        <section v-if="result" class="decision" aria-labelledby="decision-title" aria-live="polite">
+          <header><p class="decision-question">本次问题：{{ state.question }}</p><h2 id="decision-title">{{ title }}</h2><p>依据版本 {{ result.referenceRevision }}</p></header>
+          <p v-if="result.publishedVersion < state.snapshot.version" class="rule-hint">以下为上轮已确认内容，本轮补充仍在处理。</p>
+          <p v-if="state.snapshot.execution.mode === 'ENGINEERING_REPLAY'" class="rule-notice">工程回放：本次没有调用在线模型；回放覆盖情况不能代表资料或在线能力。</p>
+          <section class="confirmed-summary"><h3>当前能确认什么</h3>
+            <template v-for="q in result.items" :key="q.id"><article v-for="claim in q.claims" :key="claim.id" class="rule-fact"><h3>{{ claim.text }}</h3>
+              <div v-if="Object.keys(claim.when).length" class="declared-conditions"><p>仅在以下声明条件下解释，不代表个人资格认定</p><dl><template v-for="(value,key) in claim.when" :key="key"><dt>{{ key }}</dt><dd>{{ ruleCheckConditionLabel(key,value) }}</dd></template></dl></div>
+            </article></template>
+            <p v-if="!result.items.some(q => q.claims.length)">本次尚无可确认的规则内容。</p>
           </section>
-          <section v-for="(conflict,index) in state.result.conflicts" :key="index" class="rule-conflict"><h3>{{ conflict.issue }}</h3><p>这些依据尚未形成一致结论。</p>
-            <RuleCheckFact v-for="(side,i) in conflict.sides" :key="i" :fact="side" :conditions="state.result.scope?.conditions || []" :disabled="state.originalBusy" @original="flow.openOriginal" /></section>
-          <section v-if="state.result.unknownItems.length" class="rule-unknown"><h3>仍无法确认</h3><ul><li v-for="(unknown,i) in state.result.unknownItems" :key="i">{{ unknown }}</li></ul></section>
+          <section v-if="result.items.some(q => q.issues.length)" class="rule-unknown"><h3>还缺什么，下一步怎么办</h3>
+            <template v-for="q in result.items" :key="q.id"><article v-for="issue in q.issues" :key="issue.id" class="result-issue"><h4>{{ issueLabels[issue.kind] }}</h4><p>{{ issue.message }}</p><p class="next-step">下一步：{{ issue.nextStep }}</p></article></template>
+          </section>
+          <form v-if="state.snapshot.taskStatus === 'WAITING_USER' && nextCondition" class="clarification" @submit.prevent="flow.clarify(choice)"><label for="rule-condition">{{ nextCondition.question }}</label>
+            <select id="rule-condition" v-model="choice" required :disabled="state.busy || !!state.pending"><option disabled value="">请选择你能确认的情况</option><option v-for="value in nextCondition.allowedValues" :key="value" :value="value">{{ ruleCheckConditionLabel(nextCondition.conditionId,value) }}</option></select>
+            <button class="rule-primary" type="submit" :disabled="!choice || state.busy || !!state.pending">确认条件并继续</button><p class="rule-hint">无法确认时保留未知；补充会继续原任务。</p></form>
+          <section v-if="result.evidence.length" class="related-evidence"><h3>相关依据</h3><p class="rule-hint">按本次结果关联展示，原文默认折叠。</p>
+            <template v-for="q in result.items" :key="q.id"><details v-for="evidence in relatedEvidence(q)" :key="evidence.id"><summary>查看相关段落 · {{ evidence.revision }}</summary>
+              <blockquote>{{ evidence.quote }}</blockquote><button type="button" :disabled="state.originalBusy" @click="flow.openOriginal(evidence.originalToken)">核对原文</button></details></template>
+          </section>
         </section>
-        <div v-else-if="!state.error" class="empty-result"><h2>从一个具体问题开始</h2><p>有充分依据时解释规则；需要条件时追问；缺证或冲突时说明未知。</p></div>
+        <div v-else-if="!state.ticket && !state.error" class="empty-result"><h2>从一个具体问题开始</h2><p>有依据时解释规则，需要条件时追问，未完成时说明原因。</p></div>
       </section>
-      <aside id="original-panel" class="original-column" aria-label="原文对照" aria-live="polite"><h2>原文对照</h2>
-        <p v-if="state.originalBusy" role="status">正在核对当前原文…</p>
-        <template v-else-if="state.original"><h3>{{ state.original.title || '来源标题未记录' }}</h3><p class="original-version">版本 {{ state.original.revision }}</p><p>{{ state.original.sourceLocator || '条款定位尚未记录' }}</p>
+      <aside id="original-panel" class="original-column" aria-label="原文对照" aria-live="polite"><h2>原文对照</h2><p v-if="state.originalBusy" role="status">正在核对当前原文…</p>
+        <template v-else-if="state.original"><h3>{{ state.original.title || '来源标题未记录' }}</h3><p>版本 {{ state.original.revision }}</p><p>{{ state.original.sourceLocator || '条款定位尚未记录' }}</p>
           <p v-if="state.original.pageNumberKind === 'RECORDED_SOURCE_PAGE'">记录页码 {{ state.original.recordedPageNumber }}</p><p v-else>页码尚未记录</p>
-          <p v-if="state.original.sectionTitle">{{ state.original.sectionTitle }}</p>
-          <blockquote class="original-text">{{ originalParts.before }}<mark>{{ originalParts.quote }}</mark>{{ originalParts.after }}</blockquote>
+          <details><summary>展开本条原文与必要上下文</summary><blockquote class="original-text">{{ originalParts.before }}<mark>{{ originalParts.quote }}</mark>{{ originalParts.after }}</blockquote></details>
           <ul class="original-unknown"><li v-for="(unknown,i) in state.original.unknownItems" :key="i">{{ unknown }}</li></ul>
-          <a v-if="originalLink" class="original-link" :href="originalLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">打开原件</a>
-        </template>
-        <p v-else class="original-placeholder">点击回答中的“核对原文”，对照摘录、条款和记录页码。当前没有可展示的原文。</p>
+          <a v-if="originalLink" class="original-link" :href="originalLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">打开原件</a></template>
+        <p v-else class="original-placeholder">展开结果中的相关段落，再点击“核对原文”。</p>
       </aside>
     </div>
     <footer class="rule-footer">个人项目，非学校官方系统。规则查证不能代替个人修读资格认定或教务办理。</footer>
   </main>
 </template>
-
 <style scoped>
+.rule-fact, .result-issue { padding: 18px 0; } .result-issue h4 { color: #7b4b17; } .next-step { margin-top: 8px; } details { border-top: 1px solid #d8ddcf; padding: 14px 0; } summary { cursor: pointer; color: #28553f; } .related-evidence { margin-top: 28px; } .related-evidence blockquote { white-space: pre-wrap; margin: 14px 0; padding-left: 14px; border-left: 3px solid #a9bca5; }
 .rule-page { min-height: 100vh; width: 100%; background: #faf8f2; color: #252a24; color-scheme: light; font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; line-height: 1.7; padding: 0 36px; }
 .rule-header { max-width: 1200px; margin: auto; padding: 24px 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid #d8ddcf; }
 .rule-brand { color: #28553f; font-weight: 700; font-size: 20px; }

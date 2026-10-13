@@ -93,6 +93,8 @@ class RuleAgentTaskHttpTest {
             a.login("student-a");b.login("student-b");admin.login("maintainer");
             assertThat(admin.get("/tasks/capabilities").statusCode()).isEqualTo(403);
             assertThat(a.get("/tasks/capabilities").statusCode()).isEqualTo(200);
+            var form=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+P+"/tasks")).header("Content-Type","application/x-www-form-urlencoded").POST(HttpRequest.BodyPublishers.ofString("question="+"x".repeat(70000))).build();
+            assertThat(a.client.send(form,HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(415);
             String key=UUID.randomUUID().toString();var body=Map.of("question","澄清","clientRequestId",key);
             assertThat(a.post("/tasks",body,false).statusCode()).isEqualTo(403);
             assertThat(a.post("/tasks",Map.of("question","问题","clientRequestId",key,"actorId",B.userId()),true).statusCode()).isEqualTo(400);
