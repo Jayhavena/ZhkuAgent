@@ -120,6 +120,11 @@ public final class RuleAgentRunner {
                                 }
                             }
                         }
+                        // 发布会fresh重读原文；预留5秒不等于读取有硬超时，迟到结果必须在终态前撤销。
+                        if(published!=null&&!clock.instant().isBefore(deadline)){
+                            published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.BUDGET_EXCEEDED);
+                            throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
+                        }
                         var toolStatus=observation==null||observation.status()==ObservationStatus.SUCCEEDED||observation.status()==ObservationStatus.NO_MATCH?AgentToolCall.Status.SUCCEEDED:observation.status()==ObservationStatus.UNAVAILABLE?AgentToolCall.Status.FAILED:AgentToolCall.Status.REJECTED;
                         context.recordToolResult(call,new AgentToolCall.Result(toolStatus,json(observation==null?published.result():observation),AgentToolCall.PayloadFormat.JSON,toolStatus==AgentToolCall.Status.SUCCEEDED?null:com.zhku.agent.agent.runtime.contract.AgentRuntimeError.of(com.zhku.agent.agent.runtime.contract.AgentRuntimeError.Category.TOOL_FAILURE)));
                     }catch(RulePublicationContract.Rejected invalid){
@@ -148,6 +153,8 @@ public final class RuleAgentRunner {
             // 清理失败须在终态CAS前确定，避免runtime成功但结果失败的不可发布快照。
             try{context.cleanupOnce(this::closePorts);}catch(RuntimeException cleanupFailure){/* runtime已记录清理异常，仍需完成失败状态与终止收尾。 */}
             if(context.hasCleanupFailure())published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.TASK_EXECUTION_UNAVAILABLE);
+            if(published!=null&&(published.status()==TaskStatus.RESOLVED||published.status()==TaskStatus.WAITING_USER)&&!clock.instant().isBefore(deadline))
+                published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.BUDGET_EXCEEDED);
             var target=published==null?TaskStatus.FAILED:published.status();var state=target==TaskStatus.STOPPED?(context.isStopRequested()?AgentRunState.CANCELLED:AgentRunState.INCOMPLETE):target==TaskStatus.FAILED?AgentRunState.FAILED:target==TaskStatus.WAITING_USER||published.result().coverage()!=Coverage.COMPLETE?AgentRunState.INCOMPLETE:AgentRunState.SUCCEEDED;
             if(!context.finish(state)&&context.isStopRequested()){published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.CANCELLED);context.finish(AgentRunState.CANCELLED);}
             context.signalTermination();context.publishTermination();

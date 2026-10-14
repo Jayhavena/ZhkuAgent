@@ -23,6 +23,7 @@ class RuleAgentOnlineFactoryTest {
     final UUID staleReplacementChunk=UUID.randomUUID();
     boolean conditional;
     boolean studyArrangement;
+    Runnable onOriginalRead=()->{};
     int selectedCount=1;
     String readSelection="valid";
     String savedSet;
@@ -69,7 +70,7 @@ class RuleAgentOnlineFactoryTest {
         var entries=RuleArticle4Overlay.apply(root,List.of(entry));
         var candidate=new RetrievedChunk(fixture.chunk,text,"local-reviewed-article4","local-reviewed-article4",1,"2025.9.2",checksum,fixture.source);
         var current=new RuleCheckEvidenceSnapshot("current",fixture.source,fixture.chunk,"2025.9.2",checksum,text,true);
-        return new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->entries,(q,n)->Collections.nCopies(candidateCopies,candidate),(s,c)->Optional.of(current),r->{},Clock.systemUTC());
+        return new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->entries,(q,n)->Collections.nCopies(candidateCopies,candidate),(s,c)->{onOriginalRead.run();return Optional.of(current);},r->{},Clock.systemUTC());
     }
     Object review(JsonNode safe){
         var requirements=new ArrayList<RulePublicationContract.Requirement>();
@@ -188,6 +189,21 @@ class RuleAgentOnlineFactoryTest {
         assertThat(work.revalidate(result.snapshot().result())).isTrue();
         assertThat(traces.getLast().inputTokens()).isEqualTo(25);
         assertThat(traces.getLast().outputTokens()).isEqualTo(12);
+    }
+    @Test void finalFreshReadCrossingRunDeadlineCannotPublishSuccess()throws Exception{
+        studyArrangement=true;start(5);factory.close();
+        var now=new java.util.concurrent.atomic.AtomicReference<>(Instant.parse("2026-10-15T00:00:00Z"));var began=now.get();
+        Clock fake=new Clock(){public ZoneId getZone(){return ZoneOffset.UTC;}public Clock withZone(ZoneId zone){return this;}public Instant instant(){return now.get();}};
+        onOriginalRead=()->{if(reviewStarted.getCount()==0)now.set(began.plusMillis(110001));};
+        factory=new RuleAgentOnlineFactory(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),RuleAgentProvider.MODEL,"LOCAL_TEST_ONLY"),()->"local-test-placeholder",(owner,task)->{
+            try{return mappedTools(owner,task);}catch(Exception invalid){throw new IllegalStateException(invalid);}
+        },traces::add,5,fake);
+        var input=RuleAgentRunner.Input.single(fixture.owner,fixture.task,"专业选修课和公共选修课在修读安排上有什么不同？");
+        var result=factory.open(fixture.owner,fixture.task).run(AgentRunContext.create(input.question()),input);
+        assertThat(result.snapshot().taskStatus()).isEqualTo(TaskStatus.STOPPED);
+        assertThat(result.snapshot().result().items().getFirst().claims()).isEmpty();
+        assertThat(result.snapshot().result().items().getFirst().issues()).extracting(Issue::reasonCode).contains(ReasonCode.BUDGET_EXCEEDED);
+        assertThat(factory.resourcesClosed()).isTrue();assertThat(calls).hasValue(4);
     }
     @Test void actualDecisionViewCarriesReadStateCapacityAndReviewReserve()throws Exception{
         start(5);

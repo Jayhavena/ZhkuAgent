@@ -1,6 +1,4 @@
 package com.zhku.knowledge.ruleagent;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
@@ -38,8 +36,11 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     public static final String MODEL="qwen3.8-flash";
     /** 结构化输出的Schema名只标识本动作合同，不含任务或用户数据。 */
     static final String ACTION_SCHEMA_NAME="zhku_rule_agent_action";
-    public record Diagnostics(int requestBytes,long elapsedMillis,Long dispatchedMillis,Long connectedMillis,Long headersMillis,Long firstBodyMillis,Long bodyCompletedMillis,int responseBytes,String requestId,String responseModel){
+    /** connectedMillis保留字段兼容旧轨迹，但实际HTTP连接时刻不可观测，始终为null。 */
+    public record Diagnostics(int requestBytes,long elapsedMillis,Long dispatchedMillis,Long connectedMillis,Long headersMillis,Long firstBodyMillis,Long bodyCompletedMillis,int responseBytes,String requestId,String responseModel,TransportFailure transportFailure){
     }
+    /** 只记录实际交换的白名单类别，不保存异常正文；null表示没有可归类的传输异常。 */
+    public enum TransportFailure { DEADLINE_EXCEEDED, CONNECTION_TIMEOUT, TLS_FAILURE, REQUEST_TIMEOUT, CONNECTION_FAILURE, CANCELLED }
     public enum Phase {
         BEGIN, RECEIVED, FINISHED
     }
@@ -189,23 +190,27 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     }
     @Override public RuleAgentRunner.Reply decide(RuleAgentRunner.View view,Duration timeout) {
         if(view.attemptsRemaining()<1||view.stepsRemaining()<1)throw new Failure(ReasonCode.BUDGET_EXCEEDED,false);
+        long started=System.nanoTime();
         return exchange(payload(view),timeout,Purpose.DECISION,content->{
             var decoded=references.decode(content);
             RuleAgentProtocol.preflight(decoded,view);
             // runner仍只接收原内部动作；模型无权覆盖实际UUID。
             return new RuleAgentRunner.Reply(JSON.valueToTree(decoded).toString(),!"LOCAL_TEST_ONLY".equals(settings.authorizationId()));
-        });
+        },started);
     }
     @Override public RulePublicationContract.SemanticAssessment assess(RulePublicationContract.SemanticInput input,Duration timeout){
-        return exchange(reviewPayload(input),timeout,Purpose.PUBLICATION_REVIEW,content->RulePublicationProtocol.decode(content,input));
+        long started=System.nanoTime();
+        return exchange(reviewPayload(input),timeout,Purpose.PUBLICATION_REVIEW,content->RulePublicationProtocol.decode(content,input),started);
     }
     /** 两种用途只有载荷及解码不同；额度、调用序号、usage、取消和资源都归同一run端口。 */
-    private synchronized <T> T exchange(String payload,Duration timeout,Purpose purpose,Function<String,T> decode) {
+    private synchronized <T> T exchange(String payload,Duration timeout,Purpose purpose,Function<String,T> decode,long started) {
         if(closed||timeout.isNegative()||timeout.isZero()) {
             throw new Failure(ReasonCode.TASK_EXECUTION_UNAVAILABLE,false);
         }
         String requestHash=sha(payload.getBytes(StandardCharsets.UTF_8));
-        var measured=new Measurement(payload.getBytes(StandardCharsets.UTF_8).length);
+        var maximum=Duration.ofMillis(DEFAULT_BUDGET.maxModelMillis());
+        var duration=timeout.compareTo(maximum)>0?maximum:timeout;
+        var measured=new Measurement(payload.getBytes(StandardCharsets.UTF_8).length,started,duration.toNanos());
         int current=attempts<DEFAULT_BUDGET.maxModelAttemptsPerRun()?allowance.get():0;
         while(current>0&&!allowance.compareAndSet(current,current-1)) {
             current=allowance.get();
@@ -230,12 +235,9 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             if(secret==null||secret.isBlank()) {
                 throw new Failure(ReasonCode.MODEL_AUTH_FAILURE,false);
             }
-            // 连接层观测先行：把"网络路径未通"与"已通但供应商无响应"分开记录；探测只观测，不替代真实调用。
-            measured.connectProbe(settings.endpoint());
-            var maximum=Duration.ofMillis(DEFAULT_BUDGET.maxModelMillis());
-            var duration=timeout.compareTo(maximum)>0?maximum:timeout;
+            // 只观察本次HTTP交换；独立socket既不能代表它，也会挤占核验预算。准备/等待/解码共用单调截止时间。
             var request=HttpRequest.newBuilder(settings.endpoint())
-            .timeout(duration)
+            .timeout(Duration.ofNanos(measured.remainingNanos()))
             .header("Authorization","Bearer "+secret)
             .header("Content-Type","application/json")
             .POST(HttpRequest.BodyPublishers.ofString(payload,StandardCharsets.UTF_8))
@@ -246,7 +248,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
                 return new LimitedBody(measured);
             });
             inFlight=future;
-            var response=future.get(duration.toNanos(),TimeUnit.NANOSECONDS);
+            var response=future.get(measured.remainingNanos(),TimeUnit.NANOSECONDS);
             status=response.statusCode();
             received=true;
             byte[] body=response.body();
@@ -284,6 +286,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             String content=purpose==Purpose.DECISION?decisionAction(choice):reviewContent(choice);
             var result=decode.apply(content);
             if(closed)throw new Failure(ReasonCode.CANCELLED,true);
+            measured.remainingNanos();
             record(new Trace(task,run,attempt,requestHash,responseHash,status,null,true,input,output,measured.snapshot(),Phase.FINISHED,validation,purpose));
             return result;
         }
@@ -298,17 +301,22 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             rejected.reason==ReasonCode.AUDIT_UNAVAILABLE?RuleAgentProtocol.Code.AUDIT_FAILURE:RuleAgentProtocol.Code.TRANSPORT_FAILURE);
         }
         catch(TimeoutException e) {
+            measured.failed(TransportFailure.REQUEST_TIMEOUT);
             failure=ReasonCode.MODEL_TIMEOUT;
         }
         catch(InterruptedException e) {
             Thread.currentThread().interrupt();
+            measured.failed(TransportFailure.CANCELLED);
             failure=ReasonCode.CANCELLED;
         }
         catch(CancellationException e) {
+            measured.failed(closed?TransportFailure.CANCELLED:TransportFailure.CONNECTION_FAILURE);
             failure=closed?ReasonCode.CANCELLED:ReasonCode.MODEL_CONNECTION_FAILURE;
         }
         catch(ExecutionException e) {
             // 关闭客户端可能把取消包装为ExecutionException；宿主已关闭时不能误报网络故障。
+            if(closed)measured.failed(TransportFailure.CANCELLED);
+            else if(!(e.getCause() instanceof ResponseTooLarge))measured.failed(transportFailure(e.getCause()));
             failure=closed?ReasonCode.CANCELLED:e.getCause() instanceof HttpTimeoutException?ReasonCode.MODEL_TIMEOUT:e.getCause() instanceof ResponseTooLarge?ReasonCode.INVALID_MODEL_RESPONSE:ReasonCode.MODEL_CONNECTION_FAILURE;
         }
         catch(Exception e) {
@@ -383,54 +391,36 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             throw new IllegalStateException("指纹计算失败");
         }
     }
+    private static TransportFailure transportFailure(Throwable failure){
+        for(int depth=0;failure!=null&&depth<8;depth++,failure=failure.getCause()){
+            if(failure instanceof HttpConnectTimeoutException)return TransportFailure.CONNECTION_TIMEOUT;
+            if(failure instanceof javax.net.ssl.SSLException)return TransportFailure.TLS_FAILURE;
+            if(failure instanceof HttpTimeoutException)return TransportFailure.REQUEST_TIMEOUT;
+        }
+        return TransportFailure.CONNECTION_FAILURE;
+    }
     private static final class ResponseTooLarge extends RuntimeException{
     }
     /** 单调时钟度量客户端边界；dispatch不代表网络发出，响应头也不能拆分服务排队与生成耗时。 */
     private static final class Measurement {
-        /** 连接探测的 TCP 超时与 join 余量：足够区分"快速连通"与"悬挂"，又不实质挤占单次调用预算。 */
-        private static final int CONNECT_PROBE_MILLIS=3000;
-        private final long started=System.nanoTime();
+        private final long started,deadline;
         private final int requestBytes;
         private Long dispatched,headers,firstBody,completed;
-        /** 探测线程回写、snapshot 在监视器内读取：volatile 保证可见性，且回写不必等待 exchange 释放锁。 */
-        private volatile Long connected;
+        private TransportFailure transportFailure;
         private int responseBytes;
         private String requestId,responseModel;
         private volatile Integer status;
-        Measurement(int requestBytes){
-            this.requestBytes=requestBytes;
+        Measurement(int requestBytes,long started,long timeoutNanos){
+            this.requestBytes=requestBytes;this.started=started;this.deadline=started+timeoutNanos;
         }
-        private long millis(){
-            return TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-started);
+        private long millis(){return TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-started);}
+        long remainingNanos()throws TimeoutException{
+            long remaining=deadline-System.nanoTime();
+            if(remaining<=0){failed(TransportFailure.DEADLINE_EXCEEDED);throw new TimeoutException();}
+            return remaining;
         }
-        synchronized void dispatch(){
-            dispatched=millis();
-        }
-        /**
-         * 连接层观测：真实调用前对端点做一次有界 TCP 连接探测（含 DNS），只记录建立时刻。
-         * 探测在守护线程里执行并有 join 上限：DNS 悬挂不会拖住真实调用；探测失败只留空值，
-         * 分类与计数仍由真实调用和既有原因码负责——本机侧不因探测失败而失败，也不伪造连通。
-         * 本方法不持 Measurement 监视器：否则探测线程回写 connected 会与 join 互等，白耗整个join上限。
-         * 局限：只到 TCP，不含 TLS 握手；connected 有值而 headers 为空说明 TLS 或供应商侧静默。
-         */
-        void connectProbe(URI endpoint){
-            if(connected!=null)return;
-            String host=endpoint.getHost();
-            int port=endpoint.getPort()>0?endpoint.getPort():"https".equals(endpoint.getScheme())?443:80;
-            if(host==null)return;
-            var probe=Thread.ofPlatform().daemon().name("zhku-rule-agent-connect-probe-",0).start(()->{
-                try(var socket=new Socket()){
-                    socket.connect(new InetSocketAddress(host,port),CONNECT_PROBE_MILLIS);
-                    connected=millis();
-                }catch(Exception ignored){
-                }
-            });
-            try{
-                probe.join(CONNECT_PROBE_MILLIS+1000);
-            }catch(InterruptedException e){
-                Thread.currentThread().interrupt();
-            }
-        }
+        synchronized void failed(TransportFailure failure){if(transportFailure==null)transportFailure=failure;}
+        synchronized void dispatch(){dispatched=millis();}
         synchronized void headers(HttpResponse.ResponseInfo info,String secret){
             headers=millis();
             status=info.statusCode();
@@ -446,10 +436,10 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         }
         synchronized void model(JsonNode model,String secret){
             String value=model.isTextual()?model.textValue():null;
-            responseModel=value!=null&&!value.contains(secret)&&value.matches("qwen-[A-Za-z0-9._-]{1,96}")?value:null;
+            responseModel=value!=null&&!value.contains(secret)&&value.matches("qwen[A-Za-z0-9._-]{1,96}")?value:null;
         }
         synchronized Diagnostics snapshot(){
-            return new Diagnostics(requestBytes,millis(),dispatched,connected,headers,firstBody,completed,responseBytes,requestId,responseModel);
+            return new Diagnostics(requestBytes,millis(),dispatched,null,headers,firstBody,completed,responseBytes,requestId,responseModel,transportFailure);
         }
         // 只保留有界的追踪标识；不记录任意响应头、错误正文、密钥或请求内容。
         private static String safeId(String value){
