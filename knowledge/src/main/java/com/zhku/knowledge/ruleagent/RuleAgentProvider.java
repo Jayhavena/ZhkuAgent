@@ -56,7 +56,8 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         必须遵循宿主提供的actionContract允许动作和必填字段；READ句柄的上下限、唯一性与来源以该合同为准。
         remainingBudget给出本轮剩余次数，包含当前决策；不要提出超过剩余工具/模型预算的计划。
         动作type及字段只能从actionContract.actions选择；subquestionId必须对应questions.id。
-        检索使用自然语言query；读取使用实际候选handles；追问使用审核conditionId、reason及supportingFactIds。
+        检索使用自然语言query；读取只选择currentCandidates的简短handles并回传candidateSetId，不能生成或提交UUID。
+        新检索使旧编号集合失效；追问使用审核conditionId、reason及supportingFactIds。
         结束时items每项填写subquestionId、factIds、issues、operation；字段和限制以actionContract为准。
         FINISH必须覆盖所有子问题。能确认的事实与缺口可以共存，issues为kind/reasonCode对象。
         健康检索未命中可用DATA_GAP/RETRIEVAL_NO_MATCH；详情无依据可用DATA_GAP/DETAIL_NOT_IN_REVIEWED_TEXT。
@@ -83,6 +84,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     private volatile CompletableFuture<?> inFlight;
     private volatile boolean closed;
     private int attempts;
+    private final RuleCandidateReferences references=new RuleCandidateReferences();
     public RuleAgentProvider(Settings settings,UUID task,UUID run,Supplier<String> key,Consumer<Trace> audit,AtomicInteger allowance){
         this.settings=Objects.requireNonNull(settings);
         this.task=Objects.requireNonNull(task);
@@ -95,6 +97,11 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     }
     String payload(RuleAgentRunner.View view){
         var data=JSON.createObjectNode();
+        synchronized(references) {
+            if(closed)throw new Failure(ReasonCode.TASK_EXECUTION_UNAVAILABLE,false);
+            references.refresh(view);
+            references.project(data);
+        }
         data.put("question",view.question());
         data.set("questions",JSON.valueToTree(view.questions()));
         data.set("userConditions",JSON.valueToTree(view.userConditions()));
@@ -116,7 +123,8 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             item.put("status",observation.status().name());
             item.put("dataLevel",observation.dataLevel().name());
             item.set("reasonCode",JSON.valueToTree(observation.reasonCode()));
-            item.set("candidates",JSON.valueToTree(observation.candidates()));
+            // 历史候选不再向模型暴露UUID或旧编号，完整当前集合统一投影在currentCandidates。
+            item.putArray("candidates");
             item.set("factIds",JSON.valueToTree(observation.factIds()));
             var evidence=item.putArray("evidence");
             for(var e:observation.evidence()){
@@ -152,9 +160,10 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     @Override public RuleAgentRunner.Reply decide(RuleAgentRunner.View view,Duration timeout) {
         if(view.attemptsRemaining()<1||view.stepsRemaining()<1)throw new Failure(ReasonCode.BUDGET_EXCEEDED,false);
         return exchange(payload(view),timeout,Purpose.DECISION,content->{
-            var decoded=RuleAgentJson.readAction(content);
+            var decoded=references.decode(content);
             RuleAgentProtocol.preflight(decoded,view);
-            return new RuleAgentRunner.Reply(content,!"LOCAL_TEST_ONLY".equals(settings.authorizationId()));
+            // runner仍只接收原内部动作；模型无权覆盖实际UUID。
+            return new RuleAgentRunner.Reply(JSON.valueToTree(decoded).toString(),!"LOCAL_TEST_ONLY".equals(settings.authorizationId()));
         });
     }
     @Override public RulePublicationContract.SemanticAssessment assess(RulePublicationContract.SemanticInput input,Duration timeout){
@@ -393,6 +402,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     }
     @Override public void close(){
         closed=true;
+        references.clear();
         var future=inFlight;
         if(future!=null)future.cancel(true);
         client.shutdownNow();

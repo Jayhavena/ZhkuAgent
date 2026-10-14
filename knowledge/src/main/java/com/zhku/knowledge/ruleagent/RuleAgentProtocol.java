@@ -9,22 +9,39 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 
 /** 模型约束投影与解码使用同一动作类型/record字段及领域预算，不另建宽松协议。 */
 public final class RuleAgentProtocol {
-    public static final String REVISION="RULE_AGENT_ACTION_CONTRACT_02";
+    public static final String REVISION="RULE_AGENT_ACTION_CONTRACT_03";
+    public static final String READ_REFERENCE_PATTERN="c[1-9][0-9]*";
+    static Set<String> modelReadFields() {
+        var fields=new HashSet<String>();
+        fields.add("type");
+        fields.add("candidateSetId");
+        for(var field:Read.class.getRecordComponents())fields.add(field.getName());
+        return Set.copyOf(fields);
+    }
     private RuleAgentProtocol() {}
     public enum Stage { NONE, SUPPLIER_RESPONSE, ACTION_JSON, ACTION_FIELDS, ACTION_PARAMETERS, REVIEW_JSON, REVIEW_BINDING, PRE_EXECUTION, TRANSPORT, AUDIT }
     public enum Code {
         NONE, RESPONSE_JSON_INVALID, RESPONSE_STRUCTURE_INVALID, FINISH_REASON_INVALID, CONTENT_INVALID,
         ACTION_JSON_INVALID, ACTION_TYPE_UNKNOWN, ACTION_FIELDS_INVALID, ACTION_PARAMETER_INVALID,
         READ_HANDLE_COUNT, READ_HANDLE_DUPLICATE, READ_HANDLE_UUID, READ_HANDLE_NOT_CURRENT,
+        READ_REFERENCE_FORMAT, READ_REFERENCE_SET,
         SUBQUESTION_NOT_CURRENT, OPERATION_NOT_ALLOWED, REVIEW_JSON_INVALID, REVIEW_BINDING_INVALID, BUDGET_UNAVAILABLE, TRANSPORT_FAILURE, AUDIT_FAILURE
     }
-    public record Validation(Stage stage, Code code) {}
+    public record ReadSelection(Integer elementIndex,String jsonType,Integer stringLength,Code failureCategory,Boolean currentCandidate) {}
+    public record Validation(Stage stage, Code code,ReadSelection readSelection) {
+        public Validation(Stage stage,Code code) {this(stage,code,null);}
+    }
     public static final Validation VALID=new Validation(Stage.NONE,Code.NONE);
     public static final class Rejected extends IllegalArgumentException {
         final Validation validation;
         Rejected(Stage stage,Code code) {
             super(code.name());
             validation=new Validation(stage,code);
+        }
+        Rejected(Code code,Integer index,JsonNode value,Boolean current) {
+            super(code.name());
+            validation=new Validation(Stage.ACTION_PARAMETERS,code,new ReadSelection(index,
+                value==null?null:value.getNodeType().name(),value!=null&&value.isTextual()?value.textValue().length():null,code,current));
         }
     }
     private static final ObjectMapper JSON=new ObjectMapper();
@@ -51,12 +68,13 @@ public final class RuleAgentProtocol {
                 fields.add(field.getName());
             }
             if(type==Read.class) {
+                fields.add("candidateSetId");
                 row.putObject("readHandles")
                     .put("min",MIN_READ_HANDLES)
                     .put("max",DEFAULT_BUDGET.maxReadHandles())
                     .put("unique",true)
-                    .put("format","UUID")
-                    .put("source","当前observations中成功检索的candidate.handle，不是条款号、索引或自造ID");
+                    .put("format",READ_REFERENCE_PATTERN)
+                    .put("source","currentCandidates.handle；必须同时回传当前candidateSetId。仅宿主映射实际UUID，禁止提交UUID或自造编号");
             }
             if(type==Finish.class) {
                 row.put("operationMustBeNull",!ALLOW_OPERATIONS);

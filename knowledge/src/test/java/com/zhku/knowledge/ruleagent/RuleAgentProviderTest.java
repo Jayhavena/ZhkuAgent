@@ -224,19 +224,19 @@ class RuleAgentProviderTest {
     }
     static java.util.stream.Stream<String[]> protocolFailures(){
         String id="aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
-        String prefix="{\"type\":\"READ_VERIFIED_RULE\",\"subquestionId\":\"q1\",\"handles\":";
+        String prefix="{\"type\":\"READ_VERIFIED_RULE\",\"subquestionId\":\"q1\",\"candidateSetId\":\"expired-set\",\"handles\":";
         return java.util.stream.Stream.of(
         new String[]{
             prefix+"[\""+id+"\",\""+id+"\",\""+id+"\",\""+id+"\"]}","stop","ACTION_PARAMETERS","READ_HANDLE_COUNT"
         },
         new String[]{
-            prefix+"[\""+id+"\",\""+id+"\"]}","stop","ACTION_PARAMETERS","READ_HANDLE_DUPLICATE"
+            prefix+"[\""+id+"\",\""+id+"\"]}","stop","ACTION_PARAMETERS","READ_REFERENCE_SET"
         },
         new String[]{
-            prefix+"[\"bad-sensitive-uuid\"]}","stop","ACTION_PARAMETERS","READ_HANDLE_UUID"
+            prefix+"[\"bad-sensitive-uuid\"]}","stop","ACTION_PARAMETERS","READ_REFERENCE_SET"
         },
         new String[]{
-            prefix+"[\""+id+"\"]}","stop","PRE_EXECUTION","READ_HANDLE_NOT_CURRENT"
+            prefix+"[\""+id+"\"]}","stop","ACTION_PARAMETERS","READ_REFERENCE_SET"
         },
         new String[]{
             "{sensitive-invalid-json","stop","ACTION_JSON","ACTION_JSON_INVALID"
@@ -284,18 +284,21 @@ class RuleAgentProviderTest {
     }
     @Test void legalReadUsesCurrentCandidateAndAdvertisesAuthoritativeLimits()throws Exception{
         var handle=UUID.randomUUID();
-        var action=new ObjectMapper().writeValueAsString(Map.of("type","READ_VERIFIED_RULE","subquestionId","q1","handles",List.of(handle.toString())));
-        start(200,response(action,"stop"),0);
+        start(200,good(),0);
         var observation=new ToolObservation(UUID.randomUUID(),UUID.randomUUID(),1,ObservationStatus.SUCCEEDED,null,DataLevel.CANDIDATE,"synthetic",List.of(new Candidate(handle,"合成原文","2025.9.2")),List.of(),List.of());
         var base=view();
         var input=new RuleAgentRunner.View(base.question(),base.questions(),base.userConditions(),List.of(observation),List.of(),List.of(),List.of(),3,5);
+        var projected=new ObjectMapper().readTree(new ObjectMapper().readTree(port.payload(input)).path("messages").get(1).path("content").asText());
+        var action=new ObjectMapper().writeValueAsString(Map.of("type","READ_VERIFIED_RULE","subquestionId","q1","candidateSetId",projected.path("candidateSetId").asText(),"handles",List.of("c1")));
+        responseBody.set(response(action,"stop"));
         assertThat(RuleAgentJson.readAction(port.decide(input,Duration.ofSeconds(1)).actionJson())).isEqualTo(new Read("q1",List.of(handle)));
         var data=new ObjectMapper().readTree(new ObjectMapper().readTree(request.get()).path("messages").get(1).path("content").asText());
         var read=java.util.stream.StreamSupport.stream(data.path("actionContract").path("actions").spliterator(),false).filter(n->n.path("type").asText().equals("READ_VERIFIED_RULE")).findFirst().orElseThrow();
         assertThat(read.path("readHandles").path("max").asInt()).isEqualTo(DEFAULT_BUDGET.maxReadHandles());
         assertThat(read.path("readHandles").path("min").asInt()).isEqualTo(1);
         assertThat(read.path("readHandles").path("unique").asBoolean()).isTrue();
-        assertThat(read.path("requiredFields").toString()).contains("subquestionId","handles");
+        assertThat(read.path("requiredFields").toString()).contains("subquestionId","handles","candidateSetId");
+        assertThat(data.toString()).doesNotContain(handle.toString());
         assertThat(data.path("remainingBudget").path("modelAttemptsIncludingThisCall").asInt()).isEqualTo(3);
         assertThat(data.path("remainingBudget").path("toolSteps").asInt()).isEqualTo(5);
     }

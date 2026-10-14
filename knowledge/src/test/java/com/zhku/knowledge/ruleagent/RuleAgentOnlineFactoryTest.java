@@ -21,6 +21,11 @@ class RuleAgentOnlineFactoryTest {
     final List<RuleAgentProvider.Trace> traces=new CopyOnWriteArrayList<>();
     final RuleAgentRunnerTest fixture=new RuleAgentRunnerTest();
     boolean conditional;
+    String readSelection="valid";
+    String savedSet;
+    int searches;
+    int candidateCopies=1;
+    volatile JsonNode lastDecisionView;
     final CountDownLatch reviewStarted=new CountDownLatch(1);
     final CountDownLatch releaseReview=new CountDownLatch(1);
     volatile boolean holdReview;
@@ -36,7 +41,7 @@ class RuleAgentOnlineFactoryTest {
         var entry=new RuleCheckApplicationService.CatalogEntry(rule,"合成范围",new RuleCheckApplicabilityGuard.Coverage(Set.of(RuleCheckApplicabilityGuard.Audience.UNDERGRADUATE)),RuleCheckTopicGuard.Coverage.declared(RuleCheckTopicGuard.Topic.CATEGORY));
         var candidate=new RetrievedChunk(fixture.chunk,fixture.text,"synthetic","synthetic",1,"2025.9.2",fixture.hash(),fixture.source);
         var current=new RuleCheckEvidenceSnapshot("current",fixture.source,fixture.chunk,"2025.9.2",fixture.hash(),fixture.text,true);
-        return new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->List.of(entry),(q,n)->List.of(candidate),(s,c)->Optional.of(current),r->{},Clock.systemUTC());
+        return new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->List.of(entry),(q,n)->Collections.nCopies(candidateCopies,candidate),(s,c)->Optional.of(current),r->{},Clock.systemUTC());
     }
     Object review(JsonNode safe){
         var requirements=new ArrayList<RulePublicationContract.Requirement>();
@@ -64,6 +69,7 @@ class RuleAgentOnlineFactoryTest {
                 var json=new ObjectMapper();
                 var request=json.readTree(e.getRequestBody());
                 var view=json.readTree(request.path("messages").path(1).path("content").asText());
+                if(!view.has("input"))lastDecisionView=view;
                 Object action;
                 if(view.has("input")){
                     reviewStarted.countDown();
@@ -71,7 +77,30 @@ class RuleAgentOnlineFactoryTest {
                     action=review(view.path("input"));
                 }
                 else if(view.path("observations").isEmpty())action=new Search("q1","课程类别");
-                else if(view.path("facts").isEmpty())action=new Read("q1",List.of(UUID.fromString(view.path("observations").get(0).path("candidates").get(0).path("handle").asText())));
+                else if(view.path("facts").isEmpty()){
+                    var set=view.path("candidateSetId").asText("old-protocol");
+                    var candidates=view.path("currentCandidates");
+                    String ref=candidates.isEmpty()?"c1":candidates.get(0).path("handle").asText();
+                    Object selections=switch(readSelection){
+                        case "unknown"->List.of("c999");
+                        case "duplicate"->List.of(ref,ref);
+                        case "excess"->List.of(ref,ref,ref,ref);
+                        case "uuid"->List.of(fixture.chunk.toString());
+                        case "object"->List.of(Map.of("handle",ref));
+                        case "number"->List.of(1);
+                        case "invalid"->List.of("private-free-body");
+                        case "three"->List.of("c1","c2","c3");
+                        default->List.of(ref);
+                    };
+                    if(readSelection.equals("stale")&&searches++==0){
+                        savedSet=set;
+                        action=new Search("q1","课程类别重新检索");
+                    }else{
+                        if(readSelection.equals("cross-task")||readSelection.equals("stale"))set=savedSet;
+                        action=Map.of("type","READ_VERIFIED_RULE","subquestionId","q1","candidateSetId",set,"handles",selections);
+                        if(readSelection.equals("save"))savedSet=set;
+                    }
+                }
                 else if(conditional&&!view.path("userConditions").has("courseType")){
                     var ids=new ArrayList<String>();view.path("facts").forEach(f->ids.add(f.path("id").asText()));
                     action=new Ask("q1","courseType","合成必要条件",ids);
@@ -80,7 +109,7 @@ class RuleAgentOnlineFactoryTest {
                     view.path("facts").forEach(f->{if(!conditional||f.path("when").path("courseType").equals(view.path("userConditions").path("courseType")))ids.add(f.path("id").asText());});
                     action=new Finish(List.of(new Proposal("q1",ids,List.of(),null)));
                 }
-                byte[] bytes=json.writeValueAsBytes(Map.of("choices",List.of(Map.of("finish_reason","stop","message",Map.of("content",json.writeValueAsString(action))))));
+                byte[] bytes=json.writeValueAsBytes(Map.of("usage",Map.of("prompt_tokens",25,"completion_tokens",12),"choices",List.of(Map.of("finish_reason","stop","message",Map.of("content",json.writeValueAsString(action))))));
                 e.sendResponseHeaders(200,bytes.length);
                 e.getResponseBody().write(bytes);
             }
@@ -114,12 +143,93 @@ class RuleAgentOnlineFactoryTest {
         var result=work.run(AgentRunContext.create(input().question()),input());
         assertThat(result.snapshot().taskStatus()).isEqualTo(TaskStatus.RESOLVED);
         assertThat(result.events()).extracting(RuleAgentRunner.Event::action).containsExactly("SEARCH_REVIEWED_RULES","READ_VERIFIED_RULE","FINISH_CHECK","PUBLICATION_REVIEW");
+        assertThat(result.events().get(1).observation().dataLevel()).isEqualTo(DataLevel.VERIFIED_FACT);
         assertThat(calls).hasValue(4);
         assertThat(result.snapshot().execution().providerResponseReceived()).isFalse();
         assertThat(factory.resourcesClosed()).isTrue();
         assertThat(work.revalidate(result.snapshot().result())).isTrue();
-        assertThat(traces.getLast().inputTokens()).isNull();
-        assertThat(traces.getLast().outputTokens()).isNull();
+        assertThat(traces.getLast().inputTokens()).isEqualTo(25);
+        assertThat(traces.getLast().outputTokens()).isEqualTo(12);
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"unknown","duplicate","excess","uuid","object","number","invalid","stale"})
+    void invalidWireSelectionCannotReadOrPublish(String selection)throws Exception{
+        readSelection=selection;
+        start(4);
+        var result=factory.open(fixture.owner,fixture.task).run(AgentRunContext.create(input().question()),input());
+        assertThat(result.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);
+        assertThat(result.events()).noneMatch(e->e.action().equals("READ_VERIFIED_RULE"));
+        assertThat(result.snapshot().result().items().getFirst().claims()).isEmpty();
+        assertThat(factory.resourcesClosed()).isTrue();
+        assertThat(traces.getLast().inputTokens()).isEqualTo(25);
+        assertThat(traces.getLast().outputTokens()).isEqualTo(12);
+        var validation=new ObjectMapper().valueToTree(traces.getLast()).path("validation");
+        assertThat(validation.path("readSelection").path("failureCategory").isTextual()).isTrue();
+        var details=validation.path("readSelection");
+        if(!selection.equals("excess")){
+            assertThat(details.path("elementIndex").asInt(-1)).isEqualTo(selection.equals("duplicate")?1:0);
+            assertThat(details.path("jsonType").asText()).isEqualTo(selection.equals("object")?"OBJECT":selection.equals("number")?"NUMBER":"STRING");
+            if(Set.of("object","number").contains(selection))assertThat(details.path("stringLength").isNull()).isTrue();
+        }
+        if(!Set.of("duplicate","excess").contains(selection))assertThat(validation.path("readSelection").path("currentCandidate").asBoolean()).isFalse();
+        assertThat(validation.toString()).doesNotContain(fixture.chunk.toString(),"private-free-body","candidateSetId");
+    }
+    @Test void candidateReferenceCannotCrossTasks()throws Exception{
+        readSelection="save";
+        start(8);
+        var first=factory.open(fixture.owner,fixture.task).run(AgentRunContext.create(input().question()),input());
+        assertThat(first.snapshot().taskStatus()).isEqualTo(TaskStatus.RESOLVED);
+        readSelection="cross-task";
+        var other=RuleAgentRunner.Input.single(fixture.owner,UUID.randomUUID(),input().question());
+        var second=factory.open(fixture.owner,other.taskId()).run(AgentRunContext.create(other.question()),other);
+        assertThat(second.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);
+        assertThat(second.events()).noneMatch(e->e.action().equals("READ_VERIFIED_RULE"));
+        assertThat(second.snapshot().result().items().getFirst().claims()).isEmpty();
+    }
+    @Test void finishedRunReferenceCannotBeReusedInSameTask()throws Exception{
+        readSelection="save";
+        start(8);
+        var work=factory.open(fixture.owner,fixture.task);
+        assertThat(work.run(AgentRunContext.create(input().question()),input()).snapshot().taskStatus()).isEqualTo(TaskStatus.RESOLVED);
+        readSelection="cross-task";
+        var second=work.run(AgentRunContext.create(input().question()),input());
+        assertThat(second.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);
+        assertThat(second.events()).noneMatch(e->e.action().equals("READ_VERIFIED_RULE"));
+        assertThat(second.snapshot().result().items().getFirst().claims()).isEmpty();
+        assertThat(factory.resourcesClosed()).isTrue();
+    }
+    @Test void allCandidatesRemainVisibleAndThreeUniqueReferencesRead()throws Exception{
+        candidateCopies=4;
+        readSelection="three";
+        start(4);
+        var result=factory.open(fixture.owner,fixture.task).run(AgentRunContext.create(input().question()),input());
+        assertThat(result.snapshot().taskStatus()).isEqualTo(TaskStatus.RESOLVED);
+        assertThat(result.events().getFirst().observation().candidates()).hasSize(4);
+        assertThat(result.events().get(1).observation().dataLevel()).isEqualTo(DataLevel.VERIFIED_FACT);
+        assertThat(lastDecisionView.path("currentCandidates").size()).isEqualTo(4);
+        var refs=new ArrayList<String>();
+        lastDecisionView.path("currentCandidates").forEach(c->refs.add(c.path("handle").asText()));
+        assertThat(refs).containsExactly("c1","c2","c3","c4");
+        for(var candidate:result.events().getFirst().observation().candidates())assertThat(lastDecisionView.toString()).doesNotContain(candidate.handle().toString());
+    }
+    @Test void prepareP01PacketFromCurrentAuthoritiesWithoutOpeningPorts()throws Exception{
+        var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();
+        var method=RuleAgentOnlineProbeHost.class.getDeclaredMethod("packageNode",java.nio.file.Path.class);
+        method.setAccessible(true);
+        var pack=(com.fasterxml.jackson.databind.node.ObjectNode)method.invoke(null,root);
+        pack.put("purpose","T05_P01_READ_REFERENCE_HARDENING_FULL_FLOW_NOT_PRODUCT_QUALITY_EVAL");
+        pack.put("maximumProviderCalls",4);
+        pack.put("authorizationStatus","NOT_AUTHORIZED");
+        pack.putArray("cases").addObject().put("id","P01").put("question","专业选修课和公共选修课在修读安排上有什么不同？");
+        pack.put("remainingBudgetRule","每run3次决策加1次独立核验，共4次/45秒；单次10秒/1024输出token，无自动重试。新检索使旧编号失效。");
+        pack.put("dynamicFeedback","完整当前候选摘要、c编号及宿主集合代号；实际UUID映射仅留宿主。已读取的审核原文、事实、条件及独立核验能力/来源指纹不变。不发送owner/session/token/凭证/参考答案/整本PDF。");
+        pack.put("executionReadiness","PACKAGE_ONLY; current old-batch launcher must reject this packet; require P01-only preflight and new explicit authorization before any call");
+        assertThat(pack.path("protocolRevision").asText()).isEqualTo("RULE_AGENT_ACTION_CONTRACT_03");
+        assertThat(pack.path("automaticRetries").asInt()).isZero();
+        assertThat(factory).isNull();
+        assertThat(calls).hasValue(0);
+        var output=java.nio.file.Path.of(System.getProperty("zhku.rulecheck.evidenceDir"),"p01-request-package.json");
+        new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(output.toFile(),pack);
     }
     @Test void realTaskStoreTokenContinuesThroughOnlineFactoryAndSharesBatchQuota()throws Exception{
         conditional=true;
