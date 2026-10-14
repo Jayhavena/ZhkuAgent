@@ -404,14 +404,14 @@ class RuleAgentOnlineFactoryTest {
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
         env.put("ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64));
         env.put("ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64));
-        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_DIAGNOSTIC_01");
+        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_TRANSPORT_CLOSEOUT_01");
         var result=RuleAgentOnlineProbeHost.environmentCheck(env);
         assertThat(result.get("maximumProviderCalls")).isEqualTo(DEFAULT_BUDGET.maxModelAttemptsPerRun());
         assertThat(result.get("providerCalls")).isEqualTo(0);
         assertThat(new ObjectMapper().valueToTree(result).toString()).doesNotContain("local-test-placeholder");
     }
     @Test void selectiveManualProbeCannotRepeatSuccessfulCaseOrResetFullQuota(){
-        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_DIAGNOSTIC_01"));
+        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_TRANSPORT_CLOSEOUT_01"));
         assertThat(RuleAgentOnlineProbeHost.environmentCheck(env).get("maximumProviderCalls")).isEqualTo(DEFAULT_BUDGET.maxModelAttemptsPerRun());
         // 旧批次身份不能在新候选下重放：含已失败关闭的 P01_CLOSEOUT_07，授权与批次号同批作废。
         env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_CLOSEOUT_07");
@@ -423,11 +423,20 @@ class RuleAgentOnlineFactoryTest {
         var env=Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64));
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
     }
+    @Test void retiredDiagnosticBatchCannotReuseAnApproval(){
+        var env=Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_DIAGNOSTIC_01");
+        assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test void retiredDiagnosticPolicyCannotPassPackageValidation()throws Throwable{
+        var old=packet();old.put("executionPolicyRevision","STATE_AWARE_DIAGNOSTIC_01");
+        assertThatThrownBy(()->validate(old)).isInstanceOf(IllegalArgumentException.class);
+    }
     com.fasterxml.jackson.databind.node.ObjectNode packet(){
         var p=new ObjectMapper().createObjectNode();
         p.put("endpoint",RuleAgentProvider.BEIJING.toString());
         p.put("model",RuleAgentProvider.MODEL);
         p.put("budgetRevision",BUDGET_REVISION);
+        p.put("executionPolicyRevision","STATE_AWARE_TRANSPORT_CLOSEOUT_01");
         p.put("maximumProviderCalls",DEFAULT_BUDGET.maxModelAttemptsPerRun());
         p.put("perRunCalls",DEFAULT_BUDGET.maxModelAttemptsPerRun());
         p.put("timeoutMillis",DEFAULT_BUDGET.maxModelMillis());
@@ -509,7 +518,7 @@ class RuleAgentOnlineFactoryTest {
         var current=(JsonNode)method.invoke(null,root);
         RuleAgentOnlineProbeHost.validatePackage(current);
         assertThat(current.path("remainingBudgetRule").asText()).contains("110秒","20秒").doesNotContain("45秒","单次10秒");
-        assertThat(current.path("executionPolicyRevision").asText()).isEqualTo("STATE_AWARE_DIAGNOSTIC_01");
+        assertThat(current.path("executionPolicyRevision").asText()).isEqualTo("STATE_AWARE_TRANSPORT_CLOSEOUT_01");
         assertThat(calls).hasValue(0);
         assertThat(factory).isNull();
     }

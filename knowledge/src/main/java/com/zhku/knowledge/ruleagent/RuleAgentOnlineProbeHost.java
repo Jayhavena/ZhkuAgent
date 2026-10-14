@@ -15,7 +15,7 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 /** 独立工程探针宿主；学生HTTP入口由T06另行接入。 */
 public final class RuleAgentOnlineProbeHost {
     private static final ObjectMapper JSON=new ObjectMapper().findAndRegisterModules();
-    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-14/t05-36-diag/request-package.json";
+    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-15/t05-38-request/request-package.json";
     private static final String P01_QUESTION="专业选修课和公共选修课在修读安排上有什么不同？";
     private static final int MAXIMUM=DEFAULT_BUDGET.maxModelAttemptsPerRun();
     private static JsonNode expectedCases(){
@@ -27,12 +27,13 @@ public final class RuleAgentOnlineProbeHost {
         var settings=RuleAgentProvider.Settings.environment(env);String sha=env.get("ZHKU_RULE_AGENT_PROBE_SHA256");
         if(sha==null||!sha.matches("[a-f0-9]{64}")||!settings.authorizationId().equals(sha))throw new IllegalArgumentException("探针未绑定具体请求包授权");
         String selected=env.get("ZHKU_RULE_AGENT_PROBE_CASE");
-        if(!"P01_DIAGNOSTIC_01".equals(selected))throw new IllegalArgumentException("本批只允许P01诊断候选（仅新增连接层观测，模型/协议/预算不变），不接受旧批次或P02");
+        if(!"P01_TRANSPORT_CLOSEOUT_01".equals(selected))throw new IllegalArgumentException("本批只允许P01诊断候选（统一真实HTTP诊断与截止时间，模型/协议/预算不变），不接受旧批次或P02");
         return Map.of("mode","ONLINE","endpoint",settings.endpoint().toString(),"model",settings.model(),"maximumProviderCalls",MAXIMUM,"providerCalls",0,"databaseOperations",0,"builds",0,"budgetRevision",BUDGET_REVISION,"timeoutMillis",DEFAULT_BUDGET.maxModelMillis(),"runTimeoutMillis",DEFAULT_BUDGET.maxRunMillis());
     }
     static void validatePackage(JsonNode pack){
         // 当前批次只允许一次P01；旧12次批次与P02必须在建库和创建客户端前拒绝。
-        if(!pack.path("protocolRevision").asText().equals(RuleAgentProtocol.REVISION)
+        if(!pack.path("executionPolicyRevision").asText().equals("STATE_AWARE_TRANSPORT_CLOSEOUT_01")
+            ||!pack.path("protocolRevision").asText().equals(RuleAgentProtocol.REVISION)
             ||!pack.path("actionContract").equals(RuleAgentProtocol.description())
             ||!pack.path("actionSchema").equals(RuleAgentProtocol.decisionSchema(List.of()))
             ||!pack.path("remainingBudgetMaximum").equals(RuleAgentProtocol.remainingBudget(RulePublicationContract.MAX_DECISION_CALLS,DEFAULT_BUDGET.maxToolStepsPerRun()))
@@ -85,7 +86,7 @@ public final class RuleAgentOnlineProbeHost {
                     Files.write(evidence.resolve("task-results.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(outputs),StandardOpenOption.CREATE_NEW);
                 }finally{used=maximum-factory.remainingCalls();factory.close();closed=factory.resourcesClosed();}
             }
-        }finally{executor.shutdownNow();closed=closed&&executor.awaitTermination(3,TimeUnit.SECONDS);Files.write(evidence.resolve("probe-result.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("passed",passed&&closed,"resourcesClosed",closed,"allowanceConsumed",used,"maximumProviderCalls",maximum,"caseSelection","P01_DIAGNOSTIC_01","languageQualityNotScored",true,"budgetRevision",BUDGET_REVISION)),StandardOpenOption.CREATE_NEW);}
+        }finally{executor.shutdownNow();closed=closed&&executor.awaitTermination(3,TimeUnit.SECONDS);Files.write(evidence.resolve("probe-result.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("passed",passed&&closed,"resourcesClosed",closed,"allowanceConsumed",used,"maximumProviderCalls",maximum,"caseSelection","P01_TRANSPORT_CLOSEOUT_01","languageQualityNotScored",true,"budgetRevision",BUDGET_REVISION)),StandardOpenOption.CREATE_NEW);}
         if(!passed||!closed)throw new IllegalStateException("真实探针未达退出标准；不重试");
     }
     /** 阶段到达不能代替整链成功；必须有同run核验通过、完整发布和准确事实集合。 */
@@ -133,7 +134,7 @@ public final class RuleAgentOnlineProbeHost {
             pack.put("runTimeoutMillis",DEFAULT_BUDGET.maxRunMillis());
             pack.put("maximumOutputTokens",DEFAULT_BUDGET.maxOutputTokens());
             pack.put("automaticRetries",0);
-            pack.put("executionPolicyRevision","STATE_AWARE_DIAGNOSTIC_01");
+            pack.put("executionPolicyRevision","STATE_AWARE_TRANSPORT_CLOSEOUT_01");
             pack.put("monetaryApprovalRequired",true);
             pack.put("publicationReserveMillis",5000);
             pack.put("readStateFeedback","完整候选均保留并标记alreadyRead；反馈证据剩余份数/字节、run剩余时间、核验预留；不按模型自报完整发布。");
@@ -147,8 +148,8 @@ public final class RuleAgentOnlineProbeHost {
             pack.put("factCapabilityVersion",RuleFactCapabilityCatalogue.VERSION);
             pack.put("factCapabilityAuthoritySha256",sha(Files.readAllBytes(root.resolve("knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleFactCapabilityCatalogue.java"))));
             pack.put("dynamicFeedback","完整当前候选摘要、c编号、宿主集合代号及与编号同源的工具枚举；实际UUID映射仅留宿主。已读取的审核原文、事实、条件及独立核验能力/来源指纹不变。不发送owner/session/token/凭证/参考答案/整本PDF。");
-            // 诊断候选批次：相对 STATE_AWARE_CLOSEOUT_01 仅新增连接层计时观测，模型/端点/协议/预算/问题不变；旧批次启动器必须拒绝本包。
-            pack.put("executionReadiness","PACKAGE_ONLY; diagnostic candidate adds connection-layer timing only; current old-batch launcher must reject this packet; require P01-only preflight and new explicit authorization before any call");
+            // 新候选只修正实际交换诊断和deadline；旧申请身份失效，业务合同和全部候选保持不变。
+            pack.put("executionReadiness","PACKAGE_ONLY; one actual HTTP exchange with shared deadline and safe diagnostics; old batch and policy rejected; require pinned source/jar/package and new explicit authorization before any call");
             return pack;
         }
     }
