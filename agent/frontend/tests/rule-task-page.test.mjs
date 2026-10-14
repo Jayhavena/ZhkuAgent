@@ -16,3 +16,17 @@ for(const row of data.snapshots)test(`student presents shared ${row.name}`,async
 test('partial answers, processing failure, missing data and replay have separate labels',async()=>{const labels={'partial-and-processing-failure':'处理未完成','honest-data-gap':'资料缺口','replay-not-covered':'回放未覆盖','partial-and-clarification':'需要补充条件'};for(const [name,label]of Object.entries(labels))assert.match(await render(data.snapshots.find(x=>x.name===name).value),new RegExp(label))})
 test('identity uncertainty and task receipt uncertainty provide explicit recovery',async()=>{assert.match(await render(null,{role:'USER'},{pending:{action:'CREATE'},error:'受理结果尚未确认'}),/查询原请求/);assert.match(await render(null,{role:'USER'},{ticket:{taskId:'x'},error:'任务查询未确认'}),/继续查询/);assert.doesNotMatch(await render(null,{role:'MAINTAINER'}),/<textarea/)} )
 test('rules are escaped and only related evidence is rendered after explanations',async()=>{const s=structuredClone(data.snapshots[0].value);s.result.items[0].claims[0].text='<script>evil()</script>';const html=await render(s);assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>/);assert.ok(html.indexOf('能确认')<html.indexOf('相关依据'))})
+
+test('frozen T05 processing reasons and five simulated attempts preserve safe partial content',async()=>{
+  const {validateRuleAgentSnapshot}=await import('../src/api/rule-agent-contract.js')
+  for(const reason of ['QUESTION_UNDERSTANDING_UNRESOLVED','ANSWER_COVERAGE_INCOMPLETE']){
+    const value=structuredClone(data.snapshots.find(x=>x.name==='partial-and-processing-failure').value)
+    const issue=value.result.items.flatMap(q=>q.issues).find(i=>i.kind==='PROCESSING_FAILURE')
+    issue.reasonCode=reason;issue.message='合成处理未完成';issue.nextStep='核对缺口后继续查证'
+    value.execution.modelAttemptCount=5
+    validateRuleAgentSnapshot(value)
+    const html=await render(value)
+    assert.match(html,/处理未完成/);assert.match(html,/核对缺口后继续查证/);assert.doesNotMatch(html,/资料缺口/)
+    for(const claim of value.result.items.flatMap(q=>q.claims))assert.ok(html.includes(claim.text))
+  }
+})

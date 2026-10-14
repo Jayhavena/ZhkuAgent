@@ -57,9 +57,10 @@ class RuleAgentContractTest {
     }
     @Test void defaultBudgetAndTaskTransitionsDoNotPretendToExecute() throws Throwable {
         Object budget=RuleAgentContract.DEFAULT_BUDGET;
-        assertThat(json.valueToTree(budget).path("maxModelAttemptsPerRun").asInt()).isEqualTo(4);
-        assertThat(json.valueToTree(budget).path("maxRunMillis").asInt()).isEqualTo(45000);
-        assertThat(json.valueToTree(budget).path("maxModelMillis").asInt()).isEqualTo(10000);
+        assertThat(json.valueToTree(budget).path("maxModelAttemptsPerRun").asInt()).isEqualTo(5);
+        assertThat(json.valueToTree(budget).path("maxRunMillis").asInt()).isEqualTo(110000);
+        assertThat(json.valueToTree(budget).path("maxRunMillis").asInt()).isEqualTo(RuleAgentContract.DEFAULT_BUDGET.maxRunMillis());
+        assertThat(json.valueToTree(budget).path("maxModelMillis").asInt()).isEqualTo(RuleAgentContract.DEFAULT_BUDGET.maxModelMillis());
         assertThat(json.valueToTree(budget).path("maxTaskRuns").asInt()).isEqualTo(3);
         assertThat(RuleAgentContract.canTransition("WAITING_USER","ACTIVE")).isTrue();
         assertThat(RuleAgentContract.canTransition("RESOLVED","ACTIVE")).isFalse();

@@ -22,7 +22,8 @@ public final class RuleAgentOnlineFactory implements RuleAgentTaskStore.Factory,
                     // 端口归每run；批次额度归宿主，澄清后不能重新获得外发额度。
                     if(ports.size()>=2)throw new RuleAgentProvider.Failure(ReasonCode.TASK_EXECUTION_UNAVAILABLE,false);
                     port=new RuleAgentProvider(settings,task,context.runId(),key,audit,allowance);ports.add(port);}
-                return new RuleAgentRunner(port,new RuleActionBroker(actual),clock).run(context,input);
+                // 同一run端口兼任决策/独立核验；不能另开客户端、额度或漏掉核验后回退旧门禁。
+                return new RuleAgentRunner(port,new RuleActionBroker(actual),clock,port).run(context,input);
             }
             public boolean revalidate(ResultEnvelope previous){return previous.evidence().stream().allMatch(e->actual.original(owner,task,e.originalToken()).isPresent());}
         };

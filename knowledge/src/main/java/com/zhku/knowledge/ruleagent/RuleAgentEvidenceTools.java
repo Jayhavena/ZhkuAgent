@@ -25,6 +25,9 @@ public final class RuleAgentEvidenceTools {
     private final Instant expires;
     private final Map<UUID,Handle> handles=new HashMap<>();
     private final Map<UUID,Original> originals=new HashMap<>();
+    private final Map<ProofIdentity,Evidence> retainedProofs=new HashMap<>();
+    private record ProofIdentity(String catalogue,UUID source,UUID chunk,String revision,String checksum,long start,long end,String quote){}
+    private static ProofIdentity identity(String catalogue,Evidence proof){return new ProofIdentity(catalogue,proof.sourceId(),proof.chunkId(),proof.revision(),proof.checksum().toLowerCase(Locale.ROOT),proof.startInclusive(),proof.endExclusive(),proof.quote());}
     private record Handle(RetrievedChunk chunk,String version,Instant expires){}
     private record Original(RuleCheckVerifiedExcerpt quote,String version){}
     private record Directory(List<RuleCheckApplicationService.CatalogEntry> entries,String version){}
@@ -98,7 +101,21 @@ public final class RuleAgentEvidenceTools {
                 }
             }
             int bytes=proofs.values().stream().mapToInt(e->e.quote().getBytes(java.nio.charset.StandardCharsets.UTF_8).length).sum();
-            synchronized(originals){if(originals.size()+tokens.size()>8||bytes>DEFAULT_BUDGET.maxEvidenceBytes())return rejected(run,step,ReasonCode.BUDGET_EXCEEDED,directory.version());originals.putAll(tokens);}
+            synchronized(originals){
+                var additions=new LinkedHashMap<ProofIdentity,Evidence>();var normalized=new LinkedHashMap<String,Evidence>();
+                for(var proof:proofs.values()){
+                    var key=identity(directory.version(),proof);var retained=retainedProofs.get(key);
+                    if(retained==null){retained=proof;additions.put(key,proof);}
+                    normalized.put(retained.id(),retained);
+                }
+                int retainedBytes=retainedProofs.values().stream().mapToInt(e->e.quote().getBytes(java.nio.charset.StandardCharsets.UTF_8).length).sum();
+                int addedBytes=additions.values().stream().mapToInt(e->e.quote().getBytes(java.nio.charset.StandardCharsets.UTF_8).length).sum();
+                // 已重新捕获、审计并核验后才复用同任务凭证；随机citation别名不能重复消费证据容量。
+                // 整批准入后一起保存，容量失败不能悄悄交付部分事实或遗留可用token。
+                if(retainedProofs.size()+additions.size()>DEFAULT_BUDGET.maxEvidenceFragments()||bytes>DEFAULT_BUDGET.maxEvidenceBytes()||retainedBytes+addedBytes>DEFAULT_BUDGET.maxEvidenceBytes())return rejected(run,step,ReasonCode.BUDGET_EXCEEDED,directory.version());
+                for(var proof:additions.values())originals.put(proof.originalToken(),tokens.get(proof.originalToken()));
+                retainedProofs.putAll(additions);proofs=normalized;
+            }
             return new ReadOutcome(new ToolObservation(UUID.randomUUID(),run,step,ObservationStatus.SUCCEEDED,null,facts.isEmpty()?DataLevel.VERIFIED_EVIDENCE:DataLevel.VERIFIED_FACT,
                 directory.version(),List.of(),List.copyOf(proofs.values()),facts.stream().map(VerifiedFact::id).toList()),facts);
         }catch(IllegalArgumentException revoked){return rejected(run,step,ReasonCode.EVIDENCE_CHANGED,"unavailable");}
@@ -116,6 +133,14 @@ public final class RuleAgentEvidenceTools {
     public Optional<RuleCheckApplicationService.CatalogEntry> reviewedEntry(String ruleId){return directory().entries().stream().filter(e->e.template().ruleId().equals(ruleId)).findFirst();}
     public String catalogueVersion(){return directory().version();}
     public String referenceRevision(){return settings.referenceRevision();}
+    /** 仅宿主内部用于识别重新检索的同源候选；不向模型暴露来源UUID或原文凭证。 */
+    String candidateIdentity(UUID token){synchronized(handles){var handle=handles.get(token);if(handle==null)return "missing:"+token;var c=handle.chunk();return c.sourceId()+":"+c.chunkId()+":"+c.sourceVersion()+":"+c.contentChecksum().toLowerCase(Locale.ROOT)+":"+handle.version();}}
+    int remainingEvidenceFragments(){synchronized(originals){return DEFAULT_BUDGET.maxEvidenceFragments()-retainedProofs.size();}}
+    int remainingEvidenceBytes(){synchronized(originals){return DEFAULT_BUDGET.maxEvidenceBytes()-retainedProofs.values().stream().mapToInt(e->e.quote().getBytes(java.nio.charset.StandardCharsets.UTF_8).length).sum();}}
+    boolean hasUnreadFact(List<UUID> selected,Set<String> known){
+        var chunks=new HashSet<UUID>();synchronized(handles){for(var id:selected){var h=handles.get(id);if(h!=null)chunks.add(h.chunk().chunkId());}}
+        return directory().entries().stream().anyMatch(e->e.template().facts().stream().anyMatch(f->!known.contains(e.template().ruleId()+":"+f.id())&&f.evidenceBindings().stream().allMatch(b->chunks.contains(b.chunkId()))));
+    }
     private boolean owns(Owner actor,UUID task){return owner.equals(actor)&&taskId.equals(task)&&clock.instant().isBefore(expires);}
     private Directory directory(){
         var entries=List.copyOf(catalogue.get()).stream().filter(e->e.template().reviewState()==RuleCheckRuleTemplate.ReviewState.APPROVED&&e.template().referenceRevision().equals(settings.referenceRevision()))

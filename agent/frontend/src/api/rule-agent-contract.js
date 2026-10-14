@@ -29,7 +29,8 @@ const reasons={
   INVALID_MODEL_RESPONSE:'PROCESSING_FAILURE',UNKNOWN_TOOL:'PROCESSING_FAILURE',EVIDENCE_CHANGED:'PROCESSING_FAILURE',
   AUDIT_UNAVAILABLE:'PROCESSING_FAILURE',BUDGET_EXCEEDED:'PROCESSING_FAILURE',CLARIFICATION_EXPIRED:'PROCESSING_FAILURE',
   CANCELLED:'PROCESSING_FAILURE',NO_PROGRESS:'PROCESSING_FAILURE',TASK_EXECUTION_UNAVAILABLE:'PROCESSING_FAILURE',
-  MODEL_AUTH_FAILURE:'PROCESSING_FAILURE',MODEL_UNAVAILABLE:'PROCESSING_FAILURE',MODEL_CONNECTION_FAILURE:'PROCESSING_FAILURE'
+  MODEL_AUTH_FAILURE:'PROCESSING_FAILURE',MODEL_UNAVAILABLE:'PROCESSING_FAILURE',MODEL_CONNECTION_FAILURE:'PROCESSING_FAILURE',
+  QUESTION_UNDERSTANDING_UNRESOLVED:'PROCESSING_FAILURE',ANSWER_COVERAGE_INCOMPLETE:'PROCESSING_FAILURE'
 }
 const coverage=items=>items.every(x=>x.coverage==='COMPLETE')?'COMPLETE':items.some(x=>x.claims.length)?'PARTIAL':'NONE'
 function result(r){
@@ -91,7 +92,7 @@ export function validateRuleAgentSnapshot(x){
   check(!x.terminated||terminal)
   fields(x.execution,'mode modelAttemptCount toolStepCount providerResponseReceived answerSource replayCoverage')
   const e=x.execution
-  integer(e.modelAttemptCount,0,4);integer(e.toolStepCount,0,6);check(typeof e.providerResponseReceived==='boolean')
+  integer(e.modelAttemptCount,0,5);integer(e.toolStepCount,0,6);check(typeof e.providerResponseReceived==='boolean')
   check(['ONLINE','ENGINEERING_REPLAY'].includes(e.mode));check(['NONE','LIVE_AGENT','SEALED_REPLAY','VERIFIED_RULE_ONLY'].includes(e.answerSource))
   check(['NOT_APPLICABLE','HIT','MISS'].includes(e.replayCoverage))
   check(!e.providerResponseReceived||e.modelAttemptCount>0)

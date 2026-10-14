@@ -54,21 +54,22 @@ class RuleAgentTaskHttpTest {
             public RuleAgentRunner.Outcome run(AgentRunContext context,RuleAgentRunner.Input input){
                 runs.incrementAndGet();context.start();
                 boolean waiting=input.question().equals("澄清")&&input.userConditions().isEmpty();
-                boolean failed=input.question().equals("故障"),gap=input.question().equals("缺证");
+                boolean incomplete=input.question().equals("漏答"),unresolved=input.question().equals("理解未完成");
+                boolean failed=input.question().equals("故障")||incomplete||unresolved,gap=input.question().equals("缺证");
                 var issue=waiting?new Issue("condition",IssueKind.CLARIFICATION,ReasonCode.MISSING_CONDITION,"请确认课程类别","补充必要条件"):
-                    failed?new Issue("failure",IssueKind.PROCESSING_FAILURE,ReasonCode.MODEL_UNAVAILABLE,"模型处理失败","稍后重新查证"):
+                    failed?new Issue("failure",IssueKind.PROCESSING_FAILURE,incomplete?ReasonCode.ANSWER_COVERAGE_INCOMPLETE:unresolved?ReasonCode.QUESTION_UNDERSTANDING_UNRESOLVED:ReasonCode.MODEL_UNAVAILABLE,"模型处理失败","稍后重新查证"):
                     new Issue("gap",IssueKind.DATA_GAP,ReasonCode.CURRENT_NOTICE_MISSING,"未取得当期通知","核对当期通知");
-                boolean claim=!waiting&&!failed&&!gap;
-                boolean partial=input.question().equals("部分");
+                boolean claim=!waiting&&(!failed||incomplete)&&!gap;
+                boolean partial=input.question().equals("部分")||incomplete;
                 var items=List.of(new Subquestion("q1",claim?(partial?Coverage.PARTIAL:Coverage.COMPLETE):Coverage.NONE,
                     claim?List.of(new Claim("answer","fixture-fact","合成确认内容",Map.of(),ConditionSource.USER_DECLARED)):List.of(),
                     claim&&!partial?List.of():List.of(issue),waiting?List.of(new Clarification("courseType","课程类别？",List.of("PUBLIC","PROFESSIONAL"))):List.of()));
                 var evidence=claim?List.of(new Evidence("e1",SOURCE,CHUNK,"2025.9.2",HASH,0,QUOTE.length(),QUOTE,TOKEN)):List.<Evidence>of();
                 var relations=claim?List.of(new EvidenceRelation("e1","q1",EvidenceRole.CLAIM,"answer")):List.<EvidenceRelation>of();
                 var result=new ResultEnvelope(input.version(),context.runId(),"synthetic-http-v1","2025.9.2",items.getFirst().coverage(),items,evidence,relations);
-                var state=waiting||gap||partial?AgentRunState.INCOMPLETE:failed?AgentRunState.FAILED:AgentRunState.SUCCEEDED;
+                var state=failed?AgentRunState.FAILED:waiting||gap||partial?AgentRunState.INCOMPLETE:AgentRunState.SUCCEEDED;
                 context.finish(state);context.cleanupOnce(()->{});context.signalTermination();context.publishTermination();
-                return new RuleAgentRunner.Outcome(new TaskSnapshot(3,task,UUID.randomUUID(),context.runId(),input.version(),waiting?TaskStatus.WAITING_USER:failed?TaskStatus.FAILED:TaskStatus.RESOLVED,state,true,result,waiting?UUID.randomUUID():null,new Execution(Mode.ONLINE,0,0,false,claim?AnswerSource.VERIFIED_RULE_ONLY:AnswerSource.NONE,ReplayCoverage.NOT_APPLICABLE)),List.of());
+                return new RuleAgentRunner.Outcome(new TaskSnapshot(3,task,UUID.randomUUID(),context.runId(),input.version(),waiting?TaskStatus.WAITING_USER:failed?TaskStatus.FAILED:TaskStatus.RESOLVED,state,true,result,waiting?UUID.randomUUID():null,new Execution(Mode.ONLINE,incomplete?5:0,0,false,claim?AnswerSource.VERIFIED_RULE_ONLY:AnswerSource.NONE,ReplayCoverage.NOT_APPLICABLE)),List.of());
             }
         };}
         @Bean(name="ruleAgentHttpExecutor") java.util.concurrent.Executor executor(){return queue::add;}
@@ -123,7 +124,7 @@ class RuleAgentTaskHttpTest {
             assertThat(a.get("/tasks/"+task+"/originals/"+UUID.randomUUID()).statusCode()).isEqualTo(404);
             assertThat(a.get("/tasks/"+task+"/originals/"+TOKEN).statusCode()).isEqualTo(200);
             originalCurrent.set(false);assertThat(a.get("/tasks/"+task+"/originals/"+TOKEN).statusCode()).isEqualTo(409);
-            for(String question:List.of("部分","缺证","故障","取消")){
+            for(String question:List.of("部分","缺证","故障","取消","理解未完成","漏答")){
                 var t=JSON.readTree(a.post("/tasks",Map.of("question",question,"clientRequestId",UUID.randomUUID()),true).body());String id=t.path("taskId").asText();
                 if(question.equals("取消")){
                     var cancel=Map.of("runId",t.path("runId").asText(),"expectedVersion",t.path("version").asLong(),"clientRequestId",UUID.randomUUID());
@@ -131,8 +132,10 @@ class RuleAgentTaskHttpTest {
                     assertThat(JSON.readTree(a.get("/tasks/"+id).body()).path("terminated").asBoolean()).isFalse();
                 }
                 queue.remove().run();var s=JSON.readTree(a.get("/tasks/"+id).body());
-                assertThat(s.path("taskStatus").asText()).isEqualTo(question.equals("故障")?"FAILED":question.equals("取消")?"STOPPED":"RESOLVED");
-                assertThat(s.path("result").path("coverage").asText()).isEqualTo(question.equals("部分")?"PARTIAL":"NONE");
+                assertThat(s.path("taskStatus").asText()).isEqualTo(Set.of("故障","理解未完成","漏答").contains(question)?"FAILED":question.equals("取消")?"STOPPED":"RESOLVED");
+                assertThat(s.path("result").path("coverage").asText()).isEqualTo(Set.of("部分","漏答").contains(question)?"PARTIAL":"NONE");
+                if(question.equals("漏答")){assertThat(s.path("execution").path("modelAttemptCount").asInt()).isEqualTo(5);assertThat(s.path("result").path("items").get(0).path("issues").get(0).path("reasonCode").asText()).isEqualTo("ANSWER_COVERAGE_INCOMPLETE");}
+                if(question.equals("理解未完成"))assertThat(s.path("result").path("items").get(0).path("issues").get(0).path("reasonCode").asText()).isEqualTo("QUESTION_UNDERSTANDING_UNRESOLVED");
             }
             a.logout();a.login("student-a");assertThat(a.get("/tasks/"+task).statusCode()).isEqualTo(404);
             assertThat(context.getBean(RuleAgentTaskStore.class).activeJobs()).isZero();assertThat(queue).isEmpty();

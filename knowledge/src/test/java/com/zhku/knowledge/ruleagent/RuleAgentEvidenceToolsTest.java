@@ -63,6 +63,47 @@ class RuleAgentEvidenceToolsTest {
         assertThat(tools.read(new Owner(UUID.randomUUID(),owner.sessionNonce()),task,run,2,new Read("q",List.of(handle))).facts()).isEmpty();
         assertThat(tools.read(owner,task,run,2,new Read("q",List.of(UUID.randomUUID()))).observation().reasonCode()).isEqualTo(ReasonCode.EVIDENCE_CHANGED);
     }
+    @Test void repeatedReadReusesEvidenceButStillAuditsAndRevalidates()throws Exception{
+        var entry=entry();var candidate=candidate();var current=current();var audit=new ArrayList<CitationAuditRecord>();
+        var available=new java.util.concurrent.atomic.AtomicBoolean(true);
+        var tools=tools(()->List.of(entry),(q,n)->List.of(candidate),(s,c)->Optional.of(available.get()?current:new RuleCheckEvidenceSnapshot("changed",source,chunk,"v1",current.checksum(),body,false)),audit::add);
+        var handle=tools.search(owner,task,run,1,new Search("q","query")).candidates().getFirst().handle();
+        var first=tools.read(owner,task,run,2,new Read("q",List.of(handle))).observation().evidence().getFirst();
+        for(int i=0;i<10;i++){
+            var again=tools.read(owner,task,run,3,new Read("q",List.of(handle)));
+            assertThat(again.observation().status()).isEqualTo(ObservationStatus.SUCCEEDED);
+            assertThat(again.observation().evidence()).containsExactly(first);
+        }
+        assertThat(audit).hasSize(11);
+        available.set(false);
+        assertThat(tools.read(owner,task,run,4,new Read("q",List.of(handle))).observation().reasonCode()).isEqualTo(ReasonCode.EVIDENCE_CHANGED);
+        assertThat(tools.original(owner,task,first.originalToken())).isEmpty();
+    }
+    @Test void mixedReadAddsOnlyNewProofsAndCapacityRejectsWholeSelection()throws Exception{
+        var facts=new ArrayList<RuleCheckRuleTemplate.Fact>();var candidates=new ArrayList<RetrievedChunk>();
+        var current=new HashMap<UUID,RuleCheckEvidenceSnapshot>();
+        for(int i=0;i<9;i++){
+            UUID id=UUID.randomUUID();var binding=new RuleCheckRuleTemplate.EvidenceBinding(source,id,"v1",hash(),0,body.length(),body);
+            facts.add(new RuleCheckRuleTemplate.Fact("f"+i,"合成事实"+i,true,Map.of(),List.of(binding)));
+            candidates.add(new RetrievedChunk(id,body,"synthetic","synthetic",1,"v1",hash(),source));
+            current.put(id,new RuleCheckEvidenceSnapshot("current-"+i,source,id,"v1",hash(),body,true));
+        }
+        var rule=new RuleCheckRuleTemplate("bulk","v1",RuleCheckRuleTemplate.ReviewState.APPROVED,"synthetic",LocalDate.of(2026,10,14),facts,List.of(),List.of(),List.of());
+        var tools=tools(()->List.of(new RuleCheckApplicationService.CatalogEntry(rule,"合成容量测试")),(q,n)->candidates,(s,c)->Optional.ofNullable(current.get(c)),r->{});
+        var broker=new RuleActionBroker(tools);var input=RuleAgentRunner.Input.single(owner,task,"合成问题");
+        var found=broker.execute(new Search("q1","容量"),input,run,1).candidates();
+        var first=broker.execute(new Read("q1",List.of(found.getFirst().handle())),input,run,2);
+        assertThat(broker.progressed()).isTrue();
+        var mixed=broker.execute(new Read("q1",found.subList(0,3).stream().map(Candidate::handle).toList()),input,run,3);
+        assertThat(broker.progressed()).isTrue();assertThat(mixed.evidence()).contains(first.evidence().getFirst());
+        assertThat(tools.read(owner,task,run,4,new Read("q1",found.subList(3,6).stream().map(Candidate::handle).toList())).observation().status()).isEqualTo(ObservationStatus.SUCCEEDED);
+        assertThat(tools.read(owner,task,run,5,new Read("q1",found.subList(6,8).stream().map(Candidate::handle).toList())).observation().status()).isEqualTo(ObservationStatus.SUCCEEDED);
+        var rejected=tools.read(owner,task,run,6,new Read("q1",List.of(found.getFirst().handle(),found.get(8).handle())));
+        assertThat(rejected.observation().reasonCode()).isEqualTo(ReasonCode.BUDGET_EXCEEDED);
+        assertThat(rejected.facts()).isEmpty();assertThat(rejected.observation().evidence()).isEmpty();
+        assertThat(tools.read(owner,task,run,6,new Read("q1",List.of(found.getFirst().handle()))).observation().evidence()).containsExactly(first.evidence().getFirst());
+        broker.execute(new Read("q1",List.of(found.getFirst().handle())),input,run,6);assertThat(broker.progressed()).isFalse();
+    }
     @Test void noMatchAndUnavailableAreDifferentObservations()throws Exception{
         var entry=entry();var current=current();
         assertThat(tools(()->List.of(entry),(q,n)->List.of(),(s,c)->Optional.of(current),r->{}).search(owner,task,run,1,new Search("q","query")).status()).isEqualTo(ObservationStatus.NO_MATCH);

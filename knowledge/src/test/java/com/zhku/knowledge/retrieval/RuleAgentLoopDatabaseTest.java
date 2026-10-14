@@ -21,7 +21,7 @@ class RuleAgentLoopDatabaseTest {
     record PublicationCase(String id,String question,Set<Integer> articles,boolean omitPublicArrangement,
                            TaskStatus observedStatus,int observedClaims,String requiredBehavior) {}
 
-    @Test void controlledCatalogueReproducesQuestionFactPublicationGaps()throws Exception {
+    @Test void controlledCataloguePublicationUsesIndependentFinishReview()throws Exception {
         Path root=Path.of("..").toAbsolutePath().normalize();
         String target=System.getProperty("zhku.db.url");
         RuleCheckDatabaseTestTarget.verify(target);
@@ -29,12 +29,12 @@ class RuleAgentLoopDatabaseTest {
         var db=new DriverManagerDataSource(target,user,ZhkuDatabaseTestConfig.databasePassword());
         ZhkuFlywayTestSupport.migrate(target,user,ZhkuDatabaseTestConfig.databasePassword());
         var cases=List.of(
-            new PublicationCase("C01","专业选修课和公共选修课在修读安排上有什么不同？",Set.of(4),false,TaskStatus.STOPPED,0,"两项修读事实合法发布，不得将主题未知当作资料不适用"),
+            new PublicationCase("C01","专业选修课和公共选修课在修读安排上有什么不同？",Set.of(4),false,TaskStatus.RESOLVED,2,"两项修读事实合法发布，不得将主题未知当作资料不适用"),
             new PublicationCase("C02","专业选修课和公共选修课的课程类别与修读安排有哪些区别？",Set.of(4),false,TaskStatus.RESOLVED,2,"两项修读事实合法发布"),
-            new PublicationCase("C03","专选和公选在选课修读上哪里不一样？",Set.of(4),false,TaskStatus.STOPPED,0,"同含义表达应允许相同两项事实"),
-            new PublicationCase("C04","专业选修课和公共选修课的课程类别与修读安排有哪些区别？",Set.of(4),true,TaskStatus.RESOLVED,1,"遗漏一侧修读安排不能声称完整覆盖"),
-            new PublicationCase("C05","公共选修课通常授课多少学时，每学期最多多少学分？",Set.of(5,10),false,TaskStatus.STOPPED,0,"两条规则联合覆盖HOURS和SEMESTER_CREDITS"),
-            new PublicationCase("C06","公共选修课课程类别有哪些？",Set.of(18),false,TaskStatus.STOPPED,0,"不得以条件已满足的重修事实回答课程分类")
+            new PublicationCase("C03","专选和公选在选课修读上哪里不一样？",Set.of(4),false,TaskStatus.RESOLVED,2,"同含义表达应允许相同两项事实"),
+            new PublicationCase("C04","专业选修课和公共选修课的课程类别与修读安排有哪些区别？",Set.of(4),true,TaskStatus.FAILED,1,"遗漏一侧修读安排不能声称完整覆盖"),
+            new PublicationCase("C05","公共选修课通常授课多少学时，每学期最多多少学分？",Set.of(5,10),false,TaskStatus.RESOLVED,3,"两条规则联合覆盖HOURS和SEMESTER_CREDITS"),
+            new PublicationCase("C06","公共选修课课程类别有哪些？",Set.of(18),false,TaskStatus.FAILED,0,"不得以条件已满足的重修事实回答课程分类")
         );
         var records=new ArrayList<Map<String,Object>>();
         var json=new ObjectMapper().findAndRegisterModules();
@@ -84,7 +84,8 @@ class RuleAgentLoopDatabaseTest {
                     List.of(new RuleAgentRunner.Question("q1",test.question())),
                     test.id().equals("C06")?Map.of("courseType","PUBLIC"):Map.of());
                 var context=AgentRunContext.create(test.question());
-                var outcome=new RuleAgentRunner(port,new RuleActionBroker(tools),clock).run(context,input);
+                RuleSemanticReviewPort reviewer=(safe,timeout)->finishReviewFixture(safe,test.articles());
+                var outcome=new RuleAgentRunner(port,new RuleActionBroker(tools),clock,reviewer).run(context,input);
                 var assessments=selectedIds.stream().map(id->entries.stream()
                     .filter(e->e.template().facts().stream().anyMatch(f->(e.template().ruleId()+":"+f.id()).equals(id)))
                     .findFirst().orElseThrow()).distinct()
@@ -109,8 +110,12 @@ class RuleAgentLoopDatabaseTest {
                 assertThat(outcome.events().get(1).observation().dataLevel()).isEqualTo(DataLevel.VERIFIED_FACT);
                 assertThat(closed.get()).isTrue();
                 assertThat(context.snapshot().terminated()).isTrue();
-                if(test.observedStatus()==TaskStatus.STOPPED) {
-                    assertThat(outcome.events()).anyMatch(e->e.reason()==ReasonCode.MATERIAL_SCOPE_MISMATCH);
+                assertThat(outcome.snapshot().execution().modelAttemptCount()).isEqualTo(4);
+                if(test.id().equals("C04")) {
+                    assertThat(outcome.snapshot().result().coverage()).isEqualTo(Coverage.PARTIAL);
+                    assertThat(outcome.snapshot().result().items().getFirst().issues()).anyMatch(i->i.reasonCode().name().equals("ANSWER_COVERAGE_INCOMPLETE"));
+                } else if(test.id().equals("C06")) {
+                    assertThat(outcome.snapshot().result().coverage()).isEqualTo(Coverage.NONE);
                     assertThat(outcome.snapshot().result().evidence()).isEmpty();
                 } else {
                     assertThat(outcome.snapshot().result().coverage()).isEqualTo(Coverage.COMPLETE);
@@ -119,6 +124,29 @@ class RuleAgentLoopDatabaseTest {
         }
     }
 
+    /** 核验参考由实验提供；输入不含提议选择，事实只能取当次真实READ结果。 */
+    private static RulePublicationContract.SemanticAssessment finishReviewFixture(RulePublicationContract.SemanticInput safe,Set<Integer> articles) {
+        var requirements=new ArrayList<RulePublicationContract.Requirement>();
+        var bindings=new ArrayList<RulePublicationContract.SemanticBinding>();
+        var question=safe.questions().getFirst();
+        var span=new RulePublicationContract.DemandSpan(question.id(),0,question.text().length());
+        if(articles.contains(4)) {
+            requirements.add(new RulePublicationContract.Requirement("r1",span,RulePublicationContract.Dimension.STUDY_ARRANGEMENT,RulePublicationContract.Subject.PROFESSIONAL_ELECTIVE,RulePublicationContract.Recognition.IDENTIFIED,List.of()));
+            requirements.add(new RulePublicationContract.Requirement("r2",span,RulePublicationContract.Dimension.STUDY_ARRANGEMENT,RulePublicationContract.Subject.PUBLIC_ELECTIVE,RulePublicationContract.Recognition.IDENTIFIED,List.of()));
+            safe.facts().stream().filter(f->f.id().startsWith("T02/ARTICLE4:")).forEach(f->bindings.add(new RulePublicationContract.SemanticBinding(f.id().endsWith("professional-elective-study-arrangement")?"r1":"r2",f.id(),RulePublicationContract.BindingRole.CORE)));
+        } else if(articles.contains(5)) {
+            requirements.add(new RulePublicationContract.Requirement("r1",span,RulePublicationContract.Dimension.HOURS_NORMAL,RulePublicationContract.Subject.PUBLIC_ELECTIVE,RulePublicationContract.Recognition.IDENTIFIED,List.of()));
+            requirements.add(new RulePublicationContract.Requirement("r2",span,RulePublicationContract.Dimension.SEMESTER_CREDIT_LIMIT,RulePublicationContract.Subject.PUBLIC_ELECTIVE,RulePublicationContract.Recognition.IDENTIFIED,List.of()));
+            for(var fact:safe.facts()) {
+                if(fact.id().equals("S03/GENERAL:hours-principle"))bindings.add(new RulePublicationContract.SemanticBinding("r1",fact.id(),RulePublicationContract.BindingRole.CORE));
+                if(fact.id().equals("S03/GENERAL:hours-upper-limit"))bindings.add(new RulePublicationContract.SemanticBinding("r1",fact.id(),RulePublicationContract.BindingRole.CONDITION_EXCEPTION));
+                if(fact.id().equals("S07/GENERAL:public-semester-four-credits"))bindings.add(new RulePublicationContract.SemanticBinding("r2",fact.id(),RulePublicationContract.BindingRole.CORE));
+            }
+        } else {
+            requirements.add(new RulePublicationContract.Requirement("r1",span,RulePublicationContract.Dimension.CATEGORY,RulePublicationContract.Subject.PUBLIC_ELECTIVE,RulePublicationContract.Recognition.IDENTIFIED,List.of()));
+        }
+        return new RulePublicationContract.SemanticAssessment(RulePublicationContract.REVISION,safe.inputFingerprint(),requirements,bindings,List.of());
+    }
     private static String articlePrefix(int article) {
         return switch(article) {
             case 4->"第四条";
@@ -127,6 +155,93 @@ class RuleAgentLoopDatabaseTest {
             case 18->"第十八条";
             default->throw new IllegalArgumentException("诊断未声明该条款");
         };
+    }
+
+    @Test void controlledAskReviewRetainsRelevantKnownFactAndContinuesWithDeclaredCondition()throws Exception {
+        Path root=Path.of("..").toAbsolutePath().normalize();
+        String target=System.getProperty("zhku.db.url");
+        RuleCheckDatabaseTestTarget.verify(target);
+        String user=System.getProperty("zhku.db.user","zhkuagent");
+        var db=new DriverManagerDataSource(target,user,ZhkuDatabaseTestConfig.databasePassword());
+        ZhkuFlywayTestSupport.migrate(target,user,ZhkuDatabaseTestConfig.databasePassword());
+        var json=new ObjectMapper().findAndRegisterModules();
+        var records=new ArrayList<Map<String,Object>>();
+        var owner=new Owner(UUID.randomUUID(),UUID.randomUUID());
+        UUID task=UUID.randomUUID();
+        try(var catalogue=new Reviewed2025ControlledCatalogue(root)) {
+            catalogue.installOnIsolatedDatabase(db);
+            var settings=catalogue.settings();
+            var entries=RuleArticle4Overlay.apply(root,catalogue.reviewedCatalogue(root));
+            for(int scenario=0;scenario<3;scenario++) {
+                boolean mixed=scenario==1;
+                boolean known=scenario==2;
+                String question=mixed?"专业选修课如何安排修读？这门选修课没过能重修吗？":"这门选修没过，能再修吗？";
+                var input=new RuleAgentRunner.Input(owner,task,known?2:1,question,
+                    List.of(new RuleAgentRunner.Question("q1",question)),known?Map.of("courseType","PUBLIC"):Map.of());
+                Clock clock=Clock.systemUTC();
+                var tools=new RuleAgentEvidenceTools(owner,task,settings,()->entries,
+                    JdbcLexicalCandidateRetriever.forChineseBigramEvaluation(db,new RetrievalEligibilityFilter(clock),settings.profileId(),settings.requiredScope(),settings.chunkingVersion()),
+                    new JdbcRuleCheckEvidenceReader(db,settings.profileId(),settings.chunkingVersion(),settings.requiredScope()),
+                    new JdbcRuleCheckCitationAuditRepository(db,settings.profileId(),settings.chunkingVersion(),settings.requiredScope()),clock);
+                var closed=new java.util.concurrent.atomic.AtomicBoolean();
+                RuleAgentRunner.DecisionPort decision=new RuleAgentRunner.DecisionPort(){
+                    public RuleAgentRunner.Reply decide(RuleAgentRunner.View view,Duration timeout){
+                        NextAction action;
+                        if(view.observations().isEmpty())action=new Search("q1",view.question());
+                        else if(view.facts().isEmpty())action=new Read("q1",view.observations().getLast().candidates().stream()
+                            .filter(c->c.excerpt().startsWith("第十八条")||mixed&&c.excerpt().startsWith("第四条")).map(Candidate::handle).toList());
+                        else{
+                            var retake=view.facts().stream().filter(f->f.ruleId().equals("S10/RETAKE_ONLY"))
+                                .filter(f->!known||f.definition().when().get("courseType").equals("PUBLIC"))
+                                .map(RuleAgentEvidenceTools.VerifiedFact::id).toList();
+                            action=known?new Finish(List.of(new Proposal("q1",retake,List.of(),null)))
+                                :new Ask("q1","courseType","不能采用模型自由追问文字",retake);
+                        }
+                        try{return new RuleAgentRunner.Reply(json.writeValueAsString(action),false);}
+                        catch(Exception invalid){throw new IllegalStateException("模拟动作编码失败");}
+                    }
+                    public void close(){closed.set(true);}
+                };
+                var reviewClosed=new java.util.concurrent.atomic.AtomicBoolean();
+                RuleSemanticReviewPort reviewer=new RuleSemanticReviewPort(){
+                    public RulePublicationContract.SemanticAssessment assess(RulePublicationContract.SemanticInput safe,Duration timeout){
+                        var requirements=new ArrayList<RulePublicationContract.Requirement>();
+                        var bindings=new ArrayList<RulePublicationContract.SemanticBinding>();
+                        var span=new RulePublicationContract.DemandSpan("q1",0,question.length());
+                        for(var fact:safe.facts()){
+                            var capability=safe.capabilities().get(fact.id());
+                            if(capability==null)continue;
+                            boolean retake=fact.ruleId().equals("S10/RETAKE_ONLY")&&(!known||fact.when().get("courseType").equals("PUBLIC"));
+                            boolean arrangement=mixed&&fact.id().equals("T02/ARTICLE4:professional-elective-study-arrangement");
+                            if(!retake&&!arrangement)continue;
+                            String id="r"+requirements.size();
+                            requirements.add(new RulePublicationContract.Requirement(id,span,capability.dimension(),capability.subject(),
+                                RulePublicationContract.Recognition.IDENTIFIED,retake&&!known?List.of("courseType"):List.of()));
+                            bindings.add(new RulePublicationContract.SemanticBinding(id,fact.id(),RulePublicationContract.BindingRole.CORE));
+                        }
+                        return new RulePublicationContract.SemanticAssessment(RulePublicationContract.REVISION,safe.inputFingerprint(),requirements,bindings,List.of());
+                    }
+                    public void close(){reviewClosed.set(true);}
+                };
+                var context=AgentRunContext.create(question);
+                var outcome=new RuleAgentRunner(decision,new RuleActionBroker(tools),clock,reviewer).run(context,input);
+                records.add(Map.of("id","A0"+(scenario+1),"outcome",outcome,"decisionClosed",closed.get(),"reviewClosed",reviewClosed.get(),"providerCalls",0));
+                json.writerWithDefaultPrettyPrinter().writeValue(Path.of(System.getProperty("zhku.rulecheck.evidenceDir"),"actual-ask-flow.json").toFile(),records);
+                assertThat(outcome.snapshot().taskStatus()).isEqualTo(known?TaskStatus.RESOLVED:TaskStatus.WAITING_USER);
+                assertThat(outcome.snapshot().execution().modelAttemptCount()).isEqualTo(4);
+                assertThat(outcome.snapshot().result().items().getFirst().claims()).hasSize(mixed||known?1:0);
+                if(!known){
+                    assertThat(outcome.snapshot().result().items().getFirst().clarification()).hasSize(1);
+                    assertThat(outcome.snapshot().result().items().getFirst().clarification().getFirst().conditionId()).isEqualTo("courseType");
+                    assertThat(outcome.snapshot().result().items().getFirst().clarification().getFirst().question()).doesNotContain("不能采用模型");
+                    assertThat(outcome.snapshot().continuationToken()).isNotNull();
+                }else assertThat(outcome.snapshot().result().items().getFirst().clarification()).isEmpty();
+                if(mixed)assertThat(outcome.snapshot().result().items().getFirst().claims().getFirst().factId()).isEqualTo("T02/ARTICLE4:professional-elective-study-arrangement");
+                assertThat(closed.get()).isTrue();
+                assertThat(reviewClosed.get()).isTrue();
+                assertThat(context.snapshot().terminated()).isTrue();
+            }
+        }
     }
 
     @Test void realToolsMixedEvidenceOperationAndRuntimeTermination()throws Exception{
