@@ -1,0 +1,116 @@
+{
+  "batch": "P01_STRUCTURED_05",
+  "packageSha256": "8686b37598a23818aa521a565997a146cd819c5ddc2cb69070a0b86fb6105a86",
+  "model": "qwen3.8-flash",
+  "execution": {
+    "exitCode": 1,
+    "elapsedSeconds": 44.6,
+    "timedOut": false,
+    "flywayMigrationsApplied": 18,
+    "setupFailuresBeforeAnyCall": 0
+  },
+  "providerCalls": [
+    {
+      "attempt": 1,
+      "purpose": "DECISION",
+      "httpStatus": 200,
+      "inputTokens": 753,
+      "outputTokens": 33,
+      "validationCode": "NONE",
+      "elapsedMillis": 2427
+    },
+    {
+      "attempt": 2,
+      "purpose": "DECISION",
+      "httpStatus": 200,
+      "inputTokens": 1339,
+      "outputTokens": 43,
+      "validationCode": "NONE",
+      "elapsedMillis": 1766
+    },
+    {
+      "attempt": 3,
+      "purpose": "DECISION",
+      "httpStatus": 200,
+      "inputTokens": 2465,
+      "outputTokens": 120,
+      "validationCode": "NONE",
+      "elapsedMillis": 3545
+    }
+  ],
+  "reviewCallTimeout": {
+    "attempt": 4,
+    "purpose": "PUBLICATION_REVIEW",
+    "reason": "MODEL_TIMEOUT",
+    "elapsedMillis": 10020,
+    "singleCallLimitMillis": 10000,
+    "usageUnknown": true,
+    "note": "响应未在10秒单次上限内完成，按超时拒绝；未获知usage，不猜测"
+  },
+  "usage": {
+    "decisionInputTokensTotal": 4557,
+    "decisionOutputTokensTotal": 196,
+    "reviewUsage": "UNKNOWN_TIMEOUT"
+  },
+  "events": [
+    {
+      "attempt": 1,
+      "action": "SEARCH_REVIEWED_RULES",
+      "observationStatus": "SUCCEEDED",
+      "dataLevel": "CANDIDATE",
+      "reason": null
+    },
+    {
+      "attempt": 2,
+      "action": "READ_VERIFIED_RULE",
+      "observationStatus": "SUCCEEDED",
+      "dataLevel": "VERIFIED_FACT",
+      "reason": null
+    }
+  ],
+  "snapshot": {
+    "taskStatus": "FAILED",
+    "runState": "FAILED",
+    "terminated": true,
+    "execution": {
+      "mode": "ONLINE",
+      "modelAttemptCount": 4,
+      "toolStepCount": 3,
+      "providerResponseReceived": true,
+      "answerSource": "NONE",
+      "replayCoverage": "NOT_APPLICABLE"
+    },
+    "coverage": "NONE",
+    "evidenceCount": 0,
+    "issues": [
+      {
+        "kind": "PROCESSING_FAILURE",
+        "reasonCode": "MODEL_TIMEOUT"
+      }
+    ]
+  },
+  "breachResolved": {
+    "gap": "READ_HANDLE_COUNT_ABOVE_MAX（上一批 P01_TOOL_CALL_04 的唯一剩余缺口）",
+    "result": "本次READ动作被宿主接受并实际执行，事件READ_VERIFIED_RULE/SUCCEEDED/VERIFIED_FACT；数量越界未复现"
+  },
+  "newGap": {
+    "stage": "PUBLICATION_REVIEW",
+    "category": "MODEL_TIMEOUT"
+  },
+  "allowanceConsumed": 4,
+  "allowanceRemaining": 0,
+  "resourceExit": {
+    "javaProcesses": 0,
+    "tempContainerRemoved": true,
+    "hostResourcesClosed": true,
+    "demoDatabaseUntouched": true
+  },
+  "rawContentLeakCheck": {
+    "tool_calls": 0,
+    "arguments": 0,
+    "content": 0,
+    "query": 0,
+    "handles": 0,
+    "candidateExcerpt": 0
+  }
+}
