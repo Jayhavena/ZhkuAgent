@@ -1,0 +1,50 @@
+{
+  "sourceSha": "1e27e3c898c4b498ffde3fd07d9159003db5fc2a",
+  "schemaVersion": 3,
+  "executionMode": "TEST_SIMULATION_NO_PROVIDER",
+  "proxy": "ACTUAL_NGINX",
+  "checks": [
+    {
+      "case": "clarification",
+      "actual": "- main:\n  - link \"仲园规则查证\":\n    - /url: /rules\n  - navigation \"查证导航\":\n    - button \"退出登录\"\n  - heading \"先找到依据，再理解规则。\" [level=1]\n  - paragraph: 用你的话提问，确认必要条件，逐条核对原文。\n  - paragraph: 首轮以2025版文本为依据；现行适用性仍需核实。\n  - region \"问题与查证结果\":\n    - generic: 你想查证什么？\n    - textbox \"你想查证什么？\":\n      - /placeholder: 例如：公共选修课有什么学分限制？\n      - text: 澄清\n    - generic: 2/2048\n    - button \"新问题\"\n    - button \"查证规则\"\n    - button \"继续查询\"\n    - region \"需要补充条件\":\n      - paragraph: 本次问题：澄清\n      - heading \"需要补充条件\" [level=2]\n      - paragraph: 依据版本 2025.9.2\n      - heading \"当前能确认什么\" [level=3]\n      - paragraph: 本次尚无可确认的规则内容。\n      - heading \"还缺什么，下一步怎么办\" [level=3]\n      - article:\n        - heading \"需要补充条件\" [level=4]\n        - paragraph: 请确认课程类别\n        - paragraph: 下一步：补充必要条件\n      - generic: 课程类别？\n      - combobox \"课程类别？\":\n        - option \"请选择你能确认的情况\" [disabled]\n        - option \"公共选修课\" [selected]\n        - option \"专业选修课\"\n      - button \"确认条件并继续\"\n      - paragraph: 无法确认时保留未知；补充会继续原任务。\n  - complementary \"原文对照\":\n    - heading \"原文对照\" [level=2]\n    - paragraph: 展开结果中的相关段落，再点击“核对原文”。\n  - generic: 个人项目，非学校官方系统。规则查证不能代替个人修读资格认定或教务办理。"
+    },
+    {
+      "case": "same-task-resume-original",
+      "actual": "- main:\n  - link \"仲园规则查证\":\n    - /url: /rules\n  - navigation \"查证导航\":\n    - button \"退出登录\"\n  - heading \"先找到依据，再理解规则。\" [level=1]\n  - paragraph: 用你的话提问，确认必要条件，逐条核对原文。\n  - paragraph: 首轮以2025版文本为依据；现行适用性仍需核实。\n  - region \"问题与查证结果\":\n    - generic: 你想查证什么？\n    - textbox \"你想查证什么？\":\n      - /placeholder: 例如：公共选修课有什么学分限制？\n      - text: 澄清\n    - generic: 2/2048\n    - button \"新问题\"\n    - button \"查证规则\"\n    - button \"继续查询\"\n    - region \"有依据可确认\":\n      - paragraph: 本次问题：澄清\n      - heading \"有依据可确认\" [level=2]\n      - paragraph: 依据版本 2025.9.2\n      - heading \"当前能确认什么\" [level=3]\n      - article:\n        - heading \"合成确认内容\" [level=3]\n      - heading \"相关依据\" [level=3]\n      - paragraph: 按本次结果关联展示，原文默认折叠。\n      - generic \"查看相关段落 · 2025.9.2\"\n      - blockquote: 合成条款：仅用于接口验收。\n      - button \"核对原文\"\n  - complementary \"原文对照\":\n    - heading \"原文对照\" [level=2]\n    - heading \"合成手册\" [level=3]\n    - paragraph: 版本 2025.9.2\n    - paragraph: 合成条款\n    - paragraph: 页码尚未记录\n    - generic \"展开本条原文与必要上下文\"\n    - list:\n      - listitem: 页码尚未记录\n  - generic: 个人项目，非学校官方系统。规则查证不能代替个人修读资格认定或教务办理。"
+    },
+    {
+      "case": "partial-with-gap",
+      "actual": "- main:\n  - link \"仲园规则查证\":\n    - /url: /rules\n  - navigation \"查证导航\":\n    - button \"退出登录\"\n  - heading \"先找到依据，再理解规则。\" [level=1]\n  - paragraph: 用你的话提问，确认必要条件，逐条核对原文。\n  - paragraph: 首轮以2025版文本为依据；现行适用性仍需核实。\n  - region \"问题与查证结果\":\n    - generic: 你想查证什么？\n    - textbox \"你想查证什么？\":\n      - /placeholder: 例如：公共选修课有什么学分限制？\n      - text: 部分\n    - generic: 2/2048\n    - button \"新问题\"\n    - button \"查证规则\"\n    - button \"继续查询\"\n    - region \"有部分依据\":\n      - paragraph: 本次问题：部分\n      - heading \"有部分依据\" [level=2]\n      - paragraph: 依据版本 2025.9.2\n      - heading \"当前能确认什么\" [level=3]\n      - article:\n        - heading \"合成确认内容\" [level=3]\n      - heading \"还缺什么，下一步怎么办\" [level=3]\n      - article:\n        - heading \"资料缺口\" [level=4]\n        - paragraph: 未取得当期通知\n        - paragraph: 下一步：核对当期通知\n      - heading \"相关依据\" [level=3]\n      - paragraph: 按本次结果关联展示，原文默认折叠。\n      - generic \"查看相关段落 · 2025.9.2\"\n  - complementary \"原文对照\":\n    - heading \"原文对照\" [level=2]\n    - paragraph: 展开结果中的相关段落，再点击“核对原文”。\n  - generic: 个人项目，非学校官方系统。规则查证不能代替个人修读资格认定或教务办理。"
+    },
+    {
+      "case": "processing-failure",
+      "actual": "- main:\n  - link \"仲园规则查证\":\n    - /url: /rules\n  - navigation \"查证导航\":\n    - button \"退出登录\"\n  - heading \"先找到依据，再理解规则。\" [level=1]\n  - paragraph: 用你的话提问，确认必要条件，逐条核对原文。\n  - paragraph: 首轮以2025版文本为依据；现行适用性仍需核实。\n  - region \"问题与查证结果\":\n    - generic: 你想查证什么？\n    - textbox \"你想查证什么？\":\n      - /placeholder: 例如：公共选修课有什么学分限制？\n      - text: 故障\n    - generic: 2/2048\n    - button \"新问题\"\n    - button \"查证规则\"\n    - button \"继续查询\"\n    - region \"本轮处理失败\":\n      - paragraph: 本次问题：故障\n      - heading \"本轮处理失败\" [level=2]\n      - paragraph: 依据版本 2025.9.2\n      - heading \"当前能确认什么\" [level=3]\n      - paragraph: 本次尚无可确认的规则内容。\n      - heading \"还缺什么，下一步怎么办\" [level=3]\n      - article:\n        - heading \"处理未完成\" [level=4]\n        - paragraph: 模型处理失败\n        - paragraph: 下一步：稍后重新查证\n  - complementary \"原文对照\":\n    - heading \"原文对照\" [level=2]\n    - paragraph: 展开结果中的相关段落，再点击“核对原文”。\n  - generic: 个人项目，非学校官方系统。规则查证不能代替个人修读资格认定或教务办理。"
+    },
+    {
+      "case": "cancel-receipt",
+      "actual": "- main:\n  - link \"仲园规则查证\":\n    - /url: /rules\n  - navigation \"查证导航\":\n    - button \"退出登录\"\n  - heading \"先找到依据，再理解规则。\" [level=1]\n  - paragraph: 用你的话提问，确认必要条件，逐条核对原文。\n  - paragraph: 首轮以2025版文本为依据；现行适用性仍需核实。\n  - region \"问题与查证结果\":\n    - generic: 你想查证什么？\n    - textbox \"你想查证什么？\" [disabled]:\n      - /placeholder: 例如：公共选修课有什么学分限制？\n      - text: 取消\n    - generic: 2/2048\n    - button \"新问题\" [disabled]\n    - button \"查证规则\" [disabled]\n    - status:\n      - paragraph: 停止请求已受理，等待本轮结束。\n      - button \"停止本次查证\" [disabled]\n  - complementary \"原文对照\":\n    - heading \"原文对照\" [level=2]\n    - paragraph: 展开结果中的相关段落，再点击“核对原文”。\n  - generic: 个人项目，非学校官方系统。规则查证不能代替个人修读资格认定或教务办理。"
+    },
+    {
+      "case": "cancelled-final",
+      "actual": "- main:\n  - link \"仲园规则查证\":\n    - /url: /rules\n  - navigation \"查证导航\":\n    - button \"退出登录\"\n  - heading \"先找到依据，再理解规则。\" [level=1]\n  - paragraph: 用你的话提问，确认必要条件，逐条核对原文。\n  - paragraph: 首轮以2025版文本为依据；现行适用性仍需核实。\n  - region \"问题与查证结果\":\n    - generic: 你想查证什么？\n    - textbox \"你想查证什么？\":\n      - /placeholder: 例如：公共选修课有什么学分限制？\n      - text: 取消\n    - generic: 2/2048\n    - button \"新问题\"\n    - button \"查证规则\"\n    - button \"继续查询\"\n    - region \"本轮已停止\":\n      - paragraph: 本次问题：取消\n      - heading \"本轮已停止\" [level=2]\n      - paragraph: 依据版本 2025.9.2\n      - heading \"当前能确认什么\" [level=3]\n      - paragraph: 本次尚无可确认的规则内容。\n      - heading \"还缺什么，下一步怎么办\" [level=3]\n      - article:\n        - heading \"处理未完成\" [level=4]\n        - paragraph: 本轮已停止，未完成的部分不作结论。\n        - paragraph: 下一步：请查询任务状态后重新查证，不自动重复提交。\n  - complementary \"原文对照\":\n    - heading \"原文对照\" [level=2]\n    - paragraph: 展开结果中的相关段落，再点击“核对原文”。\n  - generic: 个人项目，非学校官方系统。规则查证不能代替个人修读资格认定或教务办理。"
+    },
+    {
+      "case": "identity-switch",
+      "actual": "- main:\n  - link \"仲园规则查证\":\n    - /url: /rules\n  - navigation \"查证导航\":\n    - button \"退出登录\"\n  - heading \"先找到依据，再理解规则。\" [level=1]\n  - paragraph: 用你的话提问，确认必要条件，逐条核对原文。\n  - paragraph: 首轮以2025版文本为依据；现行适用性仍需核实。\n  - region \"问题与查证结果\":\n    - generic: 你想查证什么？\n    - textbox \"你想查证什么？\":\n      - /placeholder: 例如：公共选修课有什么学分限制？\n    - generic: 0/2048\n    - button \"新问题\"\n    - button \"查证规则\" [disabled]\n    - heading \"从一个具体问题开始\" [level=2]\n    - paragraph: 有依据时解释规则，需要条件时追问，未完成时说明原因。\n  - complementary \"原文对照\":\n    - heading \"原文对照\" [level=2]\n    - paragraph: 展开结果中的相关段落，再点击“核对原文”。\n  - generic: 个人项目，非学校官方系统。规则查证不能代替个人修读资格认定或教务办理。"
+    },
+    {
+      "case": "experimental-route-redirect",
+      "actual": "- main:\n  - link \"仲园规则查证\":\n    - /url: /rules\n  - navigation \"查证导航\":\n    - button \"退出登录\"\n  - heading \"先找到依据，再理解规则。\" [level=1]\n  - paragraph: 用你的话提问，确认必要条件，逐条核对原文。\n  - paragraph: 首轮以2025版文本为依据；现行适用性仍需核实。\n  - paragraph: 学生入口提供规则查证，请在这里提交问题。\n  - region \"问题与查证结果\":\n    - generic: 你想查证什么？\n    - textbox \"你想查证什么？\":\n      - /placeholder: 例如：公共选修课有什么学分限制？\n    - generic: 0/2048\n    - button \"新问题\"\n    - button \"查证规则\" [disabled]\n    - heading \"从一个具体问题开始\" [level=2]\n    - paragraph: 有依据时解释规则，需要条件时追问，未完成时说明原因。\n  - complementary \"原文对照\":\n    - heading \"原文对照\" [level=2]\n    - paragraph: 展开结果中的相关段落，再点击“核对原文”。\n  - generic: 个人项目，非学校官方系统。规则查证不能代替个人修读资格认定或教务办理。"
+    },
+    {
+      "case": "late-result-absent",
+      "actual": "- main:\n  - link \"仲园规则查证\" [active]:\n    - /url: /rules\n  - navigation \"查证导航\":\n    - button \"退出登录\"\n  - heading \"先找到依据，再理解规则。\" [level=1]\n  - paragraph: 用你的话提问，确认必要条件，逐条核对原文。\n  - paragraph: 首轮以2025版文本为依据；现行适用性仍需核实。\n  - region \"问题与查证结果\":\n    - generic: 你想查证什么？\n    - textbox \"你想查证什么？\":\n      - /placeholder: 例如：公共选修课有什么学分限制？\n    - generic: 0/2048\n    - button \"新问题\"\n    - button \"查证规则\" [disabled]\n    - heading \"从一个具体问题开始\" [level=2]\n    - paragraph: 有依据时解释规则，需要条件时追问，未完成时说明原因。\n  - complementary \"原文对照\":\n    - heading \"原文对照\" [level=2]\n    - paragraph: 展开结果中的相关段落，再点击“核对原文”。\n  - generic: 个人项目，非学校官方系统。规则查证不能代替个人修读资格认定或教务办理。"
+    },
+    {
+      "case": "logout",
+      "actual": "- main:\n  - link \"仲园规则查证\":\n    - /url: /rules\n  - navigation \"查证导航\"\n  - heading \"先找到依据，再理解规则。\" [level=1]\n  - paragraph: 用你的话提问，确认必要条件，逐条核对原文。\n  - paragraph: 首轮以2025版文本为依据；现行适用性仍需核实。\n  - region \"登录规则查证\":\n    - heading \"登录规则查证\" [level=2]\n    - paragraph: 使用受控演示账号，查看当前可查证的规则。\n    - generic: 账号\n    - textbox \"账号\"\n    - generic: 密码\n    - textbox \"密码\"\n    - button \"显示密码\":\n    - paragraph: 请输入演示账号的密码（16～64位英文字符）。\n    - status\n    - button \"登录\"\n  - generic: 个人项目，非学校官方系统。规则查证不能代替个人修读资格认定或教务办理。"
+    }
+  ],
+  "providerCalls": 0,
+  "databaseCalls": 0
+}
