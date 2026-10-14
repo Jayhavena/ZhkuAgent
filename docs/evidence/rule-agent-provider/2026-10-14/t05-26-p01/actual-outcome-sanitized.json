@@ -1,0 +1,109 @@
+{
+  "batch": "P01_TOOL_CALL_04",
+  "packageSha256": "78909e8a3f3a37a4db8ea6934e4d86a46cf6869f2fcab243359a51e962a432fe",
+  "setupFailuresBeforeAnyModelCall": [
+    {
+      "stage": "FLYWAY_MIGRATION",
+      "cause": "临时库镜像postgres:16-alpine缺少pgvector扩展",
+      "providerCalls": 0
+    },
+    {
+      "stage": "EVIDENCE_DIRECTORY",
+      "cause": "上一轮失败创建了空证据目录，探针拒绝覆盖已存在目录",
+      "providerCalls": 0
+    }
+  ],
+  "execution": {
+    "exitCode": 1,
+    "elapsedSeconds": 11.8,
+    "flywayMigrationsApplied": 18,
+    "timedOut": false
+  },
+  "providerCalls": [
+    {
+      "phase": "RECEIVED"
+    }
+  ],
+  "callDetail": [
+    {
+      "attempt": 1,
+      "purpose": "DECISION",
+      "httpStatus": 200,
+      "inputTokens": 2044,
+      "outputTokens": 45
+    },
+    {
+      "attempt": 2,
+      "purpose": "DECISION",
+      "httpStatus": 200,
+      "inputTokens": 2761,
+      "outputTokens": 61
+    }
+  ],
+  "usage": {
+    "inputTokensTotal": 4805,
+    "outputTokensTotal": 106,
+    "note": "按RECEIVED每次计量；动作非法也未丢失已知usage"
+  },
+  "finalDecisionTrace": {
+    "attempt": 2,
+    "purpose": "DECISION",
+    "httpStatus": 200,
+    "validationStage": "ACTION_PARAMETERS",
+    "validationCode": "READ_HANDLE_COUNT",
+    "readSelection": {
+      "elementIndex": null,
+      "jsonType": "ARRAY",
+      "stringLength": null,
+      "failureCategory": "READ_HANDLE_COUNT_ABOVE_MAX",
+      "currentCandidate": null
+    },
+    "reason": "INVALID_MODEL_RESPONSE"
+  },
+  "snapshot": {
+    "taskStatus": "FAILED",
+    "runState": "FAILED",
+    "terminated": true,
+    "execution": {
+      "mode": "ONLINE",
+      "modelAttemptCount": 2,
+      "toolStepCount": 1,
+      "providerResponseReceived": true,
+      "answerSource": "NONE",
+      "replayCoverage": "NOT_APPLICABLE"
+    },
+    "coverage": "NONE",
+    "issues": [
+      {
+        "kind": "PROCESSING_FAILURE",
+        "reasonCode": "INVALID_MODEL_RESPONSE"
+      }
+    ]
+  },
+  "events": [
+    {
+      "attempt": 1,
+      "action": "SEARCH_REVIEWED_RULES",
+      "observationStatus": "SUCCEEDED",
+      "dataLevel": "CANDIDATE",
+      "reason": null
+    }
+  ],
+  "allowanceConsumed": 2,
+  "allowanceRemainingClosed": 2,
+  "resourceExit": {
+    "javaProcesses": 0,
+    "tempContainerRemoved": true,
+    "hostResourcesClosed": true,
+    "demoDatabaseUntouched": true
+  },
+  "rawContentLeakCheck": {
+    "tool_calls": 0,
+    "arguments": 0,
+    "content": 0,
+    "query": 0,
+    "handles": 0,
+    "candidateExcerpt": 0,
+    "note": "轨迹仅含指纹/状态/用量/受控诊断，不含自由正文、密钥或UUID"
+  }
+}

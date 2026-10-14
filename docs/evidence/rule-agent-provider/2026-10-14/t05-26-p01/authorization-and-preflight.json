@@ -1,0 +1,38 @@
+{
+  "userAuthorization": "批准 P01 批次，SHA 78909e8a（2026-10-14 15:07，本会话）",
+  "approvedScope": "仅 P01 单题；本批最多4次外发；无自动重试；不得追加额度或进入P02",
+  "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "model": "qwen-plus",
+  "thinkingDisabled": true,
+  "packagePath": "docs/evidence/rule-agent-provider/2026-10-14/t05-25/request-package.json",
+  "packageSha256": "78909e8a3f3a37a4db8ea6934e4d86a46cf6869f2fcab243359a51e962a432fe",
+  "probeCase": "P01_TOOL_CALL_04",
+  "budget": {
+    "maxModelAttemptsPerRun": 4,
+    "maxModelMillis": 10000,
+    "maxOutputTokens": 1024,
+    "maxRunMillis": 45000,
+    "automaticRetries": 0
+  },
+  "environmentCheck": {
+    "mode": "ONLINE",
+    "providerCalls": 0,
+    "builds": 0,
+    "databaseOperations": 0,
+    "passed": true
+  },
+  "packageCheck": {
+    "mode": "PACKAGE_CHECK_ONLY",
+    "providerCalls": 0,
+    "databaseOperations": 0,
+    "passed": true
+  },
+  "database": {
+    "target": "jdbc:postgresql://127.0.0.1:55641/zhkuagent_rulecheck_e2e",
+    "image": "pgvector/pgvector:0.8.6-pg16-bookworm",
+    "volume": "none",
+    "dedicatedTempContainer": true,
+    "demoDatabaseUntouched": true
+  },
+  "credentials": "进程环境提供 DASHSCOPE_API_KEY/ZHKU_DB_PASSWORD；仅以长度与形态核对，未打印、未落盘"
+}
