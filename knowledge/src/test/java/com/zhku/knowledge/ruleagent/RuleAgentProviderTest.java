@@ -59,8 +59,19 @@ class RuleAgentProviderTest {
         server.start();
         port=new RuleAgentProvider(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),"qwen-plus","LOCAL_TEST_ONLY"),UUID.randomUUID(),UUID.randomUUID(),()->"local-test-placeholder",traces::add,new AtomicInteger(4));
     }
+    /** 决策侧线协议：动作只能来自工具调用，不得再用自由文本JSON冒充。 */
+    String call(String name,String arguments)throws Exception{
+        return call(name,arguments,"tool_calls");
+    }
+    String call(String name,String arguments,String finish)throws Exception{
+        var message=new com.fasterxml.jackson.databind.node.ObjectNode(new ObjectMapper().getNodeFactory());
+        message.put("role","assistant");
+        message.putArray("tool_calls").addObject().put("id","call_local_01").put("type","function")
+            .putObject("function").put("name",name).put("arguments",arguments);
+        return new ObjectMapper().writeValueAsString(Map.of("id","local-response","choices",List.of(Map.of("finish_reason",finish,"message",message)),"usage",Map.of("prompt_tokens",25,"completion_tokens",12)));
+    }
     String good()throws Exception{
-        return new ObjectMapper().writeValueAsString(Map.of("id","local-response","choices",List.of(Map.of("finish_reason","stop","message",Map.of("content","{\"type\":\"SEARCH_REVIEWED_RULES\",\"subquestionId\":\"q1\",\"query\":\"选修课程类型\"}"))),"usage",Map.of("prompt_tokens",10,"completion_tokens",8)));
+        return call("SEARCH_REVIEWED_RULES","{\"subquestionId\":\"q1\",\"query\":\"选修课程类型\"}");
     }
     @AfterEach void close()throws Exception{
         if(port!=null){
@@ -81,10 +92,16 @@ class RuleAgentProviderTest {
         assertThat(calls).hasValue(1);
         assertThat(traces).hasSize(3);
         assertThat(traces.getLast().responseReceived()).isTrue();
-        assertThat(traces.getLast().inputTokens()).isEqualTo(10);
+        assertThat(traces.getLast().inputTokens()).isEqualTo(25);
         assertThat(new ObjectMapper().writeValueAsString(traces)).doesNotContain("local-test-placeholder");
         var json=new ObjectMapper().readTree(request.get());
-        assertThat(json.path("response_format").path("type").asText()).isEqualTo("json_object");
+        // 决策侧改用工具调用：不再声明 JSON 文本协议，动作名由宿主登记的函数名承担。
+        assertThat(json.has("response_format")).isFalse();
+        assertThat(json.path("tool_choice").asText()).isEqualTo("auto");
+        assertThat(json.path("parallel_tool_calls").asBoolean()).isFalse();
+        var names=new ArrayList<String>();
+        json.path("tools").forEach(t->names.add(t.path("function").path("name").asText()));
+        assertThat(names).containsExactly("SEARCH_REVIEWED_RULES","READ_VERIFIED_RULE","ASK_NECESSARY_CONDITION","FINISH_CHECK");
         assertThat(json.path("enable_thinking").asBoolean()).isFalse();
         assertThat(json.path("max_completion_tokens").asInt()).isEqualTo(1024);
     }
@@ -159,7 +176,7 @@ class RuleAgentProviderTest {
         assertThat(settings.model()).isEqualTo("qwen-plus");
     }
     @Test void truncatedCompletionIsRejected()throws Exception{
-        start(200,good().replace("\"stop\"","\"length\""),0);
+        start(200,call("SEARCH_REVIEWED_RULES","{\"subquestionId\":\"q1\",\"query\":\"课程\"}","length"),0);
         assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
         assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);
     }
@@ -224,48 +241,48 @@ class RuleAgentProviderTest {
     }
     static java.util.stream.Stream<String[]> protocolFailures(){
         String id="aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
-        String prefix="{\"type\":\"READ_VERIFIED_RULE\",\"subquestionId\":\"q1\",\"candidateSetId\":\"expired-set\",\"handles\":";
+        String read="{\"subquestionId\":\"q1\",\"candidateSetId\":\"expired-set\",\"handles\":";
         return java.util.stream.Stream.of(
         new String[]{
-            prefix+"[\""+id+"\",\""+id+"\",\""+id+"\",\""+id+"\"]}","stop","ACTION_PARAMETERS","READ_HANDLE_COUNT"
+            "READ_VERIFIED_RULE",read+"[\""+id+"\",\""+id+"\",\""+id+"\",\""+id+"\"]}","tool_calls","ACTION_PARAMETERS","READ_HANDLE_COUNT"
         },
         new String[]{
-            prefix+"[\""+id+"\",\""+id+"\"]}","stop","ACTION_PARAMETERS","READ_REFERENCE_SET"
+            "READ_VERIFIED_RULE",read+"[\""+id+"\",\""+id+"\"]}","tool_calls","ACTION_PARAMETERS","READ_REFERENCE_SET"
         },
         new String[]{
-            prefix+"[\"bad-sensitive-uuid\"]}","stop","ACTION_PARAMETERS","READ_REFERENCE_SET"
+            "READ_VERIFIED_RULE",read+"[\"bad-sensitive-uuid\"]}","tool_calls","ACTION_PARAMETERS","READ_REFERENCE_SET"
         },
         new String[]{
-            prefix+"[\""+id+"\"]}","stop","ACTION_PARAMETERS","READ_REFERENCE_SET"
+            "READ_VERIFIED_RULE",read+"[\""+id+"\"]}","tool_calls","ACTION_PARAMETERS","READ_REFERENCE_SET"
         },
         new String[]{
-            "{sensitive-invalid-json","stop","ACTION_JSON","ACTION_JSON_INVALID"
+            "SEARCH_REVIEWED_RULES","{sensitive-invalid-json","tool_calls","ACTION_JSON","ACTION_JSON_INVALID"
         },
         new String[]{
-            "{\"type\":\"EXECUTE_SQL\",\"secret\":\"sensitive-free-body\"}","stop","ACTION_FIELDS","ACTION_TYPE_UNKNOWN"
+            "EXECUTE_SQL","{\"secret\":\"sensitive-free-body\"}","tool_calls","ACTION_FIELDS","ACTION_TYPE_UNKNOWN"
         },
         new String[]{
-            "{\"type\":\"SEARCH_REVIEWED_RULES\",\"subquestionId\":\"q1\"}","stop","ACTION_FIELDS","ACTION_FIELDS_INVALID"
+            "SEARCH_REVIEWED_RULES","{\"subquestionId\":\"q1\"}","tool_calls","ACTION_FIELDS","ACTION_FIELDS_INVALID"
         },
         new String[]{
-            "{\"type\":\"SEARCH_REVIEWED_RULES\",\"subquestionId\":\"q1\",\"query\":\"课程\",\"extra\":\"sensitive-free-body\"}","stop","ACTION_FIELDS","ACTION_FIELDS_INVALID"
+            "SEARCH_REVIEWED_RULES","{\"subquestionId\":\"q1\",\"query\":\"课程\",\"extra\":\"sensitive-free-body\"}","tool_calls","ACTION_FIELDS","ACTION_FIELDS_INVALID"
         },
         new String[]{
-            "{\"type\":\"SEARCH_REVIEWED_RULES\",\"subquestionId\":\"q1\",\"query\":7}","stop","ACTION_PARAMETERS","ACTION_PARAMETER_INVALID"
+            "SEARCH_REVIEWED_RULES","{\"subquestionId\":\"q1\",\"query\":7}","tool_calls","ACTION_PARAMETERS","ACTION_PARAMETER_INVALID"
         },
         new String[]{
-            "{\"type\":\"SEARCH_REVIEWED_RULES\",\"type\":\"FINISH_CHECK\"}","stop","ACTION_JSON","ACTION_JSON_INVALID"
+            "SEARCH_REVIEWED_RULES","{\"type\":\"FINISH_CHECK\",\"subquestionId\":\"q1\",\"query\":\"课程\"}","tool_calls","ACTION_FIELDS","ACTION_FIELDS_INVALID"
         },
         new String[]{
-            "{}","length","SUPPLIER_RESPONSE","FINISH_REASON_INVALID"
+            "SEARCH_REVIEWED_RULES","{\"subquestionId\":\"q1\",\"query\":\"课程\"}","length","SUPPLIER_RESPONSE","FINISH_REASON_INVALID"
         });
     }
     String response(String action,String finish)throws Exception{
         return new ObjectMapper().writeValueAsString(Map.of("model","qwen-plus","usage",Map.of("prompt_tokens",25,"completion_tokens",12),"choices",List.of(Map.of("finish_reason",finish,"message",Map.of("content",action)))));
     }
     @ParameterizedTest @MethodSource("protocolFailures")
-    void failuresAreSafeClassifiedAndDoNotExecuteTools(String action,String finish,String stage,String code)throws Exception{
-        start(200,response(action,finish),0);
+    void failuresAreSafeClassifiedAndDoNotExecuteTools(String name,String arguments,String finish,String stage,String code)throws Exception{
+        start(200,call(name,arguments,finish),0);
         var fixture=new RuleAgentRunnerTest();
         var outcome=fixture.run(fixture.tools(true,true,false),port);
         assertThat(outcome.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);
@@ -289,10 +306,10 @@ class RuleAgentProviderTest {
         var base=view();
         var input=new RuleAgentRunner.View(base.question(),base.questions(),base.userConditions(),List.of(observation),List.of(),List.of(),List.of(),3,5);
         var projected=new ObjectMapper().readTree(new ObjectMapper().readTree(port.payload(input)).path("messages").get(1).path("content").asText());
-        var action=new ObjectMapper().writeValueAsString(Map.of("type","READ_VERIFIED_RULE","subquestionId","q1","candidateSetId",projected.path("candidateSetId").asText(),"handles",List.of("c1")));
-        responseBody.set(response(action,"stop"));
+        responseBody.set(call("READ_VERIFIED_RULE","{\"subquestionId\":\"q1\",\"candidateSetId\":\""+projected.path("candidateSetId").asText()+"\",\"handles\":[\"c1\"]}"));
         assertThat(RuleAgentJson.readAction(port.decide(input,Duration.ofSeconds(1)).actionJson())).isEqualTo(new Read("q1",List.of(handle)));
-        var data=new ObjectMapper().readTree(new ObjectMapper().readTree(request.get()).path("messages").get(1).path("content").asText());
+        var wire=new ObjectMapper().readTree(request.get());
+        var data=new ObjectMapper().readTree(wire.path("messages").get(1).path("content").asText());
         var read=java.util.stream.StreamSupport.stream(data.path("actionContract").path("actions").spliterator(),false).filter(n->n.path("type").asText().equals("READ_VERIFIED_RULE")).findFirst().orElseThrow();
         assertThat(read.path("readHandles").path("max").asInt()).isEqualTo(DEFAULT_BUDGET.maxReadHandles());
         assertThat(read.path("readHandles").path("min").asInt()).isEqualTo(1);
@@ -301,6 +318,35 @@ class RuleAgentProviderTest {
         assertThat(data.toString()).doesNotContain(handle.toString());
         assertThat(data.path("remainingBudget").path("modelAttemptsIncludingThisCall").asInt()).isEqualTo(3);
         assertThat(data.path("remainingBudget").path("toolSteps").asInt()).isEqualTo(5);
+        // 工具定义里的候选枚举必须等于当次完整集合，且只含编号界面；1—3上限来自同一领域预算。
+        var readTool=java.util.stream.StreamSupport.stream(wire.path("tools").spliterator(),false).filter(t->t.path("function").path("name").asText().equals("READ_VERIFIED_RULE")).findFirst().orElseThrow();
+        var parameters=readTool.path("function").path("parameters");
+        assertThat(parameters.path("additionalProperties").asBoolean()).isFalse();
+        assertThat(parameters.path("required").toString()).contains("subquestionId","candidateSetId","handles");
+        var handles=parameters.path("properties").path("handles");
+        assertThat(handles.path("minItems").asInt()).isEqualTo(MIN_READ_HANDLES);
+        assertThat(handles.path("maxItems").asInt()).isEqualTo(DEFAULT_BUDGET.maxReadHandles());
+        var values=new ArrayList<String>();
+        handles.path("items").path("enum").forEach(n->values.add(n.asText()));
+        assertThat(values).containsExactly("c1");
+        assertThat(wire.toString()).doesNotContain(handle.toString());
+    }
+    /** 无工具调用、只有自由文本时不得回退旧协议，也不得把正文当动作。 */
+    @Test void contentOnlyOrMultipleCallsAreNeverAcceptedAsOneAction()throws Exception{
+        start(200,response("{\"type\":\"SEARCH_REVIEWED_RULES\",\"subquestionId\":\"q1\",\"query\":\"课程\"}","stop"),0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        var noCall=new ObjectMapper().valueToTree(traces.getLast());
+        assertThat(noCall.path("validation").path("code").asText()).isEqualTo("ACTION_CALLS_INVALID");
+        assertThat(traces.getLast().inputTokens()).isEqualTo(25);
+        var multi=(com.fasterxml.jackson.databind.node.ObjectNode)new ObjectMapper().readTree(call("SEARCH_REVIEWED_RULES","{\"subquestionId\":\"q1\",\"query\":\"课程\"}"));
+        var second=multi.path("choices").get(0).path("message").path("tool_calls").get(0).deepCopy();
+        ((com.fasterxml.jackson.databind.node.ArrayNode)multi.path("choices").get(0).path("message").path("tool_calls")).add(second);
+        responseBody.set(multi.toString());
+        int before=calls.get();
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(new ObjectMapper().valueToTree(traces.getLast()).path("validation").path("code").asText()).isEqualTo("ACTION_CALLS_INVALID");
+        assertThat(calls.get()).isEqualTo(before+1);
+        assertThat(traces.getLast().inputTokens()).isEqualTo(25);
     }
     @Test void invalidEnvelopeKeepsKnownUsageAndMissingUsageStaysUnknown()throws Exception{
         start(200,"{\"usage\":{\"prompt_tokens\":7,\"completion_tokens\":2}}",0);

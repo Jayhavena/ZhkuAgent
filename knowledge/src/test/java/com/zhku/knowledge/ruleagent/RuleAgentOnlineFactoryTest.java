@@ -133,7 +133,21 @@ class RuleAgentOnlineFactoryTest {
                     view.path("facts").forEach(f->{if((!studyArrangement||f.path("id").asText().startsWith("T02/ARTICLE4:"))&&(!conditional||f.path("when").path("courseType").equals(view.path("userConditions").path("courseType"))))ids.add(f.path("id").asText());});
                     action=new Finish(List.of(new Proposal("q1",ids,List.of(),null)));
                 }
-                byte[] bytes=json.writeValueAsBytes(Map.of("usage",Map.of("prompt_tokens",25,"completion_tokens",12),"choices",List.of(Map.of("finish_reason","stop","message",Map.of("content",json.writeValueAsString(action))))));
+                byte[] bytes;
+                if(view.has("input")){
+                    // 独立核验仍是 JSON 文本协议；两种用途的响应合同不同，不能混用。
+                    bytes=json.writeValueAsBytes(Map.of("usage",Map.of("prompt_tokens",25,"completion_tokens",12),"choices",List.of(Map.of("finish_reason","stop","message",Map.of("content",json.writeValueAsString(action))))));
+                }else{
+                    // 决策侧线协议为工具调用：动作名即函数名，参数为JSON对象，不再使用自由文本content。
+                    var actionNode=(com.fasterxml.jackson.databind.node.ObjectNode)json.valueToTree(action);
+                    String actionName=actionNode.path("type").asText();
+                    actionNode.remove("type");
+                    var message=json.createObjectNode();
+                    message.put("role","assistant");
+                    message.putArray("tool_calls").addObject().put("id","call_local_01").put("type","function")
+                        .putObject("function").put("name",actionName).put("arguments",actionNode.toString());
+                    bytes=json.writeValueAsBytes(Map.of("usage",Map.of("prompt_tokens",25,"completion_tokens",12),"choices",List.of(Map.of("finish_reason","tool_calls","message",message))));
+                }
                 e.sendResponseHeaders(200,bytes.length);
                 e.getResponseBody().write(bytes);
             }
@@ -288,7 +302,7 @@ class RuleAgentOnlineFactoryTest {
         pack.put("remainingBudgetRule","每run3次决策加1次独立核验，共4次/45秒；单次10秒/1024输出token，无自动重试。新检索使旧编号失效。");
         pack.put("dynamicFeedback","完整当前候选摘要、c编号及宿主集合代号；实际UUID映射仅留宿主。已读取的审核原文、事实、条件及独立核验能力/来源指纹不变。不发送owner/session/token/凭证/参考答案/整本PDF。");
         pack.put("executionReadiness","PACKAGE_ONLY; current old-batch launcher must reject this packet; require P01-only preflight and new explicit authorization before any call");
-        assertThat(pack.path("protocolRevision").asText()).isEqualTo("RULE_AGENT_ACTION_CONTRACT_03");
+        assertThat(pack.path("protocolRevision").asText()).isEqualTo("RULE_AGENT_ACTION_CONTRACT_04");
         assertThat(pack.path("automaticRetries").asInt()).isZero();
         assertThat(factory).isNull();
         assertThat(calls).hasValue(0);
@@ -354,14 +368,14 @@ class RuleAgentOnlineFactoryTest {
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
         env.put("ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64));
         env.put("ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64));
-        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_READ_REFERENCE_03");
+        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_TOOL_CALL_04");
         var result=RuleAgentOnlineProbeHost.environmentCheck(env);
         assertThat(result.get("maximumProviderCalls")).isEqualTo(4);
         assertThat(result.get("providerCalls")).isEqualTo(0);
         assertThat(new ObjectMapper().valueToTree(result).toString()).doesNotContain("local-test-placeholder");
     }
     @Test void selectiveManualProbeCannotRepeatSuccessfulCaseOrResetFullQuota(){
-        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_READ_REFERENCE_03"));
+        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_TOOL_CALL_04"));
         assertThat(RuleAgentOnlineProbeHost.environmentCheck(env).get("maximumProviderCalls")).isEqualTo(4);
         env.put("ZHKU_RULE_AGENT_PROBE_CASE","P02");
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
@@ -384,6 +398,7 @@ class RuleAgentOnlineFactoryTest {
         p.put("systemPrompt",RuleAgentProvider.SYSTEM);
         p.put("protocolRevision",RuleAgentProtocol.REVISION);
         p.set("actionContract",RuleAgentProtocol.description());
+        p.set("actionTools",RuleAgentProtocol.tools(List.of()));
         p.set("remainingBudgetMaximum",RuleAgentProtocol.remainingBudget(RulePublicationContract.MAX_DECISION_CALLS,DEFAULT_BUDGET.maxToolStepsPerRun()));
         p.put("publicationReviewProtocolRevision",RulePublicationContract.REVISION);
         p.set("publicationReviewContract",RulePublicationProtocol.description());
@@ -450,7 +465,7 @@ class RuleAgentOnlineFactoryTest {
     }
     @Test void currentP01PacketMatchesActualReviewedAssetsWithoutCalls()throws Exception{
         var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();
-        var path=root.resolve("docs/evidence/rule-agent-provider/2026-10-14/t05-19/request-package.json");
+        var path=root.resolve("docs/evidence/rule-agent-provider/2026-10-14/t05-24/request-package.json");
         var json=new ObjectMapper();
         var frozen=json.readTree(java.nio.file.Files.readAllBytes(path));
         RuleAgentOnlineProbeHost.validatePackage(frozen);

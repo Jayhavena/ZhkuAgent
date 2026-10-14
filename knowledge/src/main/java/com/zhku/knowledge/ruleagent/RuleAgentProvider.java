@@ -97,10 +97,13 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     }
     String payload(RuleAgentRunner.View view){
         var data=JSON.createObjectNode();
+        ArrayNode tools;
         synchronized(references) {
             if(closed)throw new Failure(ReasonCode.TASK_EXECUTION_UNAVAILABLE,false);
             references.refresh(view);
             references.project(data);
+            // 候选枚举与消息里的currentCandidates必须来自同一次刷新，否则模型线协议与宿主表会错位。
+            tools=RuleAgentProtocol.tools(references.references());
         }
         data.put("question",view.question());
         data.set("questions",JSON.valueToTree(view.questions()));
@@ -134,22 +137,32 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             }
         }
         // 不发送主体/Session、原文token、数据库身份、历史结果或自由工具事件。
-        return envelope(SYSTEM,data);
+        return envelope(SYSTEM,data,tools);
     }
     String reviewPayload(RulePublicationContract.SemanticInput input){
         var data=JSON.createObjectNode();
         data.set("input",JSON.valueToTree(input));
         data.set("reviewContract",RulePublicationProtocol.description());
         data.putObject("remainingBudget").put("modelCallsIncludingThisCall",DEFAULT_BUDGET.maxModelAttemptsPerRun()-attempts);
-        return envelope(REVIEW_SYSTEM,data);
+        return envelope(REVIEW_SYSTEM,data,null);
     }
-    private String envelope(String system,ObjectNode data){
+    /**
+     * 决策侧改用工具调用：动作名由宿主登记的函数名承担，参数是JSON对象。
+     * 独立核验仍走 JSON 文本协议：官方对结构化输出与工具调用在同一次请求中的共存性没有承诺，不混用。
+     */
+    private String envelope(String system,ObjectNode data,JsonNode tools){
         var root=JSON.createObjectNode();
         root.put("model",settings.model());
         root.put("stream",false);
         root.put("enable_thinking",false);
         root.put("max_completion_tokens",DEFAULT_BUDGET.maxOutputTokens());
-        root.putObject("response_format").put("type","json_object");
+        if(tools==null)root.putObject("response_format").put("type","json_object");
+        else {
+            root.set("tools",tools);
+            root.put("tool_choice","auto");
+            // 单次只允许一个动作；即供应商默认值也显式声明，避免并行调用被当成多个动作。
+            root.put("parallel_tool_calls",false);
+        }
         var messages=root.putArray("messages");
         messages.addObject().put("role","system").put("content",system);
         messages.addObject().put("role","user").put("content",data.toString());
@@ -248,14 +261,9 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
                 throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.SUPPLIER_RESPONSE,RuleAgentProtocol.Code.RESPONSE_STRUCTURE_INVALID);
             }
             var choice=outer.path("choices").get(0);
-            if(!"stop".equals(choice.path("finish_reason").asText())) {
-                throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.SUPPLIER_RESPONSE,RuleAgentProtocol.Code.FINISH_REASON_INVALID);
-            }
-            var content=choice.path("message").path("content");
-            if(!content.isTextual()) {
-                throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.SUPPLIER_RESPONSE,RuleAgentProtocol.Code.CONTENT_INVALID);
-            }
-            var result=decode.apply(content.textValue());
+            // 决策与核验属于两种响应合同，分别提取；都不回退到对方的解析路径。
+            String content=purpose==Purpose.DECISION?decisionAction(choice):reviewContent(choice);
+            var result=decode.apply(content);
             if(closed)throw new Failure(ReasonCode.CANCELLED,true);
             record(new Trace(task,run,attempt,requestHash,responseHash,status,null,true,input,output,measured.snapshot(),Phase.FINISHED,validation,purpose));
             return result;
@@ -299,6 +307,46 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         }
         record(new Trace(task,run,attempt,requestHash,responseHash,status==null?measured.status:status,failure,received,input,output,measured.snapshot(),Phase.FINISHED,validation,purpose));
         throw new Failure(failure,received&&!"LOCAL_TEST_ONLY".equals(settings.authorizationId()));
+    }
+    /**
+     * 决策侧只接受恰好一个工具调用：无调用、多调用、缺名称或参数不是对象都拒绝。
+     * 供应商是否强制参数结构不由本方法决定，宿主仍按原合同复核数量、编号与集合。
+     */
+    private static String decisionAction(JsonNode choice){
+        var finish=choice.path("finish_reason").asText();
+        var calls=choice.path("message").path("tool_calls");
+        if(!calls.isArray()||calls.size()!=1) {
+            throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.SUPPLIER_RESPONSE,RuleAgentProtocol.Code.ACTION_CALLS_INVALID);
+        }
+        // 只有一个工具调用即为完整动作；"length"等截断结束原因仍须拒绝，不能把半截参数当合法动作。
+        if(!"tool_calls".equals(finish)&&!"stop".equals(finish)) {
+            throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.SUPPLIER_RESPONSE,RuleAgentProtocol.Code.FINISH_REASON_INVALID);
+        }
+        var call=calls.get(0);
+        var name=call.path("function").path("name");
+        var arguments=call.path("function").path("arguments");
+        if(!name.isTextual()||!arguments.isTextual()) {
+            throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.SUPPLIER_RESPONSE,RuleAgentProtocol.Code.ACTION_CALLS_INVALID);
+        }
+        JsonNode parsed;
+        try {
+            parsed=RuleAgentJson.readTreeStrict(arguments.textValue());
+        }
+        catch(IllegalArgumentException invalid) {
+            throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.ACTION_JSON,RuleAgentProtocol.Code.ACTION_JSON_INVALID);
+        }
+        return RuleAgentProtocol.actionJson(name.textValue(),parsed);
+    }
+    /** 独立核验仍使用 JSON 文本协议，保持其原有结束原因与内容约束。 */
+    private static String reviewContent(JsonNode choice){
+        if(!"stop".equals(choice.path("finish_reason").asText())) {
+            throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.SUPPLIER_RESPONSE,RuleAgentProtocol.Code.FINISH_REASON_INVALID);
+        }
+        var content=choice.path("message").path("content");
+        if(!content.isTextual()) {
+            throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.SUPPLIER_RESPONSE,RuleAgentProtocol.Code.CONTENT_INVALID);
+        }
+        return content.textValue();
     }
     private void record(Trace trace) {
         try {

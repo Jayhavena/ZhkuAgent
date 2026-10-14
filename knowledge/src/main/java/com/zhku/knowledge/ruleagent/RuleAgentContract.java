@@ -12,6 +12,12 @@ public final class RuleAgentContract {
     public static final long MAX_SAFE_VERSION=9007199254740991L;
     public static final String BUDGET_REVISION="T05_READ_BUDGET_02";
     public static final int MIN_READ_HANDLES=1;
+    public static final int MAX_FINISH_PROPOSALS=4;
+    public static final int MAX_FACT_IDS=16;
+    public static final int MAX_SUPPORTING_FACT_IDS=16;
+    public static final int MAX_PROPOSED_ISSUES=8;
+    /** 标识符限制只在这里定义一次：值校验与机器可读动作定义必须同源，否则模型线协议会漂移。 */
+    public static final String IDENTIFIER_PATTERN="[A-Za-z0-9][A-Za-z0-9_./:-]{0,127}";
     // 两次真实读取决策触及旧5秒上限；仅放宽时间作有界验证，次数/权限不变，不是SLA或外发许可。
     public static final BudgetPolicy DEFAULT_BUDGET=new BudgetPolicy(4,6,10000,45000,3,12,2,3,8,32768,65536,1024,300000,900000);
     public record BudgetPolicy(int maxModelAttemptsPerRun,int maxToolStepsPerRun,int maxModelMillis,int maxRunMillis,
@@ -158,7 +164,7 @@ public final class RuleAgentContract {
         }
     }
     public record Ask(String subquestionId,String conditionId,String reason,List<String> supportingFactIds) implements NextAction {
-        public Ask {identifier(subquestionId);identifier(conditionId);RuleAgentContract.text(reason,2048);supportingFactIds=RuleAgentContract.items(supportingFactIds,0,16);supportingFactIds.forEach(RuleAgentContract::identifier);unique(supportingFactIds);}
+        public Ask {identifier(subquestionId);identifier(conditionId);RuleAgentContract.text(reason,2048);supportingFactIds=RuleAgentContract.items(supportingFactIds,0,MAX_SUPPORTING_FACT_IDS);supportingFactIds.forEach(RuleAgentContract::identifier);unique(supportingFactIds);}
     }
     public record ProposedIssue(IssueKind kind,ReasonCode reasonCode) {
         public ProposedIssue {required(kind);required(reasonCode);require(reasonCode.kind==kind);}
@@ -172,10 +178,10 @@ public final class RuleAgentContract {
             require(declaredValue.matches("[0-9]{1,9}(\\.[0-9]{1,6})?"));}
     }
     public record Proposal(String subquestionId,List<String> factIds,List<ProposedIssue> issues,Operation operation) {
-        public Proposal {identifier(subquestionId);factIds=RuleAgentContract.items(factIds,0,16);factIds.forEach(RuleAgentContract::identifier);unique(factIds);issues=RuleAgentContract.items(issues,0,8);require(!factIds.isEmpty()||!issues.isEmpty());if(operation!=null)require(!factIds.isEmpty());}
+        public Proposal {identifier(subquestionId);factIds=RuleAgentContract.items(factIds,0,MAX_FACT_IDS);factIds.forEach(RuleAgentContract::identifier);unique(factIds);issues=RuleAgentContract.items(issues,0,MAX_PROPOSED_ISSUES);require(!factIds.isEmpty()||!issues.isEmpty());if(operation!=null)require(!factIds.isEmpty());}
     }
     public record Finish(List<Proposal> items) implements NextAction {
-        public Finish {items=RuleAgentContract.items(items,1,4);unique(items.stream().map(Proposal::subquestionId).toList());}
+        public Finish {items=RuleAgentContract.items(items,1,MAX_FINISH_PROPOSALS);unique(items.stream().map(Proposal::subquestionId).toList());}
     }
 
     // owner仅属于服务端任务边界，不放入学生快照或模型载荷。
@@ -224,7 +230,7 @@ public final class RuleAgentContract {
     private static Coverage coverage(List<Subquestion> items){return items.stream().allMatch(q->q.coverage()==Coverage.COMPLETE)?Coverage.COMPLETE:items.stream().anyMatch(q->!q.claims().isEmpty())?Coverage.PARTIAL:Coverage.NONE;}
     private static void target(Map<String,Target> targets,String question,String id,EvidenceRole role){require(targets.putIfAbsent(question+"|"+id,new Target(role))==null);}
     private static void version(long version){require(version>=1&&version<=MAX_SAFE_VERSION);}
-    private static void identifier(String text){RuleAgentContract.text(text,128);require(text.matches("[A-Za-z0-9][A-Za-z0-9_./:-]{0,127}"));}
+    private static void identifier(String text){RuleAgentContract.text(text,128);require(text.matches(IDENTIFIER_PATTERN));}
     private static void text(String value,int limit){
         require(value!=null&&!value.isBlank()&&value.length()<=limit);
         for(int i=0;i<value.length();i++){

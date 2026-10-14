@@ -3,13 +3,14 @@ package com.zhku.knowledge.ruleagent;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.*;
 import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 
 /** 模型约束投影与解码使用同一动作类型/record字段及领域预算，不另建宽松协议。 */
 public final class RuleAgentProtocol {
-    public static final String REVISION="RULE_AGENT_ACTION_CONTRACT_03";
+    public static final String REVISION="RULE_AGENT_ACTION_CONTRACT_04";
     public static final String READ_REFERENCE_PATTERN="c[1-9][0-9]*";
     static Set<String> modelReadFields() {
         var fields=new HashSet<String>();
@@ -21,7 +22,7 @@ public final class RuleAgentProtocol {
     private RuleAgentProtocol() {}
     public enum Stage { NONE, SUPPLIER_RESPONSE, ACTION_JSON, ACTION_FIELDS, ACTION_PARAMETERS, REVIEW_JSON, REVIEW_BINDING, PRE_EXECUTION, TRANSPORT, AUDIT }
     public enum Code {
-        NONE, RESPONSE_JSON_INVALID, RESPONSE_STRUCTURE_INVALID, FINISH_REASON_INVALID, CONTENT_INVALID,
+        NONE, RESPONSE_JSON_INVALID, RESPONSE_STRUCTURE_INVALID, FINISH_REASON_INVALID, CONTENT_INVALID, ACTION_CALLS_INVALID,
         ACTION_JSON_INVALID, ACTION_TYPE_UNKNOWN, ACTION_FIELDS_INVALID, ACTION_PARAMETER_INVALID,
         READ_HANDLE_COUNT, READ_HANDLE_DUPLICATE, READ_HANDLE_UUID, READ_HANDLE_NOT_CURRENT,
         READ_HANDLE_ARRAY_REQUIRED, READ_HANDLE_COUNT_BELOW_MIN, READ_HANDLE_COUNT_ABOVE_MAX,
@@ -87,6 +88,120 @@ public final class RuleAgentProtocol {
             }
         });
         return root;
+    }
+    /** 动作名称的模型可见说明；字段与限制仍取自record与领域预算，不在这里另立一套。 */
+    private static String actionDescription(String name) {
+        return switch(name) {
+            case "SEARCH_REVIEWED_RULES" -> "按自然语言query检索已审核规则；检索成功后宿主签发新的候选集合，重新检索会使旧c编号失效。";
+            case "READ_VERIFIED_RULE" -> "读取当前候选集合中的1—3个唯一c编号，并原样回传当次candidateSetId；只能使用currentCandidates给出的编号，实际UUID由宿主映射，禁止提交UUID或自造编号。";
+            case "ASK_NECESSARY_CONDITION" -> "就影响结论且学生能补充的必要条件追问；使用审核conditionId、reason与supportingFactIds，不重复已知条件。";
+            default -> "提交最终结论提议；items须覆盖所有子问题，每项给出subquestionId、factIds、issues与operation，operation本批必须为null。";
+        };
+    }
+    /**
+     * 由现有权威合同派生机器可读动作定义：动作名称取自同一组JsonSubTypes，
+     * 字段与必填取自record组件，编号下限/上限与枚举取自领域预算与领域枚举。
+     * 供应商是否强制这些约束不由本方法决定，宿主校验不因引入本方法而放宽。
+     */
+    public static ArrayNode tools(List<String> readReferences) {
+        var rows=JSON.createArrayNode();
+        actions().forEach((name,type)->{
+            var function=rows.addObject().put("type","function").putObject("function");
+            function.put("name",name);
+            function.put("description",actionDescription(name));
+            function.set("parameters",parameters(type,readReferences));
+        });
+        return rows;
+    }
+    private static ObjectNode parameters(Class<?> action,List<String> readReferences) {
+        var schema=JSON.createObjectNode();
+        schema.put("type","object");
+        // 宿主按record组件做字段闭合校验；这里必须同样禁止额外字段，避免鼓励模型输出无效键。
+        schema.put("additionalProperties",false);
+        var properties=schema.putObject("properties");
+        var required=schema.putArray("required");
+        for(var field:action.getRecordComponents()) {
+            required.add(field.getName());
+            properties.set(field.getName(),field(action,field.getName(),readReferences));
+        }
+        if(action==Read.class) {
+            required.add("candidateSetId");
+            properties.set("candidateSetId",text("本次检索的集合代号，必须原样回传",null));
+        }
+        return schema;
+    }
+    private static JsonNode field(Class<?> owner,String name,List<String> readReferences) {
+        if(owner==Read.class&&name.equals("handles")) {
+            var items=text("当前候选编号",READ_REFERENCE_PATTERN);
+            if(!readReferences.isEmpty()) {
+                var values=items.putArray("enum");
+                readReferences.forEach(values::add);
+            }
+            // 1—3来自同一领域预算，不在此处重新定义上限。
+            return array(items,MIN_READ_HANDLES,DEFAULT_BUDGET.maxReadHandles());
+        }
+        if(owner==Finish.class&&name.equals("items"))return array(object(Proposal.class,readReferences),1,MAX_FINISH_PROPOSALS);
+        if(owner==Proposal.class&&name.equals("issues"))return array(object(ProposedIssue.class,readReferences),0,MAX_PROPOSED_ISSUES);
+        if(owner==Proposal.class&&name.equals("factIds"))return array(text("已核验事实id",IDENTIFIER_PATTERN),0,MAX_FACT_IDS);
+        if(owner==Proposal.class&&name.equals("operation"))return JSON.createObjectNode().put("type","null");
+        if(owner==Ask.class&&name.equals("supportingFactIds"))return array(text("已核验事实id",IDENTIFIER_PATTERN),0,MAX_SUPPORTING_FACT_IDS);
+        if(owner==ProposedIssue.class&&name.equals("kind"))return enumField(IssueKind.values());
+        if(owner==ProposedIssue.class&&name.equals("reasonCode"))return enumField(ReasonCode.values());
+        if(name.equals("subquestionId"))return text("子问题id，须对应questions.id",IDENTIFIER_PATTERN);
+        if(name.equals("conditionId"))return text("审核条件id",IDENTIFIER_PATTERN);
+        if(name.equals("query"))return text("自然语言检索词",null);
+        if(name.equals("reason"))return text("追问理由",null);
+        return text(null,null);
+    }
+    private static ObjectNode object(Class<?> type,List<String> readReferences) {
+        var node=JSON.createObjectNode();
+        node.put("type","object");
+        node.put("additionalProperties",false);
+        var properties=node.putObject("properties");
+        var required=node.putArray("required");
+        for(var field:type.getRecordComponents()) {
+            required.add(field.getName());
+            properties.set(field.getName(),field(type,field.getName(),readReferences));
+        }
+        return node;
+    }
+    private static ObjectNode array(JsonNode items,int min,int max) {
+        var node=JSON.createObjectNode();
+        node.put("type","array");
+        node.set("items",items);
+        if(min>0)node.put("minItems",min);
+        node.put("maxItems",max);
+        return node;
+    }
+    private static ObjectNode enumField(Enum<?>[] values) {
+        var node=JSON.createObjectNode();
+        node.put("type","string");
+        var names=node.putArray("enum");
+        for(var value:values)names.add(value.name());
+        return node;
+    }
+    private static ObjectNode text(String note,String pattern) {
+        var node=JSON.createObjectNode();
+        node.put("type","string");
+        if(pattern!=null)node.put("pattern",pattern);
+        if(note!=null)node.put("description",note);
+        return node;
+    }
+    /**
+     * 供应商动作名称+参数 → 原领域动作JSON。
+     * 参数里再出现type说明模型在自造第二套协议，必须拒绝而不是覆盖。
+     */
+    public static String actionJson(String name,JsonNode arguments) {
+        if(name==null||!actions().containsKey(name)) {
+            throw new Rejected(Stage.ACTION_FIELDS,Code.ACTION_TYPE_UNKNOWN);
+        }
+        if(arguments==null||!arguments.isObject()||arguments.has("type")) {
+            throw new Rejected(Stage.ACTION_FIELDS,Code.ACTION_FIELDS_INVALID);
+        }
+        var node=JSON.createObjectNode();
+        node.put("type",name);
+        arguments.fields().forEachRemaining(entry->node.set(entry.getKey(),entry.getValue()));
+        return node.toString();
     }
     public static ObjectNode remainingBudget(int modelAttempts,int toolSteps) {
         return JSON.createObjectNode()
