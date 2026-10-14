@@ -89,7 +89,7 @@ class RuleAgentRunnerTest {
     @Test void revisedDecisionBudgetStillRejectsLateRepliesWithoutWaitingInTest()throws Exception{
         var time=new java.util.concurrent.atomic.AtomicReference<>(Instant.parse("2026-10-13T11:00:00Z"));var fake=new Clock(){public java.time.ZoneId getZone(){return java.time.ZoneOffset.UTC;}public Clock withZone(java.time.ZoneId z){return this;}public Instant instant(){return time.get();}};
         var input=RuleAgentRunner.Input.single(owner,task,"选修课程类别有哪些？");var closed=new java.util.concurrent.atomic.AtomicBoolean();
-        var port=new RuleAgentRunner.DecisionPort(){public RuleAgentRunner.Reply decide(RuleAgentRunner.View v,Duration timeout){assertThat(timeout).isEqualTo(Duration.ofSeconds(10));time.set(time.get().plusMillis(10001));return reply(new Search("q1","类别"));}public void close(){closed.set(true);}};
+        var port=new RuleAgentRunner.DecisionPort(){public RuleAgentRunner.Reply decide(RuleAgentRunner.View v,Duration timeout){assertThat(timeout).isEqualTo(Duration.ofMillis(RuleAgentContract.DEFAULT_BUDGET.maxModelMillis()));time.set(time.get().plusMillis(RuleAgentContract.DEFAULT_BUDGET.maxModelMillis()+1));return reply(new Search("q1","类别"));}public void close(){closed.set(true);}};
         var result=new RuleAgentRunner(port,new RuleActionBroker(tools(true,true,false)),fake).run(AgentRunContext.create(input.question()),input);
         assertThat(result.snapshot().result().items().getFirst().issues().getFirst().reasonCode()).isEqualTo(ReasonCode.MODEL_TIMEOUT);assertThat(result.events()).isEmpty();assertThat(closed).isTrue();
     }

@@ -1,0 +1,93 @@
+{
+  "protocolRevision": "RULE_AGENT_ACTION_CONTRACT_05",
+  "budgetRevision": "T05_REVIEW_BUDGET_03",
+  "userDecision": "用户授权方案A：放宽核验时间预算（单次10秒→20秒，整run45秒→90秒）。",
+  "rationale": "核验截止时间=min(单次上限,整run剩余)；整run里建库+检索+3次决策已用约34秒，核验只拿到约10.4秒并撞满单次上限，只放宽单次无效。",
+  "unchanged": [
+    "模型qwen3.8-flash",
+    "问题P01",
+    "协议REVISION 05",
+    "每run最多4次调用",
+    "无自动重试",
+    "输出token 1024",
+    "核验语义与发布守卫",
+    "1—3句柄上限"
+  ],
+  "packagePath": "D:/alldesk/Projects/ZhkuAgent/docs/evidence/rule-agent-provider/2026-10-14/t05-30/request-package.json",
+  "packageSha256": "f11c3af0ce3ceaafddd5508a242587684a9d801f55a93d5c91fbaad9f6c2450d",
+  "zeroCallChecks": {
+    "packageCheck": {
+      "passed": true,
+      "providerCalls": 0,
+      "databaseOperations": 0
+    },
+    "environmentCheck": {
+      "passed": true,
+      "providerCalls": 0
+    }
+  },
+  "localSimulation": {
+    "providerCalls": 0,
+    "databaseWrites": 0,
+    "classes": [
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentContractTest",
+        "run": 7,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentEvidenceToolsTest",
+        "run": 10,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest",
+        "run": 32,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentProviderTest",
+        "run": 46,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentReviewPayloadBudgetTest",
+        "run": 1,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentRunnerTest",
+        "run": 21,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentTaskStoreTest",
+        "run": 14,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RulePublicationGateTest",
+        "run": 15,
+        "failures": 0,
+        "errors": 0
+      }
+    ],
+    "totalRun": 146,
+    "totalFailures": 0,
+    "totalErrors": 0
+  },
+  "sourceSha256": {
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentContract.java": "1d1a0648915e77956ff67c6e639de8c88da881cfee6486788ed6b610c97a9e2d",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineProbeHost.java": "4000a6bfa65a754733bfce59133d4960d790e928dbfde718fa0c566ef252307e",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentContractTest.java": "623c373f9f413e520ac1ee44494fec555117feb21161fb15e038357671330662",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java": "d62e8fcec8375b0ae0c7a0bc2057faf07fb0ac693defef42c60cc2771b072b1b",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentRunnerTest.java": "25b3535f193ffb6be9a492402f85910dfacf8d6992704b84ce1c5f82b2c1f67d"
+  }
+}

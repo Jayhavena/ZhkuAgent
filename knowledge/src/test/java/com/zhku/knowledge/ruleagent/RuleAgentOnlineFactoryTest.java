@@ -366,14 +366,14 @@ class RuleAgentOnlineFactoryTest {
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
         env.put("ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64));
         env.put("ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64));
-        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_STRUCTURED_05");
+        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_BUDGET_06");
         var result=RuleAgentOnlineProbeHost.environmentCheck(env);
         assertThat(result.get("maximumProviderCalls")).isEqualTo(4);
         assertThat(result.get("providerCalls")).isEqualTo(0);
         assertThat(new ObjectMapper().valueToTree(result).toString()).doesNotContain("local-test-placeholder");
     }
     @Test void selectiveManualProbeCannotRepeatSuccessfulCaseOrResetFullQuota(){
-        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_STRUCTURED_05"));
+        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_BUDGET_06"));
         assertThat(RuleAgentOnlineProbeHost.environmentCheck(env).get("maximumProviderCalls")).isEqualTo(4);
         env.put("ZHKU_RULE_AGENT_PROBE_CASE","P02");
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
@@ -386,11 +386,11 @@ class RuleAgentOnlineFactoryTest {
         var p=new ObjectMapper().createObjectNode();
         p.put("endpoint",RuleAgentProvider.BEIJING.toString());
         p.put("model",RuleAgentProvider.MODEL);
-        p.put("budgetRevision","T05_READ_BUDGET_02");
+        p.put("budgetRevision",BUDGET_REVISION);
         p.put("maximumProviderCalls",4);
         p.put("perRunCalls",4);
-        p.put("timeoutMillis",10000);
-        p.put("runTimeoutMillis",45000);
+        p.put("timeoutMillis",DEFAULT_BUDGET.maxModelMillis());
+        p.put("runTimeoutMillis",DEFAULT_BUDGET.maxRunMillis());
         p.put("maximumOutputTokens",1024);
         p.put("automaticRetries",0);
         p.put("systemPrompt",RuleAgentProvider.SYSTEM);
@@ -463,7 +463,7 @@ class RuleAgentOnlineFactoryTest {
     }
     @Test void currentP01PacketMatchesActualReviewedAssetsWithoutCalls()throws Exception{
         var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();
-        var path=root.resolve("docs/evidence/rule-agent-provider/2026-10-14/t05-27/request-package.json");
+        var path=root.resolve("docs/evidence/rule-agent-provider/2026-10-14/t05-30/request-package.json");
         var json=new ObjectMapper();
         var frozen=json.readTree(java.nio.file.Files.readAllBytes(path));
         RuleAgentOnlineProbeHost.validatePackage(frozen);

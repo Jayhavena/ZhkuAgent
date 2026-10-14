@@ -10,7 +10,7 @@ public final class RuleAgentContract {
     private RuleAgentContract() {}
     public static final int SCHEMA_VERSION=3;
     public static final long MAX_SAFE_VERSION=9007199254740991L;
-    public static final String BUDGET_REVISION="T05_READ_BUDGET_02";
+    public static final String BUDGET_REVISION="T05_REVIEW_BUDGET_03";
     public static final int MIN_READ_HANDLES=1;
     public static final int MAX_FINISH_PROPOSALS=4;
     public static final int MAX_FACT_IDS=16;
@@ -18,8 +18,13 @@ public final class RuleAgentContract {
     public static final int MAX_PROPOSED_ISSUES=8;
     /** 标识符限制只在这里定义一次：值校验与机器可读动作定义必须同源，否则模型线协议会漂移。 */
     public static final String IDENTIFIER_PATTERN="[A-Za-z0-9][A-Za-z0-9_./:-]{0,127}";
-    // 两次真实读取决策触及旧5秒上限；仅放宽时间作有界验证，次数/权限不变，不是SLA或外发许可。
-    public static final BudgetPolicy DEFAULT_BUDGET=new BudgetPolicy(4,6,10000,45000,3,12,2,3,8,32768,65536,1024,300000,900000);
+    /**
+     * 用户于2026-10-14明确授权放宽时间预算：单次10秒→20秒、整run45秒→90秒。
+     * 原因是独立核验的截止时间=min(单次上限,整run剩余)，而整run里建库/检索/3次决策已用掉约34秒，
+     * 核验只拿到约10.4秒并以10020ms撞满单次上限；只放宽单次无效，必须同时放宽两者。
+     * 次数、权限、模型与问题集均未变；这是有界验证预算，不是SLA，也不构成外发许可。
+     */
+    public static final BudgetPolicy DEFAULT_BUDGET=new BudgetPolicy(4,6,20000,90000,3,12,2,3,8,32768,65536,1024,300000,900000);
     public record BudgetPolicy(int maxModelAttemptsPerRun,int maxToolStepsPerRun,int maxModelMillis,int maxRunMillis,
             int maxTaskRuns,int maxModelAttemptsPerTask,int maxClarificationTurns,int maxReadHandles,
             int maxEvidenceFragments,int maxEvidenceBytes,int maxRequestBytes,int maxOutputTokens,

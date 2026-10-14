@@ -15,7 +15,7 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 /** 独立工程探针宿主；学生HTTP入口由T06另行接入。 */
 public final class RuleAgentOnlineProbeHost {
     private static final ObjectMapper JSON=new ObjectMapper().findAndRegisterModules();
-    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-14/t05-27/request-package.json";
+    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-14/t05-30/request-package.json";
     private static final String P01_QUESTION="专业选修课和公共选修课在修读安排上有什么不同？";
     private static final int MAXIMUM=DEFAULT_BUDGET.maxModelAttemptsPerRun();
     private static JsonNode expectedCases(){
@@ -27,7 +27,7 @@ public final class RuleAgentOnlineProbeHost {
         var settings=RuleAgentProvider.Settings.environment(env);String sha=env.get("ZHKU_RULE_AGENT_PROBE_SHA256");
         if(sha==null||!sha.matches("[a-f0-9]{64}")||!settings.authorizationId().equals(sha))throw new IllegalArgumentException("探针未绑定具体请求包授权");
         String selected=env.get("ZHKU_RULE_AGENT_PROBE_CASE");
-        if(!"P01_STRUCTURED_05".equals(selected))throw new IllegalArgumentException("本批只允许结构化输出协议P01，不接受旧批次或P02");
+        if(!"P01_BUDGET_06".equals(selected))throw new IllegalArgumentException("本批只允许P01（结构化输出+放宽核验时间预算），不接受旧批次或P02");
         return Map.of("mode","ONLINE","endpoint",settings.endpoint().toString(),"model",settings.model(),"maximumProviderCalls",MAXIMUM,"providerCalls",0,"databaseOperations",0,"builds",0,"budgetRevision",BUDGET_REVISION,"timeoutMillis",DEFAULT_BUDGET.maxModelMillis(),"runTimeoutMillis",DEFAULT_BUDGET.maxRunMillis());
     }
     static void validatePackage(JsonNode pack){
@@ -85,7 +85,7 @@ public final class RuleAgentOnlineProbeHost {
                     Files.write(evidence.resolve("task-results.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(outputs),StandardOpenOption.CREATE_NEW);
                 }finally{used=maximum-factory.remainingCalls();factory.close();closed=factory.resourcesClosed();}
             }
-        }finally{executor.shutdownNow();closed=closed&&executor.awaitTermination(3,TimeUnit.SECONDS);Files.write(evidence.resolve("probe-result.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("passed",passed&&closed,"resourcesClosed",closed,"allowanceConsumed",used,"maximumProviderCalls",maximum,"caseSelection","P01_STRUCTURED_05","languageQualityNotScored",true,"budgetRevision",BUDGET_REVISION)),StandardOpenOption.CREATE_NEW);}
+        }finally{executor.shutdownNow();closed=closed&&executor.awaitTermination(3,TimeUnit.SECONDS);Files.write(evidence.resolve("probe-result.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("passed",passed&&closed,"resourcesClosed",closed,"allowanceConsumed",used,"maximumProviderCalls",maximum,"caseSelection","P01_BUDGET_06","languageQualityNotScored",true,"budgetRevision",BUDGET_REVISION)),StandardOpenOption.CREATE_NEW);}
         if(!passed||!closed)throw new IllegalStateException("真实探针未达退出标准；不重试");
     }
     private static TaskSnapshot waitFor(RuleAgentTaskStore store,Owner owner,UUID task)throws Exception{long deadline=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(DEFAULT_BUDGET.maxRunMillis()+3000);TaskSnapshot result;while((result=store.snapshot(owner,task)).taskStatus()==TaskStatus.ACTIVE){if(System.nanoTime()>=deadline)throw new IllegalStateException("探针运行预算耗尽");Thread.sleep(20);}return result;}
