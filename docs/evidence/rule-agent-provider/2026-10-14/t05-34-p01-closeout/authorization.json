@@ -1,0 +1,31 @@
+{
+  "userAuthorization": "本会话明确批准新包最多5次真实调用，随后确认人民币5元总上限",
+  "packageSha256": "8a3a4548fc72814d76f732d39692ccc9bd41b87a48502caddce248d7e866731a",
+  "baseHead": "f91ae152586e0c272afe11eb5648aee9cb8b810f",
+  "batch": "P01_CLOSEOUT_07",
+  "scope": "一次P01，不执行P02，不重试，不追加额度，不修改实现",
+  "maximumProviderCalls": 5,
+  "monetaryCapCny": 5,
+  "singleCallMillis": 20000,
+  "runMillis": 110000,
+  "outerOwnedProcessMillis": 125000,
+  "maximumOutputTokensPerCall": 1024,
+  "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "model": "qwen3.8-flash",
+  "temporaryDatabasePort": 55644,
+  "credentials": "本次重新按Process→User→Machine核对，只记录可用性，不保存值",
+  "activeWindowStart": "2026-10-14T17:19:24+08:00",
+  "activeWindowDeadline": "2026-10-14T17:39:24+08:00",
+  "pricing": {
+    "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+    "checkedAt": "2026-10-14T17:22:09.8175351+08:00",
+    "region": "北京",
+    "inputCnyPerMillion": 0.8,
+    "outputCnyPerMillion": 2.7,
+    "conservativeInputCeilingPerCall": 1000000,
+    "requestedOutputCeilingPerCall": 1024,
+    "reservedWorstCaseCny": 4.013824,
+    "calculation": "5 * (1000000 * 0.8 + 1024 * 2.7) / 1000000",
+    "notes": "按模型完整上下文上界预留输入，远大于本机64KiB请求；不计免费额度或缓存折扣；已外发但超时仍占尝试和费用预留，实际扣费以账单为准。"
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "batch": "P01_CLOSEOUT_07",
+  "baseHead": "f91ae152586e0c272afe11eb5648aee9cb8b810f",
+  "packageSha256": "8a3a4548fc72814d76f732d39692ccc9bd41b87a48502caddce248d7e866731a",
+  "requestedModel": "qwen3.8-flash",
+  "responseModel": null,
+  "liveEvidenceDirectory": "docs/evidence/rule-agent-provider/2026-10-14/t05-live-947950ad048d45e5b1eec235edddfea9",
+  "launch": {
+    "startedAt": "2026-10-14T17:23:30.961668+08:00",
+    "finishedAt": "2026-10-14T17:24:05.3328641+08:00",
+    "elapsedSeconds": 34.3711961,
+    "launcherExitCode": 1,
+    "liveEvidenceDirectories": [
+      "t05-live-947950ad048d45e5b1eec235edddfea9"
+    ],
+    "maximumProviderCalls": 5,
+    "monetaryCapCny": 5,
+    "automaticRetries": 0,
+    "probeLaunches": 1,
+    "baseHead": "f91ae152586e0c272afe11eb5648aee9cb8b810f"
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "purpose": "DECISION",
+      "httpStatus": null,
+      "reason": "MODEL_TIMEOUT",
+      "responseReceived": false,
+      "inputTokens": null,
+      "outputTokens": null,
+      "diagnostics": {
+        "requestBytes": 4557,
+        "elapsedMillis": 20031,
+        "dispatchedMillis": 14,
+        "headersMillis": null,
+        "firstBodyMillis": null,
+        "bodyCompletedMillis": null,
+        "responseBytes": 0,
+        "requestId": null,
+        "responseModel": null
+      },
+      "requestSha256": "8635316b23c6838fb506c528b2f6a354f59714c71a54b24e63e635c35b36a524"
+    }
+  ],
+  "allowance": {
+    "authorizedCalls": 5,
+    "dispatchedAttempts": 1,
+    "receivedResponses": 0,
+    "consumed": 1,
+    "unusedClosed": 4,
+    "automaticRetries": 0,
+    "newCallsAfterFailure": 0
+  },
+  "cost": {
+    "authorizedMaximumCny": 5,
+    "inputTokensKnown": false,
+    "outputTokensKnown": false,
+    "actualCny": null,
+    "actualCostStatus": "UNKNOWN_TIMEOUT_NOT_ZERO",
+    "reservedWorstCasePerAttemptCny": 0.8027648,
+    "pricingSource": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+    "discountsAssumed": false
+  },
+  "snapshot": {
+    "taskStatus": "FAILED",
+    "runState": "FAILED",
+    "terminated": true,
+    "execution": {
+      "mode": "ONLINE",
+      "modelAttemptCount": 1,
+      "toolStepCount": 0,
+      "providerResponseReceived": false,
+      "answerSource": "NONE",
+      "replayCoverage": "NOT_APPLICABLE"
+    },
+    "coverage": "NONE",
+    "evidenceCount": 0,
+    "claimCount": 0,
+    "issue": "MODEL_TIMEOUT",
+    "eventCount": 0
+  },
+  "stageCoverage": {
+    "decision": "ATTEMPTED_TIMEOUT",
+    "search": "NOT_EXECUTED",
+    "read": "NOT_EXECUTED",
+    "finish": "NOT_EXECUTED",
+    "independentReview": "NOT_EXECUTED",
+    "publication": "NOT_EXECUTED",
+    "p02": "NOT_EXECUTED"
+  },
+  "resources": {
+    "hostResourcesClosed": true,
+    "javaRemaining": 0,
+    "tempContainersRemaining": 0,
+    "demoDatabaseState": "exited",
+    "demoDatabaseLastStartedUtc": "2026-10-08T14:16:55.843361949Z",
+    "demoDatabaseLastFinishedUtc": "2026-10-08T14:16:57.333736996Z",
+    "temporaryPort": 55644,
+    "volumeMounted": false,
+    "migrationsApplied": 18
+  },
+  "verification": {
+    "passed": true,
+    "scope": "FAILURE_RECORD_AND_RESOURCE_CONSISTENCY_ONLY_NOT_P01_SUCCESS",
+    "sourceFilesChecked": 17,
+    "sourceDrift": 0,
+    "traceFreePayloadFieldMatches": 0,
+    "verifiedAt": "2026-10-14T17:26:13.1250255+08:00"
+  },
+  "rawArtifactsSha256": {
+    "provider-traces.jsonl": "d79ae205289fa12c51560f9fe9dec3284e29e39e25c6f6defddce03938a97cd3",
+    "771462d0-2064-4fe4-b330-cb22eda14d70-outcome.json": "7f044fa3e07dc442d039c3544844e3a596c5f136a85de7d50d1ee29542cfd155",
+    "probe-result.json": "bac95e109dbe5850b2700d42af0d593f31cc2ba762470d2de306f7e0096b80fe",
+    "host.log": "f1c09bf8a0b75d0d5bd97f00670816d80dad34109d7a081de0b0228bc441a11c"
+  },
+  "conclusion": "ENGINEERING_FROZEN_ONLINE_ACCEPTANCE_NOT_PASSED"
+}
