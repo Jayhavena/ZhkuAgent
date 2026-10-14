@@ -1,0 +1,139 @@
+{
+  "batch": "P01_BUDGET_06",
+  "packageSha256": "f11c3af0ce3ceaafddd5508a242587684a9d801f55a93d5c91fbaad9f6c2450d",
+  "model": "qwen3.8-flash",
+  "budgetRevision": "T05_REVIEW_BUDGET_03",
+  "execution": {
+    "exitCode": 1,
+    "elapsedSeconds": 12.7,
+    "timedOut": false,
+    "flywayMigrationsApplied": 18,
+    "setupFailuresBeforeAnyCall": 0
+  },
+  "providerCalls": [
+    {
+      "attempt": 1,
+      "purpose": "DECISION",
+      "httpStatus": 200,
+      "inputTokens": 753,
+      "outputTokens": 33,
+      "validationCode": "NONE",
+      "elapsedMillis": 1758,
+      "responseBytes": 487
+    },
+    {
+      "attempt": 2,
+      "purpose": "DECISION",
+      "httpStatus": 200,
+      "inputTokens": 1339,
+      "outputTokens": 43,
+      "validationCode": "NONE",
+      "elapsedMillis": 1775,
+      "responseBytes": 487
+    },
+    {
+      "attempt": 3,
+      "purpose": "DECISION",
+      "httpStatus": 200,
+      "inputTokens": 3340,
+      "outputTokens": 73,
+      "validationCode": "NONE",
+      "elapsedMillis": 2169,
+      "responseBytes": 534
+    }
+  ],
+  "usage": {
+    "decisionInputTokensTotal": 5432,
+    "decisionOutputTokensTotal": 149,
+    "decisionLatencyMillis": [
+      1758,
+      1775,
+      2169
+    ]
+  },
+  "events": [
+    {
+      "attempt": 1,
+      "action": "SEARCH_REVIEWED_RULES",
+      "observationStatus": "SUCCEEDED",
+      "dataLevel": "CANDIDATE",
+      "toolReasonCode": null,
+      "candidateCount": 10,
+      "evidenceCount": 0,
+      "factCount": 0
+    },
+    {
+      "attempt": 2,
+      "action": "READ_VERIFIED_RULE",
+      "observationStatus": "SUCCEEDED",
+      "dataLevel": "VERIFIED_FACT",
+      "toolReasonCode": null,
+      "candidateCount": 0,
+      "evidenceCount": 5,
+      "factCount": 16
+    },
+    {
+      "attempt": 3,
+      "action": "READ_VERIFIED_RULE",
+      "observationStatus": "REJECTED",
+      "dataLevel": "NONE",
+      "toolReasonCode": "BUDGET_EXCEEDED",
+      "candidateCount": 0,
+      "evidenceCount": 0,
+      "factCount": 0
+    }
+  ],
+  "readOutcomeSubstance": {
+    "attempt": 2,
+    "verifiedFactCount": 16,
+    "containsP01RequiredFacts": true,
+    "requiredFactIds": [
+      "T02/ARTICLE4:professional-elective-study-arrangement",
+      "T02/ARTICLE4:public-elective-self-selection"
+    ],
+    "note": "READ成功返回16条已核验事实，含P01所需两条ARTICLE4事实——本轮实质内容已取得"
+  },
+  "failure": {
+    "stage": "DECISION_ACTION_SELECTION",
+    "category": "BUDGET_EXCEEDED",
+    "detail": "第3次决策模型选择再次READ；工具步因剩余预算不足被宿主以BUDGET_EXCEEDED拒绝，随后达到3次决策上限，运行以STOPPED/INCOMPLETE结束，FINISH与独立核验均未执行",
+    "mechanism": "每run 4次调用 = 3次决策 + 1次独立核验；最小可用流程恰为 SEARCH+READ+FINISH+REVIEW，任何额外动作都会挤掉FINISH席位"
+  },
+  "snapshot": {
+    "taskStatus": "STOPPED",
+    "runState": "INCOMPLETE",
+    "terminated": true,
+    "execution": {
+      "mode": "ONLINE",
+      "modelAttemptCount": 3,
+      "toolStepCount": 3,
+      "providerResponseReceived": true,
+      "answerSource": "NONE",
+      "replayCoverage": "NOT_APPLICABLE"
+    },
+    "coverage": "NONE",
+    "evidenceCount": 0,
+    "issues": [
+      {
+        "kind": "PROCESSING_FAILURE",
+        "reasonCode": "BUDGET_EXCEEDED"
+      }
+    ]
+  },
+  "allowanceConsumed": 3,
+  "allowanceRemaining": 1,
+  "resourceExit": {
+    "javaProcesses": 0,
+    "tempContainerRemoved": true,
+    "hostResourcesClosed": true,
+    "demoDatabaseUntouched": true
+  },
+  "rawContentLeakCheck": {
+    "tool_calls": 0,
+    "arguments": 0,
+    "content": 0,
+    "query": 0,
+    "handles": 0,
+    "candidateExcerpt": 0
+  }
+}

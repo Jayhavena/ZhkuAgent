@@ -1,0 +1,40 @@
+{
+  "userAuthorization": "批准 P01 批次，SHA f11c3af0（2026-10-14 15:52，本会话）",
+  "approvedScope": "仅 P01 单题；本批最多4次外发；无自动重试；不得追加额度或进入P02",
+  "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "model": "qwen3.8-flash",
+  "decisionWireProtocol": "response_format.json_schema(strict=true, oneOf四动作分支)",
+  "packagePath": "docs/evidence/rule-agent-provider/2026-10-14/t05-30/request-package.json",
+  "packageSha256": "f11c3af0ce3ceaafddd5508a242587684a9d801f55a93d5c91fbaad9f6c2450d",
+  "probeCase": "P01_BUDGET_06",
+  "budgetRevision": "T05_REVIEW_BUDGET_03",
+  "budget": {
+    "maxModelAttemptsPerRun": 4,
+    "maxDecisionCalls": 3,
+    "reservedReviewCalls": 1,
+    "maxModelMillisPerCall": 20000,
+    "maxRunMillis": 90000,
+    "maxOutputTokens": 1024,
+    "automaticRetries": 0
+  },
+  "zeroCallChecks": {
+    "environmentCheck": {
+      "providerCalls": 0,
+      "passed": true,
+      "timeoutMillis": 20000,
+      "runTimeoutMillis": 90000
+    },
+    "packageCheck": {
+      "providerCalls": 0,
+      "databaseOperations": 0,
+      "passed": true
+    }
+  },
+  "database": {
+    "target": "jdbc:postgresql://127.0.0.1:55643/zhkuagent_rulecheck_e2e",
+    "image": "pgvector/pgvector:0.8.6-pg16-bookworm",
+    "volume": "none",
+    "dedicatedTempContainer": true,
+    "demoDatabaseUntouched": true
+  }
+}
