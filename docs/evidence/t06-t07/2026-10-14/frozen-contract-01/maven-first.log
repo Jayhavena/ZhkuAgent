@@ -1,0 +1,61 @@
+[ERROR] Tests run: 34, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 3.434 s <<< FAILURE! -- in com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.prepareP01PacketFromCurrentAuthoritiesWithoutOpeningPorts -- Time elapsed: 0.110 s <<< ERROR!
+java.lang.IllegalArgumentException: B03����ָ�Ʊ仯
+	at com.zhku.knowledge.retrieval.Reviewed2025ControlledCatalogue.require(Reviewed2025ControlledCatalogue.java:181)
+	at com.zhku.knowledge.retrieval.Reviewed2025ControlledCatalogue.<init>(Reviewed2025ControlledCatalogue.java:39)
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineProbeHost.packageNode(RuleAgentOnlineProbeHost.java:111)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.prepareP01PacketFromCurrentAuthoritiesWithoutOpeningPorts(RuleAgentOnlineFactoryTest.java:317)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.currentP01PacketMatchesActualReviewedAssetsWithoutCalls -- Time elapsed: 0.011 s <<< ERROR!
+java.lang.IllegalArgumentException: B03����ָ�Ʊ仯
+	at com.zhku.knowledge.retrieval.Reviewed2025ControlledCatalogue.require(Reviewed2025ControlledCatalogue.java:181)
+	at com.zhku.knowledge.retrieval.Reviewed2025ControlledCatalogue.<init>(Reviewed2025ControlledCatalogue.java:39)
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineProbeHost.packageNode(RuleAgentOnlineProbeHost.java:111)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.currentP01PacketMatchesActualReviewedAssetsWithoutCalls(RuleAgentOnlineFactoryTest.java:490)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.4)
+
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build what is described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (C:\Users\nangua\.m2\repository\net\bytebuddy\byte-buddy-agent\1.15.11\byte-buddy-agent-1.15.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Errors: 
+[ERROR]   RuleAgentOnlineFactoryTest.currentP01PacketMatchesActualReviewedAssetsWithoutCalls:490 ? IllegalArgument B03����ָ�Ʊ仯
+[ERROR]   RuleAgentOnlineFactoryTest.prepareP01PacketFromCurrentAuthoritiesWithoutOpeningPorts:317 ? IllegalArgument B03����ָ�Ʊ仯
+[ERROR] Tests run: 93, Failures: 0, Errors: 2, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: 
+[ERROR] 
+[ERROR] See C:\Users\nangua\.codex\worktrees\t06-t07-student-http\ZhkuAgent\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :knowledge
