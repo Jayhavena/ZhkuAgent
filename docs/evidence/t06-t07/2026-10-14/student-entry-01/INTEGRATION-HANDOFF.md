@@ -32,7 +32,7 @@
 | `agent/frontend/tests/student-routes.test.mjs` | 修改 | `a13d899c9b1837630a32533ed6fdab4a8a563815770cac75601b3477c326d82c` |
 | `agent/frontend/tests/rule-task-page.test.mjs` | 修改 | `cb7f826bd521a6e3dd0d34b80fc95c916d53a9a86c4449933734adc13bf9d0dd` |
 
-**证据目录（只读参考，可随集成一并带入）**：`baseline.json`、`source-manifest.json`、`commit-receipt.json`、`README.md`、`INTEGRATION-HANDOFF.md`、`red-entry-routes.log`、`red-identity-bus.log`、`frontend-full.log`、`student-build.log`、`engineering-build.log`、`browser-entry-routes.json`。
+**证据目录（只读参考，可随集成一并带入）**：`baseline.json`、`source-manifest.json`、`commit-receipt.json`、`README.md`、`INTEGRATION-HANDOFF.md`、`STUDENT-FLOW-EVIDENCE-INDEX.md`、`red-entry-routes.log`、`red-identity-bus.log`、`frontend-full.log`、`student-build.log`、`engineering-build.log`、`browser-entry-routes.json`。
 
 **未包含**：`dist/`、`dist-engineering/`、`node_modules/`（构建产物已删除或忽略，均不提交）。
 
@@ -90,3 +90,40 @@
 - 只取第 2 节列出的明确提交范围，**不合并整个工作区**。
 - 不修改共享合同、后端或宿主文件；如发现合同缺口，按"现有定义 → 具体问题 → 建议增量 → 影响模块 → 对应测试"登记后交用户协调。
 - 真实两窗口验收保持**待验证**；T05 未通过前 T07 不宣布最终通过，不进入 T08。
+
+## 7. 页面／交互主张（简历可用口径）
+
+逐项证据索引见同目录 `STUDENT-FLOW-EVIDENCE-INDEX.md`。身份代号：**S-A** = `09b4f07`（T06，早于本轮实现），**S-B** = `94dc928`（本轮）。
+
+### 7.1 现在可以支持（已交付且可指向证据）
+
+| 主张 | 证据身份与类型 |
+| --- | --- |
+| 学生入口收敛为单一规则查证页，首页与品牌都回查证；`/campus/run`、`/super-agent` 与未知路径一律回 `/rules?entry=rules` | S-B 单测（`entry-routes` / `student-routes`）+ S-B 真实浏览器 5 例 |
+| 工程独立模式保留底层实验能力：两个实验入口、回放页、受控布局与登录页均可达且受控入口仍要求身份 | S-B 单测 + S-B 真实浏览器 5 例 |
+| 提问走异步受理＋轮询，进度、停止请求受理与最终停止区分表达 | S-B 单测 + S-A 真实浏览器 3 态 |
+| 必要澄清每轮至多一项，且以同任务续答（continuationToken + expectedVersion）继续原任务 | S-B 单测 + S-A 真实浏览器 2 态 |
+| 部分答案可与资料缺口、处理失败共存，四类缺口（资料缺口／需要补充条件／处理未完成／回放未覆盖）分开标识 | S-B SSR（共享合同样例驱动）+ S-A 真实浏览器 2 态（`partial-answer-and-gap`、`processing-failure-with-supported-partial`） |
+| 结果先"能确认什么"、再"还缺什么／下一步"、最后才是相关依据；依据按结果关系过滤 | S-B SSR（含顺序断言）+ S-A 真实浏览器 3 态 |
+| 原文默认折叠，只展示关系表所指段落，并按需向服务端核对当前原文 | S-B SSR + S-B 单测 + S-A 真实浏览器 2 态 |
+| 同窗口的退出、换身份、迟到响应都不会复活旧结果 | S-B 单测 + S-A 真实浏览器 4 态 |
+| 同源多窗口的身份失效会撤销本窗口的展示 | S-B 单测 + S-B SSR（**不含真实两窗口**） |
+| 前端只消费后端结果：不自行认定规则结论、任务成功、资料缺失或资源退出 | S-B 源码结构 + S-B 单测/SSR 的消费校验路径 |
+
+### 7.2 仍须等待集成（不得提前声称）
+
+| 主张 | 卡点 |
+| --- | --- |
+| 真实两窗口：A 有结果 → B 退出/换身份 → A 清旧结果且迟到响应不恢复 → 新身份经后端确认后才能继续查证 | 需宿主 Agent 稳定提交与退出方式 + T06 可登录装配 |
+| 真实受控账号身份下的完整学生流程 | 同上；现有浏览器证据用测试身份＋合成资料（模拟后端） |
+| 真实审核资料与原文服务下的依据展示与原文核对 | 同上 |
+| 正式 nginx 代理下的同款路由与交互 | 需统一版本宿主 |
+| 任何在线供应商相关结论 | T05 未通过，本轮 `realProviderAttempts=0` |
+
+### 7.3 禁止表述
+
+- ❌"学生入口已验证有效"／"真实在线整链通过"／"学生构建已彻底排除工程资源"。
+- ❌把 176 项回归、两种构建、10 项路由检查**合并**成一条"整链通过"。
+- ❌把 `bindIdentityBus()` 的模块级订阅写成"与页面组件同生命周期"，或声称销毁后已静默（**未验证**）。
+- ❌把跨窗口广播说成能认定新身份或授权（广播**只撤销展示**，身份必须由后端确认）。
+- ❌把 `09b4f07` 的浏览器交互证据算作本轮 `94dc928` 的验收。
