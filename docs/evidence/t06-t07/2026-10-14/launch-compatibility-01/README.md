@@ -93,6 +93,6 @@
 
 | 项 | 值 |
 | --- | --- |
-| 提交 SHA | `见返回回执`（提交后写入） |
+| 提交 SHA | `7d8b5e4db0262745c16a771d8703252d6bc34559`（回执见后续 docs 提交） |
 | 范围 | `RuleAgentControlledLaunchConfiguration.java`、`RuleAgentControlledLaunchTest.java`、`RuleAgentLaunchCompatibilityTest.java`、本 README |
 | 本地操作 | 仅本地提交；不 push、不 PR、不标签、不部署、不改写历史、不合并整条分支 |
