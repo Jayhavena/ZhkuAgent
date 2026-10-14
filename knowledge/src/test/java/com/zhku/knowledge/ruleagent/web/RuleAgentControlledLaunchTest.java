@@ -93,8 +93,8 @@ class RuleAgentControlledLaunchTest {
         // 在线模式：装配期就要求真实供应商设置与额度，本地配置值不能代替外发许可。
         assertThat(launchFailure(Map.of("zhku.rule-agent-http.enabled", "true", "zhku.rule-agent-launch.enabled", "true",
                 RuleAgentControlledLaunchConfiguration.MODE_PROPERTY, RuleAgentControlledLaunchConfiguration.ONLINE)))
-                .as("缺少在线工厂装配时必须失败，不能启用任何替代执行器")
-                .hasStackTraceContaining("RuleAgentOnlineFactory");
+                .as("缺少在线装配时必须失败，不能启用任何替代执行器")
+                .hasStackTraceContaining("online-enabled");
     }
 
     /* ---------- 真实装配 + 显式模拟执行的 HTTP 生命周期 ---------- */
