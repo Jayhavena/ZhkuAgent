@@ -1,0 +1,119 @@
+{
+  "protocolRevision": "RULE_AGENT_ACTION_CONTRACT_05",
+  "wireProtocol": {
+    "decision": "JSON_SCHEMA_STRUCTURED_OUTPUT",
+    "publicationReview": "JSON_TEXT_UNCHANGED"
+  },
+  "model": "qwen3.8-flash",
+  "userDecision": "用户授权切换模型：从 qwen-plus 改为 qwen3.8-flash（官方 JSON Schema 结构化输出支持系列内）。",
+  "supersedes": [
+    "docs/evidence/rule-agent-provider/2026-10-14/t05-25/request-package.json"
+  ],
+  "supersedeReason": "决策侧线协议由工具调用改为JSON Schema结构化输出，并切换模型；旧包SHA不再描述实际请求。",
+  "packagePath": "docs/evidence/rule-agent-provider/2026-10-14/t05-27/request-package.json",
+  "packageSha256": "8686b37598a23818aa521a565997a146cd819c5ddc2cb69070a0b86fb6105a86",
+  "packageCheck": {
+    "mode": "PACKAGE_CHECK_ONLY",
+    "passed": true,
+    "providerCalls": 0,
+    "databaseOperations": 0
+  },
+  "supplierEnforced": [
+    "输出为合法JSON且严格符合Schema（strict=true，未验证）",
+    "type取oneOf分支的const",
+    "handles.minItems/maxItems（未验证）",
+    "handles.items.enum（未验证）",
+    "additionalProperties=false"
+  ],
+  "hostEnforced": [
+    "动作字段闭合（record组件精确匹配）",
+    "句柄唯一性（供应商uniqueItems不支持，提交即400）",
+    "编号格式与candidateSetId绑定",
+    "跨任务/过期集合",
+    "子问题归属、预算、证据与发布守卫",
+    "响应必须是单个对象且finish_reason=stop"
+  ],
+  "notClaimed": [
+    "工具参数/结构化输出的数量约束是否被供应商真正强制",
+    "finish_reason实际取值",
+    "是否接受enable_thinking=false与max_completion_tokens",
+    "工具调用是否仍可用（本方案不再使用）"
+  ],
+  "localSimulation": {
+    "providerCalls": 0,
+    "databaseWrites": 0,
+    "classes": [
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentContractTest",
+        "run": 7,
+        "failures": 0,
+        "errors": 0,
+        "mtime": "15:24:50"
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentEvidenceToolsTest",
+        "run": 10,
+        "failures": 0,
+        "errors": 0,
+        "mtime": "15:24:50"
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest",
+        "run": 32,
+        "failures": 0,
+        "errors": 0,
+        "mtime": "15:25:01"
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentProviderTest",
+        "run": 46,
+        "failures": 0,
+        "errors": 0,
+        "mtime": "15:25:18"
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentRunnerTest",
+        "run": 21,
+        "failures": 0,
+        "errors": 0,
+        "mtime": "15:25:19"
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentTaskStoreTest",
+        "run": 14,
+        "failures": 0,
+        "errors": 0,
+        "mtime": "15:25:19"
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RulePublicationGateTest",
+        "run": 15,
+        "failures": 0,
+        "errors": 0,
+        "mtime": "15:25:20"
+      }
+    ],
+    "totalRun": 145,
+    "totalFailures": 0,
+    "totalErrors": 0
+  },
+  "processDeviation": "本轮为整条线协议的替换（工具调用→结构化输出），测试夹具与实现同批修改，未单独制造一次先失败运行；反例基线是上一提交（210ad3d）中编码工具调用协议的测试断言。",
+  "decisionRequestBudget": {
+    "headroomBytes": 61079,
+    "measuredRequestBytes": 4457,
+    "maximumRequestBytes": 65536,
+    "toolsAbsent": true,
+    "selectedCount": 3,
+    "structuredOutputIncluded": true,
+    "candidateCopies": 10
+  },
+  "sourceSha256": {
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProtocol.java": "3ed5097fe3dbde6172bc2ef92120cb485cbee0aa3b86a60003f9943e527b8b32",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProvider.java": "ca59bd63df8155e84c252f10f9bad416dc3c1a2d1d257011cde482ae0d110dc2",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleCandidateReferences.java": "7301224df0ca61ee886b10ca031b713760495731a991d9c6a38107ae1416a8c3",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentContract.java": "89d4a378bdef913e9584c74463f7c26bcbb88eac3c1c616afcd51345893a96be",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineProbeHost.java": "45c1a086c393ee4a1e793aba6839287d1d1c4dbea4e49f813452573ada5eed29",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java": "ae7e4c9b797cb5c55a6d80242b106a4b2a289dcd7592af11a1eeb2171e98f8a9",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java": "632317bc90d1c8343d67d1df715362b0195eedb064fb6777de644ff6b7950e44"
+  }
+}

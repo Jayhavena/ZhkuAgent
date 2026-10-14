@@ -15,7 +15,7 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 /** 独立工程探针宿主；学生HTTP入口由T06另行接入。 */
 public final class RuleAgentOnlineProbeHost {
     private static final ObjectMapper JSON=new ObjectMapper().findAndRegisterModules();
-    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-14/t05-25/request-package.json";
+    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-14/t05-27/request-package.json";
     private static final String P01_QUESTION="专业选修课和公共选修课在修读安排上有什么不同？";
     private static final int MAXIMUM=DEFAULT_BUDGET.maxModelAttemptsPerRun();
     private static JsonNode expectedCases(){
@@ -27,20 +27,20 @@ public final class RuleAgentOnlineProbeHost {
         var settings=RuleAgentProvider.Settings.environment(env);String sha=env.get("ZHKU_RULE_AGENT_PROBE_SHA256");
         if(sha==null||!sha.matches("[a-f0-9]{64}")||!settings.authorizationId().equals(sha))throw new IllegalArgumentException("探针未绑定具体请求包授权");
         String selected=env.get("ZHKU_RULE_AGENT_PROBE_CASE");
-        if(!"P01_TOOL_CALL_04".equals(selected))throw new IllegalArgumentException("本批只允许新工具调用协议P01，不接受旧批次或P02");
+        if(!"P01_STRUCTURED_05".equals(selected))throw new IllegalArgumentException("本批只允许结构化输出协议P01，不接受旧批次或P02");
         return Map.of("mode","ONLINE","endpoint",settings.endpoint().toString(),"model",settings.model(),"maximumProviderCalls",MAXIMUM,"providerCalls",0,"databaseOperations",0,"builds",0,"budgetRevision",BUDGET_REVISION,"timeoutMillis",DEFAULT_BUDGET.maxModelMillis(),"runTimeoutMillis",DEFAULT_BUDGET.maxRunMillis());
     }
     static void validatePackage(JsonNode pack){
         // 当前批次只允许一次P01；旧12次批次与P02必须在建库和创建客户端前拒绝。
         if(!pack.path("protocolRevision").asText().equals(RuleAgentProtocol.REVISION)
             ||!pack.path("actionContract").equals(RuleAgentProtocol.description())
-            ||!pack.path("actionTools").equals(RuleAgentProtocol.tools(List.of()))
+            ||!pack.path("actionSchema").equals(RuleAgentProtocol.decisionSchema(List.of()))
             ||!pack.path("remainingBudgetMaximum").equals(RuleAgentProtocol.remainingBudget(RulePublicationContract.MAX_DECISION_CALLS,DEFAULT_BUDGET.maxToolStepsPerRun()))
             ||!pack.path("publicationReviewProtocolRevision").asText().equals(RulePublicationContract.REVISION)
             ||!pack.path("publicationReviewContract").equals(RulePublicationProtocol.description())
             ||!pack.path("publicationReviewPolicy").equals(JSON.valueToTree(RulePublicationContract.policy()))
             ||!pack.path("reviewSystemPrompt").asText().equals(RuleAgentProvider.REVIEW_SYSTEM)
-            ||!pack.path("endpoint").asText().equals(RuleAgentProvider.BEIJING.toString())||!pack.path("model").asText().equals("qwen-plus")||!pack.path("budgetRevision").asText().equals(BUDGET_REVISION)
+            ||!pack.path("endpoint").asText().equals(RuleAgentProvider.BEIJING.toString())||!pack.path("model").asText().equals(RuleAgentProvider.MODEL)||!pack.path("budgetRevision").asText().equals(BUDGET_REVISION)
             ||pack.path("maximumProviderCalls").asInt(-1)!=MAXIMUM||pack.path("perRunCalls").asInt(-1)!=DEFAULT_BUDGET.maxModelAttemptsPerRun()||pack.path("timeoutMillis").asInt(-1)!=DEFAULT_BUDGET.maxModelMillis()
             ||pack.path("runTimeoutMillis").asInt(-1)!=DEFAULT_BUDGET.maxRunMillis()||pack.path("maximumOutputTokens").asInt(-1)!=DEFAULT_BUDGET.maxOutputTokens()||pack.path("automaticRetries").asInt(-1)!=0
             ||!pack.path("systemPrompt").asText().equals(RuleAgentProvider.SYSTEM)||!pack.path("budget").equals(JSON.valueToTree(DEFAULT_BUDGET))||!pack.path("cases").equals(expectedCases()))throw new IllegalArgumentException("请求包预算、问题或协议身份变化");
@@ -85,7 +85,7 @@ public final class RuleAgentOnlineProbeHost {
                     Files.write(evidence.resolve("task-results.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(outputs),StandardOpenOption.CREATE_NEW);
                 }finally{used=maximum-factory.remainingCalls();factory.close();closed=factory.resourcesClosed();}
             }
-        }finally{executor.shutdownNow();closed=closed&&executor.awaitTermination(3,TimeUnit.SECONDS);Files.write(evidence.resolve("probe-result.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("passed",passed&&closed,"resourcesClosed",closed,"allowanceConsumed",used,"maximumProviderCalls",maximum,"caseSelection","P01_TOOL_CALL_04","languageQualityNotScored",true,"budgetRevision",BUDGET_REVISION)),StandardOpenOption.CREATE_NEW);}
+        }finally{executor.shutdownNow();closed=closed&&executor.awaitTermination(3,TimeUnit.SECONDS);Files.write(evidence.resolve("probe-result.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("passed",passed&&closed,"resourcesClosed",closed,"allowanceConsumed",used,"maximumProviderCalls",maximum,"caseSelection","P01_STRUCTURED_05","languageQualityNotScored",true,"budgetRevision",BUDGET_REVISION)),StandardOpenOption.CREATE_NEW);}
         if(!passed||!closed)throw new IllegalStateException("真实探针未达退出标准；不重试");
     }
     private static TaskSnapshot waitFor(RuleAgentTaskStore store,Owner owner,UUID task)throws Exception{long deadline=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(DEFAULT_BUDGET.maxRunMillis()+3000);TaskSnapshot result;while((result=store.snapshot(owner,task)).taskStatus()==TaskStatus.ACTIVE){if(System.nanoTime()>=deadline)throw new IllegalStateException("探针运行预算耗尽");Thread.sleep(20);}return result;}
@@ -101,8 +101,8 @@ public final class RuleAgentOnlineProbeHost {
             pack.put("protocolRevision",RuleAgentProtocol.REVISION);
             pack.set("actionContract",RuleAgentProtocol.description());
             // 决策侧实际下发的机器可读动作定义；候选枚举按当次集合注入，这里记录静态部分。
-            pack.set("actionTools",RuleAgentProtocol.tools(List.of()));
-            pack.put("actionToolsNote","READ_VERIFIED_RULE.handles.items.enum与currentCandidates.编号同源，按每次检索的完整候选集合注入，不预置也不截断。");
+            pack.set("actionSchema",RuleAgentProtocol.decisionSchema(List.of()));
+            pack.put("actionSchemaNote","READ_VERIFIED_RULE.handles 的 items.enum 与 currentCandidates 编号同源，按每次检索的完整候选集合注入，不预置也不截断；minItems/maxItems 取自领域预算。");
             pack.set("remainingBudgetMaximum",RuleAgentProtocol.remainingBudget(RulePublicationContract.MAX_DECISION_CALLS,DEFAULT_BUDGET.maxToolStepsPerRun()));
             pack.put("publicationReviewProtocolRevision",RulePublicationContract.REVISION);
             pack.set("publicationReviewContract",RulePublicationProtocol.description());
@@ -110,7 +110,7 @@ public final class RuleAgentOnlineProbeHost {
             pack.put("reviewSystemPrompt",RuleAgentProvider.REVIEW_SYSTEM);
             pack.put("remainingBudgetRule","每run3次决策加1次独立核验，共4次/45秒；单次10秒/1024输出token，无自动重试。新检索使旧编号失效。");
             pack.put("endpoint",RuleAgentProvider.BEIJING.toString());
-            pack.put("model","qwen-plus");
+            pack.put("model",RuleAgentProvider.MODEL);
             pack.put("budgetRevision",BUDGET_REVISION);
             pack.set("budget",JSON.valueToTree(DEFAULT_BUDGET));
             pack.put("maximumProviderCalls",MAXIMUM);

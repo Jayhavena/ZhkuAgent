@@ -137,21 +137,8 @@ class RuleAgentOnlineFactoryTest {
                     view.path("facts").forEach(f->{if((!studyArrangement||f.path("id").asText().startsWith("T02/ARTICLE4:"))&&(!conditional||f.path("when").path("courseType").equals(view.path("userConditions").path("courseType"))))ids.add(f.path("id").asText());});
                     action=new Finish(List.of(new Proposal("q1",ids,List.of(),null)));
                 }
-                byte[] bytes;
-                if(view.has("input")){
-                    // 独立核验仍是 JSON 文本协议；两种用途的响应合同不同，不能混用。
-                    bytes=json.writeValueAsBytes(Map.of("usage",Map.of("prompt_tokens",25,"completion_tokens",12),"choices",List.of(Map.of("finish_reason","stop","message",Map.of("content",json.writeValueAsString(action))))));
-                }else{
-                    // 决策侧线协议为工具调用：动作名即函数名，参数为JSON对象，不再使用自由文本content。
-                    var actionNode=(com.fasterxml.jackson.databind.node.ObjectNode)json.valueToTree(action);
-                    String actionName=actionNode.path("type").asText();
-                    actionNode.remove("type");
-                    var message=json.createObjectNode();
-                    message.put("role","assistant");
-                    message.putArray("tool_calls").addObject().put("id","call_local_01").put("type","function")
-                        .putObject("function").put("name",actionName).put("arguments",actionNode.toString());
-                    bytes=json.writeValueAsBytes(Map.of("usage",Map.of("prompt_tokens",25,"completion_tokens",12),"choices",List.of(Map.of("finish_reason","tool_calls","message",message))));
-                }
+                // 决策与核验都以 JSON 文本返回，但载荷合同不同；决策侧额外受 response_format 的Schema约束。
+                byte[] bytes=json.writeValueAsBytes(Map.of("usage",Map.of("prompt_tokens",25,"completion_tokens",12),"choices",List.of(Map.of("finish_reason","stop","message",Map.of("content",json.writeValueAsString(action))))));
                 e.sendResponseHeaders(200,bytes.length);
                 e.getResponseBody().write(bytes);
             }
@@ -162,7 +149,7 @@ class RuleAgentOnlineFactoryTest {
             }
         });
         server.start();
-        factory=new RuleAgentOnlineFactory(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),"qwen-plus","LOCAL_TEST_ONLY"),()->"local-test-placeholder",(owner,task)->{try{return mappedTools(owner,task);}catch(Exception invalid){throw new IllegalStateException("合成资料初始化失败");}},traces::add,quota,Clock.systemUTC());
+        factory=new RuleAgentOnlineFactory(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),RuleAgentProvider.MODEL,"LOCAL_TEST_ONLY"),()->"local-test-placeholder",(owner,task)->{try{return mappedTools(owner,task);}catch(Exception invalid){throw new IllegalStateException("合成资料初始化失败");}},traces::add,quota,Clock.systemUTC());
     }
     @AfterEach void cleanup()throws Exception{
         releaseReview.countDown();
@@ -293,12 +280,12 @@ class RuleAgentOnlineFactoryTest {
         assertThat(lastDecisionView.path("currentCandidates").size()).isEqualTo(10);
         assertThat(calls).hasValue(4);
         assertThat(factory.resourcesClosed()).isTrue();
-        // 工具定义会增大请求体；必须仍在上限内，否则真实运行会在宿主侧以BUDGET_EXCEEDED终止。
+        // 结构化输出Schema会增大请求体；必须仍在上限内，否则真实运行会在宿主侧以BUDGET_EXCEEDED终止。
         assertThat(lastRequestBytes).isLessThan(DEFAULT_BUDGET.maxRequestBytes());
-        java.nio.file.Files.write(java.nio.file.Path.of(System.getProperty("zhku.rulecheck.evidenceDir"),"tool-calling-request-budget.json"),
+        java.nio.file.Files.write(java.nio.file.Path.of(System.getProperty("zhku.rulecheck.evidenceDir"),"decision-request-budget.json"),
             new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("selectedCount",count,"candidateCopies",candidateCopies,
                 "maximumRequestBytes",DEFAULT_BUDGET.maxRequestBytes(),"measuredRequestBytes",lastRequestBytes,
-                "headroomBytes",DEFAULT_BUDGET.maxRequestBytes()-lastRequestBytes,"toolsIncluded",true,"responseFormatAbsent",true)),
+                "headroomBytes",DEFAULT_BUDGET.maxRequestBytes()-lastRequestBytes,"structuredOutputIncluded",true,"toolsAbsent",true)),
             java.nio.file.StandardOpenOption.CREATE,java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
     }
     @Test void prepareP01PacketFromCurrentAuthoritiesWithoutOpeningPorts()throws Exception{
@@ -313,7 +300,7 @@ class RuleAgentOnlineFactoryTest {
         pack.put("remainingBudgetRule","每run3次决策加1次独立核验，共4次/45秒；单次10秒/1024输出token，无自动重试。新检索使旧编号失效。");
         pack.put("dynamicFeedback","完整当前候选摘要、c编号及宿主集合代号；实际UUID映射仅留宿主。已读取的审核原文、事实、条件及独立核验能力/来源指纹不变。不发送owner/session/token/凭证/参考答案/整本PDF。");
         pack.put("executionReadiness","PACKAGE_ONLY; current old-batch launcher must reject this packet; require P01-only preflight and new explicit authorization before any call");
-        assertThat(pack.path("protocolRevision").asText()).isEqualTo("RULE_AGENT_ACTION_CONTRACT_04");
+        assertThat(pack.path("protocolRevision").asText()).isEqualTo("RULE_AGENT_ACTION_CONTRACT_05");
         assertThat(pack.path("automaticRetries").asInt()).isZero();
         assertThat(factory).isNull();
         assertThat(calls).hasValue(0);
@@ -379,14 +366,14 @@ class RuleAgentOnlineFactoryTest {
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
         env.put("ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64));
         env.put("ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64));
-        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_TOOL_CALL_04");
+        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_STRUCTURED_05");
         var result=RuleAgentOnlineProbeHost.environmentCheck(env);
         assertThat(result.get("maximumProviderCalls")).isEqualTo(4);
         assertThat(result.get("providerCalls")).isEqualTo(0);
         assertThat(new ObjectMapper().valueToTree(result).toString()).doesNotContain("local-test-placeholder");
     }
     @Test void selectiveManualProbeCannotRepeatSuccessfulCaseOrResetFullQuota(){
-        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_TOOL_CALL_04"));
+        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_STRUCTURED_05"));
         assertThat(RuleAgentOnlineProbeHost.environmentCheck(env).get("maximumProviderCalls")).isEqualTo(4);
         env.put("ZHKU_RULE_AGENT_PROBE_CASE","P02");
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
@@ -398,7 +385,7 @@ class RuleAgentOnlineFactoryTest {
     com.fasterxml.jackson.databind.node.ObjectNode packet(){
         var p=new ObjectMapper().createObjectNode();
         p.put("endpoint",RuleAgentProvider.BEIJING.toString());
-        p.put("model","qwen-plus");
+        p.put("model",RuleAgentProvider.MODEL);
         p.put("budgetRevision","T05_READ_BUDGET_02");
         p.put("maximumProviderCalls",4);
         p.put("perRunCalls",4);
@@ -409,7 +396,7 @@ class RuleAgentOnlineFactoryTest {
         p.put("systemPrompt",RuleAgentProvider.SYSTEM);
         p.put("protocolRevision",RuleAgentProtocol.REVISION);
         p.set("actionContract",RuleAgentProtocol.description());
-        p.set("actionTools",RuleAgentProtocol.tools(List.of()));
+        p.set("actionSchema",RuleAgentProtocol.decisionSchema(List.of()));
         p.set("remainingBudgetMaximum",RuleAgentProtocol.remainingBudget(RulePublicationContract.MAX_DECISION_CALLS,DEFAULT_BUDGET.maxToolStepsPerRun()));
         p.put("publicationReviewProtocolRevision",RulePublicationContract.REVISION);
         p.set("publicationReviewContract",RulePublicationProtocol.description());
@@ -476,7 +463,7 @@ class RuleAgentOnlineFactoryTest {
     }
     @Test void currentP01PacketMatchesActualReviewedAssetsWithoutCalls()throws Exception{
         var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();
-        var path=root.resolve("docs/evidence/rule-agent-provider/2026-10-14/t05-25/request-package.json");
+        var path=root.resolve("docs/evidence/rule-agent-provider/2026-10-14/t05-27/request-package.json");
         var json=new ObjectMapper();
         var frozen=json.readTree(java.nio.file.Files.readAllBytes(path));
         RuleAgentOnlineProbeHost.validatePackage(frozen);

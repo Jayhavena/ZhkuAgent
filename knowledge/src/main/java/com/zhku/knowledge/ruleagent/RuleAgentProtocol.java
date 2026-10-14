@@ -10,7 +10,7 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 
 /** 模型约束投影与解码使用同一动作类型/record字段及领域预算，不另建宽松协议。 */
 public final class RuleAgentProtocol {
-    public static final String REVISION="RULE_AGENT_ACTION_CONTRACT_04";
+    public static final String REVISION="RULE_AGENT_ACTION_CONTRACT_05";
     public static final String READ_REFERENCE_PATTERN="c[1-9][0-9]*";
     static Set<String> modelReadFields() {
         var fields=new HashSet<String>();
@@ -22,7 +22,7 @@ public final class RuleAgentProtocol {
     private RuleAgentProtocol() {}
     public enum Stage { NONE, SUPPLIER_RESPONSE, ACTION_JSON, ACTION_FIELDS, ACTION_PARAMETERS, REVIEW_JSON, REVIEW_BINDING, PRE_EXECUTION, TRANSPORT, AUDIT }
     public enum Code {
-        NONE, RESPONSE_JSON_INVALID, RESPONSE_STRUCTURE_INVALID, FINISH_REASON_INVALID, CONTENT_INVALID, ACTION_CALLS_INVALID,
+        NONE, RESPONSE_JSON_INVALID, RESPONSE_STRUCTURE_INVALID, FINISH_REASON_INVALID, CONTENT_INVALID,
         ACTION_JSON_INVALID, ACTION_TYPE_UNKNOWN, ACTION_FIELDS_INVALID, ACTION_PARAMETER_INVALID,
         READ_HANDLE_COUNT, READ_HANDLE_DUPLICATE, READ_HANDLE_UUID, READ_HANDLE_NOT_CURRENT,
         READ_HANDLE_ARRAY_REQUIRED, READ_HANDLE_COUNT_BELOW_MIN, READ_HANDLE_COUNT_ABOVE_MAX,
@@ -99,27 +99,28 @@ public final class RuleAgentProtocol {
         };
     }
     /**
-     * 由现有权威合同派生机器可读动作定义：动作名称取自同一组JsonSubTypes，
-     * 字段与必填取自record组件，编号下限/上限与枚举取自领域预算与领域枚举。
+     * 由现有权威合同派生决策侧结构化输出Schema：动作名称取自同一组JsonSubTypes，
+     * 字段与必填取自record组件，编号下限/上限、候选枚举与类型枚举取自领域预算与领域枚举。
+     * oneOf分支由type的const互斥，宿主仍按原合同复核字段闭合、数量与编号。
      * 供应商是否强制这些约束不由本方法决定，宿主校验不因引入本方法而放宽。
      */
-    public static ArrayNode tools(List<String> readReferences) {
-        var rows=JSON.createArrayNode();
-        actions().forEach((name,type)->{
-            var function=rows.addObject().put("type","function").putObject("function");
-            function.put("name",name);
-            function.put("description",actionDescription(name));
-            function.set("parameters",parameters(type,readReferences));
-        });
-        return rows;
+    public static ObjectNode decisionSchema(List<String> readReferences) {
+        var schema=JSON.createObjectNode();
+        schema.put("type","object");
+        var branches=schema.putArray("oneOf");
+        actions().forEach((name,type)->branches.add(actionSchema(name,type,readReferences)));
+        return schema;
     }
-    private static ObjectNode parameters(Class<?> action,List<String> readReferences) {
+    private static ObjectNode actionSchema(String name,Class<?> action,List<String> readReferences) {
         var schema=JSON.createObjectNode();
         schema.put("type","object");
         // 宿主按record组件做字段闭合校验；这里必须同样禁止额外字段，避免鼓励模型输出无效键。
         schema.put("additionalProperties",false);
+        schema.put("description",actionDescription(name));
         var properties=schema.putObject("properties");
         var required=schema.putArray("required");
+        required.add("type");
+        properties.set("type",JSON.createObjectNode().put("const",name));
         for(var field:action.getRecordComponents()) {
             required.add(field.getName());
             properties.set(field.getName(),field(action,field.getName(),readReferences));
@@ -186,22 +187,6 @@ public final class RuleAgentProtocol {
         if(pattern!=null)node.put("pattern",pattern);
         if(note!=null)node.put("description",note);
         return node;
-    }
-    /**
-     * 供应商动作名称+参数 → 原领域动作JSON。
-     * 参数里再出现type说明模型在自造第二套协议，必须拒绝而不是覆盖。
-     */
-    public static String actionJson(String name,JsonNode arguments) {
-        if(name==null||!actions().containsKey(name)) {
-            throw new Rejected(Stage.ACTION_FIELDS,Code.ACTION_TYPE_UNKNOWN);
-        }
-        if(arguments==null||!arguments.isObject()||arguments.has("type")) {
-            throw new Rejected(Stage.ACTION_FIELDS,Code.ACTION_FIELDS_INVALID);
-        }
-        var node=JSON.createObjectNode();
-        node.put("type",name);
-        arguments.fields().forEachRemaining(entry->node.set(entry.getKey(),entry.getValue()));
-        return node.toString();
     }
     public static ObjectNode remainingBudget(int modelAttempts,int toolSteps) {
         return JSON.createObjectNode()
