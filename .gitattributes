@@ -2,3 +2,8 @@
 docs/evidence/** -text
 docs/releases/** -text
 docs/product/** -text
+# 探针零调用核对与源码指纹同样按原始字节校验：审核输入知识片段与 ruleagent 源码
+# 一旦被 autocrlf 转换，全新 Windows worktree 会直接卡在审核目录构造/包校验，
+# 而主工作区（历史检出、未转换）却能通过——同一提交两种字节，必须在这里一并保护。
+knowledge/data/** -text
+knowledge/src/** -text
