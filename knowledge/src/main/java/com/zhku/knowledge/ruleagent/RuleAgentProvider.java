@@ -1,4 +1,6 @@
 package com.zhku.knowledge.ruleagent;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
@@ -36,7 +38,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     public static final String MODEL="qwen3.8-flash";
     /** 结构化输出的Schema名只标识本动作合同，不含任务或用户数据。 */
     static final String ACTION_SCHEMA_NAME="zhku_rule_agent_action";
-    public record Diagnostics(int requestBytes,long elapsedMillis,Long dispatchedMillis,Long headersMillis,Long firstBodyMillis,Long bodyCompletedMillis,int responseBytes,String requestId,String responseModel){
+    public record Diagnostics(int requestBytes,long elapsedMillis,Long dispatchedMillis,Long connectedMillis,Long headersMillis,Long firstBodyMillis,Long bodyCompletedMillis,int responseBytes,String requestId,String responseModel){
     }
     public enum Phase {
         BEGIN, RECEIVED, FINISHED
@@ -228,6 +230,8 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             if(secret==null||secret.isBlank()) {
                 throw new Failure(ReasonCode.MODEL_AUTH_FAILURE,false);
             }
+            // 连接层观测先行：把"网络路径未通"与"已通但供应商无响应"分开记录；探测只观测，不替代真实调用。
+            measured.connectProbe(settings.endpoint());
             var maximum=Duration.ofMillis(DEFAULT_BUDGET.maxModelMillis());
             var duration=timeout.compareTo(maximum)>0?maximum:timeout;
             var request=HttpRequest.newBuilder(settings.endpoint())
@@ -383,9 +387,13 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     }
     /** 单调时钟度量客户端边界；dispatch不代表网络发出，响应头也不能拆分服务排队与生成耗时。 */
     private static final class Measurement {
+        /** 连接探测的 TCP 超时与 join 余量：足够区分"快速连通"与"悬挂"，又不实质挤占单次调用预算。 */
+        private static final int CONNECT_PROBE_MILLIS=3000;
         private final long started=System.nanoTime();
         private final int requestBytes;
         private Long dispatched,headers,firstBody,completed;
+        /** 探测线程回写、snapshot 在监视器内读取：volatile 保证可见性，且回写不必等待 exchange 释放锁。 */
+        private volatile Long connected;
         private int responseBytes;
         private String requestId,responseModel;
         private volatile Integer status;
@@ -397,6 +405,31 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         }
         synchronized void dispatch(){
             dispatched=millis();
+        }
+        /**
+         * 连接层观测：真实调用前对端点做一次有界 TCP 连接探测（含 DNS），只记录建立时刻。
+         * 探测在守护线程里执行并有 join 上限：DNS 悬挂不会拖住真实调用；探测失败只留空值，
+         * 分类与计数仍由真实调用和既有原因码负责——本机侧不因探测失败而失败，也不伪造连通。
+         * 本方法不持 Measurement 监视器：否则探测线程回写 connected 会与 join 互等，白耗整个join上限。
+         * 局限：只到 TCP，不含 TLS 握手；connected 有值而 headers 为空说明 TLS 或供应商侧静默。
+         */
+        void connectProbe(URI endpoint){
+            if(connected!=null)return;
+            String host=endpoint.getHost();
+            int port=endpoint.getPort()>0?endpoint.getPort():"https".equals(endpoint.getScheme())?443:80;
+            if(host==null)return;
+            var probe=Thread.ofPlatform().daemon().name("zhku-rule-agent-connect-probe-",0).start(()->{
+                try(var socket=new Socket()){
+                    socket.connect(new InetSocketAddress(host,port),CONNECT_PROBE_MILLIS);
+                    connected=millis();
+                }catch(Exception ignored){
+                }
+            });
+            try{
+                probe.join(CONNECT_PROBE_MILLIS+1000);
+            }catch(InterruptedException e){
+                Thread.currentThread().interrupt();
+            }
         }
         synchronized void headers(HttpResponse.ResponseInfo info,String secret){
             headers=millis();
@@ -416,7 +449,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             responseModel=value!=null&&!value.contains(secret)&&value.matches("qwen-[A-Za-z0-9._-]{1,96}")?value:null;
         }
         synchronized Diagnostics snapshot(){
-            return new Diagnostics(requestBytes,millis(),dispatched,headers,firstBody,completed,responseBytes,requestId,responseModel);
+            return new Diagnostics(requestBytes,millis(),dispatched,connected,headers,firstBody,completed,responseBytes,requestId,responseModel);
         }
         // 只保留有界的追踪标识；不记录任意响应头、错误正文、密钥或请求内容。
         private static String safeId(String value){
