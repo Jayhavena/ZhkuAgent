@@ -4,6 +4,7 @@ import com.zhku.knowledge.ZhkuFlywayTestSupport;
 import com.zhku.knowledge.retrieval.Reviewed2025ControlledCatalogue;
 import com.zhku.knowledge.security.PreviewIdentityRepository;
 import com.zhku.knowledge.security.PreviewPrincipal;
+import com.zhku.knowledge.security.TrustedActor;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -86,21 +87,48 @@ class RuleAgentReviewedIdentityTempDbTest {
         assertThat(installedChecksum).as("正文指纹必须可读回").matches("(?i)[0-9a-f]{64}");
 
         // 4) 真实身份仓储：写入正式身份表后必须能登录，且错误口令/未知账号被拒绝。
+        //
+        // 口令必须满足 PreviewIdentityRepository.validPassword 的正式约束：16–64 位、全部为可打印 ASCII。
+        // 上一轮用 15 位口令（"t06-tempdb-pass"）导致输入在数据库查询与 BCrypt 校验之前就被拒绝，
+        // 返回 Optional.empty()——那是夹具问题，不是仓储缺陷；此处不再放宽规则，只修正输入。
+        // 另：正式仓储会在 finally 中清空调用方传入的 char[]，所以每次调用必须重新生成数组。
         var encoder = new BCryptPasswordEncoder();
+        String correctPassword = "t06-tempdb-correct-pass";
+        String wrongPassword = "t06-tempdb-wrong-password";
+        String unknownAccountPassword = "t06-tempdb-unknown-pass";
+        assertThat(List.of(correctPassword, wrongPassword, unknownAccountPassword))
+                .as("夹具口令必须符合 16–64 位可打印 ASCII 的正式约束")
+                .allSatisfy(value -> assertThat(value.length()).isBetween(16, 64));
         UUID userId = UUID.randomUUID();
         jdbc.update("INSERT INTO preview_identity(user_id,login_name,password_hash,role,enabled) VALUES (?,?,?,'USER',true)",
-                userId, "t06-tempdb-user", encoder.encode("t06-tempdb-pass"));
-        try (var identities = new PreviewIdentityRepository(db)) {
-            Optional<PreviewPrincipal> ok = identities.authenticate("t06-tempdb-user", "t06-tempdb-pass".toCharArray());
-            assertThat(ok).as("真实身份必须可登录").isPresent();
-            assertThat(ok.get().actor().userId()).isEqualTo(userId);
-            assertThat(identities.authenticate("t06-tempdb-user", "wrong-password".toCharArray()))
-                    .as("错误口令必须被拒绝").isEmpty();
-            assertThat(identities.authenticate("no-such-user", "t06-tempdb-pass".toCharArray()))
-                    .as("未知账号必须被拒绝").isEmpty();
-        }
+                userId, "t06-tempdb-user", encoder.encode(correctPassword));
+        var identities = new PreviewIdentityRepository(db);
+        char[] first = correctPassword.toCharArray();
+        Optional<PreviewPrincipal> ok = identities.authenticate("t06-tempdb-user", first);
+        assertThat(first).as("正式仓储必须清空调用方传入的口令数组").containsOnly('\0');
+        assertThat(ok).as("格式合格的正确口令必须返回主体").isPresent();
+        var actor = ok.get().actor();
+        assertThat(actor.userId()).isEqualTo(userId);
+        assertThat(actor.role()).isEqualTo(TrustedActor.Role.USER);
+        assertThat(actor.authRevision()).isEqualTo(0);
 
-        // 5) 只读核对：安装结果确实落在本次临时库，未触及任何其他库。
+        // 格式合格、内容错误：必须走到 BCrypt 校验后被拒，而不是被长度规则提前拒绝。
+        assertThat(identities.authenticate("t06-tempdb-user", wrongPassword.toCharArray()))
+                .as("格式合格但内容错误的口令必须被拒绝").isEmpty();
+        // 格式合格的未知账号。
+        assertThat(identities.authenticate("t06-tempdb-unknown", unknownAccountPassword.toCharArray()))
+                .as("格式合格的未知账号必须被拒绝").isEmpty();
+        // 不合格输入（15 位）的拒绝已由 PreviewIdentityRepositoryIntegrationTest
+        // 与 PreviewIdentityBudgetTest 覆盖，此处不重复堆砌。
+
+        // 5) 仓储退出可核对：关闭后不得有在途请求或存活工作线程。
+        identities.close();
+        var exit = identities.status();
+        assertThat(exit.closed()).as("关闭后状态必须为 closed").isTrue();
+        assertThat(exit.inFlight()).as("不得有在途请求").isZero();
+        assertThat(exit.liveThreads()).as("不得有存活工作线程").isZero();
+
+        // 6) 只读核对：安装结果确实落在本次临时库，未触及任何其他库。
         assertThat(jdbc.queryForObject("SELECT count(*) FROM preview_identity", Integer.class)).isEqualTo(1);
     }
 }
