@@ -1,0 +1,33 @@
+{
+  "mode": "Unit",
+  "phase": "t05-p01-preflight-green-01",
+  "selectedClasses": [
+    "RulePublicationGateTest",
+    "RuleAgentContractTest",
+    "RuleAgentRunnerTest",
+    "RuleAgentProviderTest",
+    "RuleAgentOnlineFactoryTest",
+    "RuleAgentTaskStoreTest",
+    "RuleAgentEvidenceToolsTest"
+  ],
+  "providerAllowed": false,
+  "database": false,
+  "databaseUrl": "jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e",
+  "startedAt": "2026-10-14T12:07:57.5025380+08:00",
+  "maven": "D:\\alldesk\\Projects\\ZhkuAgent\\mvnw.cmd",
+  "arguments": [
+    "-o",
+    "-Dmaven.repo.local=C:\\Users\\nangua/.m2/repository",
+    "-Dfile.encoding=UTF-8",
+    "-pl",
+    "knowledge",
+    "-am",
+    "-Dtest=RulePublicationGateTest,RuleAgentContractTest,RuleAgentRunnerTest,RuleAgentProviderTest,RuleAgentOnlineFactoryTest,RuleAgentTaskStoreTest,RuleAgentEvidenceToolsTest",
+    "-Dsurefire.failIfNoSpecifiedTests=false",
+    "-Dzhku.db.url=jdbc:postgresql://127.0.0.1:55439/zhkuagent_rulecheck_e2e",
+    "-Dzhku.rulecheck.evidenceDir=D:\\alldesk\\Projects\\ZhkuAgent\\docs\\evidence\\rule-agent-provider\\2026-10-14\\t05-p01-preflight-green-01",
+    "-Dzhku.db.user=zhkuagent",
+    "test"
+  ],
+  "sourceHead": "f0eed907b1c16d7db7fb4475bd1126cbea8ee628"
+}

@@ -290,15 +290,15 @@ class RuleAgentOnlineFactoryTest {
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
         env.put("ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64));
         env.put("ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64));
-        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_P02");
+        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_READ_REFERENCE_03");
         var result=RuleAgentOnlineProbeHost.environmentCheck(env);
-        assertThat(result.get("maximumProviderCalls")).isEqualTo(12);
+        assertThat(result.get("maximumProviderCalls")).isEqualTo(4);
         assertThat(result.get("providerCalls")).isEqualTo(0);
         assertThat(new ObjectMapper().valueToTree(result).toString()).doesNotContain("local-test-placeholder");
     }
     @Test void selectiveManualProbeCannotRepeatSuccessfulCaseOrResetFullQuota(){
-        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_P02"));
-        assertThat(RuleAgentOnlineProbeHost.environmentCheck(env).get("maximumProviderCalls")).isEqualTo(12);
+        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_READ_REFERENCE_03"));
+        assertThat(RuleAgentOnlineProbeHost.environmentCheck(env).get("maximumProviderCalls")).isEqualTo(4);
         env.put("ZHKU_RULE_AGENT_PROBE_CASE","P02");
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
     }
@@ -311,7 +311,7 @@ class RuleAgentOnlineFactoryTest {
         p.put("endpoint",RuleAgentProvider.BEIJING.toString());
         p.put("model","qwen-plus");
         p.put("budgetRevision","T05_READ_BUDGET_02");
-        p.put("maximumProviderCalls",12);
+        p.put("maximumProviderCalls",4);
         p.put("perRunCalls",4);
         p.put("timeoutMillis",10000);
         p.put("runTimeoutMillis",45000);
@@ -328,7 +328,6 @@ class RuleAgentOnlineFactoryTest {
         p.set("budget",new ObjectMapper().valueToTree(DEFAULT_BUDGET));
         var cases=p.putArray("cases");
         cases.addObject().put("id","P01").put("question","专业选修课和公共选修课在修读安排上有什么不同？");
-        cases.addObject().put("id","P02").put("question","我这门选修课没过，能不能重修？").put("reply","PUBLIC");
         return p;
     }
     void validate(JsonNode p)throws Throwable{
@@ -376,5 +375,25 @@ class RuleAgentOnlineFactoryTest {
         assertThatThrownBy(()->validate(old)).isInstanceOf(IllegalArgumentException.class);
         var edited=packet();edited.put("reviewSystemPrompt","old review");
         assertThatThrownBy(()->validate(edited)).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test void oldCombinedCaseAndExpandedPacketAreRejected()throws Throwable{
+        var env=Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_P02");
+        assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
+        var old=packet();
+        old.put("maximumProviderCalls",12);
+        old.withArray("cases").addObject().put("id","P02").put("question","我这门选修课没过，能不能重修？").put("reply","PUBLIC");
+        assertThatThrownBy(()->validate(old)).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test void currentP01PacketMatchesActualReviewedAssetsWithoutCalls()throws Exception{
+        var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();
+        var path=root.resolve("docs/evidence/rule-agent-provider/2026-10-14/t05-19/request-package.json");
+        var json=new ObjectMapper();
+        var frozen=json.readTree(java.nio.file.Files.readAllBytes(path));
+        RuleAgentOnlineProbeHost.validatePackage(frozen);
+        var method=RuleAgentOnlineProbeHost.class.getDeclaredMethod("packageNode",java.nio.file.Path.class);
+        method.setAccessible(true);
+        assertThat((JsonNode)method.invoke(null,root)).isEqualTo(frozen);
+        assertThat(calls).hasValue(0);
+        assertThat(factory).isNull();
     }
 }
