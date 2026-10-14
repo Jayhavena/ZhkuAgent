@@ -9,6 +9,9 @@ public final class RuleActionBroker {
     private final Map<UUID,String> handles=new HashMap<>();
     private final Map<String,Map<String,RuleAgentEvidenceTools.VerifiedFact>> facts=new HashMap<>();
     private final Map<String,List<Evidence>> evidence=new HashMap<>();
+    private final Set<String> seenCandidates=new HashSet<>(),seenFacts=new HashSet<>();
+    private final Set<UUID> seenEvidence=new HashSet<>();
+    private boolean progressed;
     public RuleActionBroker(RuleAgentEvidenceTools tools){this.tools=Objects.requireNonNull(tools);}
     ToolObservation execute(NextAction action,RuleAgentRunner.Input input,UUID run,int step){
         ToolObservation observation;String q;
@@ -20,8 +23,16 @@ public final class RuleActionBroker {
                 for(var f:read.facts())facts.computeIfAbsent(q,k->new LinkedHashMap<>()).put(f.id(),f);
                 evidence.computeIfAbsent(q,k->new ArrayList<>()).addAll(observation.evidence());}
         }else throw new RuleAgentRunner.Rejected(ReasonCode.UNKNOWN_TOOL);
+        progressed=false;
+        // 进展由实际观察的新来源/事实/证据决定，不能用换查询词、换随机句柄冒充新证据。
+        if(observation.status()==ObservationStatus.SUCCEEDED){
+            for(var candidate:observation.candidates())progressed|=seenCandidates.add(tools.candidateIdentity(candidate.handle()));
+            for(var fact:observation.factIds())progressed|=seenFacts.add(fact);
+            for(var proof:observation.evidence())progressed|=seenEvidence.add(proof.originalToken());
+        }
         observations.add(observation);byQuestion.computeIfAbsent(q,k->new ArrayList<>()).add(observation);return observation;
     }
+    boolean progressed(){return progressed;}
     List<ToolObservation> observations(){return List.copyOf(observations);}
     List<ToolObservation> observations(String q){return List.copyOf(byQuestion.getOrDefault(q,List.of()));}
     List<RuleAgentEvidenceTools.VerifiedFact> facts(){return facts.values().stream().flatMap(m->m.values().stream()).distinct().toList();}

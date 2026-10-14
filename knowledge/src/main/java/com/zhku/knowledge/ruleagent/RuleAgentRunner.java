@@ -118,6 +118,10 @@ public final class RuleAgentRunner {
                     }catch(Rejected invalid){reason=invalid.reason;context.recordToolResult(call,new AgentToolCall.Result(AgentToolCall.Status.REJECTED,null,null,com.zhku.agent.agent.runtime.contract.AgentRuntimeError.of(com.zhku.agent.agent.runtime.contract.AgentRuntimeError.Category.DOMAIN_FAILURE)));}
                     events.add(new Event(decisionAttempt,name,observation,reason));
                     if(reviewEvent!=null)events.add(reviewEvent);
+                    if(observation!=null&&observation.status()==ObservationStatus.SUCCEEDED&&!broker.progressed()){
+                        events.add(new Event(decisionAttempt,name,null,ReasonCode.NO_PROGRESS));
+                        published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.NO_PROGRESS);
+                    }
                 }catch(IllegalArgumentException malformed){
                     ReasonCode reason=ReasonCode.INVALID_MODEL_RESPONSE;
                     try{String type=new ObjectMapper().readTree(reply.actionJson()).path("type").asText();if(!Set.of("SEARCH_REVIEWED_RULES","READ_VERIFIED_RULE","ASK_NECESSARY_CONDITION","FINISH_CHECK").contains(type))reason=ReasonCode.UNKNOWN_TOOL;}catch(Exception ignored){}

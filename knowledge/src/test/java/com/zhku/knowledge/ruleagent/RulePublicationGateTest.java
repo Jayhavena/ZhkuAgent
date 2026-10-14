@@ -211,7 +211,7 @@ class RulePublicationGateTest {
         RuleSemanticReviewPort reviewer=(safe,timeout)->{reviews.incrementAndGet();throw new AssertionError("预算停止后不应核验");};
         var original=RuleAgentRunner.Input.single(fixture.owner,fixture.task,"选修课程类别有哪些？");
         var context=com.zhku.agent.agent.runtime.AgentRunContext.create(original.question());
-        var outcome=new RuleAgentRunner(decision,new RuleActionBroker(fixture.tools(true,true,false)),java.time.Clock.systemUTC(),reviewer).run(context,original);
+        var outcome=new RuleAgentRunner(decision,new RuleActionBroker(fixture.tools(true,false,false)),java.time.Clock.systemUTC(),reviewer).run(context,original);
         assertThat(calls.get()).isEqualTo(3);
         assertThat(reviews.get()).isZero();
         assertThat(outcome.snapshot().taskStatus()).isEqualTo(TaskStatus.STOPPED);

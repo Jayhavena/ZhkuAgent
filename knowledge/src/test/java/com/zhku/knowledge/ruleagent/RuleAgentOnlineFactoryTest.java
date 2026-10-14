@@ -20,6 +20,7 @@ class RuleAgentOnlineFactoryTest {
     final AtomicInteger calls=new AtomicInteger();
     final List<RuleAgentProvider.Trace> traces=new CopyOnWriteArrayList<>();
     final RuleAgentRunnerTest fixture=new RuleAgentRunnerTest();
+    final UUID staleReplacementChunk=UUID.randomUUID();
     boolean conditional;
     boolean studyArrangement;
     int selectedCount=1;
@@ -41,11 +42,19 @@ class RuleAgentOnlineFactoryTest {
             new RuleCheckRuleTemplate.Fact("professional-failed-retake-application","合成专选重修说明",true,Map.of("courseType","PROFESSIONAL"),List.of(binding))):
             List.of(new RuleCheckRuleTemplate.Fact("elective-category-distinction","合成分类说明",true,Map.of(),List.of(binding)));
         var conditions=conditional?List.of(new RuleCheckRuleTemplate.Condition("courseType","请选择合成课程类别",List.of("PUBLIC","PROFESSIONAL"))):List.<RuleCheckRuleTemplate.Condition>of();
+        if(readSelection.equals("stale")){
+            var expanded=new ArrayList<>(facts);
+            expanded.add(new RuleCheckRuleTemplate.Fact("replacement","合成新检索来源",true,Map.of(),List.of(new RuleCheckRuleTemplate.EvidenceBinding(fixture.source,staleReplacementChunk,"2025.9.2",fixture.hash(),0,fixture.text.length(),fixture.text))));
+            facts=expanded;
+        }
         var rule=new RuleCheckRuleTemplate(ruleId,"2025.9.2",RuleCheckRuleTemplate.ReviewState.APPROVED,"SYNTHETIC_TEST",LocalDate.of(2026,10,14),facts,conditions,List.of(),List.of());
         var entry=new RuleCheckApplicationService.CatalogEntry(rule,"合成范围",new RuleCheckApplicabilityGuard.Coverage(Set.of(RuleCheckApplicabilityGuard.Audience.UNDERGRADUATE)),RuleCheckTopicGuard.Coverage.declared(RuleCheckTopicGuard.Topic.CATEGORY));
         var candidate=new RetrievedChunk(fixture.chunk,fixture.text,"synthetic","synthetic",1,"2025.9.2",fixture.hash(),fixture.source);
         var current=new RuleCheckEvidenceSnapshot("current",fixture.source,fixture.chunk,"2025.9.2",fixture.hash(),fixture.text,true);
-        return new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->List.of(entry),(q,n)->Collections.nCopies(candidateCopies,candidate),(s,c)->Optional.of(current),r->{},Clock.systemUTC());
+        var replacement=new RetrievedChunk(staleReplacementChunk,fixture.text,"synthetic","synthetic",1,"2025.9.2",fixture.hash(),fixture.source);
+        var replacementCurrent=new RuleCheckEvidenceSnapshot("replacement",fixture.source,staleReplacementChunk,"2025.9.2",fixture.hash(),fixture.text,true);
+        // 旧集合反例要先取得真正的新来源；否则已被无进展守卫提前停止，测不到集合失效校验。
+        return new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->List.of(entry),(q,n)->Collections.nCopies(candidateCopies,readSelection.equals("stale")&&searches>0?replacement:candidate),(s,c)->Optional.of(c.equals(staleReplacementChunk)?replacementCurrent:current),r->{},Clock.systemUTC());
     }
     RuleAgentEvidenceTools article4Tools(Owner owner,UUID task)throws Exception{
         var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();
