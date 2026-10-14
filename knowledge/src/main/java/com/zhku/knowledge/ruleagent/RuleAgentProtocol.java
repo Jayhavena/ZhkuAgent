@@ -104,11 +104,12 @@ public final class RuleAgentProtocol {
      * oneOf分支由type的const互斥，宿主仍按原合同复核字段闭合、数量与编号。
      * 供应商是否强制这些约束不由本方法决定，宿主校验不因引入本方法而放宽。
      */
-    public static ObjectNode decisionSchema(List<String> readReferences) {
+    public static ObjectNode decisionSchema(List<String> readReferences) {return decisionSchema(readReferences,null);}
+    public static ObjectNode decisionSchema(List<String> readReferences,List<String> allowedActions) {
         var schema=JSON.createObjectNode();
         schema.put("type","object");
         var branches=schema.putArray("oneOf");
-        actions().forEach((name,type)->branches.add(actionSchema(name,type,readReferences)));
+        actions().forEach((name,type)->{if(allowedActions==null||allowedActions.contains(name))branches.add(actionSchema(name,type,readReferences));});
         return schema;
     }
     private static ObjectNode actionSchema(String name,Class<?> action,List<String> readReferences) {
@@ -301,6 +302,10 @@ public final class RuleAgentProtocol {
         String question=action instanceof Search s?s.subquestionId():action instanceof Read r?r.subquestionId():action instanceof Ask a?a.subquestionId():null;
         if(question!=null&&view.questions().stream().noneMatch(q->q.id().equals(question))) {
             throw new Rejected(Stage.PRE_EXECUTION,Code.SUBQUESTION_NOT_CURRENT);
+        }
+        if(view.state()!=null){
+            String name=action instanceof Search?"SEARCH_REVIEWED_RULES":action instanceof Read?"READ_VERIFIED_RULE":action instanceof Ask?"ASK_NECESSARY_CONDITION":"FINISH_CHECK";
+            if(!view.state().allowedActions().contains(name))throw new Rejected(Stage.PRE_EXECUTION,Code.BUDGET_UNAVAILABLE);
         }
         if(action instanceof Read read) {
             var current=new HashSet<UUID>();

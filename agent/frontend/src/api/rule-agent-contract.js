@@ -92,7 +92,7 @@ export function validateRuleAgentSnapshot(x){
   check(!x.terminated||terminal)
   fields(x.execution,'mode modelAttemptCount toolStepCount providerResponseReceived answerSource replayCoverage')
   const e=x.execution
-  integer(e.modelAttemptCount,0,4);integer(e.toolStepCount,0,6);check(typeof e.providerResponseReceived==='boolean')
+  integer(e.modelAttemptCount,0,5);integer(e.toolStepCount,0,6);check(typeof e.providerResponseReceived==='boolean')
   check(['ONLINE','ENGINEERING_REPLAY'].includes(e.mode));check(['NONE','LIVE_AGENT','SEALED_REPLAY','VERIFIED_RULE_ONLY'].includes(e.answerSource))
   check(['NOT_APPLICABLE','HIT','MISS'].includes(e.replayCoverage))
   check(!e.providerResponseReceived||e.modelAttemptCount>0)

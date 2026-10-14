@@ -93,4 +93,18 @@ class RuleAgentRunnerTest {
         var result=new RuleAgentRunner(port,new RuleActionBroker(tools(true,true,false)),fake).run(AgentRunContext.create(input.question()),input);
         assertThat(result.snapshot().result().items().getFirst().issues().getFirst().reasonCode()).isEqualTo(ReasonCode.MODEL_TIMEOUT);assertThat(result.events()).isEmpty();assertThat(closed).isTrue();
     }
+    @Test void toolsCannotConsumeTheIndependentReviewTimeReserve()throws Exception{
+        var time=new java.util.concurrent.atomic.AtomicReference<>(Instant.parse("2026-10-14T08:00:00Z"));var start=time.get();
+        Clock fake=new Clock(){public ZoneId getZone(){return ZoneOffset.UTC;}public Clock withZone(ZoneId zone){return this;}public Instant instant(){return time.get();}};
+        var tools=new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","v1",20,5),List::of,
+            (q,n)->{time.set(start.plusMillis(DEFAULT_BUDGET.maxRunMillis()-DEFAULT_BUDGET.maxModelMillis()-5000));return List.of();},(s,c)->Optional.empty(),r->{},fake);
+        var decisions=new java.util.concurrent.atomic.AtomicInteger();var reviews=new java.util.concurrent.atomic.AtomicInteger();
+        RuleAgentRunner.DecisionPort port=(view,timeout)->{decisions.incrementAndGet();return reply(new Search("q1","合成查询"));};
+        RuleSemanticReviewPort review=(safe,timeout)->{reviews.incrementAndGet();throw new AssertionError("不应调用核验");};
+        var input=RuleAgentRunner.Input.single(owner,task,"合成问题");
+        var result=new RuleAgentRunner(port,new RuleActionBroker(tools),fake,review).run(AgentRunContext.create(input.question()),input);
+        assertThat(decisions).hasValue(1);assertThat(reviews).hasValue(0);
+        assertThat(result.snapshot().taskStatus()).isEqualTo(TaskStatus.STOPPED);
+        assertThat(result.snapshot().result().items().getFirst().issues().getFirst().reasonCode()).isEqualTo(ReasonCode.BUDGET_EXCEEDED);
+    }
 }

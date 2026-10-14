@@ -49,6 +49,9 @@ final class RuleCandidateReferences {
         }
     }
 
+    synchronized void annotateReadState(ObjectNode data,Map<UUID,Boolean> read){
+        var rows=data.path("currentCandidates");for(int i=0;i<candidates.size();i++)((ObjectNode)rows.get(i)).put("alreadyRead",read.getOrDefault(candidates.get(i).handle(),false));
+    }
     /** 机器可读动作定义里的候选枚举；只暴露编号界面，UUID仍留在宿主。 */
     synchronized List<String> references() {
         return List.copyOf(handles.keySet());

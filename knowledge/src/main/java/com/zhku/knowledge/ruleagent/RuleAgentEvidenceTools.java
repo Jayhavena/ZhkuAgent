@@ -135,6 +135,12 @@ public final class RuleAgentEvidenceTools {
     public String referenceRevision(){return settings.referenceRevision();}
     /** 仅宿主内部用于识别重新检索的同源候选；不向模型暴露来源UUID或原文凭证。 */
     String candidateIdentity(UUID token){synchronized(handles){var handle=handles.get(token);if(handle==null)return "missing:"+token;var c=handle.chunk();return c.sourceId()+":"+c.chunkId()+":"+c.sourceVersion()+":"+c.contentChecksum().toLowerCase(Locale.ROOT)+":"+handle.version();}}
+    int remainingEvidenceFragments(){synchronized(originals){return DEFAULT_BUDGET.maxEvidenceFragments()-retainedProofs.size();}}
+    int remainingEvidenceBytes(){synchronized(originals){return DEFAULT_BUDGET.maxEvidenceBytes()-retainedProofs.values().stream().mapToInt(e->e.quote().getBytes(java.nio.charset.StandardCharsets.UTF_8).length).sum();}}
+    boolean hasUnreadFact(List<UUID> selected,Set<String> known){
+        var chunks=new HashSet<UUID>();synchronized(handles){for(var id:selected){var h=handles.get(id);if(h!=null)chunks.add(h.chunk().chunkId());}}
+        return directory().entries().stream().anyMatch(e->e.template().facts().stream().anyMatch(f->!known.contains(e.template().ruleId()+":"+f.id())&&f.evidenceBindings().stream().allMatch(b->chunks.contains(b.chunkId()))));
+    }
     private boolean owns(Owner actor,UUID task){return owner.equals(actor)&&taskId.equals(task)&&clock.instant().isBefore(expires);}
     private Directory directory(){
         var entries=List.copyOf(catalogue.get()).stream().filter(e->e.template().reviewState()==RuleCheckRuleTemplate.ReviewState.APPROVED&&e.template().referenceRevision().equals(settings.referenceRevision()))

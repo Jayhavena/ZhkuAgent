@@ -373,12 +373,12 @@ class RuleAgentProviderTest {
         var batchAllowance=new AtomicInteger(8);
         port=new RuleAgentProvider(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),RuleAgentProvider.MODEL,"LOCAL_TEST_ONLY"),
             UUID.randomUUID(),UUID.randomUUID(),()->"local-test-placeholder",traces::add,batchAllowance);
-        for(int i=0;i<3;i++)port.decide(view(),Duration.ofSeconds(2));
+        for(int i=0;i<RulePublicationContract.MAX_DECISION_CALLS;i++)port.decide(view(),Duration.ofSeconds(2));
         responseBody.set(response(reviewJson(),"stop"));
         var result=reviewPort().assess(reviewInput(),Duration.ofSeconds(2));
         assertThat(result.unresolvedDemands()).hasSize(1);
-        assertThat(calls).hasValue(4);
-        assertThat(traces.getLast().attempt()).isEqualTo(4);
+        assertThat(calls).hasValue(DEFAULT_BUDGET.maxModelAttemptsPerRun());
+        assertThat(traces.getLast().attempt()).isEqualTo(DEFAULT_BUDGET.maxModelAttemptsPerRun());
         var trace=new ObjectMapper().valueToTree(traces.getLast());
         assertThat(trace.path("purpose").asText()).isEqualTo("PUBLICATION_REVIEW");
         assertThat(new ObjectMapper().valueToTree(traces.getFirst()).path("purpose").asText()).isEqualTo("DECISION");
@@ -387,8 +387,8 @@ class RuleAgentProviderTest {
         assertThat(data.path("reviewContract").path("maxRequirements").asInt()).isEqualTo(RulePublicationContract.MAX_REQUIREMENTS);
         assertThat(data.toString()).doesNotContain("proposal","supportingFactIds","originalToken","actorId","sessionNonce");
         assertThatThrownBy(()->reviewPort().assess(reviewInput(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
-        assertThat(calls).hasValue(4);
-        assertThat(batchAllowance).hasValue(4);
+        assertThat(calls).hasValue(DEFAULT_BUDGET.maxModelAttemptsPerRun());
+        assertThat(batchAllowance).hasValue(8-DEFAULT_BUDGET.maxModelAttemptsPerRun());
     }
     static List<String> invalidReviews(){return List.of("bad-json","{}","null",
         "{\"protocolRevision\":\"RULE_PUBLICATION_REVIEW_01\",\"protocolRevision\":\"duplicate\"}");}

@@ -21,7 +21,11 @@ public final class RuleAgentRunner {
         public static Input single(Owner owner,UUID task,String text){return new Input(owner,task,1,text,List.of(new Question("q1",text)),Map.of());}
     }
     public record RuleContext(String ruleId,String questionScope,List<com.zhku.knowledge.rulecheck.RuleCheckRuleTemplate.Condition> conditions,List<String> evidenceGaps){}
-    public record View(String question,List<Question> questions,Map<String,String> userConditions,List<ToolObservation> observations,List<RuleAgentEvidenceTools.VerifiedFact> facts,List<RuleContext> ruleContexts,List<Event> events,int attemptsRemaining,int stepsRemaining){}
+    public record CandidateReadState(UUID handle,boolean alreadyRead){}
+    public record ActionState(List<String> allowedActions,List<CandidateReadState> candidates,int remainingEvidenceFragments,int remainingEvidenceBytes,long runMillisRemaining,int reservedReviewMillis,int reservedPublicationMillis){}
+    public record View(String question,List<Question> questions,Map<String,String> userConditions,List<ToolObservation> observations,List<RuleAgentEvidenceTools.VerifiedFact> facts,List<RuleContext> ruleContexts,List<Event> events,int attemptsRemaining,int stepsRemaining,ActionState state){
+        public View(String question,List<Question> questions,Map<String,String> userConditions,List<ToolObservation> observations,List<RuleAgentEvidenceTools.VerifiedFact> facts,List<RuleContext> ruleContexts,List<Event> events,int attemptsRemaining,int stepsRemaining){this(question,questions,userConditions,observations,facts,ruleContexts,events,attemptsRemaining,stepsRemaining,null);}
+    }
     public record Reply(String actionJson,boolean providerResponseReceived){}
     public interface DecisionPort extends AutoCloseable {Reply decide(View view,Duration timeout);default void close(){}}
     public record Event(int attempt,String action,ToolObservation observation,ReasonCode reason,RulePublicationContract.Code publicationReason){
@@ -57,11 +61,14 @@ public final class RuleAgentRunner {
                 if(context.isStopRequested()){published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.CANCELLED);break;}
                 if(attempts>=decisionLimit||steps>=DEFAULT_BUDGET.maxToolStepsPerRun()||!clock.instant().isBefore(deadline)){published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.BUDGET_EXCEEDED);break;}
                 var contexts=broker.facts().stream().map(f->broker.tools.reviewedEntry(f.ruleId()).orElseThrow(()->new Rejected(ReasonCode.EVIDENCE_CHANGED))).distinct().map(e->new RuleContext(e.template().ruleId(),e.questionScope(),e.template().conditions(),e.template().evidenceGaps())).toList();
-                var view=new View(input.question(),input.questions(),input.userConditions(),broker.observations(),broker.facts(),contexts,List.copyOf(events),decisionLimit-attempts,DEFAULT_BUDGET.maxToolStepsPerRun()-steps);
+                var view=new View(input.question(),input.questions(),input.userConditions(),broker.observations(),broker.facts(),contexts,List.copyOf(events),decisionLimit-attempts,DEFAULT_BUDGET.maxToolStepsPerRun()-steps,publicationReview==null?null:broker.actionState(decisionLimit-attempts,DEFAULT_BUDGET.maxToolStepsPerRun()-steps,Duration.between(clock.instant(),deadline).toMillis()));
                 if(json(view).getBytes(java.nio.charset.StandardCharsets.UTF_8).length>DEFAULT_BUDGET.maxRequestBytes())throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
+                long reserve=publicationReview==null?0:DEFAULT_BUDGET.maxModelMillis()+5000L;
+                long decisionMillis=Duration.between(clock.instant(),deadline).toMillis()-reserve;
+                if(decisionMillis<=0||view.state()!=null&&view.state().allowedActions().isEmpty())throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
                 attempts++;context.advanceStep();Instant called=clock.instant();
                 int decisionAttempt=attempts;
-                Reply reply=decision.decide(view,Duration.ofMillis(Math.min(DEFAULT_BUDGET.maxModelMillis(),Math.max(1,Duration.between(called,deadline).toMillis()))));
+                Reply reply=decision.decide(view,Duration.ofMillis(Math.min(DEFAULT_BUDGET.maxModelMillis(),Math.max(1,Duration.between(called,deadline).toMillis()-reserve))));
                 // 不能在取消或超时之后发布迟到结果；阻塞调用的强制退出由T05适配器负责。
                 if(context.isStopRequested()){published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.CANCELLED);break;}
                 if(Duration.between(called,clock.instant()).toMillis()>DEFAULT_BUDGET.maxModelMillis())throw new Rejected(ReasonCode.MODEL_TIMEOUT);
@@ -70,6 +77,10 @@ public final class RuleAgentRunner {
                 String name="INVALID";
                 try{
                     var action=RuleAgentJson.readAction(reply.actionJson());name=name(action);String fingerprint=json(action);
+                    if(view.state()!=null&&!view.state().allowedActions().contains(name)){
+                        events.add(new Event(decisionAttempt,name,null,ReasonCode.BUDGET_EXCEEDED));
+                        published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.BUDGET_EXCEEDED);break;
+                    }
                     if(fingerprint.equals(previous)){published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.NO_PROGRESS);events.add(new Event(attempts,name,null,ReasonCode.NO_PROGRESS));break;}previous=fingerprint;
                     String q=action instanceof Search s?s.subquestionId():action instanceof Read r?r.subquestionId():action instanceof Ask a?a.subquestionId():null;
                     if(q!=null&&input.questions().stream().noneMatch(x->x.id().equals(q)))throw new Rejected(ReasonCode.INVALID_MODEL_RESPONSE);
@@ -91,11 +102,11 @@ public final class RuleAgentRunner {
                                 var capabilities=RuleFactCapabilityCatalogue.fromReviewed(entries);
                                 var safe=RulePublicationContract.input(input,broker.facts(),capabilities);
                                 if(json(safe).getBytes(java.nio.charset.StandardCharsets.UTF_8).length>DEFAULT_BUDGET.maxRequestBytes())throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
-                                attempts++;
-                                context.advanceStep();
+                                if(Duration.between(clock.instant(),deadline).toMillis()<DEFAULT_BUDGET.maxModelMillis()+5000L)throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
+                                attempts++;context.advanceStep();
                                 Instant reviewStarted=clock.instant();
                                 try{
-                                    var assessed=publicationReview.assess(safe,Duration.ofMillis(Math.min(DEFAULT_BUDGET.maxModelMillis(),Math.max(1,Duration.between(reviewStarted,deadline).toMillis()))));
+                                    var assessed=publicationReview.assess(safe,Duration.ofMillis(Math.min(DEFAULT_BUDGET.maxModelMillis(),Math.max(1,Duration.between(reviewStarted,deadline).toMillis()-5000))));
                                     if(context.isStopRequested())throw new Rejected(ReasonCode.CANCELLED);
                                     if(Duration.between(reviewStarted,clock.instant()).toMillis()>DEFAULT_BUDGET.maxModelMillis())throw new Rejected(ReasonCode.MODEL_TIMEOUT);
                                     if(!clock.instant().isBefore(deadline))throw new Rejected(ReasonCode.BUDGET_EXCEEDED);

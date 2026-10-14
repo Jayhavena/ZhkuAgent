@@ -61,7 +61,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         缺少影响结论且学生能补充的必要条件时追问；不重复已知条件。不判断个人教务资格或办理事务。
         只使用实际观察中的句柄和已核验factIds；不能凭常识创造规则，不能将执行故障当作资料缺失。
         type与字段必须属于响应JSON Schema声明的动作分支，不得输出未声明的额外字段；READ句柄的上下限、唯一性与来源以该Schema为准。
-        remainingBudget给出本轮剩余次数，包含当前决策；不要提出超过剩余工具/模型预算的计划。
+        remainingBudget包含当前决策；executionState给出允许动作、已读状态和资源预留。只选择当前Schema允许的动作，不重复读取无新事实的证据；结束提议不代表核验通过。
         动作type只能取Schema枚举值，不新增动作、不遗漏必填字段；subquestionId必须对应questions.id。
         检索使用自然语言query；读取只选择currentCandidates的简短handles并回传candidateSetId，不能生成或提交UUID。
         新检索使旧编号集合失效；追问使用审核conditionId、reason及supportingFactIds。
@@ -110,7 +110,12 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             references.refresh(view);
             references.project(data);
             // 候选枚举与消息里的currentCandidates必须来自同一次刷新，否则响应Schema与宿主表会错位。
-            actionSchema=RuleAgentProtocol.decisionSchema(references.references());
+            actionSchema=RuleAgentProtocol.decisionSchema(references.references(),view.state()==null?null:view.state().allowedActions());
+        }
+        if(view.state()!=null){
+            var state=JSON.valueToTree(view.state());((ObjectNode)state).remove("candidates");data.set("executionState",state);
+            var flags=new HashMap<UUID,Boolean>();view.state().candidates().forEach(c->flags.put(c.handle(),c.alreadyRead()));
+            references.annotateReadState(data,flags);
         }
         data.put("question",view.question());
         data.set("questions",JSON.valueToTree(view.questions()));

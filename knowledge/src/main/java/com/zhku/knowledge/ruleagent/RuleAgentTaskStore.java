@@ -48,7 +48,7 @@ public final class RuleAgentTaskStore implements AutoCloseable {
         Ticket ticket;Accepted accepted;
         synchronized(lock){admit();var old=duplicate(key,payload);if(old!=null)return old;if(owned(owner,task)!=slot||slot.version!=version)throw new Failure(Code.CONFLICT);checkWaiting(slot,request);
             checkNewRequestCapacity();
-            if(slot.runs>=DEFAULT_BUDGET.maxTaskRuns()||slot.clarifications>DEFAULT_BUDGET.maxClarificationTurns()||slot.attempts>=DEFAULT_BUDGET.maxModelAttemptsPerTask()||slot.version+2>MAX_SAFE_VERSION)throw new Failure(Code.CAPACITY);
+            if(slot.runs>=DEFAULT_BUDGET.maxTaskRuns()||slot.clarifications>DEFAULT_BUDGET.maxClarificationTurns()||slot.attempts+DEFAULT_BUDGET.maxModelAttemptsPerRun()>DEFAULT_BUDGET.maxModelAttemptsPerTask()||slot.version+2>MAX_SAFE_VERSION)throw new Failure(Code.CAPACITY);
             var conditions=new LinkedHashMap<>(slot.conditions);conditions.put(condition.conditionId(),value);slot.conditions=Map.copyOf(conditions);
             slot.previous=previous;slot.published=null;slot.version++;slot.runs++;slot.turn=UUID.randomUUID();slot.context=AgentRunContext.create(slot.question);slot.waitingExpires=null;
             slot.history.add(new Turn(slot.turn,slot.context.runId(),request.message(),slot.conditions,TaskStatus.ACTIVE,0));accepted=accepted(slot,false);reserve(key,payload,accepted,slot.expires);ticket=ticket(slot);
@@ -107,7 +107,7 @@ public final class RuleAgentTaskStore implements AutoCloseable {
         context.finish(cancelled?AgentRunState.CANCELLED:AgentRunState.FAILED);context.cleanupOnce(()->{});context.signalTermination();context.publishTermination();
         var issue=new Issue("failure",reason.kind,reason,cancelled?"本轮已停止，未完成的部分不作结论。":"本轮任务执行失败，不代表资料没有规定。","请查询任务状态后重新查证，不自动重复提交。");
         var result=new ResultEnvelope(ticket.version()+1,context.runId(),"unavailable","2025.9.2",Coverage.NONE,ticket.slot().questions.stream().map(q->new Subquestion(q.id(),Coverage.NONE,List.of(),List.of(issue),List.of())).toList(),List.of(),List.of());
-        publish(ticket,new TaskSnapshot(SCHEMA_VERSION,ticket.slot().id,ticket.turn(),context.runId(),ticket.version()+1,cancelled?TaskStatus.STOPPED:TaskStatus.FAILED,context.state(),true,result,null,new Execution(Mode.ONLINE,Math.min(context.currentStep(),4),0,false,AnswerSource.NONE,ReplayCoverage.NOT_APPLICABLE)));
+        publish(ticket,new TaskSnapshot(SCHEMA_VERSION,ticket.slot().id,ticket.turn(),context.runId(),ticket.version()+1,cancelled?TaskStatus.STOPPED:TaskStatus.FAILED,context.state(),true,result,null,new Execution(Mode.ONLINE,Math.min(context.currentStep(),DEFAULT_BUDGET.maxModelAttemptsPerRun()),0,false,AnswerSource.NONE,ReplayCoverage.NOT_APPLICABLE)));
     }
     private void checkWaiting(Slot slot,Message request){if(slot.published==null||slot.published.taskStatus()!=TaskStatus.WAITING_USER||slot.version!=request.expectedVersion()||!Objects.equals(slot.published.continuationToken(),request.continuationToken()))throw new Failure(Code.CONFLICT);if(slot.waitingExpires==null||!clock.instant().isBefore(slot.waitingExpires))throw new Failure(Code.EXPIRED);}
     private Slot owned(Owner owner,UUID task){var slot=tasks.get(task);if(slot==null||!slot.owner.equals(owner))throw new Failure(Code.NOT_AVAILABLE);if(!clock.instant().isBefore(slot.expires))throw new Failure(Code.EXPIRED);return slot;}
