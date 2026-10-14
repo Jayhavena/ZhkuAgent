@@ -24,6 +24,7 @@ public final class RuleAgentProtocol {
         NONE, RESPONSE_JSON_INVALID, RESPONSE_STRUCTURE_INVALID, FINISH_REASON_INVALID, CONTENT_INVALID,
         ACTION_JSON_INVALID, ACTION_TYPE_UNKNOWN, ACTION_FIELDS_INVALID, ACTION_PARAMETER_INVALID,
         READ_HANDLE_COUNT, READ_HANDLE_DUPLICATE, READ_HANDLE_UUID, READ_HANDLE_NOT_CURRENT,
+        READ_HANDLE_ARRAY_REQUIRED, READ_HANDLE_COUNT_BELOW_MIN, READ_HANDLE_COUNT_ABOVE_MAX,
         READ_REFERENCE_FORMAT, READ_REFERENCE_SET,
         SUBQUESTION_NOT_CURRENT, OPERATION_NOT_ALLOWED, REVIEW_JSON_INVALID, REVIEW_BINDING_INVALID, BUDGET_UNAVAILABLE, TRANSPORT_FAILURE, AUDIT_FAILURE
     }
@@ -39,9 +40,12 @@ public final class RuleAgentProtocol {
             validation=new Validation(stage,code);
         }
         Rejected(Code code,Integer index,JsonNode value,Boolean current) {
+            this(code,index,value,current,code);
+        }
+        Rejected(Code code,Integer index,JsonNode value,Boolean current,Code category) {
             super(code.name());
             validation=new Validation(Stage.ACTION_PARAMETERS,code,new ReadSelection(index,
-                value==null?null:value.getNodeType().name(),value!=null&&value.isTextual()?value.textValue().length():null,code,current));
+                value==null?null:value.getNodeType().name(),value!=null&&value.isTextual()?value.textValue().length():null,category,current));
         }
     }
     private static final ObjectMapper JSON=new ObjectMapper();
@@ -163,9 +167,7 @@ public final class RuleAgentProtocol {
         }
     }
     private static void checkRead(JsonNode handles) {
-        if(!handles.isArray()||handles.size()<MIN_READ_HANDLES||handles.size()>DEFAULT_BUDGET.maxReadHandles()) {
-            throw new Rejected(Stage.ACTION_PARAMETERS,Code.READ_HANDLE_COUNT);
-        }
+        checkReadCount(handles);
         var unique=new HashSet<UUID>();
         for(var handle:handles) {
             UUID uuid;
@@ -180,6 +182,16 @@ public final class RuleAgentProtocol {
             if(!unique.add(uuid)) {
                 throw new Rejected(Stage.ACTION_PARAMETERS,Code.READ_HANDLE_DUPLICATE);
             }
+        }
+    }
+    static void checkReadCount(JsonNode handles) {
+        Code category=null;
+        if(!handles.isArray())category=Code.READ_HANDLE_ARRAY_REQUIRED;
+        else if(handles.size()<MIN_READ_HANDLES)category=Code.READ_HANDLE_COUNT_BELOW_MIN;
+        else if(handles.size()>DEFAULT_BUDGET.maxReadHandles())category=Code.READ_HANDLE_COUNT_ABOVE_MAX;
+        if(category!=null) {
+            // 顶层旧原因码保持兼容；只细分受控类别，不记录数组数量、编号、UUID或正文。
+            throw new Rejected(Code.READ_HANDLE_COUNT,null,handles,null,category);
         }
     }
     public static void preflight(NextAction action,RuleAgentRunner.View view) {

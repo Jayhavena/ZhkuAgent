@@ -21,6 +21,8 @@ class RuleAgentOnlineFactoryTest {
     final List<RuleAgentProvider.Trace> traces=new CopyOnWriteArrayList<>();
     final RuleAgentRunnerTest fixture=new RuleAgentRunnerTest();
     boolean conditional;
+    boolean studyArrangement;
+    int selectedCount=1;
     String readSelection="valid";
     String savedSet;
     int searches;
@@ -30,6 +32,7 @@ class RuleAgentOnlineFactoryTest {
     final CountDownLatch releaseReview=new CountDownLatch(1);
     volatile boolean holdReview;
     RuleAgentEvidenceTools mappedTools(Owner owner,UUID task)throws Exception{
+        if(studyArrangement)return article4Tools(owner,task);
         var binding=new RuleCheckRuleTemplate.EvidenceBinding(fixture.source,fixture.chunk,"2025.9.2",fixture.hash(),0,fixture.text.length(),fixture.text);
         String ruleId=conditional?"S10/RETAKE_ONLY":"S02/GENERAL";
         var facts=conditional?List.of(
@@ -43,11 +46,27 @@ class RuleAgentOnlineFactoryTest {
         var current=new RuleCheckEvidenceSnapshot("current",fixture.source,fixture.chunk,"2025.9.2",fixture.hash(),fixture.text,true);
         return new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->List.of(entry),(q,n)->Collections.nCopies(candidateCopies,candidate),(s,c)->Optional.of(current),r->{},Clock.systemUTC());
     }
+    RuleAgentEvidenceTools article4Tools(Owner owner,UUID task)throws Exception{
+        var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();
+        var bundle=new ObjectMapper().readTree(java.nio.file.Files.readAllBytes(root.resolve("docs/product/rule-check-2025-verbatim-import-draft.json")));
+        var row=java.util.stream.StreamSupport.stream(bundle.path("chunks").spliterator(),false).filter(c->c.path("article").asInt()==4).findFirst().orElseThrow();
+        String text=row.path("content").asText();
+        String checksum=row.path("contentChecksum").asText();
+        var binding=new RuleCheckRuleTemplate.EvidenceBinding(fixture.source,fixture.chunk,"2025.9.2",checksum,0,text.length(),text);
+        var baseFact=new RuleCheckRuleTemplate.Fact("binding-only","仅供原文绑定",true,Map.of(),List.of(binding));
+        var template=new RuleCheckRuleTemplate("S02/GENERAL","2025.9.2",RuleCheckRuleTemplate.ReviewState.APPROVED,"LOCAL_BINDING_TEST",LocalDate.of(2026,10,14),List.of(baseFact),List.of(),List.of(),List.of());
+        var entry=new RuleCheckApplicationService.CatalogEntry(template,"本地绑定测试",new RuleCheckApplicabilityGuard.Coverage(Set.of(RuleCheckApplicabilityGuard.Audience.UNDERGRADUATE)),RuleCheckTopicGuard.Coverage.declared(RuleCheckTopicGuard.Topic.CATEGORY));
+        var entries=RuleArticle4Overlay.apply(root,List.of(entry));
+        var candidate=new RetrievedChunk(fixture.chunk,text,"local-reviewed-article4","local-reviewed-article4",1,"2025.9.2",checksum,fixture.source);
+        var current=new RuleCheckEvidenceSnapshot("current",fixture.source,fixture.chunk,"2025.9.2",checksum,text,true);
+        return new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->entries,(q,n)->Collections.nCopies(candidateCopies,candidate),(s,c)->Optional.of(current),r->{},Clock.systemUTC());
+    }
     Object review(JsonNode safe){
         var requirements=new ArrayList<RulePublicationContract.Requirement>();
         var bindings=new ArrayList<RulePublicationContract.SemanticBinding>();
         var q=safe.path("questions").get(0);
         for(var fact:safe.path("facts")){
+            if(studyArrangement&&!fact.path("id").asText().startsWith("T02/ARTICLE4:"))continue;
             var when=fact.path("when");
             if(when.has("courseType")&&safe.path("userConditions").has("courseType")&&!when.path("courseType").equals(safe.path("userConditions").path("courseType")))continue;
             String id="r"+requirements.size();
@@ -76,7 +95,7 @@ class RuleAgentOnlineFactoryTest {
                     if(holdReview)releaseReview.await(2,TimeUnit.SECONDS);
                     action=review(view.path("input"));
                 }
-                else if(view.path("observations").isEmpty())action=new Search("q1","课程类别");
+                else if(view.path("observations").isEmpty())action=new Search("q1",studyArrangement?view.path("question").asText():"课程类别");
                 else if(view.path("facts").isEmpty()){
                     var set=view.path("candidateSetId").asText("old-protocol");
                     var candidates=view.path("currentCandidates");
@@ -85,6 +104,11 @@ class RuleAgentOnlineFactoryTest {
                         case "unknown"->List.of("c999");
                         case "duplicate"->List.of(ref,ref);
                         case "excess"->List.of(ref,ref,ref,ref);
+                        case "empty"->List.of();
+                        case "all"->new ObjectMapper().convertValue(candidates,JsonNode.class).findValues("handle").stream().map(JsonNode::asText).toList();
+                        case "four"->java.util.stream.IntStream.range(0,4).mapToObj(i->candidates.get(i).path("handle").asText()).toList();
+                        case "not-array"->Map.of("private-body",ref);
+                        case "legal-count"->java.util.stream.IntStream.range(0,selectedCount).mapToObj(i->candidates.get(i).path("handle").asText()).toList();
                         case "uuid"->List.of(fixture.chunk.toString());
                         case "object"->List.of(Map.of("handle",ref));
                         case "number"->List.of(1);
@@ -106,7 +130,7 @@ class RuleAgentOnlineFactoryTest {
                     action=new Ask("q1","courseType","合成必要条件",ids);
                 }else{
                     var ids=new ArrayList<String>();
-                    view.path("facts").forEach(f->{if(!conditional||f.path("when").path("courseType").equals(view.path("userConditions").path("courseType")))ids.add(f.path("id").asText());});
+                    view.path("facts").forEach(f->{if((!studyArrangement||f.path("id").asText().startsWith("T02/ARTICLE4:"))&&(!conditional||f.path("when").path("courseType").equals(view.path("userConditions").path("courseType"))))ids.add(f.path("id").asText());});
                     action=new Finish(List.of(new Proposal("q1",ids,List.of(),null)));
                 }
                 byte[] bytes=json.writeValueAsBytes(Map.of("usage",Map.of("prompt_tokens",25,"completion_tokens",12),"choices",List.of(Map.of("finish_reason","stop","message",Map.of("content",json.writeValueAsString(action))))));
@@ -211,6 +235,46 @@ class RuleAgentOnlineFactoryTest {
         lastDecisionView.path("currentCandidates").forEach(c->refs.add(c.path("handle").asText()));
         assertThat(refs).containsExactly("c1","c2","c3","c4");
         for(var candidate:result.events().getFirst().observation().candidates())assertThat(lastDecisionView.toString()).doesNotContain(candidate.handle().toString());
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"empty,READ_HANDLE_COUNT_BELOW_MIN","all,READ_HANDLE_COUNT_ABOVE_MAX","not-array,READ_HANDLE_ARRAY_REQUIRED","four,READ_HANDLE_COUNT_ABOVE_MAX"})
+    void countFailuresAreDistinctBeforeReadWithRealReviewedArticle4(String selection,String category)throws Exception{
+        studyArrangement=true;
+        candidateCopies=10;
+        readSelection=selection;
+        start(4);
+        var input=RuleAgentRunner.Input.single(fixture.owner,fixture.task,"专业选修课和公共选修课在修读安排上有什么不同？");
+        var outcome=factory.open(fixture.owner,fixture.task).run(AgentRunContext.create(input.question()),input);
+        assertThat(outcome.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);
+        assertThat(outcome.events()).extracting(RuleAgentRunner.Event::action).containsExactly("SEARCH_REVIEWED_RULES");
+        assertThat(outcome.events().getFirst().observation().candidates()).hasSize(10);
+        assertThat(outcome.snapshot().result().items().getFirst().claims()).isEmpty();
+        assertThat(calls).hasValue(2);
+        var validation=new ObjectMapper().valueToTree(traces.getLast()).path("validation");
+        assertThat(validation.path("code").asText()).isEqualTo("READ_HANDLE_COUNT");
+        assertThat(validation.path("readSelection").path("failureCategory").asText()).isEqualTo(category);
+        assertThat(validation.path("readSelection").size()).isEqualTo(5);
+        assertThat(validation.toString()).doesNotContain("private-body",fixture.chunk.toString(),"c1","candidateSetId");
+        assertThat(traces.getLast().inputTokens()).isEqualTo(25);
+        assertThat(traces.getLast().outputTokens()).isEqualTo(12);
+        assertThat(factory.resourcesClosed()).isTrue();
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(ints={1,2,3})
+    void legalCountsPublishBothReviewedStudyFactsWithoutTruncatingCandidates(int count)throws Exception{
+        studyArrangement=true;
+        candidateCopies=10;
+        selectedCount=count;
+        readSelection="legal-count";
+        start(4);
+        var input=RuleAgentRunner.Input.single(fixture.owner,fixture.task,"专业选修课和公共选修课在修读安排上有什么不同？");
+        var outcome=factory.open(fixture.owner,fixture.task).run(AgentRunContext.create(input.question()),input);
+        assertThat(outcome.snapshot().taskStatus()).isEqualTo(TaskStatus.RESOLVED);
+        assertThat(outcome.events()).extracting(RuleAgentRunner.Event::action).containsExactly("SEARCH_REVIEWED_RULES","READ_VERIFIED_RULE","FINISH_CHECK","PUBLICATION_REVIEW");
+        assertThat(outcome.snapshot().result().items().getFirst().claims()).extracting(Claim::factId).containsExactlyInAnyOrder("T02/ARTICLE4:professional-elective-study-arrangement","T02/ARTICLE4:public-elective-self-selection");
+        assertThat(lastDecisionView.path("currentCandidates").size()).isEqualTo(10);
+        assertThat(calls).hasValue(4);
+        assertThat(factory.resourcesClosed()).isTrue();
     }
     @Test void prepareP01PacketFromCurrentAuthoritiesWithoutOpeningPorts()throws Exception{
         var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();

@@ -63,9 +63,8 @@ final class RuleCandidateReferences {
             throw new Rejected(Stage.ACTION_FIELDS,Code.ACTION_FIELDS_INVALID);
         }
         var selected=parsed.path("handles");
-        if(!selected.isArray()||selected.size()<MIN_READ_HANDLES||selected.size()>DEFAULT_BUDGET.maxReadHandles()) {
-            throw new Rejected(Code.READ_HANDLE_COUNT,null,selected,null);
-        }
+        // 模型编号与内部UUID动作共享数量校验；投影上下限仍来自同一领域预算。
+        checkReadCount(selected);
         // 集合代号先绑定宿主当前表；同名c1不能跨任务或沿用旧检索集合。
         if(setId==null||!parsed.path("candidateSetId").isTextual()||!setId.equals(parsed.path("candidateSetId").textValue())) {
             throw new Rejected(Code.READ_REFERENCE_SET,0,selected.get(0),false);
