@@ -17,6 +17,8 @@ class RuleAgentProviderTest {
     final List<RuleAgentProvider.Trace> traces=new CopyOnWriteArrayList<>();
     final AtomicInteger calls=new AtomicInteger();
     final AtomicReference<String> request=new AtomicReference<>();
+    final AtomicReference<String> responseBody=new AtomicReference<>();
+    final CountDownLatch requestReceived=new CountDownLatch(1);
     HttpServer server;
     ExecutorService workers;
     RuleAgentProvider port;
@@ -27,15 +29,17 @@ class RuleAgentProviderTest {
         start(status,body,delay,0);
     }
     void start(int status,String body,long delay,long bodyDelay)throws Exception{
+        responseBody.set(body);
         workers=Executors.newFixedThreadPool(2);
         server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
         server.setExecutor(workers);
         server.createContext("/chat/completions",e->{
             calls.incrementAndGet();
             request.set(new String(e.getRequestBody().readAllBytes(),StandardCharsets.UTF_8));
+            requestReceived.countDown();
             try{
                 if(delay>0)Thread.sleep(delay);
-                byte[] data=body.getBytes(StandardCharsets.UTF_8);
+                byte[] data=responseBody.get().getBytes(StandardCharsets.UTF_8);
                 e.getResponseHeaders().add("x-request-id","local-request-01");
                 e.sendResponseHeaders(status,data.length);
                 if(bodyDelay>0){
@@ -302,5 +306,116 @@ class RuleAgentProviderTest {
         assertThat(trace.path("validation").path("code").asText()).isEqualTo("RESPONSE_STRUCTURE_INVALID");
         assertThat(traces.getLast().inputTokens()).isEqualTo(7);
         assertThat(traces.getLast().outputTokens()).isEqualTo(2);
+    }
+
+    RulePublicationContract.SemanticInput reviewInput(){
+        return new RulePublicationContract.SemanticInput(RulePublicationContract.REVISION,RuleFactCapabilityCatalogue.VERSION,"a".repeat(64),
+            List.of(new RuleAgentRunner.Question("q1","这项安排是指什么？")),Map.of(),List.of(),Map.of());
+    }
+    String reviewJson()throws Exception{
+        var input=reviewInput();
+        return new ObjectMapper().writeValueAsString(new RulePublicationContract.SemanticAssessment(input.protocolRevision(),input.inputFingerprint(),
+            List.of(),List.of(),List.of(new RulePublicationContract.UnresolvedDemand(new RulePublicationContract.DemandSpan("q1",0,4),
+                RulePublicationContract.UnresolvedReason.AMBIGUOUS_SCOPE))));
+    }
+    RuleSemanticReviewPort reviewPort(){
+        assertThat((Object)port).isInstanceOf(RuleSemanticReviewPort.class);
+        return (RuleSemanticReviewPort)(Object)port;
+    }
+    @Test void reviewUsesIndependentInputAndSharedAttemptsWithPurposeAudit()throws Exception{
+        start(200,good(),0);
+        port.close();
+        var batchAllowance=new AtomicInteger(8);
+        port=new RuleAgentProvider(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),"qwen-plus","LOCAL_TEST_ONLY"),
+            UUID.randomUUID(),UUID.randomUUID(),()->"local-test-placeholder",traces::add,batchAllowance);
+        for(int i=0;i<3;i++)port.decide(view(),Duration.ofSeconds(2));
+        responseBody.set(response(reviewJson(),"stop"));
+        var result=reviewPort().assess(reviewInput(),Duration.ofSeconds(2));
+        assertThat(result.unresolvedDemands()).hasSize(1);
+        assertThat(calls).hasValue(4);
+        assertThat(traces.getLast().attempt()).isEqualTo(4);
+        var trace=new ObjectMapper().valueToTree(traces.getLast());
+        assertThat(trace.path("purpose").asText()).isEqualTo("PUBLICATION_REVIEW");
+        assertThat(new ObjectMapper().valueToTree(traces.getFirst()).path("purpose").asText()).isEqualTo("DECISION");
+        var data=new ObjectMapper().readTree(new ObjectMapper().readTree(request.get()).path("messages").get(1).path("content").asText());
+        assertThat(data.path("input").path("inputFingerprint").asText()).isEqualTo(reviewInput().inputFingerprint());
+        assertThat(data.path("reviewContract").path("maxRequirements").asInt()).isEqualTo(RulePublicationContract.MAX_REQUIREMENTS);
+        assertThat(data.toString()).doesNotContain("proposal","supportingFactIds","originalToken","actorId","sessionNonce");
+        assertThatThrownBy(()->reviewPort().assess(reviewInput(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls).hasValue(4);
+        assertThat(batchAllowance).hasValue(4);
+    }
+    static List<String> invalidReviews(){return List.of("bad-json","{}","null",
+        "{\"protocolRevision\":\"RULE_PUBLICATION_REVIEW_01\",\"protocolRevision\":\"duplicate\"}");}
+    @ParameterizedTest @MethodSource("invalidReviews")
+    void invalidReviewRetainsUsageAndNeverRetries(String content)throws Exception{
+        start(200,response(content,"stop"),0);
+        assertThatThrownBy(()->reviewPort().assess(reviewInput(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls).hasValue(1);
+        assertThat(traces.getLast().inputTokens()).isEqualTo(25);
+        assertThat(traces.getLast().outputTokens()).isEqualTo(12);
+        assertThat(new ObjectMapper().valueToTree(traces.getLast()).path("validation").path("stage").asText()).isEqualTo("REVIEW_JSON");
+        assertThat(new ObjectMapper().writeValueAsString(traces)).doesNotContain("bad-json","duplicate","local-test-placeholder");
+    }
+    @Test void wrongFingerprintUnknownFieldsAndInvalidEnumAreRejected()throws Exception{
+        start(200,response(reviewJson().replace("a".repeat(64),"b".repeat(64)),"stop"),0);
+        var reviewer=reviewPort();
+        assertThatThrownBy(()->reviewer.assess(reviewInput(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(new ObjectMapper().valueToTree(traces.getLast()).path("validation").path("code").asText()).isEqualTo("REVIEW_BINDING_INVALID");
+        responseBody.set(response(reviewJson().replace("AMBIGUOUS_SCOPE","invented"),"stop"));
+        assertThatThrownBy(()->reviewer.assess(reviewInput(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
+        responseBody.set(response(reviewJson().replace("\"requirements\":[]","\"extra\":7,\"requirements\":[]"),"stop"));
+        assertThatThrownBy(()->reviewer.assess(reviewInput(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls).hasValue(3);
+    }
+    @Test void reviewMissingUsageIsUnknownAndClosedPortDoesNotCall()throws Exception{
+        start(200,response(reviewJson(),"stop"),0);
+        // 通过树删除usage，不依赖Map序列化字段顺序。
+        var outer=(com.fasterxml.jackson.databind.node.ObjectNode)new ObjectMapper().readTree(response(reviewJson(),"stop"));
+        outer.remove("usage");
+        responseBody.set(outer.toString());
+        reviewPort().assess(reviewInput(),Duration.ofSeconds(2));
+        assertThat(traces.getLast().inputTokens()).isNull();
+        assertThat(traces.getLast().outputTokens()).isNull();
+        port.close();
+        assertThatThrownBy(()->reviewPort().assess(reviewInput(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls).hasValue(1);
+    }
+    @Test void reviewTimeoutAndExhaustedSharedAllowanceStopLocally()throws Exception{
+        start(200,response(reviewJson(),"stop"),500);
+        assertThatThrownBy(()->reviewPort().assess(reviewInput(),Duration.ofMillis(60))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.MODEL_TIMEOUT);
+        assertThat(calls.get()).isLessThanOrEqualTo(1);
+        port.close();
+        port=new RuleAgentProvider(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),"qwen-plus","LOCAL_TEST_ONLY"),
+            UUID.randomUUID(),UUID.randomUUID(),()->"local-test-placeholder",traces::add,new AtomicInteger(0));
+        int before=calls.get();
+        assertThatThrownBy(()->reviewPort().assess(reviewInput(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls.get()).isEqualTo(before);
+    }
+    static List<String[]> reviewHttpFailures(){return List.of(new String[]{"401","MODEL_AUTH_FAILURE"},new String[]{"429","MODEL_RATE_LIMIT"},new String[]{"503","MODEL_UNAVAILABLE"});}
+    @ParameterizedTest @MethodSource("reviewHttpFailures")
+    void reviewHttpFailuresKeepPurposeAndDoNotRetry(String status,String reason)throws Exception{
+        start(Integer.parseInt(status),"{}",0);
+        assertThatThrownBy(()->reviewPort().assess(reviewInput(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(traces.getLast().reason().name()).isEqualTo(reason);
+        assertThat(new ObjectMapper().valueToTree(traces.getLast()).path("purpose").asText()).isEqualTo("PUBLICATION_REVIEW");
+        assertThat(calls).hasValue(1);
+    }
+    @Test void closingInFlightReviewCancelsAndDoesNotReturnLateAssessment()throws Exception{
+        start(200,response(reviewJson(),"stop"),1500);
+        var reviewer=reviewPort();
+        var caller=Executors.newSingleThreadExecutor();
+        try{
+            var pending=caller.submit(()->{
+                try{reviewer.assess(reviewInput(),Duration.ofSeconds(2));return "UNEXPECTED_SUCCESS";}
+                catch(RuleAgentProvider.Failure failure){return failure.reason.name();}
+            });
+            assertThat(requestReceived.await(1,TimeUnit.SECONDS)).isTrue();
+            port.close();
+            assertThat(pending.get(2,TimeUnit.SECONDS)).isEqualTo("CANCELLED");
+            assertThat(calls).hasValue(1);
+            assertThat(port.isTerminated()).isTrue();
+        }finally{caller.shutdownNow();assertThat(caller.awaitTermination(2,TimeUnit.SECONDS)).isTrue();}
     }
 }

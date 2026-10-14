@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="8.11" tests="40" errors="0" skipped="0" failures="8"><testcase name="wrongFingerprintUnknownFieldsAndInvalidEnumAreRejected" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.344"><failure message="&#xA;Expecting actual:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider@34abdee4&#xA;to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort&#xA;but was instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider@34abdee4
+to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort
+but was instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.wrongFingerprintUnknownFieldsAndInvalidEnumAreRejected(RuleAgentProviderTest.java:355)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="disconnectedEndpointIsFailureWithoutRetry" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.061" /><testcase name="unknownActionCannotBecomeATool" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.07" /><testcase name="timeoutIncludesWholeResponseAndConsumesAllowance" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.085" /><testcase name="missingKeyMakesNoHttpCall" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.011" /><testcase name="authorizationAndServerErrorsDoNotBecomeMissingEvidence" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.015" /><testcase name="failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[1]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.144" /><testcase name="failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[2]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.045" /><testcase name="failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[3]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.035" /><testcase name="failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[4]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.035" /><testcase name="failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[5]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.031" /><testcase name="failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[6]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.027" /><testcase name="failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[7]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.03" /><testcase name="failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[8]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.031" /><testcase name="failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[9]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.033" /><testcase name="failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[10]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.033" /><testcase name="failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[11]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.026" /><testcase name="completeResponseRecordsMonotonicTimingAndExactPayloadBytes" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.019" /><testcase name="reviewTimeoutAndExhaustedSharedAllowanceStopLocally" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.01"><failure message="&#xA;Expecting actual throwable to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider.Failure&#xA;but was:&#xA;  java.lang.AssertionError: &#xA;Expecting actual:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider@66596a88&#xA;to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort&#xA;but was instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.lambda$reviewTimeoutAndExhaustedSharedAllowanceStopLocally$32(RuleAgentProviderTest.java:379)&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewTimeoutAndExhaustedSharedAllowanceStopLocally(RuleAgentProviderTest.java:379)&#xA; ...(70 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider.Failure
+but was:
+  java.lang.AssertionError: 
+Expecting actual:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider@66596a88
+to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort
+but was instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.lambda$reviewTimeoutAndExhaustedSharedAllowanceStopLocally$32(RuleAgentProviderTest.java:379)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewTimeoutAndExhaustedSharedAllowanceStopLocally(RuleAgentProviderTest.java:379)
+	...(70 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewTimeoutAndExhaustedSharedAllowanceStopLocally(RuleAgentProviderTest.java:379)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="headerTimeoutDoesNotInventReceivedResponse" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.519" /><testcase name="auditFailureBlocksExternalCall" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.01" /><testcase name="reviewUsesIndependentInputAndSharedAttemptsWithPurposeAudit" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.031"><failure message="&#xA;Expecting actual:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider@1bc425e7&#xA;to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort&#xA;but was instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider@1bc425e7
+to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort
+but was instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewUsesIndependentInputAndSharedAttemptsWithPurposeAudit(RuleAgentProviderTest.java:327)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="invalidEnvelopeKeepsKnownUsageAndMissingUsageStaysUnknown" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.024" /><testcase name="onlineEnvironmentRejectsReplayAndMissingAuthorization" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.002" /><testcase name="serverFailureIsClassified" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.02" /><testcase name="badJsonIsProcessingFailureWithoutRetry" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.02" /><testcase name="bodyTimeoutRetainsHeaderAndPartialBodyDiagnostics" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.624" /><testcase name="truncatedCompletionIsRejected" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.018" /><testcase name="revisedBudgetCanReceiveBeyondFiveSecondsWithoutAutomaticRetry" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="5.52" /><testcase name="onlineEnvironmentPinsDestinationAndModel" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.004" /><testcase name="legalReadUsesCurrentCandidateAndAdvertisesAuthoritativeLimits" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.024" /><testcase name="exhaustedAllowanceMakesNoHttpCall" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.014" /><testcase name="rateLimitIsClassifiedWithoutRetry" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.016" /><testcase name="invalidReviewRetainsUsageAndNeverRetries(String)[1]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.017"><failure message="&#xA;Expecting actual throwable to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider.Failure&#xA;but was:&#xA;  java.lang.AssertionError: &#xA;Expecting actual:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider@415156bf&#xA;to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort&#xA;but was instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.lambda$invalidReviewRetainsUsageAndNeverRetries$27(RuleAgentProviderTest.java:346)&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.invalidReviewRetainsUsageAndNeverRetries(RuleAgentProviderTest.java:346)&#xA; ...(134 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider.Failure
+but was:
+  java.lang.AssertionError: 
+Expecting actual:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider@415156bf
+to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort
+but was instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.lambda$invalidReviewRetainsUsageAndNeverRetries$27(RuleAgentProviderTest.java:346)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.invalidReviewRetainsUsageAndNeverRetries(RuleAgentProviderTest.java:346)
+	...(134 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.invalidReviewRetainsUsageAndNeverRetries(RuleAgentProviderTest.java:346)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.AbstractList$RandomAccessSpliterator.forEachRemaining(AbstractList.java:722)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="invalidReviewRetainsUsageAndNeverRetries(String)[2]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.011"><failure message="&#xA;Expecting actual throwable to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider.Failure&#xA;but was:&#xA;  java.lang.AssertionError: &#xA;Expecting actual:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider@2fc07784&#xA;to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort&#xA;but was instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.lambda$invalidReviewRetainsUsageAndNeverRetries$27(RuleAgentProviderTest.java:346)&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.invalidReviewRetainsUsageAndNeverRetries(RuleAgentProviderTest.java:346)&#xA; ...(134 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider.Failure
+but was:
+  java.lang.AssertionError: 
+Expecting actual:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider@2fc07784
+to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort
+but was instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.lambda$invalidReviewRetainsUsageAndNeverRetries$27(RuleAgentProviderTest.java:346)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.invalidReviewRetainsUsageAndNeverRetries(RuleAgentProviderTest.java:346)
+	...(134 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.invalidReviewRetainsUsageAndNeverRetries(RuleAgentProviderTest.java:346)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.AbstractList$RandomAccessSpliterator.forEachRemaining(AbstractList.java:722)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="invalidReviewRetainsUsageAndNeverRetries(String)[3]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.01"><failure message="&#xA;Expecting actual throwable to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider.Failure&#xA;but was:&#xA;  java.lang.AssertionError: &#xA;Expecting actual:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider@f2e4acf&#xA;to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort&#xA;but was instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.lambda$invalidReviewRetainsUsageAndNeverRetries$27(RuleAgentProviderTest.java:346)&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.invalidReviewRetainsUsageAndNeverRetries(RuleAgentProviderTest.java:346)&#xA; ...(134 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider.Failure
+but was:
+  java.lang.AssertionError: 
+Expecting actual:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider@f2e4acf
+to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort
+but was instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.lambda$invalidReviewRetainsUsageAndNeverRetries$27(RuleAgentProviderTest.java:346)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.invalidReviewRetainsUsageAndNeverRetries(RuleAgentProviderTest.java:346)
+	...(134 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.invalidReviewRetainsUsageAndNeverRetries(RuleAgentProviderTest.java:346)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.AbstractList$RandomAccessSpliterator.forEachRemaining(AbstractList.java:722)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="invalidReviewRetainsUsageAndNeverRetries(String)[4]" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.011"><failure message="&#xA;Expecting actual throwable to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider.Failure&#xA;but was:&#xA;  java.lang.AssertionError: &#xA;Expecting actual:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider@388b401d&#xA;to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort&#xA;but was instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.lambda$invalidReviewRetainsUsageAndNeverRetries$27(RuleAgentProviderTest.java:346)&#xA; at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.invalidReviewRetainsUsageAndNeverRetries(RuleAgentProviderTest.java:346)&#xA; ...(134 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider.Failure
+but was:
+  java.lang.AssertionError: 
+Expecting actual:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider@388b401d
+to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort
+but was instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.lambda$invalidReviewRetainsUsageAndNeverRetries$27(RuleAgentProviderTest.java:346)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.invalidReviewRetainsUsageAndNeverRetries(RuleAgentProviderTest.java:346)
+	...(134 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.invalidReviewRetainsUsageAndNeverRetries(RuleAgentProviderTest.java:346)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.AbstractList$RandomAccessSpliterator.forEachRemaining(AbstractList.java:722)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="validActionAndUsageAreRecordedWithoutCredentials" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.024" /><testcase name="reviewMissingUsageIsUnknownAndTimeoutDoesNotRetry" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.019"><failure message="&#xA;Expecting actual:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider@248deced&#xA;to be an instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort&#xA;but was instance of:&#xA;  com.zhku.knowledge.ruleagent.RuleAgentProvider" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+
+Expecting actual:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider@248deced
+to be an instance of:
+  com.zhku.knowledge.ruleagent.RuleSemanticReviewPort
+but was instance of:
+  com.zhku.knowledge.ruleagent.RuleAgentProvider
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewPort(RuleAgentProviderTest.java:320)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.reviewMissingUsageIsUnknownAndTimeoutDoesNotRetry(RuleAgentProviderTest.java:370)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="oversizedResponseIsRejected" classname="com.zhku.knowledge.ruleagent.RuleAgentProviderTest" time="0.017" /></testsuite>

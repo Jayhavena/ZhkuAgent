@@ -37,6 +37,9 @@ public final class RuleAgentJson {
     static NextAction bindAction(JsonNode node) {
         return read(node.toString(),NextAction.class);
     }
+    static RulePublicationContract.SemanticAssessment bindReview(JsonNode node) {
+        return read(node.toString(),RulePublicationContract.SemanticAssessment.class);
+    }
     public static CreateTask readCreate(String input){return read(input,CreateTask.class);}
     public static Message readMessage(String input){return read(input,Message.class);}
     public static Cancel readCancel(String input){return read(input,Cancel.class);}
