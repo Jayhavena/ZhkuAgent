@@ -12,11 +12,12 @@ public final class RulePublicationGate {
 
     public PublicationAssessment assess(RuleAgentRunner.Input input,RuleAgentContract.NextAction proposal,
         SemanticAssessment review,List<RuleAgentEvidenceTools.VerifiedFact> facts) {
-        if(!(proposal instanceof RuleAgentContract.Finish finish))throw new Rejected(Code.ACTION_UNSUPPORTED);
+        if(!(proposal instanceof RuleAgentContract.Finish)&&!(proposal instanceof RuleAgentContract.Ask))throw new Rejected(Code.ACTION_UNSUPPORTED);
         require(review!=null&&review.inputFingerprint().equals(RulePublicationContract.input(input,facts,catalogue).inputFingerprint()));
         var questions=new LinkedHashMap<String,RuleAgentRunner.Question>();
         input.questions().forEach(q->questions.put(q.id(),q));
-        require(new HashSet<>(finish.items().stream().map(RuleAgentContract.Proposal::subquestionId).toList()).equals(questions.keySet()));
+        if(proposal instanceof RuleAgentContract.Finish finish)
+            require(new HashSet<>(finish.items().stream().map(RuleAgentContract.Proposal::subquestionId).toList()).equals(questions.keySet()));
         var read=new LinkedHashMap<String,RuleAgentEvidenceTools.VerifiedFact>();
         for(var fact:facts) {
             require(fact.id().equals(fact.ruleId()+":"+fact.definition().id()));
@@ -42,6 +43,8 @@ public final class RulePublicationGate {
             if(!dimension||capability.subject()!=requirement.subject()||!capability.allowedRoles().contains(binding.role()))
                 throw new Rejected(Code.REVIEW_BINDING_INVALID);
         }
+        if(proposal instanceof RuleAgentContract.Ask ask)return assessAsk(input,ask,review,read,requirements,questions);
+        var finish=(RuleAgentContract.Finish)proposal;
         var accepted=new ArrayList<SemanticBinding>();
         var assessments=new LinkedHashMap<String,QuestionAssessment>();
         boolean complete=true;
@@ -72,6 +75,58 @@ public final class RulePublicationGate {
         }
         // 辅助例外不完成主需求；漏选已读事实也不能借核验器看过它而自称完整。
         return new PublicationAssessment(complete?Verdict.COMPLETE:hasCovered?Verdict.PARTIAL:Verdict.UNRESOLVED,accepted,assessments);
+    }
+
+    private PublicationAssessment assessAsk(RuleAgentRunner.Input input,RuleAgentContract.Ask ask,
+        SemanticAssessment review,Map<String,RuleAgentEvidenceTools.VerifiedFact> read,
+        Map<String,Requirement> requirements,Map<String,RuleAgentRunner.Question> questions) {
+        require(questions.containsKey(ask.subquestionId()));
+        if(input.userConditions().containsKey(ask.conditionId()))throw new Rejected(Code.CONDITION_ALREADY_PROVIDED);
+        if(ask.supportingFactIds().isEmpty())throw new Rejected(Code.CONDITION_NOT_NECESSARY);
+        var accepted=new ArrayList<SemanticBinding>();
+        var pending=new LinkedHashSet<String>();
+        for(String id:ask.supportingFactIds()) {
+            var fact=read.get(id);
+            if(fact==null)throw new Rejected(Code.FACT_NOT_READ);
+            capability(fact);
+            var compatible=fact.definition().when().entrySet().stream().allMatch(e->
+                e.getKey().equals(ask.conditionId())||e.getValue().equals(input.userConditions().get(e.getKey())));
+            if(!compatible)throw new Rejected(Code.WHEN_NOT_SATISFIED);
+            var matching=review.bindings().stream().filter(b->b.factId().equals(id)&&b.role()==BindingRole.CORE)
+                .filter(b->requirements.get(b.requirementId()).span().subquestionId().equals(ask.subquestionId()))
+                .filter(b->requirements.get(b.requirementId()).necessaryConditionIds().contains(ask.conditionId())).toList();
+            if(!fact.definition().when().containsKey(ask.conditionId())||matching.isEmpty())throw new Rejected(Code.CONDITION_NOT_NECESSARY);
+            accepted.addAll(matching);
+            matching.forEach(b->pending.add(b.requirementId()));
+        }
+        var assessments=new LinkedHashMap<String,QuestionAssessment>();
+        boolean hasKnown=false;
+        for(String q:questions.keySet()) {
+            var covered=new LinkedHashSet<String>();
+            // 只保留核验明确关联且条件满足的独立事实；读过的无关背景不能自动展示。
+            for(var binding:review.bindings()) {
+                var requirement=requirements.get(binding.requirementId());
+                var fact=read.get(binding.factId());
+                if(!requirement.span().subquestionId().equals(q)||binding.role()!=BindingRole.CORE)continue;
+                if(fact.definition().independentlyAnswerable()&&fact.definition().when().entrySet().stream()
+                    .allMatch(e->e.getValue().equals(input.userConditions().get(e.getKey())))) {
+                    covered.add(requirement.id());
+                    if(!accepted.contains(binding))accepted.add(binding);
+                }
+            }
+            var uncovered=new LinkedHashSet<String>();
+            review.requirements().stream().filter(r->r.span().subquestionId().equals(q)).map(Requirement::id).forEach(uncovered::add);
+            uncovered.removeAll(covered);
+            boolean unresolved=review.requirements().stream().anyMatch(r->r.span().subquestionId().equals(q)&&r.recognition()!=Recognition.IDENTIFIED)
+                ||review.unresolvedDemands().stream().anyMatch(r->r.span().subquestionId().equals(q));
+            // 追问不能掩盖其余未理解/未完成需求；首期只接受可由这一审核条件推进的澄清。
+            if(unresolved||uncovered.stream().anyMatch(id->!pending.contains(id)))throw new Rejected(Code.CONDITION_NOT_NECESSARY);
+            hasKnown|=!covered.isEmpty();
+            assessments.put(q,new QuestionAssessment(covered,uncovered,false,false));
+        }
+        if(pending.isEmpty()||pending.stream().allMatch(id->assessments.get(ask.subquestionId()).coveredRequirementIds().contains(id)))
+            throw new Rejected(Code.CONDITION_NOT_NECESSARY);
+        return new PublicationAssessment(hasKnown?Verdict.PARTIAL:Verdict.UNRESOLVED,accepted,assessments);
     }
 
     private FactCapability capability(RuleAgentEvidenceTools.VerifiedFact fact) {

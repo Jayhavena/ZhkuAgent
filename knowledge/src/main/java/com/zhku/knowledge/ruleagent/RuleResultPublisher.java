@@ -28,6 +28,20 @@ public final class RuleResultPublisher {
             broker.proofs(item.subquestionId(),fact,input);
         }
     }
+    /** 追问的目标条件可以缺失，其余条件仍须满足；不能要求缺失条件先成立。 */
+    void precheckAsk(Ask ask){
+        if(input.userConditions().containsKey(ask.conditionId())||ask.supportingFactIds().isEmpty())throw new Rejected(ReasonCode.INVALID_MODEL_RESPONSE);
+        for(String id:ask.supportingFactIds()){
+            var fact=broker.fact(ask.subquestionId(),id);
+            var current=entry(fact);
+            checkApplicability(ask.subquestionId(),current,new LinkedHashMap<>());
+            if(current.template().conditions().stream().noneMatch(c->c.key().equals(ask.conditionId()))
+                ||!fact.definition().when().containsKey(ask.conditionId())
+                ||!fact.definition().when().entrySet().stream().allMatch(e->e.getKey().equals(ask.conditionId())||e.getValue().equals(input.userConditions().get(e.getKey())))
+                ||!current.template().conflicts().isEmpty())throw new Rejected(ReasonCode.INVALID_MODEL_RESPONSE);
+            broker.proofs(ask.subquestionId(),fact,input);
+        }
+    }
     Published finish(Finish finish){
         if(!new HashSet<>(finish.items().stream().map(Proposal::subquestionId).toList()).equals(new HashSet<>(input.questions().stream().map(Question::id).toList())))throw new Rejected(ReasonCode.INVALID_MODEL_RESPONSE);
         var items=new ArrayList<Subquestion>();
@@ -65,6 +79,7 @@ public final class RuleResultPublisher {
         return build(items,items.stream().flatMap(q->q.issues().stream()).anyMatch(i->i.kind()==IssueKind.PROCESSING_FAILURE)?TaskStatus.FAILED:TaskStatus.RESOLVED,null);
     }
     Published ask(Ask ask){
+        if(review!=null)precheckAsk(ask);
         var supporting=ask.supportingFactIds().stream().map(id->broker.fact(ask.subquestionId(),id)).toList();
         if(supporting.isEmpty()||input.userConditions().containsKey(ask.conditionId()))throw new Rejected(ReasonCode.INVALID_MODEL_RESPONSE);
         RuleCheckRuleTemplate.Condition needed=null;
@@ -81,6 +96,8 @@ public final class RuleResultPublisher {
             var claims=new ArrayList<Claim>();var issues=new LinkedHashMap<ReasonCode,Issue>();
             for(var f:broker.facts(q.id())){
                 if(!f.definition().independentlyAnswerable()||!f.definition().when().entrySet().stream().allMatch(e->e.getValue().equals(input.userConditions().get(e.getKey()))))continue;
+                if(review!=null&&!review.acceptedBindings().stream().anyMatch(b->b.factId().equals(f.id())
+                    &&b.role()==RulePublicationContract.BindingRole.CORE&&review.questions().get(q.id()).coveredRequirementIds().contains(b.requirementId())))continue;
                 var entry=entry(f);try{checkScope(q.id(),entry,issues);}catch(Rejected unrelated){continue;}
                 var claim=new Claim("c"+claims.size(),f.id(),f.definition().text(),f.definition().when(),ConditionSource.USER_DECLARED);claims.add(claim);relate(q.id(),claim.id(),EvidenceRole.CLAIM,broker.proofs(q.id(),f,input));
             }
@@ -100,7 +117,7 @@ public final class RuleResultPublisher {
     private RuleCheckApplicationService.CatalogEntry entry(RuleAgentEvidenceTools.VerifiedFact fact){var e=broker.tools.reviewedEntry(fact.ruleId()).orElseThrow(()->new Rejected(ReasonCode.EVIDENCE_CHANGED));if(!e.template().facts().contains(fact.definition()))throw new Rejected(ReasonCode.EVIDENCE_CHANGED);return e;}
     private void checkScope(String q,RuleCheckApplicationService.CatalogEntry entry,Map<ReasonCode,Issue> issues){
         String text=input.questions().stream().filter(x->x.id().equals(q)).findFirst().orElseThrow().text();
-        // 只有通过独立Gate的FINISH免旧主题否决；旧工程路径与ASK保持原边界。
+        // 只有通过独立Gate的提议免旧主题否决；旧工程路径保持原边界。
         if(review==null){var topic=new RuleCheckTopicGuard().assess(text,entry.topicCoverage());if(!topic.evaluated()||topic.blocked())throw new Rejected(ReasonCode.MATERIAL_SCOPE_MISMATCH);}
         checkApplicability(q,entry,issues);
     }

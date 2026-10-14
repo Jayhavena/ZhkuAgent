@@ -77,14 +77,15 @@ public final class RuleAgentRunner {
                     Event reviewEvent=null;
                     try{
                         if(action instanceof Search||action instanceof Read)observation=broker.execute(action,input,context.runId(),steps);
-                        else if(action instanceof Ask a){
-                            if(publicationReview!=null)throw new Rejected(ReasonCode.TASK_EXECUTION_UNAVAILABLE);
-                            published=new RuleResultPublisher(broker,input,context.runId()).ask(a);
-                        }
-                        else if(action instanceof Finish f){
-                            if(publicationReview==null)published=new RuleResultPublisher(broker,input,context.runId()).finish(f);
+                        else if(action instanceof Ask||action instanceof Finish){
+                            if(publicationReview==null){
+                                var publisher=new RuleResultPublisher(broker,input,context.runId());
+                                published=action instanceof Ask a?publisher.ask(a):publisher.finish((Finish)action);
+                            }
                             else{
-                                new RuleResultPublisher(broker,input,context.runId()).precheckFinish(f);
+                                var precheck=new RuleResultPublisher(broker,input,context.runId());
+                                if(action instanceof Ask a)precheck.precheckAsk(a);
+                                else precheck.precheckFinish((Finish)action);
                                 if(attempts>=DEFAULT_BUDGET.maxModelAttemptsPerRun()||!clock.instant().isBefore(deadline))throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
                                 var entries=broker.facts().stream().map(fact->broker.tools.reviewedEntry(fact.ruleId()).orElseThrow(()->new Rejected(ReasonCode.EVIDENCE_CHANGED))).distinct().toList();
                                 var capabilities=RuleFactCapabilityCatalogue.fromReviewed(entries);
@@ -98,9 +99,10 @@ public final class RuleAgentRunner {
                                     if(context.isStopRequested())throw new Rejected(ReasonCode.CANCELLED);
                                     if(Duration.between(reviewStarted,clock.instant()).toMillis()>DEFAULT_BUDGET.maxModelMillis())throw new Rejected(ReasonCode.MODEL_TIMEOUT);
                                     if(!clock.instant().isBefore(deadline))throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
-                                    var coverage=new RulePublicationGate(capabilities).assess(input,f,assessed,broker.facts());
+                                    var coverage=new RulePublicationGate(capabilities).assess(input,action,assessed,broker.facts());
                                     reviewEvent=new Event(attempts,"PUBLICATION_REVIEW",null,null);
-                                    published=new RuleResultPublisher(broker,input,context.runId(),coverage).finish(f);
+                                    var publisher=new RuleResultPublisher(broker,input,context.runId(),coverage);
+                                    published=action instanceof Ask a?publisher.ask(a):publisher.finish((Finish)action);
                                 }catch(RulePublicationContract.Rejected invalid){
                                     reviewEvent=new Event(attempts,"PUBLICATION_REVIEW",null,ReasonCode.INVALID_MODEL_RESPONSE,invalid.code);
                                     throw invalid;

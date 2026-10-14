@@ -1,0 +1,2099 @@
+{
+  "ask": [
+    {
+      "outcome": {
+        "snapshot": {
+          "schemaVersion": 3,
+          "taskId": "c5083823-49f6-4268-8b49-f16b16a4f196",
+          "turnId": "3834930f-7c82-4308-8609-53e8829a665c",
+          "runId": "6e63b7b7-7c3e-44c6-83dd-abc929c60419",
+          "version": 1,
+          "taskStatus": "WAITING_USER",
+          "runState": "INCOMPLETE",
+          "terminated": true,
+          "result": {
+            "publishedVersion": 1,
+            "originatingRunId": "6e63b7b7-7c3e-44c6-83dd-abc929c60419",
+            "catalogueVersion": "cat-17cb8fd1379825b3c15d7710f9cfc34382aae370221799385126864f8f9bebc5",
+            "referenceRevision": "2025.9.2",
+            "coverage": "NONE",
+            "items": [
+              {
+                "id": "q1",
+                "coverage": "NONE",
+                "claims": [],
+                "issues": [
+                  {
+                    "id": "i-MISSING_CONDITION",
+                    "kind": "CLARIFICATION",
+                    "reasonCode": "MISSING_CONDITION",
+                    "message": "还缺影响结论的必要条件。",
+                    "nextStep": "请补充下方必要条件。"
+                  }
+                ],
+                "clarification": [
+                  {
+                    "conditionId": "courseType",
+                    "question": "这门课属于公共选修还是专业选修？",
+                    "allowedValues": [
+                      "PUBLIC",
+                      "PROFESSIONAL"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "evidence": [
+              {
+                "id": "586864c9-f7f7-43fc-962d-a8d4c4d91fcd:0-48",
+                "sourceId": "72e64c39-2ff1-4acf-9ee4-fa27800d87a9",
+                "chunkId": "b9a228ce-8a46-3eab-a742-f5ef4594da31",
+                "revision": "2025.9.2",
+                "checksum": "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
+                "startInclusive": 0,
+                "endExclusive": 48,
+                "quote": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。"
+              }
+            ],
+            "evidenceRelations": [
+              {
+                "evidenceId": "586864c9-f7f7-43fc-962d-a8d4c4d91fcd:0-48",
+                "subquestionId": "q1",
+                "role": "CLARIFICATION",
+                "targetId": "courseType"
+              }
+            ]
+          },
+          "execution": {
+            "mode": "ONLINE",
+            "modelAttemptCount": 4,
+            "toolStepCount": 3,
+            "providerResponseReceived": false,
+            "answerSource": "VERIFIED_RULE_ONLY",
+            "replayCoverage": "NOT_APPLICABLE"
+          }
+        },
+        "events": [
+          {
+            "attempt": 1,
+            "action": "SEARCH_REVIEWED_RULES",
+            "observation": {
+              "actionId": "62d62131-c3ba-4a04-b356-f9382924b46c",
+              "runId": "6e63b7b7-7c3e-44c6-83dd-abc929c60419",
+              "step": 1,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "CANDIDATE",
+              "catalogueVersion": "cat-17cb8fd1379825b3c15d7710f9cfc34382aae370221799385126864f8f9bebc5",
+              "candidates": [
+                {
+                  "handle": "d0dace98-03ec-419f-ae08-3c4369286620",
+                  "excerpt": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "1f977eb0-f286-4aae-a994-c456a66fe4eb",
+                  "excerpt": "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "1730c463-65e0-4784-9536-5fcd978d9142",
+                  "excerpt": "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "5f8f51ee-9cc1-4548-b40f-641f8c3a6c40",
+                  "excerpt": "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "fcb372b1-2c2c-471e-a8b0-34ff3b48a83e",
+                  "excerpt": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "5d084804-37f7-412b-99e5-b5cb650cd059",
+                  "excerpt": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "75df642b-c1e3-4173-babf-0bdaeed17027",
+                  "excerpt": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "a70fbe7a-fe78-4a45-a03d-b3ddd442b9c9",
+                  "excerpt": "第十条　每学期选修公共选修课最高不得超过 4 个学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "ab1caca0-219b-4b66-8545-2fe0a87d1069",
+                  "excerpt": "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "4a99481f-30e3-444b-92bd-a2e8296acc7b",
+                  "excerpt": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+                  "revision": "2025.9.2"
+                }
+              ],
+              "evidence": [],
+              "factIds": []
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 2,
+            "action": "READ_VERIFIED_RULE",
+            "observation": {
+              "actionId": "1743b3be-39ff-4c18-9065-e38266d08965",
+              "runId": "6e63b7b7-7c3e-44c6-83dd-abc929c60419",
+              "step": 2,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "VERIFIED_FACT",
+              "catalogueVersion": "cat-17cb8fd1379825b3c15d7710f9cfc34382aae370221799385126864f8f9bebc5",
+              "candidates": [],
+              "evidence": [
+                {
+                  "id": "586864c9-f7f7-43fc-962d-a8d4c4d91fcd:0-48",
+                  "sourceId": "72e64c39-2ff1-4acf-9ee4-fa27800d87a9",
+                  "chunkId": "b9a228ce-8a46-3eab-a742-f5ef4594da31",
+                  "revision": "2025.9.2",
+                  "checksum": "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
+                  "startInclusive": 0,
+                  "endExclusive": 48,
+                  "quote": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。"
+                }
+              ],
+              "factIds": [
+                "S10/COMBINED:public-no-deferred-exam",
+                "S10/COMBINED:public-failed-no-retake",
+                "S10/COMBINED:professional-failed-retake-application",
+                "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam",
+                "S10/RETAKE_ONLY:public-failed-no-retake",
+                "S10/RETAKE_ONLY:professional-failed-retake-application"
+              ]
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 3,
+            "action": "ASK_NECESSARY_CONDITION",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 4,
+            "action": "PUBLICATION_REVIEW",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          }
+        ]
+      },
+      "reviewClosed": true,
+      "decisionClosed": true,
+      "id": "A01",
+      "providerCalls": 0
+    },
+    {
+      "outcome": {
+        "snapshot": {
+          "schemaVersion": 3,
+          "taskId": "c5083823-49f6-4268-8b49-f16b16a4f196",
+          "turnId": "4c1416aa-77d9-4200-9ab8-f44ae3775216",
+          "runId": "4e1e03b0-e652-422a-afa7-52f62960cc4b",
+          "version": 1,
+          "taskStatus": "WAITING_USER",
+          "runState": "INCOMPLETE",
+          "terminated": true,
+          "result": {
+            "publishedVersion": 1,
+            "originatingRunId": "4e1e03b0-e652-422a-afa7-52f62960cc4b",
+            "catalogueVersion": "cat-17cb8fd1379825b3c15d7710f9cfc34382aae370221799385126864f8f9bebc5",
+            "referenceRevision": "2025.9.2",
+            "coverage": "PARTIAL",
+            "items": [
+              {
+                "id": "q1",
+                "coverage": "PARTIAL",
+                "claims": [
+                  {
+                    "id": "c0",
+                    "factId": "T02/ARTICLE4:professional-elective-study-arrangement",
+                    "text": "专业选修课列入教学计划，要求在规定学期内修读。",
+                    "when": {},
+                    "conditionSource": "USER_DECLARED"
+                  }
+                ],
+                "issues": [
+                  {
+                    "id": "i-MISSING_CONDITION",
+                    "kind": "CLARIFICATION",
+                    "reasonCode": "MISSING_CONDITION",
+                    "message": "还缺影响结论的必要条件。",
+                    "nextStep": "请补充下方必要条件。"
+                  }
+                ],
+                "clarification": [
+                  {
+                    "conditionId": "courseType",
+                    "question": "这门课属于公共选修还是专业选修？",
+                    "allowedValues": [
+                      "PUBLIC",
+                      "PROFESSIONAL"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "evidence": [
+              {
+                "id": "4c2a75ff-aa1d-4b7d-a321-bd116818ae70:0-48",
+                "sourceId": "72e64c39-2ff1-4acf-9ee4-fa27800d87a9",
+                "chunkId": "b9a228ce-8a46-3eab-a742-f5ef4594da31",
+                "revision": "2025.9.2",
+                "checksum": "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
+                "startInclusive": 0,
+                "endExclusive": 48,
+                "quote": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。"
+              },
+              {
+                "id": "6f1b50c1-b77b-4004-aeb6-3b3919de43db:26-48",
+                "sourceId": "72e64c39-2ff1-4acf-9ee4-fa27800d87a9",
+                "chunkId": "9f1ea684-b661-3ead-8491-8a2f6275b912",
+                "revision": "2025.9.2",
+                "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                "startInclusive": 26,
+                "endExclusive": 48,
+                "quote": "专业选修课\n列入教学计划要求在规定学期内修读"
+              }
+            ],
+            "evidenceRelations": [
+              {
+                "evidenceId": "4c2a75ff-aa1d-4b7d-a321-bd116818ae70:0-48",
+                "subquestionId": "q1",
+                "role": "CLARIFICATION",
+                "targetId": "courseType"
+              },
+              {
+                "evidenceId": "6f1b50c1-b77b-4004-aeb6-3b3919de43db:26-48",
+                "subquestionId": "q1",
+                "role": "CLAIM",
+                "targetId": "c0"
+              }
+            ]
+          },
+          "execution": {
+            "mode": "ONLINE",
+            "modelAttemptCount": 4,
+            "toolStepCount": 3,
+            "providerResponseReceived": false,
+            "answerSource": "VERIFIED_RULE_ONLY",
+            "replayCoverage": "NOT_APPLICABLE"
+          }
+        },
+        "events": [
+          {
+            "attempt": 1,
+            "action": "SEARCH_REVIEWED_RULES",
+            "observation": {
+              "actionId": "4fc3234a-79d6-423c-9374-def41ba95c92",
+              "runId": "4e1e03b0-e652-422a-afa7-52f62960cc4b",
+              "step": 1,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "CANDIDATE",
+              "catalogueVersion": "cat-17cb8fd1379825b3c15d7710f9cfc34382aae370221799385126864f8f9bebc5",
+              "candidates": [
+                {
+                  "handle": "d0a64ac4-de4c-4b13-8612-97b772c3d6ec",
+                  "excerpt": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "477f69b8-2509-4c64-9ff0-fa5e10d5b090",
+                  "excerpt": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "93fff7ce-aac1-4ca1-ba72-4834d24e67a9",
+                  "excerpt": "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "e9157374-2d87-45fa-bca0-71827121cb91",
+                  "excerpt": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "e970b19a-8f91-4e05-9911-e0037a5e8756",
+                  "excerpt": "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "10fe989e-20c6-49b3-a734-222d1d1c8079",
+                  "excerpt": "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "8652e8cc-cdb4-4d8b-9b20-e83b6cf4cf5d",
+                  "excerpt": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "52577d99-595d-4cf3-a606-23320c4cb76f",
+                  "excerpt": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "fb2411ce-1191-48e4-bce8-9eb74e50be79",
+                  "excerpt": "第十条　每学期选修公共选修课最高不得超过 4 个学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "0a415647-1df3-4128-bbc8-db5ad0586a50",
+                  "excerpt": "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+                  "revision": "2025.9.2"
+                }
+              ],
+              "evidence": [],
+              "factIds": []
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 2,
+            "action": "READ_VERIFIED_RULE",
+            "observation": {
+              "actionId": "7ab80e10-99f0-49f5-8779-e4fcb247de4d",
+              "runId": "4e1e03b0-e652-422a-afa7-52f62960cc4b",
+              "step": 2,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "VERIFIED_FACT",
+              "catalogueVersion": "cat-17cb8fd1379825b3c15d7710f9cfc34382aae370221799385126864f8f9bebc5",
+              "candidates": [],
+              "evidence": [
+                {
+                  "id": "6f1b50c1-b77b-4004-aeb6-3b3919de43db:0-78",
+                  "sourceId": "72e64c39-2ff1-4acf-9ee4-fa27800d87a9",
+                  "chunkId": "9f1ea684-b661-3ead-8491-8a2f6275b912",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 0,
+                  "endExclusive": 78,
+                  "quote": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                },
+                {
+                  "id": "4c2a75ff-aa1d-4b7d-a321-bd116818ae70:0-48",
+                  "sourceId": "72e64c39-2ff1-4acf-9ee4-fa27800d87a9",
+                  "chunkId": "b9a228ce-8a46-3eab-a742-f5ef4594da31",
+                  "revision": "2025.9.2",
+                  "checksum": "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
+                  "startInclusive": 0,
+                  "endExclusive": 48,
+                  "quote": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。"
+                },
+                {
+                  "id": "6f1b50c1-b77b-4004-aeb6-3b3919de43db:26-48",
+                  "sourceId": "72e64c39-2ff1-4acf-9ee4-fa27800d87a9",
+                  "chunkId": "9f1ea684-b661-3ead-8491-8a2f6275b912",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 26,
+                  "endExclusive": 48,
+                  "quote": "专业选修课\n列入教学计划要求在规定学期内修读"
+                },
+                {
+                  "id": "6f1b50c1-b77b-4004-aeb6-3b3919de43db:49-78",
+                  "sourceId": "72e64c39-2ff1-4acf-9ee4-fa27800d87a9",
+                  "chunkId": "9f1ea684-b661-3ead-8491-8a2f6275b912",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 49,
+                  "endExclusive": 78,
+                  "quote": "公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                }
+              ],
+              "factIds": [
+                "S02/GENERAL:elective-category-distinction",
+                "S02/GENERAL:public-course-subcategories",
+                "S10/COMBINED:public-no-deferred-exam",
+                "S10/COMBINED:public-failed-no-retake",
+                "S10/COMBINED:professional-failed-retake-application",
+                "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam",
+                "S10/RETAKE_ONLY:public-failed-no-retake",
+                "S10/RETAKE_ONLY:professional-failed-retake-application",
+                "T02/ARTICLE4:professional-elective-study-arrangement",
+                "T02/ARTICLE4:public-elective-self-selection"
+              ]
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 3,
+            "action": "ASK_NECESSARY_CONDITION",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 4,
+            "action": "PUBLICATION_REVIEW",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          }
+        ]
+      },
+      "reviewClosed": true,
+      "decisionClosed": true,
+      "id": "A02",
+      "providerCalls": 0
+    },
+    {
+      "outcome": {
+        "snapshot": {
+          "schemaVersion": 3,
+          "taskId": "c5083823-49f6-4268-8b49-f16b16a4f196",
+          "turnId": "6e0d2488-5dfe-4758-a87b-e3b0056746f8",
+          "runId": "65a5599b-4641-4bec-9cf2-25c058d71b09",
+          "version": 2,
+          "taskStatus": "RESOLVED",
+          "runState": "SUCCEEDED",
+          "terminated": true,
+          "result": {
+            "publishedVersion": 2,
+            "originatingRunId": "65a5599b-4641-4bec-9cf2-25c058d71b09",
+            "catalogueVersion": "cat-17cb8fd1379825b3c15d7710f9cfc34382aae370221799385126864f8f9bebc5",
+            "referenceRevision": "2025.9.2",
+            "coverage": "COMPLETE",
+            "items": [
+              {
+                "id": "q1",
+                "coverage": "COMPLETE",
+                "claims": [
+                  {
+                    "id": "c0",
+                    "factId": "S10/RETAKE_ONLY:public-failed-no-retake",
+                    "text": "公共选修课成绩不合格者不安排重修。",
+                    "when": {
+                      "courseType": "PUBLIC"
+                    },
+                    "conditionSource": "USER_DECLARED"
+                  }
+                ],
+                "issues": [],
+                "clarification": []
+              }
+            ],
+            "evidence": [
+              {
+                "id": "f5390790-e077-40dd-84f9-f1302d14f25d:0-48",
+                "sourceId": "72e64c39-2ff1-4acf-9ee4-fa27800d87a9",
+                "chunkId": "b9a228ce-8a46-3eab-a742-f5ef4594da31",
+                "revision": "2025.9.2",
+                "checksum": "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
+                "startInclusive": 0,
+                "endExclusive": 48,
+                "quote": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。"
+              }
+            ],
+            "evidenceRelations": [
+              {
+                "evidenceId": "f5390790-e077-40dd-84f9-f1302d14f25d:0-48",
+                "subquestionId": "q1",
+                "role": "CLAIM",
+                "targetId": "c0"
+              }
+            ]
+          },
+          "execution": {
+            "mode": "ONLINE",
+            "modelAttemptCount": 4,
+            "toolStepCount": 3,
+            "providerResponseReceived": false,
+            "answerSource": "VERIFIED_RULE_ONLY",
+            "replayCoverage": "NOT_APPLICABLE"
+          }
+        },
+        "events": [
+          {
+            "attempt": 1,
+            "action": "SEARCH_REVIEWED_RULES",
+            "observation": {
+              "actionId": "43652f80-f6fa-4b02-bc22-fa794ac062c0",
+              "runId": "65a5599b-4641-4bec-9cf2-25c058d71b09",
+              "step": 1,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "CANDIDATE",
+              "catalogueVersion": "cat-17cb8fd1379825b3c15d7710f9cfc34382aae370221799385126864f8f9bebc5",
+              "candidates": [
+                {
+                  "handle": "a41bd579-895f-4c87-b95a-c2fa901cdc29",
+                  "excerpt": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "9a909c36-72fb-478d-b759-7ddae65a3545",
+                  "excerpt": "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "90594b82-acd4-4385-8824-ecd02d73134e",
+                  "excerpt": "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "29bcde0b-0c4c-4318-87b9-d0434683e629",
+                  "excerpt": "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "42167663-7d51-4fff-88f2-1f3382d5e365",
+                  "excerpt": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "54df3b6e-f586-4fe9-80c9-a895a5245cd7",
+                  "excerpt": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "d65fd3d6-97b4-4ca6-af74-b7055929316e",
+                  "excerpt": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "0dd8450a-a6d0-4cc0-b9cb-3a1cfaf66e3a",
+                  "excerpt": "第十条　每学期选修公共选修课最高不得超过 4 个学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "67ca9d99-01b1-473e-92e3-57e26d1bdcf8",
+                  "excerpt": "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "6a32531c-300b-44ab-8171-5d0cbd8f80e3",
+                  "excerpt": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+                  "revision": "2025.9.2"
+                }
+              ],
+              "evidence": [],
+              "factIds": []
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 2,
+            "action": "READ_VERIFIED_RULE",
+            "observation": {
+              "actionId": "ca8ed4be-d225-49de-ac02-09e9cea3c653",
+              "runId": "65a5599b-4641-4bec-9cf2-25c058d71b09",
+              "step": 2,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "VERIFIED_FACT",
+              "catalogueVersion": "cat-17cb8fd1379825b3c15d7710f9cfc34382aae370221799385126864f8f9bebc5",
+              "candidates": [],
+              "evidence": [
+                {
+                  "id": "f5390790-e077-40dd-84f9-f1302d14f25d:0-48",
+                  "sourceId": "72e64c39-2ff1-4acf-9ee4-fa27800d87a9",
+                  "chunkId": "b9a228ce-8a46-3eab-a742-f5ef4594da31",
+                  "revision": "2025.9.2",
+                  "checksum": "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
+                  "startInclusive": 0,
+                  "endExclusive": 48,
+                  "quote": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。"
+                }
+              ],
+              "factIds": [
+                "S10/COMBINED:public-no-deferred-exam",
+                "S10/COMBINED:public-failed-no-retake",
+                "S10/COMBINED:professional-failed-retake-application",
+                "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam",
+                "S10/RETAKE_ONLY:public-failed-no-retake",
+                "S10/RETAKE_ONLY:professional-failed-retake-application"
+              ]
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 3,
+            "action": "FINISH_CHECK",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 4,
+            "action": "PUBLICATION_REVIEW",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          }
+        ]
+      },
+      "reviewClosed": true,
+      "decisionClosed": true,
+      "id": "A03",
+      "providerCalls": 0
+    }
+  ],
+  "finish": [
+    {
+      "id": "C01",
+      "question": "专业选修课和公共选修课在修读安排上有什么不同？",
+      "requiredBehavior": "两项修读事实合法发布，不得将主题未知当作资料不适用",
+      "selectedFactIds": [
+        "T02/ARTICLE4:professional-elective-study-arrangement",
+        "T02/ARTICLE4:public-elective-self-selection"
+      ],
+      "topicAssessments": [
+        {
+          "declaredTopics": [
+            "CATEGORY"
+          ],
+          "ruleId": "T02/ARTICLE4",
+          "assessment": {
+            "requestedTopics": [],
+            "evaluated": true,
+            "blockingReasons": [
+              "尚不能独立确认问题主题与所选规则匹配，请明确需要查证的规则"
+            ]
+          }
+        }
+      ],
+      "outcome": {
+        "snapshot": {
+          "schemaVersion": 3,
+          "taskId": "a7091bbc-3ca7-40ed-814e-094ee38673c2",
+          "turnId": "391aded3-292a-4437-95ed-5edfb260599f",
+          "runId": "d89df4c8-a3e2-48b7-89a0-fb60b778df95",
+          "version": 1,
+          "taskStatus": "RESOLVED",
+          "runState": "SUCCEEDED",
+          "terminated": true,
+          "result": {
+            "publishedVersion": 1,
+            "originatingRunId": "d89df4c8-a3e2-48b7-89a0-fb60b778df95",
+            "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+            "referenceRevision": "2025.9.2",
+            "coverage": "COMPLETE",
+            "items": [
+              {
+                "id": "q1",
+                "coverage": "COMPLETE",
+                "claims": [
+                  {
+                    "id": "c0",
+                    "factId": "T02/ARTICLE4:professional-elective-study-arrangement",
+                    "text": "专业选修课列入教学计划，要求在规定学期内修读。",
+                    "when": {},
+                    "conditionSource": "USER_DECLARED"
+                  },
+                  {
+                    "id": "c1",
+                    "factId": "T02/ARTICLE4:public-elective-self-selection",
+                    "text": "公共选修课包括校内公选课和网络公选课，学生自行选课修读。",
+                    "when": {},
+                    "conditionSource": "USER_DECLARED"
+                  }
+                ],
+                "issues": [],
+                "clarification": []
+              }
+            ],
+            "evidence": [
+              {
+                "id": "26f314cb-e1c6-4218-a110-b46b206207dd:26-48",
+                "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                "revision": "2025.9.2",
+                "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                "startInclusive": 26,
+                "endExclusive": 48,
+                "quote": "专业选修课\n列入教学计划要求在规定学期内修读"
+              },
+              {
+                "id": "26f314cb-e1c6-4218-a110-b46b206207dd:49-78",
+                "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                "revision": "2025.9.2",
+                "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                "startInclusive": 49,
+                "endExclusive": 78,
+                "quote": "公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+              }
+            ],
+            "evidenceRelations": [
+              {
+                "evidenceId": "26f314cb-e1c6-4218-a110-b46b206207dd:26-48",
+                "subquestionId": "q1",
+                "role": "CLAIM",
+                "targetId": "c0"
+              },
+              {
+                "evidenceId": "26f314cb-e1c6-4218-a110-b46b206207dd:49-78",
+                "subquestionId": "q1",
+                "role": "CLAIM",
+                "targetId": "c1"
+              }
+            ]
+          },
+          "execution": {
+            "mode": "ONLINE",
+            "modelAttemptCount": 4,
+            "toolStepCount": 3,
+            "providerResponseReceived": false,
+            "answerSource": "VERIFIED_RULE_ONLY",
+            "replayCoverage": "NOT_APPLICABLE"
+          }
+        },
+        "events": [
+          {
+            "attempt": 1,
+            "action": "SEARCH_REVIEWED_RULES",
+            "observation": {
+              "actionId": "a693ec64-78f3-430c-85ba-dd38af031d36",
+              "runId": "d89df4c8-a3e2-48b7-89a0-fb60b778df95",
+              "step": 1,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "CANDIDATE",
+              "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+              "candidates": [
+                {
+                  "handle": "cc87b5dc-caf0-4498-b347-17bcab5fde3b",
+                  "excerpt": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "825134b8-43b8-4409-b958-c29f0804330b",
+                  "excerpt": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "f53f5827-5946-461d-a440-36575effe1d8",
+                  "excerpt": "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "d714d9df-1f25-4bd8-9ff6-44d524d80897",
+                  "excerpt": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "f9d29656-9104-4373-bc8a-aac2ea575783",
+                  "excerpt": "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "418be0ab-397d-4623-96b4-b291de422768",
+                  "excerpt": "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "4e5fcbaa-cd00-42dc-ac35-70e2a6de158e",
+                  "excerpt": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "1c440fc8-3231-4f14-8cca-966f1756d01a",
+                  "excerpt": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "9449e171-bc39-4e07-afbf-0854990e2f41",
+                  "excerpt": "第十条　每学期选修公共选修课最高不得超过 4 个学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "de03570a-b02f-4193-8d8f-bba63b2bd0e1",
+                  "excerpt": "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+                  "revision": "2025.9.2"
+                }
+              ],
+              "evidence": [],
+              "factIds": []
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 2,
+            "action": "READ_VERIFIED_RULE",
+            "observation": {
+              "actionId": "a8ca0a5c-cb90-403c-beca-4eb2a9f094cd",
+              "runId": "d89df4c8-a3e2-48b7-89a0-fb60b778df95",
+              "step": 2,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "VERIFIED_FACT",
+              "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+              "candidates": [],
+              "evidence": [
+                {
+                  "id": "26f314cb-e1c6-4218-a110-b46b206207dd:0-78",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 0,
+                  "endExclusive": 78,
+                  "quote": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                },
+                {
+                  "id": "26f314cb-e1c6-4218-a110-b46b206207dd:26-48",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 26,
+                  "endExclusive": 48,
+                  "quote": "专业选修课\n列入教学计划要求在规定学期内修读"
+                },
+                {
+                  "id": "26f314cb-e1c6-4218-a110-b46b206207dd:49-78",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 49,
+                  "endExclusive": 78,
+                  "quote": "公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                }
+              ],
+              "factIds": [
+                "S02/GENERAL:elective-category-distinction",
+                "S02/GENERAL:public-course-subcategories",
+                "T02/ARTICLE4:professional-elective-study-arrangement",
+                "T02/ARTICLE4:public-elective-self-selection"
+              ]
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 3,
+            "action": "FINISH_CHECK",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 4,
+            "action": "PUBLICATION_REVIEW",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          }
+        ]
+      },
+      "decisionPortClosed": true,
+      "runtimeTerminated": true,
+      "providerCalls": 0
+    },
+    {
+      "id": "C02",
+      "question": "专业选修课和公共选修课的课程类别与修读安排有哪些区别？",
+      "requiredBehavior": "两项修读事实合法发布",
+      "selectedFactIds": [
+        "T02/ARTICLE4:professional-elective-study-arrangement",
+        "T02/ARTICLE4:public-elective-self-selection"
+      ],
+      "topicAssessments": [
+        {
+          "declaredTopics": [
+            "CATEGORY"
+          ],
+          "ruleId": "T02/ARTICLE4",
+          "assessment": {
+            "requestedTopics": [
+              "CATEGORY"
+            ],
+            "evaluated": true,
+            "blockingReasons": []
+          }
+        }
+      ],
+      "outcome": {
+        "snapshot": {
+          "schemaVersion": 3,
+          "taskId": "77f0488f-4497-4c13-8dfe-acd6535b5120",
+          "turnId": "2a9e5157-7b44-41d3-a5f2-1c35e135cdde",
+          "runId": "7e3e6c08-1a8a-41e0-b437-f4b896466835",
+          "version": 1,
+          "taskStatus": "RESOLVED",
+          "runState": "SUCCEEDED",
+          "terminated": true,
+          "result": {
+            "publishedVersion": 1,
+            "originatingRunId": "7e3e6c08-1a8a-41e0-b437-f4b896466835",
+            "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+            "referenceRevision": "2025.9.2",
+            "coverage": "COMPLETE",
+            "items": [
+              {
+                "id": "q1",
+                "coverage": "COMPLETE",
+                "claims": [
+                  {
+                    "id": "c0",
+                    "factId": "T02/ARTICLE4:professional-elective-study-arrangement",
+                    "text": "专业选修课列入教学计划，要求在规定学期内修读。",
+                    "when": {},
+                    "conditionSource": "USER_DECLARED"
+                  },
+                  {
+                    "id": "c1",
+                    "factId": "T02/ARTICLE4:public-elective-self-selection",
+                    "text": "公共选修课包括校内公选课和网络公选课，学生自行选课修读。",
+                    "when": {},
+                    "conditionSource": "USER_DECLARED"
+                  }
+                ],
+                "issues": [],
+                "clarification": []
+              }
+            ],
+            "evidence": [
+              {
+                "id": "e0ffe160-6221-4b1f-9e2e-dfe086af68a2:26-48",
+                "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                "revision": "2025.9.2",
+                "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                "startInclusive": 26,
+                "endExclusive": 48,
+                "quote": "专业选修课\n列入教学计划要求在规定学期内修读"
+              },
+              {
+                "id": "e0ffe160-6221-4b1f-9e2e-dfe086af68a2:49-78",
+                "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                "revision": "2025.9.2",
+                "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                "startInclusive": 49,
+                "endExclusive": 78,
+                "quote": "公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+              }
+            ],
+            "evidenceRelations": [
+              {
+                "evidenceId": "e0ffe160-6221-4b1f-9e2e-dfe086af68a2:26-48",
+                "subquestionId": "q1",
+                "role": "CLAIM",
+                "targetId": "c0"
+              },
+              {
+                "evidenceId": "e0ffe160-6221-4b1f-9e2e-dfe086af68a2:49-78",
+                "subquestionId": "q1",
+                "role": "CLAIM",
+                "targetId": "c1"
+              }
+            ]
+          },
+          "execution": {
+            "mode": "ONLINE",
+            "modelAttemptCount": 4,
+            "toolStepCount": 3,
+            "providerResponseReceived": false,
+            "answerSource": "VERIFIED_RULE_ONLY",
+            "replayCoverage": "NOT_APPLICABLE"
+          }
+        },
+        "events": [
+          {
+            "attempt": 1,
+            "action": "SEARCH_REVIEWED_RULES",
+            "observation": {
+              "actionId": "75969599-65b2-44bf-9f50-bcc0be955577",
+              "runId": "7e3e6c08-1a8a-41e0-b437-f4b896466835",
+              "step": 1,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "CANDIDATE",
+              "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+              "candidates": [
+                {
+                  "handle": "c63ebc37-f8d1-4017-a5dc-5d6fb8d182fc",
+                  "excerpt": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "fb8ba024-c2ae-42a1-aa90-0abd63c994c6",
+                  "excerpt": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "dd5333b8-17cf-43c9-860c-564190e5f425",
+                  "excerpt": "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "492b4080-a882-4645-a382-d0eded316071",
+                  "excerpt": "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "296aaba8-db56-4bb7-9eaf-17f97ebb101c",
+                  "excerpt": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "51c0cb21-32b6-437a-bcf9-4d8c3b65040a",
+                  "excerpt": "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "d86dd915-bfb5-42ee-9065-f45c050e2738",
+                  "excerpt": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "fb123c37-c64b-452b-89ca-cf07c1161f2c",
+                  "excerpt": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "5ea9e32f-8893-4461-80d7-ed71cd2dab89",
+                  "excerpt": "第十条　每学期选修公共选修课最高不得超过 4 个学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "b7546fe2-a044-4d3e-96ba-d09c9a94e373",
+                  "excerpt": "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+                  "revision": "2025.9.2"
+                }
+              ],
+              "evidence": [],
+              "factIds": []
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 2,
+            "action": "READ_VERIFIED_RULE",
+            "observation": {
+              "actionId": "664aeceb-8368-43c7-986c-3249bda66e7d",
+              "runId": "7e3e6c08-1a8a-41e0-b437-f4b896466835",
+              "step": 2,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "VERIFIED_FACT",
+              "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+              "candidates": [],
+              "evidence": [
+                {
+                  "id": "e0ffe160-6221-4b1f-9e2e-dfe086af68a2:0-78",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 0,
+                  "endExclusive": 78,
+                  "quote": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                },
+                {
+                  "id": "e0ffe160-6221-4b1f-9e2e-dfe086af68a2:26-48",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 26,
+                  "endExclusive": 48,
+                  "quote": "专业选修课\n列入教学计划要求在规定学期内修读"
+                },
+                {
+                  "id": "e0ffe160-6221-4b1f-9e2e-dfe086af68a2:49-78",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 49,
+                  "endExclusive": 78,
+                  "quote": "公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                }
+              ],
+              "factIds": [
+                "S02/GENERAL:elective-category-distinction",
+                "S02/GENERAL:public-course-subcategories",
+                "T02/ARTICLE4:professional-elective-study-arrangement",
+                "T02/ARTICLE4:public-elective-self-selection"
+              ]
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 3,
+            "action": "FINISH_CHECK",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 4,
+            "action": "PUBLICATION_REVIEW",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          }
+        ]
+      },
+      "decisionPortClosed": true,
+      "runtimeTerminated": true,
+      "providerCalls": 0
+    },
+    {
+      "id": "C03",
+      "question": "专选和公选在选课修读上哪里不一样？",
+      "requiredBehavior": "同含义表达应允许相同两项事实",
+      "selectedFactIds": [
+        "T02/ARTICLE4:professional-elective-study-arrangement",
+        "T02/ARTICLE4:public-elective-self-selection"
+      ],
+      "topicAssessments": [
+        {
+          "declaredTopics": [
+            "CATEGORY"
+          ],
+          "ruleId": "T02/ARTICLE4",
+          "assessment": {
+            "requestedTopics": [],
+            "evaluated": true,
+            "blockingReasons": [
+              "尚不能独立确认问题主题与所选规则匹配，请明确需要查证的规则"
+            ]
+          }
+        }
+      ],
+      "outcome": {
+        "snapshot": {
+          "schemaVersion": 3,
+          "taskId": "eb4b922c-eac8-42fd-bdf5-02ca9c7b0850",
+          "turnId": "e7a87589-c214-4da7-bc81-4e8ed81fa5dd",
+          "runId": "d16be3e6-f227-48b4-9d7f-affc3cd44de9",
+          "version": 1,
+          "taskStatus": "RESOLVED",
+          "runState": "SUCCEEDED",
+          "terminated": true,
+          "result": {
+            "publishedVersion": 1,
+            "originatingRunId": "d16be3e6-f227-48b4-9d7f-affc3cd44de9",
+            "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+            "referenceRevision": "2025.9.2",
+            "coverage": "COMPLETE",
+            "items": [
+              {
+                "id": "q1",
+                "coverage": "COMPLETE",
+                "claims": [
+                  {
+                    "id": "c0",
+                    "factId": "T02/ARTICLE4:professional-elective-study-arrangement",
+                    "text": "专业选修课列入教学计划，要求在规定学期内修读。",
+                    "when": {},
+                    "conditionSource": "USER_DECLARED"
+                  },
+                  {
+                    "id": "c1",
+                    "factId": "T02/ARTICLE4:public-elective-self-selection",
+                    "text": "公共选修课包括校内公选课和网络公选课，学生自行选课修读。",
+                    "when": {},
+                    "conditionSource": "USER_DECLARED"
+                  }
+                ],
+                "issues": [],
+                "clarification": []
+              }
+            ],
+            "evidence": [
+              {
+                "id": "6f5b27d6-4c51-4b9b-b18d-2292db8738b7:26-48",
+                "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                "revision": "2025.9.2",
+                "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                "startInclusive": 26,
+                "endExclusive": 48,
+                "quote": "专业选修课\n列入教学计划要求在规定学期内修读"
+              },
+              {
+                "id": "6f5b27d6-4c51-4b9b-b18d-2292db8738b7:49-78",
+                "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                "revision": "2025.9.2",
+                "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                "startInclusive": 49,
+                "endExclusive": 78,
+                "quote": "公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+              }
+            ],
+            "evidenceRelations": [
+              {
+                "evidenceId": "6f5b27d6-4c51-4b9b-b18d-2292db8738b7:26-48",
+                "subquestionId": "q1",
+                "role": "CLAIM",
+                "targetId": "c0"
+              },
+              {
+                "evidenceId": "6f5b27d6-4c51-4b9b-b18d-2292db8738b7:49-78",
+                "subquestionId": "q1",
+                "role": "CLAIM",
+                "targetId": "c1"
+              }
+            ]
+          },
+          "execution": {
+            "mode": "ONLINE",
+            "modelAttemptCount": 4,
+            "toolStepCount": 3,
+            "providerResponseReceived": false,
+            "answerSource": "VERIFIED_RULE_ONLY",
+            "replayCoverage": "NOT_APPLICABLE"
+          }
+        },
+        "events": [
+          {
+            "attempt": 1,
+            "action": "SEARCH_REVIEWED_RULES",
+            "observation": {
+              "actionId": "2d9fe665-b10a-4164-9093-c624c5d8d2a8",
+              "runId": "d16be3e6-f227-48b4-9d7f-affc3cd44de9",
+              "step": 1,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "CANDIDATE",
+              "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+              "candidates": [
+                {
+                  "handle": "7d0d071d-dea7-4b54-9194-365b3c81a0ba",
+                  "excerpt": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "11b24fcc-c67f-4e62-b729-ec23c623709c",
+                  "excerpt": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "569ce6f7-dc61-4bdc-ae96-ea27178d0eb8",
+                  "excerpt": "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "d7806cea-8dd5-4f95-9f1d-3862a4c97e17",
+                  "excerpt": "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "fc2b5c33-5811-4e39-aa29-c0a5fa66b41d",
+                  "excerpt": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+                  "revision": "2025.9.2"
+                }
+              ],
+              "evidence": [],
+              "factIds": []
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 2,
+            "action": "READ_VERIFIED_RULE",
+            "observation": {
+              "actionId": "44c98dde-81ea-4294-888b-f3fbe3704e6e",
+              "runId": "d16be3e6-f227-48b4-9d7f-affc3cd44de9",
+              "step": 2,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "VERIFIED_FACT",
+              "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+              "candidates": [],
+              "evidence": [
+                {
+                  "id": "6f5b27d6-4c51-4b9b-b18d-2292db8738b7:0-78",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 0,
+                  "endExclusive": 78,
+                  "quote": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                },
+                {
+                  "id": "6f5b27d6-4c51-4b9b-b18d-2292db8738b7:26-48",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 26,
+                  "endExclusive": 48,
+                  "quote": "专业选修课\n列入教学计划要求在规定学期内修读"
+                },
+                {
+                  "id": "6f5b27d6-4c51-4b9b-b18d-2292db8738b7:49-78",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 49,
+                  "endExclusive": 78,
+                  "quote": "公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                }
+              ],
+              "factIds": [
+                "S02/GENERAL:elective-category-distinction",
+                "S02/GENERAL:public-course-subcategories",
+                "T02/ARTICLE4:professional-elective-study-arrangement",
+                "T02/ARTICLE4:public-elective-self-selection"
+              ]
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 3,
+            "action": "FINISH_CHECK",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 4,
+            "action": "PUBLICATION_REVIEW",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          }
+        ]
+      },
+      "decisionPortClosed": true,
+      "runtimeTerminated": true,
+      "providerCalls": 0
+    },
+    {
+      "id": "C04",
+      "question": "专业选修课和公共选修课的课程类别与修读安排有哪些区别？",
+      "requiredBehavior": "遗漏一侧修读安排不能声称完整覆盖",
+      "selectedFactIds": [
+        "T02/ARTICLE4:professional-elective-study-arrangement"
+      ],
+      "topicAssessments": [
+        {
+          "declaredTopics": [
+            "CATEGORY"
+          ],
+          "ruleId": "T02/ARTICLE4",
+          "assessment": {
+            "requestedTopics": [
+              "CATEGORY"
+            ],
+            "evaluated": true,
+            "blockingReasons": []
+          }
+        }
+      ],
+      "outcome": {
+        "snapshot": {
+          "schemaVersion": 3,
+          "taskId": "9b5c98fc-43a4-4d5b-8ccb-5d5895c57fae",
+          "turnId": "d4ac25b1-31f5-4342-88e1-c29d32cbbe0b",
+          "runId": "50c9ec52-805f-4de4-8de1-d9ab383381da",
+          "version": 1,
+          "taskStatus": "FAILED",
+          "runState": "FAILED",
+          "terminated": true,
+          "result": {
+            "publishedVersion": 1,
+            "originatingRunId": "50c9ec52-805f-4de4-8de1-d9ab383381da",
+            "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+            "referenceRevision": "2025.9.2",
+            "coverage": "PARTIAL",
+            "items": [
+              {
+                "id": "q1",
+                "coverage": "PARTIAL",
+                "claims": [
+                  {
+                    "id": "c0",
+                    "factId": "T02/ARTICLE4:professional-elective-study-arrangement",
+                    "text": "专业选修课列入教学计划，要求在规定学期内修读。",
+                    "when": {},
+                    "conditionSource": "USER_DECLARED"
+                  }
+                ],
+                "issues": [
+                  {
+                    "id": "i-ANSWER_COVERAGE_INCOMPLETE",
+                    "kind": "PROCESSING_FAILURE",
+                    "reasonCode": "ANSWER_COVERAGE_INCOMPLETE",
+                    "message": "已确认的部分保留；本轮尚未回答全部需求，不能把漏答当作资料缺失。",
+                    "nextStep": "可核对原文或重新发起查证；本轮不作无依据结论。"
+                  }
+                ],
+                "clarification": []
+              }
+            ],
+            "evidence": [
+              {
+                "id": "0328d3bf-ced4-4b7d-a46b-3dc346a92ce5:26-48",
+                "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                "revision": "2025.9.2",
+                "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                "startInclusive": 26,
+                "endExclusive": 48,
+                "quote": "专业选修课\n列入教学计划要求在规定学期内修读"
+              }
+            ],
+            "evidenceRelations": [
+              {
+                "evidenceId": "0328d3bf-ced4-4b7d-a46b-3dc346a92ce5:26-48",
+                "subquestionId": "q1",
+                "role": "CLAIM",
+                "targetId": "c0"
+              }
+            ]
+          },
+          "execution": {
+            "mode": "ONLINE",
+            "modelAttemptCount": 4,
+            "toolStepCount": 3,
+            "providerResponseReceived": false,
+            "answerSource": "VERIFIED_RULE_ONLY",
+            "replayCoverage": "NOT_APPLICABLE"
+          }
+        },
+        "events": [
+          {
+            "attempt": 1,
+            "action": "SEARCH_REVIEWED_RULES",
+            "observation": {
+              "actionId": "0991b1d2-cb4f-416c-9c32-84d9c5513c86",
+              "runId": "50c9ec52-805f-4de4-8de1-d9ab383381da",
+              "step": 1,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "CANDIDATE",
+              "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+              "candidates": [
+                {
+                  "handle": "a8e98036-0fd1-4b43-86c0-149294210014",
+                  "excerpt": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "8883781a-4558-4168-b589-b17058b6ecd1",
+                  "excerpt": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "95bbe8c9-6c4a-418e-b374-063d3e5cc7a1",
+                  "excerpt": "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "046fc00d-46a0-47f4-b6a3-f7da57d026e0",
+                  "excerpt": "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "70046078-b976-41e2-abcc-e3214d84a07a",
+                  "excerpt": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "b607dab3-9fa5-4f55-949b-e8aa81e67dc9",
+                  "excerpt": "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "e71d0f48-bbc7-477f-8c8a-48730bd4a68f",
+                  "excerpt": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "fcf525ff-4a58-41d2-863f-797187f8119d",
+                  "excerpt": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "102f8b78-73b8-4e42-a5b0-d2b11213f0a4",
+                  "excerpt": "第十条　每学期选修公共选修课最高不得超过 4 个学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "b81d91c6-88e8-4bd7-8627-bd4d800ea753",
+                  "excerpt": "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+                  "revision": "2025.9.2"
+                }
+              ],
+              "evidence": [],
+              "factIds": []
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 2,
+            "action": "READ_VERIFIED_RULE",
+            "observation": {
+              "actionId": "f3ac0010-523c-4573-9cdf-8405289e70eb",
+              "runId": "50c9ec52-805f-4de4-8de1-d9ab383381da",
+              "step": 2,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "VERIFIED_FACT",
+              "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+              "candidates": [],
+              "evidence": [
+                {
+                  "id": "0328d3bf-ced4-4b7d-a46b-3dc346a92ce5:0-78",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 0,
+                  "endExclusive": 78,
+                  "quote": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                },
+                {
+                  "id": "0328d3bf-ced4-4b7d-a46b-3dc346a92ce5:26-48",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 26,
+                  "endExclusive": 48,
+                  "quote": "专业选修课\n列入教学计划要求在规定学期内修读"
+                },
+                {
+                  "id": "0328d3bf-ced4-4b7d-a46b-3dc346a92ce5:49-78",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "02e7e9fb-ac90-32fc-9ef1-674b47f9d48b",
+                  "revision": "2025.9.2",
+                  "checksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+                  "startInclusive": 49,
+                  "endExclusive": 78,
+                  "quote": "公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                }
+              ],
+              "factIds": [
+                "S02/GENERAL:elective-category-distinction",
+                "S02/GENERAL:public-course-subcategories",
+                "T02/ARTICLE4:professional-elective-study-arrangement",
+                "T02/ARTICLE4:public-elective-self-selection"
+              ]
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 3,
+            "action": "FINISH_CHECK",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 4,
+            "action": "PUBLICATION_REVIEW",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          }
+        ]
+      },
+      "decisionPortClosed": true,
+      "runtimeTerminated": true,
+      "providerCalls": 0
+    },
+    {
+      "id": "C05",
+      "question": "公共选修课通常授课多少学时，每学期最多多少学分？",
+      "requiredBehavior": "两条规则联合覆盖HOURS和SEMESTER_CREDITS",
+      "selectedFactIds": [
+        "S03/GENERAL:hours-principle",
+        "S03/GENERAL:hours-upper-limit",
+        "S07/GENERAL:public-semester-four-credits"
+      ],
+      "topicAssessments": [
+        {
+          "declaredTopics": [
+            "HOURS"
+          ],
+          "ruleId": "S03/GENERAL",
+          "assessment": {
+            "requestedTopics": [
+              "SEMESTER_CREDITS",
+              "HOURS"
+            ],
+            "evaluated": true,
+            "blockingReasons": [
+              "所选规则未覆盖问题的全部主题，不能以正确引用代替所问结论"
+            ]
+          }
+        },
+        {
+          "declaredTopics": [
+            "SEMESTER_CREDITS"
+          ],
+          "ruleId": "S07/GENERAL",
+          "assessment": {
+            "requestedTopics": [
+              "SEMESTER_CREDITS",
+              "HOURS"
+            ],
+            "evaluated": true,
+            "blockingReasons": [
+              "所选规则未覆盖问题的全部主题，不能以正确引用代替所问结论"
+            ]
+          }
+        }
+      ],
+      "outcome": {
+        "snapshot": {
+          "schemaVersion": 3,
+          "taskId": "400aac69-2167-4a3d-ac2f-396882216310",
+          "turnId": "fb0dd864-1739-4297-a7e9-f6ef9c32e4c2",
+          "runId": "936e1154-d27d-4003-9e94-715365fa7e52",
+          "version": 1,
+          "taskStatus": "RESOLVED",
+          "runState": "SUCCEEDED",
+          "terminated": true,
+          "result": {
+            "publishedVersion": 1,
+            "originatingRunId": "936e1154-d27d-4003-9e94-715365fa7e52",
+            "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+            "referenceRevision": "2025.9.2",
+            "coverage": "COMPLETE",
+            "items": [
+              {
+                "id": "q1",
+                "coverage": "COMPLETE",
+                "claims": [
+                  {
+                    "id": "c0",
+                    "factId": "S03/GENERAL:hours-principle",
+                    "text": "公共选修课授课时间原则上为16学时。",
+                    "when": {},
+                    "conditionSource": "USER_DECLARED"
+                  },
+                  {
+                    "id": "c1",
+                    "factId": "S03/GENERAL:hours-upper-limit",
+                    "text": "公共选修课最多不超过32学时。",
+                    "when": {},
+                    "conditionSource": "USER_DECLARED"
+                  },
+                  {
+                    "id": "c2",
+                    "factId": "S07/GENERAL:public-semester-four-credits",
+                    "text": "每学期选修公共选修课最高不得超过4个学分。",
+                    "when": {},
+                    "conditionSource": "USER_DECLARED"
+                  }
+                ],
+                "issues": [],
+                "clarification": []
+              }
+            ],
+            "evidence": [
+              {
+                "id": "7f3575fe-a51d-4ec3-837c-24ac1830a87b:0-36",
+                "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                "chunkId": "e11e2f86-65d4-3a67-962d-975cbb9e8148",
+                "revision": "2025.9.2",
+                "checksum": "94097c359d2cb712fab8a57e9b32c3096b41eb1e848ab272aed7c3bb6333b40d",
+                "startInclusive": 0,
+                "endExclusive": 36,
+                "quote": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。"
+              },
+              {
+                "id": "448fee51-23e9-49a2-8d19-86bb4c6898d1:0-27",
+                "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                "chunkId": "b0ff6f83-4d1b-369e-931f-daef9df8d8b9",
+                "revision": "2025.9.2",
+                "checksum": "cd02ac0ab183f2a9f22b0e7129ce5fb6e7bdbb8d4c9dc4011413fabdc6adba24",
+                "startInclusive": 0,
+                "endExclusive": 27,
+                "quote": "第十条　每学期选修公共选修课最高不得超过 4 个学分。"
+              }
+            ],
+            "evidenceRelations": [
+              {
+                "evidenceId": "7f3575fe-a51d-4ec3-837c-24ac1830a87b:0-36",
+                "subquestionId": "q1",
+                "role": "CLAIM",
+                "targetId": "c0"
+              },
+              {
+                "evidenceId": "7f3575fe-a51d-4ec3-837c-24ac1830a87b:0-36",
+                "subquestionId": "q1",
+                "role": "CLAIM",
+                "targetId": "c1"
+              },
+              {
+                "evidenceId": "448fee51-23e9-49a2-8d19-86bb4c6898d1:0-27",
+                "subquestionId": "q1",
+                "role": "CLAIM",
+                "targetId": "c2"
+              }
+            ]
+          },
+          "execution": {
+            "mode": "ONLINE",
+            "modelAttemptCount": 4,
+            "toolStepCount": 3,
+            "providerResponseReceived": false,
+            "answerSource": "VERIFIED_RULE_ONLY",
+            "replayCoverage": "NOT_APPLICABLE"
+          }
+        },
+        "events": [
+          {
+            "attempt": 1,
+            "action": "SEARCH_REVIEWED_RULES",
+            "observation": {
+              "actionId": "6c7b37c0-b309-42a8-8500-1933c8626564",
+              "runId": "936e1154-d27d-4003-9e94-715365fa7e52",
+              "step": 1,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "CANDIDATE",
+              "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+              "candidates": [
+                {
+                  "handle": "9e3b8f75-6e4d-48c1-a2f1-621d52dc189d",
+                  "excerpt": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "4653f4a9-8236-485d-9bea-77e289656567",
+                  "excerpt": "第十条　每学期选修公共选修课最高不得超过 4 个学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "93ed0eef-617b-4e50-ab5f-e8ddd909b52f",
+                  "excerpt": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "c6ba72d4-7263-49b1-875a-8fa9ec722436",
+                  "excerpt": "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "ff4e619f-de17-4b16-bfdc-6bafa40908b1",
+                  "excerpt": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "58d59f18-811e-414a-b0df-6ce17b200c97",
+                  "excerpt": "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "f85464e2-0780-4a46-b295-eea73fc0b1de",
+                  "excerpt": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "bbe48835-640d-4fd8-95d3-a04ada2819ce",
+                  "excerpt": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "d2762e7e-6e5a-4be0-9cf8-8a92481940b4",
+                  "excerpt": "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "c7adc68e-130d-45ca-b4e7-bbd328e0961e",
+                  "excerpt": "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
+                  "revision": "2025.9.2"
+                }
+              ],
+              "evidence": [],
+              "factIds": []
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 2,
+            "action": "READ_VERIFIED_RULE",
+            "observation": {
+              "actionId": "23834085-c7ab-4371-83be-86bf941d21be",
+              "runId": "936e1154-d27d-4003-9e94-715365fa7e52",
+              "step": 2,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "VERIFIED_FACT",
+              "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+              "candidates": [],
+              "evidence": [
+                {
+                  "id": "7f3575fe-a51d-4ec3-837c-24ac1830a87b:0-36",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "e11e2f86-65d4-3a67-962d-975cbb9e8148",
+                  "revision": "2025.9.2",
+                  "checksum": "94097c359d2cb712fab8a57e9b32c3096b41eb1e848ab272aed7c3bb6333b40d",
+                  "startInclusive": 0,
+                  "endExclusive": 36,
+                  "quote": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。"
+                },
+                {
+                  "id": "448fee51-23e9-49a2-8d19-86bb4c6898d1:0-27",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "b0ff6f83-4d1b-369e-931f-daef9df8d8b9",
+                  "revision": "2025.9.2",
+                  "checksum": "cd02ac0ab183f2a9f22b0e7129ce5fb6e7bdbb8d4c9dc4011413fabdc6adba24",
+                  "startInclusive": 0,
+                  "endExclusive": 27,
+                  "quote": "第十条　每学期选修公共选修课最高不得超过 4 个学分。"
+                }
+              ],
+              "factIds": [
+                "S03/GENERAL:hours-principle",
+                "S03/GENERAL:hours-upper-limit",
+                "S07/GENERAL:public-semester-four-credits",
+                "S07/PERSONAL_SELECTION_ELIGIBILITY:public-semester-four-credits"
+              ]
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 3,
+            "action": "FINISH_CHECK",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 4,
+            "action": "PUBLICATION_REVIEW",
+            "observation": null,
+            "reason": null,
+            "publicationReason": null
+          }
+        ]
+      },
+      "decisionPortClosed": true,
+      "runtimeTerminated": true,
+      "providerCalls": 0
+    },
+    {
+      "id": "C06",
+      "question": "公共选修课课程类别有哪些？",
+      "requiredBehavior": "不得以条件已满足的重修事实回答课程分类",
+      "selectedFactIds": [
+        "S10/RETAKE_ONLY:public-failed-no-retake"
+      ],
+      "topicAssessments": [
+        {
+          "declaredTopics": [
+            "RETAKE"
+          ],
+          "ruleId": "S10/RETAKE_ONLY",
+          "assessment": {
+            "requestedTopics": [
+              "CATEGORY"
+            ],
+            "evaluated": true,
+            "blockingReasons": [
+              "所选规则未覆盖问题的全部主题，不能以正确引用代替所问结论"
+            ]
+          }
+        }
+      ],
+      "outcome": {
+        "snapshot": {
+          "schemaVersion": 3,
+          "taskId": "d43fec69-c845-4a7a-8c69-e9143e5abc15",
+          "turnId": "0fc13701-c0ff-4d6f-a0f6-d039c45f7678",
+          "runId": "6e90414a-6a09-4444-8083-c7afcd3deae6",
+          "version": 1,
+          "taskStatus": "FAILED",
+          "runState": "FAILED",
+          "terminated": true,
+          "result": {
+            "publishedVersion": 1,
+            "originatingRunId": "6e90414a-6a09-4444-8083-c7afcd3deae6",
+            "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+            "referenceRevision": "2025.9.2",
+            "coverage": "NONE",
+            "items": [
+              {
+                "id": "q1",
+                "coverage": "NONE",
+                "claims": [],
+                "issues": [
+                  {
+                    "id": "i-INVALID_MODEL_RESPONSE",
+                    "kind": "PROCESSING_FAILURE",
+                    "reasonCode": "INVALID_MODEL_RESPONSE",
+                    "message": "本轮处理未完成，不能将处理失败当作资料缺失。",
+                    "nextStep": "可核对原文或重新发起查证；本轮不作无依据结论。"
+                  }
+                ],
+                "clarification": []
+              }
+            ],
+            "evidence": [],
+            "evidenceRelations": []
+          },
+          "execution": {
+            "mode": "ONLINE",
+            "modelAttemptCount": 4,
+            "toolStepCount": 3,
+            "providerResponseReceived": false,
+            "answerSource": "NONE",
+            "replayCoverage": "NOT_APPLICABLE"
+          }
+        },
+        "events": [
+          {
+            "attempt": 1,
+            "action": "SEARCH_REVIEWED_RULES",
+            "observation": {
+              "actionId": "b8e99f9a-f8f0-4f8b-b81d-0d3b9f5d4438",
+              "runId": "6e90414a-6a09-4444-8083-c7afcd3deae6",
+              "step": 1,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "CANDIDATE",
+              "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+              "candidates": [
+                {
+                  "handle": "56884cdf-806a-4452-a10a-7d082c1764b0",
+                  "excerpt": "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "c07a5b4a-3ec8-4786-9bf3-bf413d7cc129",
+                  "excerpt": "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "cbf4bd65-7451-4fa7-86b1-c3c9312dc9a3",
+                  "excerpt": "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "f04a44bb-8d9e-4762-97d2-5b97eb0517e5",
+                  "excerpt": "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "1057c8b4-f05c-40cb-a897-5cbcd7379d22",
+                  "excerpt": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "8c336f45-46f1-4599-9ff4-0742e65421fa",
+                  "excerpt": "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "cbcda7f1-5790-4d8e-9c44-43cdfbbcaf0f",
+                  "excerpt": "第十条　每学期选修公共选修课最高不得超过 4 个学分。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "d857aefb-fae9-4a82-ace7-92416e19b75a",
+                  "excerpt": "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "770e52f9-5fe8-4011-9a27-4bf7e2311e9c",
+                  "excerpt": "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
+                  "revision": "2025.9.2"
+                },
+                {
+                  "handle": "940d3c65-b7a2-4e68-817c-4301b01ba611",
+                  "excerpt": "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+                  "revision": "2025.9.2"
+                }
+              ],
+              "evidence": [],
+              "factIds": []
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 2,
+            "action": "READ_VERIFIED_RULE",
+            "observation": {
+              "actionId": "f7f11f0e-3baa-43bf-b96d-2d0cf3a38cc4",
+              "runId": "6e90414a-6a09-4444-8083-c7afcd3deae6",
+              "step": 2,
+              "status": "SUCCEEDED",
+              "reasonCode": null,
+              "dataLevel": "VERIFIED_FACT",
+              "catalogueVersion": "cat-05fc1dd12f9bd93e90ce0a2f248f8f26a1e2d3ae9722c83642e75a5c98d45130",
+              "candidates": [],
+              "evidence": [
+                {
+                  "id": "1a52d431-0d12-4531-9a4e-55ddd5bb531c:0-48",
+                  "sourceId": "635fde31-0645-43e0-82c9-f75298e6366a",
+                  "chunkId": "8f69f50d-79e8-3d05-b065-0f285e6f1715",
+                  "revision": "2025.9.2",
+                  "checksum": "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
+                  "startInclusive": 0,
+                  "endExclusive": 48,
+                  "quote": "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。"
+                }
+              ],
+              "factIds": [
+                "S10/COMBINED:public-no-deferred-exam",
+                "S10/COMBINED:public-failed-no-retake",
+                "S10/COMBINED:professional-failed-retake-application",
+                "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam",
+                "S10/RETAKE_ONLY:public-failed-no-retake",
+                "S10/RETAKE_ONLY:professional-failed-retake-application"
+              ]
+            },
+            "reason": null,
+            "publicationReason": null
+          },
+          {
+            "attempt": 3,
+            "action": "FINISH_CHECK",
+            "observation": null,
+            "reason": "INVALID_MODEL_RESPONSE",
+            "publicationReason": null
+          },
+          {
+            "attempt": 4,
+            "action": "PUBLICATION_REVIEW",
+            "observation": null,
+            "reason": "INVALID_MODEL_RESPONSE",
+            "publicationReason": "FACT_NOT_RELEVANT"
+          }
+        ]
+      },
+      "decisionPortClosed": true,
+      "runtimeTerminated": true,
+      "providerCalls": 0
+    }
+  ]
+}

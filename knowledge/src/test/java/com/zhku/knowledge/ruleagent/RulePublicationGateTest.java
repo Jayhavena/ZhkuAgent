@@ -239,4 +239,37 @@ class RulePublicationGateTest {
         assertThat(outcome.snapshot().result().evidence()).isEmpty();
         assertThat(context.snapshot().terminated()).isTrue();
     }
+
+    @Test void askingMissingCourseTypeRequiresIndependentNeedAndConditionalFact() {
+        var retake=fact("S10/RETAKE_ONLY","public-failed-no-retake",Map.of("courseType","PUBLIC"));
+        var facts=List.of(retake);
+        var caps=catalogue(facts);
+        var original=input("这门选修没过，能再修吗？");
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var needed=new Requirement("r1",new DemandSpan("q1",0,original.question().length()),Dimension.RETAKE,
+            Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED,List.of("courseType"));
+        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(needed),
+            List.of(new SemanticBinding("r1",retake.id(),BindingRole.CORE)),List.of());
+        var ask=new Ask("q1","courseType","提议理由不能充当必要性证据",List.of(retake.id()));
+        var result=new RulePublicationGate(caps).assess(original,ask,review,facts);
+        assertThat(result.questions().get("q1").uncoveredRequirementIds()).containsExactly("r1");
+        assertThat(result.questions().get("q1").coveredRequirementIds()).isEmpty();
+        var unnecessary=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(
+            requirement("r1",original.question(),Dimension.RETAKE,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED)),review.bindings(),List.of());
+        assertThatThrownBy(()->new RulePublicationGate(caps).assess(original,ask,unnecessary,facts))
+            .hasMessage("CONDITION_NOT_NECESSARY");
+        var known=new RuleAgentRunner.Input(original.owner(),original.taskId(),2,original.question(),original.questions(),Map.of("courseType","PUBLIC"));
+        var knownReview=new SemanticAssessment(REVISION,RulePublicationContract.input(known,facts,caps).inputFingerprint(),review.requirements(),review.bindings(),List.of());
+        assertThatThrownBy(()->new RulePublicationGate(caps).assess(known,ask,knownReview,facts))
+            .hasMessage("CONDITION_ALREADY_PROVIDED");
+    }
+
+    @Test void askCannotUseArrangementFactOrUnresolvedDemandToInventCondition() {
+        var caps=catalogue(arrangement);
+        var original=input("比较两类选修的修读安排");
+        var review=comparison(RulePublicationContract.input(original,arrangement,caps));
+        assertThatThrownBy(()->new RulePublicationGate(caps).assess(original,
+            new Ask("q1","courseType","先问类别",List.of(professional.id())),review,arrangement))
+            .hasMessage("CONDITION_NOT_NECESSARY");
+    }
 }
