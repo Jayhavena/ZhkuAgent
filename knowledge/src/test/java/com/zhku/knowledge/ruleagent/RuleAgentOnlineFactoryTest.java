@@ -28,6 +28,7 @@ class RuleAgentOnlineFactoryTest {
     int searches;
     int candidateCopies=1;
     volatile JsonNode lastDecisionView;
+    volatile int lastRequestBytes;
     final CountDownLatch reviewStarted=new CountDownLatch(1);
     final CountDownLatch releaseReview=new CountDownLatch(1);
     volatile boolean holdReview;
@@ -86,7 +87,10 @@ class RuleAgentOnlineFactoryTest {
             try{
                 calls.incrementAndGet();
                 var json=new ObjectMapper();
-                var request=json.readTree(e.getRequestBody());
+                byte[] rawBody=e.getRequestBody().readAllBytes();
+                // 工具定义会显著增大请求体；记录真实字节数以核对是否仍在上限内。
+                lastRequestBytes=rawBody.length;
+                var request=json.readTree(rawBody);
                 var view=json.readTree(request.path("messages").path(1).path("content").asText());
                 if(!view.has("input"))lastDecisionView=view;
                 Object action;
@@ -289,6 +293,13 @@ class RuleAgentOnlineFactoryTest {
         assertThat(lastDecisionView.path("currentCandidates").size()).isEqualTo(10);
         assertThat(calls).hasValue(4);
         assertThat(factory.resourcesClosed()).isTrue();
+        // 工具定义会增大请求体；必须仍在上限内，否则真实运行会在宿主侧以BUDGET_EXCEEDED终止。
+        assertThat(lastRequestBytes).isLessThan(DEFAULT_BUDGET.maxRequestBytes());
+        java.nio.file.Files.write(java.nio.file.Path.of(System.getProperty("zhku.rulecheck.evidenceDir"),"tool-calling-request-budget.json"),
+            new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("selectedCount",count,"candidateCopies",candidateCopies,
+                "maximumRequestBytes",DEFAULT_BUDGET.maxRequestBytes(),"measuredRequestBytes",lastRequestBytes,
+                "headroomBytes",DEFAULT_BUDGET.maxRequestBytes()-lastRequestBytes,"toolsIncluded",true,"responseFormatAbsent",true)),
+            java.nio.file.StandardOpenOption.CREATE,java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
     }
     @Test void prepareP01PacketFromCurrentAuthoritiesWithoutOpeningPorts()throws Exception{
         var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();
@@ -465,7 +476,7 @@ class RuleAgentOnlineFactoryTest {
     }
     @Test void currentP01PacketMatchesActualReviewedAssetsWithoutCalls()throws Exception{
         var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();
-        var path=root.resolve("docs/evidence/rule-agent-provider/2026-10-14/t05-24/request-package.json");
+        var path=root.resolve("docs/evidence/rule-agent-provider/2026-10-14/t05-25/request-package.json");
         var json=new ObjectMapper();
         var frozen=json.readTree(java.nio.file.Files.readAllBytes(path));
         RuleAgentOnlineProbeHost.validatePackage(frozen);

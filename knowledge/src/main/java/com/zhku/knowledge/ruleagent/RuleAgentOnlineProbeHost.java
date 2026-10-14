@@ -15,7 +15,7 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 /** 独立工程探针宿主；学生HTTP入口由T06另行接入。 */
 public final class RuleAgentOnlineProbeHost {
     private static final ObjectMapper JSON=new ObjectMapper().findAndRegisterModules();
-    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-14/t05-24/request-package.json";
+    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-14/t05-25/request-package.json";
     private static final String P01_QUESTION="专业选修课和公共选修课在修读安排上有什么不同？";
     private static final int MAXIMUM=DEFAULT_BUDGET.maxModelAttemptsPerRun();
     private static JsonNode expectedCases(){

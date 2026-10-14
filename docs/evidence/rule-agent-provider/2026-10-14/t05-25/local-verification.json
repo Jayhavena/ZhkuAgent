@@ -1,0 +1,85 @@
+{
+  "protocolRevision": "RULE_AGENT_ACTION_CONTRACT_04",
+  "wireProtocol": {
+    "decision": "TOOL_CALLING",
+    "publicationReview": "JSON_TEXT_UNCHANGED"
+  },
+  "supersedes": "docs/evidence/rule-agent-provider/2026-10-14/t05-24/request-package.json",
+  "supersedeReason": "决策侧已改为工具调用，而原系统提示词仍要求输出文本JSON动作；提示词已与工具协议对齐，包身份随之更新。",
+  "packagePath": "docs/evidence/rule-agent-provider/2026-10-14/t05-25/request-package.json",
+  "packageSha256": "78909e8a3f3a37a4db8ea6934e4d86a46cf6869f2fcab243359a51e962a432fe",
+  "packetCheckPackage": {
+    "passed": true,
+    "providerCalls": 0,
+    "databaseOperations": 0
+  },
+  "localSimulation": {
+    "providerCalls": 0,
+    "databaseWrites": 0,
+    "classes": [
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentContractTest",
+        "run": 7,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentEvidenceToolsTest",
+        "run": 10,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest",
+        "run": 32,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentProviderTest",
+        "run": 45,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentRunnerTest",
+        "run": 21,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RuleAgentTaskStoreTest",
+        "run": 14,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "class": "com.zhku.knowledge.ruleagent.RulePublicationGateTest",
+        "run": 15,
+        "failures": 0,
+        "errors": 0
+      }
+    ],
+    "totalRun": 144,
+    "totalFailures": 0,
+    "totalErrors": 0
+  },
+  "requestBudgetMeasured": {
+    "measuredRequestBytes": 4453,
+    "toolsIncluded": true,
+    "maximumRequestBytes": 65536,
+    "responseFormatAbsent": true,
+    "selectedCount": 3,
+    "candidateCopies": 10,
+    "headroomBytes": 61083
+  },
+  "sourceSha256": {
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProtocol.java": "9b799684ab236863c3157df6b14134139909331d914649b610020fae7eb954aa",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProvider.java": "fbf44efd6cd314d1f06eb03bed32b53a17cdf3e112a5506a279c88ccb5199fa2",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleCandidateReferences.java": "7301224df0ca61ee886b10ca031b713760495731a991d9c6a38107ae1416a8c3",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentContract.java": "89d4a378bdef913e9584c74463f7c26bcbb88eac3c1c616afcd51345893a96be",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineProbeHost.java": "e92cf49caa895ec1faca77a122448df4187fad4fcb5cf4f47eda15f6c917a5ad",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java": "e1c5a1b30277368defedeef5a4f3f26041cda1e0ec371ddb04abc8e5e05e8623",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java": "a8e58cf30b1e65aef4cb0203509b1e9c36b193bdee97e3f6751cfc28bf1765ef"
+  }
+}
