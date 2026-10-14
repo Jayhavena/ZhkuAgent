@@ -26,12 +26,15 @@
   ],
   "discoveredNotFixed": [
     {
-      "item": "学生构建仍打包工程 chunk",
+      "item": "学生构建产物同样包含工程 chunk",
       "preExisting": true,
-      "reason": "import.meta.env.VITE_ENTRY_MODE 未被静态折叠，基线同样如此；修它需改 vite.config.js，超出本会话允许文件清单",
-      "impact": "运行期路由仍受构建模式约束，学生无法访问工程页面；仅“学生产物只含学生页”的既有表述与事实不符"
+      "reason": "import.meta.env.VITE_ENTRY_MODE 构建期未被静态折叠，三元两支都进入产物；基线同样如此",
+      "scopeDecision": "本轮要求是学生入口与运行期路由收敛、工程能力保留，并不要求学生构建彻底排除全部工程资源。只登记事实，不改 vite.config.js，不扩大为构建重构任务。",
+      "retainedEvidence": "学生产物资产名称集合 24 个（16 JS + 8 CSS）与基线逐项一致，diff 为空；模块数 132→134"
     }
   ],
   "onlinePassed": false,
-  "localPartialPass": true
+  "localPartialPass": true,
+  "registration": "T07 工程局部检查点，待统一集成核验；176 项回归、两种构建、10 项路由浏览器检查分别成立，不合并为真实整链通过",
+  "twoWindowAcceptance": "待验证（需宿主稳定提交与退出方式，以及 T06 可登录装配）"
 }

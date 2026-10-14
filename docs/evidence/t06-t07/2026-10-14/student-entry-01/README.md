@@ -1,6 +1,8 @@
-# T07 学生入口与实验入口隔离：工程局部通过，真实集成待宿主
+# T07 学生入口与实验入口隔离：工程局部检查点，待统一集成核验
 
 本轮起始 2026-10-14 18:51 +08（本时段上限 20 分钟）。独立分支 `codex/t07-student-entry`，基线 `88e57d68799d3a5996bb84346090a84040a88387`，独立 worktree，未共用其他会话目录/暂存区，未复制其改动。schemaVersion=3，共享权威合同、模型提示、事实/范围守卫、发布语义、TaskStore 与 T05 源码均未改动。真实供应商尝试 0、数据库调用 0。
+
+> **登记结论**：本目录绑定的提交 `94dc928151efd96f08ff99f1280ee1871b05907a` 为 **T07 工程局部检查点，待统一集成核验**。176 项前端回归、两种入口模式构建、10 项路由浏览器检查是**三条分别成立**的本地结果，**不合并成"真实整链通过"**；真实两窗口与真实身份/资料验收保持待验证。
 
 ## 本轮补齐的两个实际缺口
 
@@ -16,9 +18,13 @@
   - 工程构建：`/` 同时含 `学分实验` 与 `通用助手实验`；`/super-agent` → `/super-agent` 渲染任务助手；`/campus/run` → `/campus/login`（底层能力保留且仍要求身份）；`/engineering/rules-replay` 与 `/rules` 可达。
 - 浏览器输入仅测试身份/合成问题，未接真实供应商；`TEST_SIMULATION_NO_PROVIDER`。
 
-## 发现但未修（超出本会话文件范围，需用户裁决）
+## 口径修正：登记事实，不扩展为构建改造
 
-学生构建**仍然打包** `Agent/CampusRun/CampusHistory/CampusConversation/ControlledLogin/ControlledLayout/Home/RuleCheckReplayView` 等工程 chunk。原因是 `import.meta.env.VITE_ENTRY_MODE === 'engineering'` 在构建期没有被静态折叠，三元两支都进入产物；**该现象在基线同样存在**（见基线 student-build.log），不是本轮引入。运行期路由仍由构建期的 `studentRoutes` 决定，学生无法访问工程页面；但“学生产物只含学生页与主包”的既有说法与事实不符。要真正裁剪需在 `vite.config.js` 用 `define` 做常量折叠或改为动态导入，属构建配置改动，不在本会话允许的文件清单内，故只登记。
+`npm run build`（学生模式）产出的资产集合与工程模式**相同**：`Agent/CampusRun/CampusHistory/CampusConversation/ControlledLogin/ControlledLayout/Home/RuleCheckReplayView` 等工程 chunk 都在产物里。原因是 `import.meta.env.VITE_ENTRY_MODE === 'engineering'` 在构建期没有被静态折叠，三元两支都进入产物；**该现象在基线同样存在**（见基线 `student-build.log`），不是本轮引入。
+
+本轮要求是学生侧收敛**入口与运行期路由**（学生运行期路由表只有查证页，两个实验入口与未知路径都回 `/rules?entry=rules`）、同时**保留工程能力**（工程模式两个实验入口与回放页可达）。**本轮不要求学生构建彻底排除全部工程资源**，因此这里只登记该事实：**不修改 `vite.config.js`，不把它扩大成新的构建重构任务。**
+
+保留的实测证据：学生产物资产名称集合 24 个（16 JS + 8 CSS）与基线逐项一致（`diff` 为空，见本节目录下 `student-build.log` 与 `reviewed-tools-01/student-build.log`）；模块数 132→134，增量只来自本轮新增的 `engineering-routes.js` 与 `identity-bus.js`。
 
 ## 合同与等待项
 
@@ -26,7 +32,9 @@
 
 等待依赖：① 验收宿主 Agent 的稳定提交与退出方式（浏览器验收卡点，本轮不绕过）；② T06 Agent 的明确提交，真实身份/资料验收才可开始；③ T05 仍未通过，本轮零真实供应商调用，不复用旧响应、不关闭额度。
 
-未验证范围：跨窗口失效只用注入的通道替身做了单元级证明，**真实两窗口/跨标签页实机未跑**（需要可登录的宿主，本轮无此条件）；真实身份、真实资料、正式 nginx 代理、在线模型与同版本整链浏览器验收均未覆盖。T05 未通过，T07 只标工程局部通过待真实集成，不进入 T08。
+未验证范围：跨窗口失效只用注入的通道替身做了单元级证明，**真实两窗口/跨标签页实机未跑**（需要可登录的宿主，本轮无此条件）；真实身份、真实资料、正式 nginx 代理、在线模型与同版本整链浏览器验收均未覆盖。T05 未通过，T07 只标**工程局部通过，待真实集成**，不进入 T08。
+
+统一集成材料（提交 SHA、文件清单、验收源码身份、广播语义、测试覆盖矩阵、待验证的两窗口步骤）见同目录 `INTEGRATION-HANDOFF.md`。
 
 ## 来源与命令
 
