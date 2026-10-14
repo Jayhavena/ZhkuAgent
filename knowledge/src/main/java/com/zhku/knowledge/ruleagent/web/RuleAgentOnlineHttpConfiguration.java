@@ -20,7 +20,9 @@ public class RuleAgentOnlineHttpConfiguration {
     @Bean(destroyMethod="close") RuleAgentTaskToolsRegistry ruleAgentTaskToolsRegistry(RuleAgentTaskToolsRegistry.ToolFactory tools,Clock clock){
         return new RuleAgentTaskToolsRegistry(tools,clock,RuleAgentTaskStore.DEFAULT_LIMITS.maxTasks());
     }
-    @Bean(destroyMethod="close") RuleAgentOnlineFactory ruleAgentOnlineHttpFactory(Options options,RuleAgentTaskToolsRegistry registry,Clock clock){
+    // autowireCandidate=false：在线工厂虽实现 TaskStore.Factory，但不作为该类型的按类注入候选。
+    // 这样 TaskStore 只能拿到受控启动入口显式暴露的工厂，避免"顺手注入"绕过准入模式校验。
+    @Bean(destroyMethod="close",autowireCandidate=false) RuleAgentOnlineFactory ruleAgentOnlineHttpFactory(Options options,RuleAgentTaskToolsRegistry registry,Clock clock){
         // 同一任务的执行和原文使用同一工具实例；原文不能另外构造绕过任务token与目录快照。
         // Options由服务端提供，本地配置值不替代新外发授权，不能复用已关闭的P01额度。
         return new RuleAgentOnlineFactory(options.settings(),options.key(),registry::open,options.audit(),options.allowance(),clock);
