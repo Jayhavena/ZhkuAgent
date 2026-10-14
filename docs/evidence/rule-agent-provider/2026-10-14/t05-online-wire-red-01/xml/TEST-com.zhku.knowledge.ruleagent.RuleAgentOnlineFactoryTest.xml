@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest" time="3.018" tests="10" errors="0" skipped="0" failures="3"><testcase name="packetRejectsMissingOrOldProtocolIdentity" classname="com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest" time="0.054" /><testcase name="quotaIsSharedAcrossNewRunsAndNeverReset" classname="com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest" time="0.555" /><testcase name="selectiveManualProbeCannotRepeatSuccessfulCaseOrResetFullQuota" classname="com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest" time="0.001" /><testcase name="localProviderAndActualDomainToolsFollowObservations" classname="com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest" time="0.176"><failure message="&#xA;Expecting actual:&#xA;  [&quot;SEARCH_REVIEWED_RULES&quot;, &quot;READ_VERIFIED_RULE&quot;, &quot;FINISH_CHECK&quot;]&#xA;to contain exactly (and in same order):&#xA;  [&quot;SEARCH_REVIEWED_RULES&quot;,&#xA;    &quot;READ_VERIFIED_RULE&quot;,&#xA;    &quot;FINISH_CHECK&quot;,&#xA;    &quot;PUBLICATION_REVIEW&quot;]&#xA;but could not find the following elements:&#xA;  [&quot;PUBLICATION_REVIEW&quot;]&#xA;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  ["SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK"]
+to contain exactly (and in same order):
+  ["SEARCH_REVIEWED_RULES",
+    "READ_VERIFIED_RULE",
+    "FINISH_CHECK",
+    "PUBLICATION_REVIEW"]
+but could not find the following elements:
+  ["PUBLICATION_REVIEW"]
+
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.localProviderAndActualDomainToolsFollowObservations(RuleAgentOnlineFactoryTest.java:116)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="packetRejectsEditedActionContractAndDynamicBudget" classname="com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest" time="0.004" /><testcase name="revisedPacketBindsCurrentBudgetAndRejectsOldBudgetOrExpandedScope" classname="com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest" time="0.006" /><testcase name="realTaskStoreTokenContinuesThroughOnlineFactoryAndSharesBatchQuota" classname="com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest" time="0.139"><failure message="&#xA;expected: WAITING_USER&#xA; but was: STOPPED" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+expected: WAITING_USER
+ but was: STOPPED
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.realTaskStoreTokenContinuesThroughOnlineFactoryAndSharesBatchQuota(RuleAgentOnlineFactoryTest.java:132)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase><testcase name="probeStartupRequiresSpecificPackageApproval" classname="com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest" time="0.014" /><testcase name="revisedProbeCannotSilentlyUseOldAllCaseAuthorization" classname="com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest" time="0.001" /><testcase name="cancelDuringFactoryReviewDoesNotPublishAndReleasesPorts" classname="com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest" time="2.014"><failure message="&#xA;Expecting value to be true but was false" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.cancelDuringFactoryReviewDoesNotPublishAndReleasesPorts(RuleAgentOnlineFactoryTest.java:156)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure></testcase></testsuite>

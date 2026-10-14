@@ -13,6 +13,10 @@ public final class RulePublicationContract {
     public static final int MAX_DECISION_CALLS=RuleAgentContract.DEFAULT_BUDGET.maxModelAttemptsPerRun()-RESERVED_REVIEW_CALLS;
     public static final int MAX_REQUIREMENTS=8;
     public static final int MAX_BINDINGS=16;
+    public static Map<String,Integer> policy(){
+        return Map.of("maxDecisionCalls",MAX_DECISION_CALLS,"reservedReviewCalls",RESERVED_REVIEW_CALLS,
+            "maxModelAttemptsPerRun",RuleAgentContract.DEFAULT_BUDGET.maxModelAttemptsPerRun());
+    }
     private static final ObjectMapper JSON=new ObjectMapper().configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS,true);
 
     public enum Dimension { CATEGORY,STUDY_ARRANGEMENT,HOURS_NORMAL,HOURS_LIMIT,SEMESTER_CREDIT_LIMIT,DEFERRED_EXAM,RETAKE,UNKNOWN }

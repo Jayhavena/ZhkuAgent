@@ -1,5 +1,5 @@
 #requires -Version 7.0
-param([switch]$CheckEnvironment,[switch]$PrepareProbe,[switch]$Probe,[switch]$BuildOnly,[switch]$OnlyP01,[switch]$CheckPackage,
+param([switch]$CheckEnvironment,[switch]$PrepareProbe,[switch]$Probe,[switch]$BuildOnly,[switch]$OnlyP01,[switch]$IncludeClarification,[switch]$CheckPackage,
  [ValidatePattern('^[a-f0-9]{64}$')][string]$ApprovedPackageSha256,
  [ValidateRange(1024,65535)][int]$DatabasePort=55518)
 $ErrorActionPreference='Stop'
@@ -11,14 +11,15 @@ $importer=Join-Path $root 'scripts/Import-ZhkuCredentials.ps1'
 $java=Get-Command java.exe -ErrorAction SilentlyContinue
 $docker=Get-Command docker.exe -ErrorAction SilentlyContinue
 $jar=Join-Path $root 'knowledge/target/knowledge-0.1.0-rc.1-controlled.jar'
-$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-13/t05-probe-03/request-package.json'
+$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-14/t05-probe-04/request-package.json'
 if($CheckEnvironment){
  & $importer -UseDashScope
  @{javaAvailable=($null-ne $java);dockerAvailable=($null-ne $docker);keyAvailable=![string]::IsNullOrWhiteSpace($env:DASHSCOPE_API_KEY);mode='ONLINE_PROBE_ONLY';providerCalls=0;databaseOperations=0;builds=0;encodingSample='规则查证：在线探针、等待授权';encoding=[Console]::OutputEncoding.CodePage;requiresRipgrep=$false}|ConvertTo-Json
  exit 0
 }
 if(@($PrepareProbe,$Probe,$BuildOnly,$CheckPackage|Where-Object {$_}).Count-ne 1){throw '请选择PrepareProbe、Probe、BuildOnly或CheckPackage之一'}
-if($Probe-and !$OnlyP01){throw '新预算探针只允许OnlyP01，不沿用旧双题或剩余额度'}
+if($OnlyP01){throw '旧P01批次已结束；新核验载荷必须重新明确批准，不沿用旧包或额度'}
+if($Probe-and !$IncludeClarification){throw '新包包含P01及P02澄清续答，必须明确IncludeClarification并取得新包外发批准'}
 if(!$java){throw '普通终端未找到Java；先执行CheckEnvironment'}
 Push-Location $root
 try{
@@ -54,10 +55,10 @@ try{
  $env:POSTGRES_PASSWORD=$env:ZHKU_DB_PASSWORD
  $env:ZHKU_DB_URL="jdbc:postgresql://127.0.0.1:$DatabasePort/zhkuagent_rulecheck_e2e"
  $env:ZHKU_RULE_AGENT_MODE='ONLINE';$env:ZHKU_RULE_AGENT_AUTHORIZATION_ID=$ApprovedPackageSha256;$env:ZHKU_RULE_AGENT_PROBE_SHA256=$ApprovedPackageSha256
- $env:ZHKU_RULE_AGENT_PROBE_CASE='P01'
+ $env:ZHKU_RULE_AGENT_PROBE_CASE='P01_P02'
  # 当前.NET/PowerShell可能将null转换为空值而保留键；ONLINE拒绝任何回放键，必须真正删除。
  foreach($name in @('ZHKU_RULECHECK_TASK_BATCH_DIRECTORY','ZHKU_RULECHECK_TASK_PACKAGE_SHA256','ZHKU_RULECHECK_TASK_SUMMARY_SHA256')){Remove-Item -LiteralPath "Env:\$name" -ErrorAction SilentlyContinue}
- $env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-13/t05-live-'+[guid]::NewGuid().ToString('N')
+ $env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-14/t05-live-'+[guid]::NewGuid().ToString('N')
  $container='zhku-rule-agent-probe-'+[guid]::NewGuid().ToString('N')
  function Docker([string[]]$argsForDocker){
   & $importer -RequireDatabase
@@ -73,7 +74,7 @@ try{
   & $importer -RequireDatabase -RequireDashScope
   $result=Invoke-ZhkuOwnedProcess -Executable $java.Source -Arguments ($arguments+@('--Probe')) -TimeoutSeconds 125 -Secrets $secrets
   # 宿主可能在创建业务证据目录前失败，也必须保留已脱敏的启动诊断，不能丢失失败位置。
-  $launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-13/t05-08/launcher-'+[guid]::NewGuid().ToString('N')+'.log')
+  $launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-14/t05-18/launcher-'+[guid]::NewGuid().ToString('N')+'.log')
   New-Item -ItemType Directory -Force (Split-Path $launcherLog -Parent)|Out-Null
   [IO.File]::WriteAllText($launcherLog,$result.output+"`n"+$result.errorOutput,$utf8)
   $directory=Join-Path $root $env:ZHKU_RULE_AGENT_EVIDENCE
