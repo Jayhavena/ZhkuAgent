@@ -1,0 +1,117 @@
+{
+  "revision": "T05_PROVIDER_CAPABILITY_01",
+  "checkedAt": "2026-10-14T14:44:00+08:00",
+  "baselineHead": "a8f99120f296eef28d218bb7f7a52b273694c9ee",
+  "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "model": "qwen-plus",
+  "thinking": false,
+  "providerCalls": 0,
+  "databaseWrites": 0,
+  "sources": [
+    {
+      "topic": "structured-output",
+      "url": "https://help.aliyun.com/zh/model-studio/qwen-structured-output",
+      "retrieved": "2026-10-14",
+      "region": "cn-beijing"
+    },
+    {
+      "topic": "function-calling",
+      "url": "https://help.aliyun.com/zh/model-studio/qwen-function-calling",
+      "retrieved": "2026-10-14",
+      "region": "cn-beijing"
+    },
+    {
+      "topic": "api-reference",
+      "url": "https://help.aliyun.com/zh/model-studio/qwen-api-via-dashscope",
+      "retrieved": "2026-10-14",
+      "region": "cn-beijing"
+    }
+  ],
+  "capabilities": {
+    "jsonObject": {
+      "documented": true,
+      "modelListed": true,
+      "note": "Qwen-Plus 系列（非思考模式）在列；只保证输出合法 JSON，不保证字段结构"
+    },
+    "jsonSchemaStrict": {
+      "documented": true,
+      "modelListed": false,
+      "documentedModels": [
+        "Qwen3.7-Plus 系列",
+        "Qwen3.8-Flash 系列",
+        "Qwen3.7-Flash 系列",
+        "Qwen3.7-Max 系列",
+        "Qwen3.8-Max 系列"
+      ],
+      "note": "qwen-plus 未列入官方承诺范围；采用它作为实现依据被判定为不可接受"
+    },
+    "toolCalling": {
+      "documented": true,
+      "modelListed": true,
+      "note": "Qwen-Plus 系列在列；parameters 仅被定义为入参描述，全文无 strict 语义"
+    },
+    "toolChoice": {
+      "auto": true,
+      "none": true,
+      "required": false,
+      "namedFunction": true,
+      "note": "Qwen 系列不支持 required；思考模式不支持指定单一工具；本项目为非思考模式"
+    },
+    "parallelToolCalls": {
+      "supported": true,
+      "default": false
+    }
+  },
+  "schemaKeywords": {
+    "array_supported": ["items", "prefixItems", "minItems", "maxItems", "unevaluatedItems"],
+    "array_unsupported_400": ["uniqueItems", "contains", "minContains", "maxContains", "additionalItems"],
+    "object_supported": ["properties", "required", "additionalProperties", "minProperties", "maxProperties", "dependentRequired", "dependentSchemas", "unevaluatedProperties"],
+    "object_unsupported_400": ["patternProperties", "propertyNames"],
+    "string_supported": ["minLength", "maxLength", "pattern", "format", "contentMediaType", "contentEncoding"],
+    "number_supported": ["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf"],
+    "common_supported": ["type", "enum", "const", "$defs+$ref", "anyOf", "oneOf", "allOf", "not", "if/then/else"],
+    "annotations_only": ["title", "description", "default", "examples"],
+    "scopeNote": "该表属于 JSON Schema 模式；qwen-plus 未获承诺使用该模式，表内能力对本方案不构成保证"
+  },
+  "productionCaution": [
+    "开启结构化输出时不要设置 max_tokens，可能截断 JSON 导致下游解析失败",
+    "多模态输入不支持 json_schema，会静默降级为 json_object"
+  ],
+  "responsibility": {
+    "provider": [
+      "输出为合法 JSON（工具调用下为 function.arguments 字符串）",
+      "工具调用时动作名称来自宿主登记的 tools 名称",
+      "tool_calls 结构（id/function.name/function.arguments）"
+    ],
+    "hostMustKeep": [
+      "READ 句柄数量 1—3",
+      "句柄唯一性（供应商 uniqueItems 不支持）",
+      "编号格式 c[1-9][0-9]* 与集合代号绑定",
+      "跨任务/过期集合拒绝",
+      "字段闭合与必填",
+      "子问题归属、预算、证据与发布守卫",
+      "tool_calls 数量必须恰为 1，多个动作一律拒绝且不执行任何动作"
+    ]
+  },
+  "responseContractChange": {
+    "readPath": "choices[0].message.tool_calls[0].function.{name,arguments}",
+    "finishReasonExpected": "tool_calls",
+    "currentHostAssumption": "finish_reason 必须为 stop（需适配，避免误判新合法响应）",
+    "noToolCallFallback": "tool_calls 为空时不得回落旧文本协议，按拒绝处理"
+  },
+  "unverified": [
+    "本项目实际端点接受 tools/tool_choice/parallel_tool_calls 的行为",
+    "finish_reason 实际取值与 usage 字段位置",
+    "json_schema 在 qwen-plus 上返回 400 还是静默降级",
+    "工具调用与 max_completion_tokens 共存性",
+    "工具调用能否改善 READ 句柄数量的实际选择（文档未承诺数量强制）"
+  ],
+  "decision": {
+    "selected": "tool-calling",
+    "notSelected": [
+      "json-schema-strict（模型未获承诺）",
+      "keep-json-object-only（不解决动作生成接口）"
+    ],
+    "claimBoundary": "改善动作名称与参数结构，不构成参数值强制保证"
+  }
+}
