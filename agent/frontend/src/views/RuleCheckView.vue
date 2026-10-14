@@ -21,6 +21,7 @@ const active = computed(() => !!state.ticket && (!state.snapshot || state.snapsh
 const title = computed(() => state.snapshot?.taskStatus === 'WAITING_USER' ? '需要补充条件' : state.snapshot?.taskStatus === 'STOPPED' ? '本轮已停止' : state.snapshot?.taskStatus === 'FAILED' ? '本轮处理失败' : result.value?.coverage === 'COMPLETE' ? '有依据可确认' : result.value?.coverage === 'PARTIAL' ? '有部分依据' : '仍有未确认项')
 const identityMessage = computed(() => session.state.reason === 'LOGOUT_UNCONFIRMED' ? '退出尚未确认，请重试退出。'
   : session.state.reason === 'LOGIN_UNCONFIRMED' ? '登录结果尚未确认，请先核对登录状态。'
+  : session.state.reason === 'IDENTITY_CHANGED_ELSEWHERE' ? '登录状态已在其他窗口变更，请重新登录。'
   : session.state.reason === 'AUTH_EXPIRED' ? '登录已失效，请重新登录。' : '')
 const originalParts = computed(() => {
   const original = state.original
