@@ -37,7 +37,8 @@ class RuleAgentTaskHttpTest {
     static final AtomicBoolean originalCurrent=new AtomicBoolean(true);
     static final UUID TOKEN=UUID.randomUUID(),SOURCE=UUID.randomUUID(),CHUNK=UUID.randomUUID();
     static final String QUOTE="合成条款：仅用于接口验收。";
-    static final String HASH="a".repeat(64);
+    static final String HASH=sha(QUOTE);
+    static String sha(String value){try{return HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8)));}catch(Exception e){throw new IllegalStateException(e);}}
     @SpringBootConfiguration(proxyBeanMethods=false)
     @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class,UserDetailsServiceAutoConfiguration.class})
     @Import({RuleCheckPreviewSecurityConfiguration.class,RuleCheckAuthController.class,RuleAgentHttpConfiguration.class})
@@ -49,8 +50,8 @@ class RuleAgentTaskHttpTest {
                 when(repo.authenticate(eq(entry.getKey()),any(char[].class))).thenReturn(Optional.of(new PreviewPrincipal(entry.getValue())));
             return repo;
         }
-        @Bean RuleAgentTaskStore.Factory factory(){return (owner,task)->new RuleAgentTaskStore.Work(){
-            public boolean revalidate(ResultEnvelope old){return true;}
+        @Bean RuleAgentTaskStore.Factory factory(RuleAgentTaskToolsRegistry registry){return (owner,task)->new RuleAgentTaskStore.Work(){
+            public boolean revalidate(ResultEnvelope old){return old.evidence().stream().allMatch(e->registry.read(owner,task,e.originalToken()).isPresent());}
             public RuleAgentRunner.Outcome run(AgentRunContext context,RuleAgentRunner.Input input){
                 runs.incrementAndGet();context.start();
                 boolean waiting=input.question().equals("澄清")&&input.userConditions().isEmpty();
@@ -64,17 +65,28 @@ class RuleAgentTaskHttpTest {
                 var items=List.of(new Subquestion("q1",claim?(partial?Coverage.PARTIAL:Coverage.COMPLETE):Coverage.NONE,
                     claim?List.of(new Claim("answer","fixture-fact","合成确认内容",Map.of(),ConditionSource.USER_DECLARED)):List.of(),
                     claim&&!partial?List.of():List.of(issue),waiting?List.of(new Clarification("courseType","课程类别？",List.of("PUBLIC","PROFESSIONAL"))):List.of()));
-                var evidence=claim?List.of(new Evidence("e1",SOURCE,CHUNK,"2025.9.2",HASH,0,QUOTE.length(),QUOTE,TOKEN)):List.<Evidence>of();
-                var relations=claim?List.of(new EvidenceRelation("e1","q1",EvidenceRole.CLAIM,"answer")):List.<EvidenceRelation>of();
+                var tools=registry.open(owner,task);
+                List<Evidence> evidence=List.of();
+                if(claim){var found=tools.search(owner,task,context.runId(),1,new Search("q1","合成条款"));var read=tools.read(owner,task,context.runId(),2,new Read("q1",List.of(found.candidates().getFirst().handle())));evidence=read.observation().evidence();}
+                var relations=claim?List.of(new EvidenceRelation(evidence.getFirst().id(),"q1",EvidenceRole.CLAIM,"answer")):List.<EvidenceRelation>of();
                 var result=new ResultEnvelope(input.version(),context.runId(),"synthetic-http-v1","2025.9.2",items.getFirst().coverage(),items,evidence,relations);
                 var state=failed?AgentRunState.FAILED:waiting||gap||partial?AgentRunState.INCOMPLETE:AgentRunState.SUCCEEDED;
                 context.finish(state);context.cleanupOnce(()->{});context.signalTermination();context.publishTermination();
-                return new RuleAgentRunner.Outcome(new TaskSnapshot(3,task,UUID.randomUUID(),context.runId(),input.version(),waiting?TaskStatus.WAITING_USER:failed?TaskStatus.FAILED:TaskStatus.RESOLVED,state,true,result,waiting?UUID.randomUUID():null,new Execution(Mode.ONLINE,incomplete?5:0,0,false,claim?AnswerSource.VERIFIED_RULE_ONLY:AnswerSource.NONE,ReplayCoverage.NOT_APPLICABLE)),List.of());
+                return new RuleAgentRunner.Outcome(new TaskSnapshot(3,task,UUID.randomUUID(),context.runId(),input.version(),waiting?TaskStatus.WAITING_USER:failed?TaskStatus.FAILED:TaskStatus.RESOLVED,state,true,result,waiting?UUID.randomUUID():null,new Execution(Mode.ONLINE,incomplete?5:0,claim?2:0,false,claim?AnswerSource.VERIFIED_RULE_ONLY:AnswerSource.NONE,ReplayCoverage.NOT_APPLICABLE)),List.of());
             }
         };}
         @Bean(name="ruleAgentHttpExecutor") java.util.concurrent.Executor executor(){return queue::add;}
-        @Bean RuleAgentTaskController.OriginalReader originals(){return (o,t,k)->originalCurrent.get()&&TOKEN.equals(k)?Optional.of(new RuleCheckVerifiedExcerpt("e1",SOURCE,CHUNK,"2025.9.2",HASH,0,QUOTE.length(),QUOTE)):Optional.empty();}
-        @Bean RuleCheckOriginalEvidenceService locator(){var locator=mock(RuleCheckOriginalEvidenceService.class);when(locator.locate(any())).thenReturn(new RuleCheckOriginalEvidenceService.Result(RuleCheckOriginalEvidenceService.Code.FOUND,new RuleCheckOriginalEvidenceService.View("e1",SOURCE,CHUNK,"2025.9.2","合成手册","合成条款",null,"UNKNOWN",null,null,QUOTE,0,0,QUOTE.length(),List.of("页码尚未记录"))));return locator;}
+        @Bean RuleAgentTaskToolsRegistry registry(Clock clock){
+            return new RuleAgentTaskToolsRegistry((owner,task)->{
+                var binding=new RuleCheckRuleTemplate.EvidenceBinding(SOURCE,CHUNK,"2025.9.2",HASH,0,QUOTE.length(),QUOTE);
+                var fact=new RuleCheckRuleTemplate.Fact("fixture-fact","合成确认内容",true,Map.of(),List.of(binding));
+                var rule=new RuleCheckRuleTemplate("fixture","2025.9.2",RuleCheckRuleTemplate.ReviewState.APPROVED,"SYNTHETIC_TEST",java.time.LocalDate.of(2026,10,14),List.of(fact),List.of(),List.of(),List.of());
+                var candidate=new com.zhku.knowledge.retrieval.RetrievedChunk(CHUNK,QUOTE,"synthetic","synthetic",1,"2025.9.2",HASH,SOURCE);
+                return new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->List.of(new RuleCheckApplicationService.CatalogEntry(rule,"合成范围")),(q,n)->List.of(candidate),
+                    (s,c)->Optional.of(new RuleCheckEvidenceSnapshot("current",SOURCE,CHUNK,"2025.9.2",HASH,QUOTE,originalCurrent.get())),r->{},clock);
+            },clock,RuleAgentTaskStore.DEFAULT_LIMITS.maxTasks());
+        }
+        @Bean RuleCheckOriginalEvidenceService locator(){return new RuleCheckOriginalEvidenceService((s,c)->Optional.of(new RuleCheckLocatedEvidence(new RuleCheckEvidenceSnapshot("current",SOURCE,CHUNK,"2025.9.2",HASH,QUOTE,originalCurrent.get()),"合成手册",null,"合成条款",null,null)),"2025.9.2",Set.of());}
     }
     @Test void actualHttpLifecycleIdentityVersionsOriginalsAndExit()throws Exception{
         runs.set(0);queue.clear();exchanges.clear();originalCurrent.set(true);
@@ -119,11 +131,12 @@ class RuleAgentTaskHttpTest {
             assertThat(a.post("/tasks/"+task+"/messages",message,true).statusCode()).isEqualTo(202);
             message.put("clientRequestId",UUID.randomUUID());assertThat(a.post("/tasks/"+task+"/messages",message,true).statusCode()).isEqualTo(409);
             queue.remove().run();assertThat(runs.get()).isEqualTo(2);
-            assertThat(JSON.readTree(a.get("/tasks/"+task).body()).path("taskStatus").asText()).isEqualTo("RESOLVED");
-            assertThat(b.get("/tasks/"+task+"/originals/"+TOKEN).statusCode()).isEqualTo(404);
+            var resolved=JSON.readTree(a.get("/tasks/"+task).body());assertThat(resolved.path("taskStatus").asText()).isEqualTo("RESOLVED");
+            String originalToken=resolved.path("result").path("evidence").get(0).path("originalToken").asText();
+            assertThat(b.get("/tasks/"+task+"/originals/"+originalToken).statusCode()).isEqualTo(404);
             assertThat(a.get("/tasks/"+task+"/originals/"+UUID.randomUUID()).statusCode()).isEqualTo(404);
-            assertThat(a.get("/tasks/"+task+"/originals/"+TOKEN).statusCode()).isEqualTo(200);
-            originalCurrent.set(false);assertThat(a.get("/tasks/"+task+"/originals/"+TOKEN).statusCode()).isEqualTo(409);
+            assertThat(a.get("/tasks/"+task+"/originals/"+originalToken).statusCode()).isEqualTo(200);
+            originalCurrent.set(false);assertThat(a.get("/tasks/"+task+"/originals/"+originalToken).statusCode()).isEqualTo(409);originalCurrent.set(true);
             for(String question:List.of("部分","缺证","故障","取消","理解未完成","漏答")){
                 var t=JSON.readTree(a.post("/tasks",Map.of("question",question,"clientRequestId",UUID.randomUUID()),true).body());String id=t.path("taskId").asText();
                 if(question.equals("取消")){
@@ -133,6 +146,7 @@ class RuleAgentTaskHttpTest {
                 }
                 queue.remove().run();var s=JSON.readTree(a.get("/tasks/"+id).body());
                 assertThat(s.path("taskStatus").asText()).isEqualTo(Set.of("故障","理解未完成","漏答").contains(question)?"FAILED":question.equals("取消")?"STOPPED":"RESOLVED");
+                assertThat(a.get("/tasks/"+id+"/originals/"+originalToken).statusCode()).isEqualTo(404);
                 assertThat(s.path("result").path("coverage").asText()).isEqualTo(Set.of("部分","漏答").contains(question)?"PARTIAL":"NONE");
                 if(question.equals("漏答")){assertThat(s.path("execution").path("modelAttemptCount").asInt()).isEqualTo(5);assertThat(s.path("result").path("items").get(0).path("issues").get(0).path("reasonCode").asText()).isEqualTo("ANSWER_COVERAGE_INCOMPLETE");}
                 if(question.equals("理解未完成"))assertThat(s.path("result").path("items").get(0).path("issues").get(0).path("reasonCode").asText()).isEqualTo("QUESTION_UNDERSTANDING_UNRESOLVED");

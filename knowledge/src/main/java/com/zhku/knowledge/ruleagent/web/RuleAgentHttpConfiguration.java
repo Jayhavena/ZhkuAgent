@@ -10,7 +10,7 @@ import org.springframework.context.annotation.*;
 /** 显式开关且依赖外部提供真实Factory/原文端口；缺配置启动失败，不加载测试替身。 */
 @Configuration(proxyBeanMethods=false)
 @ConditionalOnProperty(name="zhku.rule-agent-http.enabled",havingValue="true")
-@Import(RuleAgentTaskController.class)
+@Import({RuleAgentTaskController.class,RuleAgentOnlineHttpConfiguration.class})
 public class RuleAgentHttpConfiguration {
     @Bean(name="ruleAgentHttpExecutor",destroyMethod="shutdown")
     @ConditionalOnMissingBean(name="ruleAgentHttpExecutor")
