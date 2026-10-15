@@ -50,6 +50,12 @@ public final class RuleAgentOnlineProbeHost {
         if(args.length!=1)throw new IllegalArgumentException("只允许单一探针操作");
         if(args[0].equals("--CheckEnvironment")){System.out.println(JSON.writeValueAsString(environmentCheck(System.getenv())));return;}
         Path root=Path.of(required("ZHKU_RULE_AGENT_ROOT")).toRealPath();
+        if(args[0].equals("--CheckRuntimeAssets")) {
+            try(var catalogue=new Reviewed2025ControlledCatalogue(root)) {
+                System.out.println(JSON.writeValueAsString(Map.of("passed",true,"providerCalls",0,"databaseOperations",0,"runtimeAssets",catalogue.runtimeAssetManifest())));
+            }return;
+        }
+        if(args[0].equals("--CheckRuntimeAssembly")){checkRuntimeAssembly(root);return;}
         if(args[0].equals("--PrepareProbe")){prepare(root);return;}
         boolean checkOnly=args[0].equals("--CheckPackage");
         if(!checkOnly&&!args[0].equals("--Probe"))throw new IllegalArgumentException("未知探针操作");
@@ -112,6 +118,7 @@ public final class RuleAgentOnlineProbeHost {
         try(var qualification=new Reviewed2025ControlledCatalogue(root)){
             var bundle=JSON.readTree(Files.readAllBytes(root.resolve("docs/product/rule-check-2025-verbatim-import-draft.json")));var semantics=JSON.readTree(Files.readAllBytes(root.resolve("docs/product/rule-check-2025-b02-semantic-review.json")));var overlay=JSON.readTree(Files.readAllBytes(root.resolve("docs/evidence/rule-agent-evidence/2026-10-13/t02-01/article4-overlay-draft.json")));
             var pack=JSON.createObjectNode();
+            pack.set("runtimeAssets",JSON.valueToTree(qualification.runtimeAssetManifest()));
             pack.put("purpose","T05_P01_READ_REFERENCE_HARDENING_FULL_FLOW_NOT_PRODUCT_QUALITY_EVAL");
             pack.put("protocolRevision",RuleAgentProtocol.REVISION);
             pack.set("actionContract",RuleAgentProtocol.description());
@@ -151,6 +158,33 @@ public final class RuleAgentOnlineProbeHost {
             // 新候选只修正实际交换诊断和deadline；旧申请身份失效，业务合同和全部候选保持不变。
             pack.put("executionReadiness","PACKAGE_ONLY; one actual HTTP exchange with shared deadline and safe diagnostics; old batch and policy rejected; require pinned source/jar/package and new explicit authorization before any call");
             return pack;
+        }
+    }
+    /** 仅临时库装配验收；本入口不构造Provider、任务或发布核验，不消耗在线额度。 */
+    private static void checkRuntimeAssembly(Path root) throws Exception {
+        try(var catalogue=new Reviewed2025ControlledCatalogue(root)) {
+            var manifest=catalogue.runtimeAssetManifest();
+            String url=required("ZHKU_DB_URL");
+            var matcher=java.util.regex.Pattern.compile("^jdbc:postgresql://127\\.0\\.0\\.1:([0-9]{4,5})/zhkuagent_rulecheck_e2e$").matcher(url);
+            if(!matcher.matches()||Integer.parseInt(matcher.group(1))==54329)throw new IllegalArgumentException("拒绝原库或非专用临时库");
+            var db=new DriverManagerDataSource(url,"zhkuagent",required("ZHKU_DB_PASSWORD"));
+            Flyway.configure().dataSource(db).locations("classpath:db/migration").load().migrate();
+            int entries;
+            try {
+                catalogue.installOnIsolatedDatabase(db);
+                entries=RuleArticle4Overlay.apply(root,catalogue.reviewedCatalogue(root)).size();
+                if(entries!=17)throw new IllegalStateException("运行目录不完整");
+                var settings=catalogue.settings();
+                var retriever=JdbcLexicalCandidateRetriever.forChineseBigramEvaluation(db,new RetrievalEligibilityFilter(Clock.systemUTC()),settings.profileId(),settings.requiredScope(),settings.chunkingVersion());
+                var candidates=retriever.retrieve(P01_QUESTION,10);
+                if(candidates.isEmpty())throw new IllegalStateException("词法检索无结果");
+                var reader=new JdbcRuleCheckEvidenceReader(db,settings.profileId(),settings.chunkingVersion(),settings.requiredScope());
+                for(var candidate:candidates)if(reader.read(candidate.sourceId(),candidate.chunkId()).isEmpty())throw new IllegalStateException("检索结果未能回读");
+            } finally {catalogue.close();}
+            try(var connection=db.getConnection();var statement=connection.createStatement();var rows=statement.executeQuery("SELECT (SELECT count(*) FROM knowledge_source)+(SELECT count(*) FROM knowledge_chunk)+(SELECT count(*) FROM embedding_profile)+(SELECT count(*) FROM retrieval_index_entry)+(SELECT count(*) FROM retrieval_index_run)+(SELECT count(*) FROM citation_audit)")) {
+                rows.next();if(rows.getLong(1)!=0)throw new IllegalStateException("临时资料未清理");
+            }
+            System.out.println(JSON.writeValueAsString(Map.of("passed",true,"mode","LOCAL_RUNTIME_ASSEMBLY_ONLY","catalogueEntries",entries,"providerCalls",0,"resourcesClosed",true,"runtimeAssets",manifest)));
         }
     }
     private static String required(String name){var value=System.getenv(name);if(value==null||value.isBlank())throw new IllegalArgumentException("缺少启动环境："+name);return value;}

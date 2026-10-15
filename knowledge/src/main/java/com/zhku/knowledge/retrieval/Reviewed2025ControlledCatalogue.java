@@ -15,6 +15,7 @@ import java.util.*;
 /** 已审2025条款的受控本机装配；不代表学校发布服务，仅显式独立入口使用。 */
 public class Reviewed2025ControlledCatalogue implements AutoCloseable {
     private final Path root;
+    private final Map<String,String> assetHashes=new LinkedHashMap<>();
     static final String REVISION="2025.9.2", SCOPE="RULE_CHECK_PUBLIC_ELECTIVE_2025";
     static final String CUT="handbook-2025-clause-verbatim-v1";
     final UUID source=UUID.randomUUID(), run=UUID.randomUUID();
@@ -36,22 +37,22 @@ public class Reviewed2025ControlledCatalogue implements AutoCloseable {
         for(JsonNode input:approval.path("inputs")) {
             Path path=root.resolve(input.path("path").asText()).normalize();
             require(path.startsWith(root),"审核输入路径超界");
-            require(sha(Files.readAllBytes(path)).equals(input.path("sha256").asText()),"B03输入指纹变化");
+            require(sha(readBytes(path)).equals(input.path("sha256").asText()),"B03输入指纹变化");
         }
         var human=read(root.resolve(approval.path("confirmationEvidence").asText()));
         var presented=root.resolve("docs/evidence/rule-check-refactor/2026-10-09/b03-student-qualification-01");
         require(human.path("authority").asText().equals("DIRECT_USER_MESSAGE")&&human.path("decision").asText().equals("CONFIRMED"),"缺少直接资格确认");
         require(human.path("sharingRightsConfirmedForThisPackage").asBoolean()&&human.path("limitedStudentPresentationQualificationConfirmed").asBoolean(),"本批分享资格未确认");
-        require(sha(Files.readAllBytes(presented.resolve("presented-publication-review.json"))).equals(human.path("reviewedProposalSha256").asText()),"资格审前快照不符");
-        require(sha(Files.readAllBytes(presented.resolve("presented-review.md"))).equals(human.path("reviewedWorksheetSha256").asText()),"资格核对表指纹不符");
+        require(sha(readBytes(presented.resolve("presented-publication-review.json"))).equals(human.path("reviewedProposalSha256").asText()),"资格审前快照不符");
+        require(sha(readBytes(presented.resolve("presented-review.md"))).equals(human.path("reviewedWorksheetSha256").asText()),"资格核对表指纹不符");
         reviewedApproval=read(presented.resolve("presented-publication-review.json"));
         qualificationReviewer=human.path("reviewer").asText();qualificationDate=human.path("reviewedAt").asText();
         var semanticHuman=read(root.resolve("docs/evidence/rule-check-refactor/2026-10-09/b02-semantic-review-01/human-confirmation.json"));
         Path semanticSnapshot=root.resolve("docs/evidence/rule-check-refactor/2026-10-09/b02-semantic-review-01/presented-semantic-draft.json");
-        require(semanticHuman.path("authority").asText().equals("DIRECT_USER_MESSAGE")&&sha(Files.readAllBytes(semanticSnapshot)).equals(semanticHuman.path("reviewedDraftSha256").asText()),"缺少可追溯语义确认");
+        require(semanticHuman.path("authority").asText().equals("DIRECT_USER_MESSAGE")&&sha(readBytes(semanticSnapshot)).equals(semanticHuman.path("reviewedDraftSha256").asText()),"缺少可追溯语义确认");
         reviewedSemantics=read(semanticSnapshot);
         Path pdf=root.resolveSibling("SuperAgent-zhkuagent-mvp").resolve("data/raw/2025版学生手册2025.9.2.pdf");
-        require(sha(Files.readAllBytes(pdf)).equals(bundle.path("sourceFileSha256").asText()),"指定PDF原件变化");
+        require(sha(readBytes(pdf)).equals(bundle.path("sourceFileSha256").asText()),"指定PDF原件变化");
         validate();
     }
 
@@ -174,7 +175,22 @@ public class Reviewed2025ControlledCatalogue implements AutoCloseable {
     static void execute(java.sql.Connection c,String sql,Object...values) throws SQLException {
         try(var p=c.prepareStatement(sql)){for(int i=0;i<values.length;i++)p.setObject(i+1,values[i]);p.executeUpdate();}
     }
-    JsonNode read(Path path) throws Exception{return mapper.readTree(Files.readAllBytes(path));}
+    private byte[] readBytes(Path path) throws Exception {
+        byte[] bytes=Files.readAllBytes(path);
+        assetHashes.put(root.toAbsolutePath().normalize().relativize(path.toAbsolutePath().normalize()).toString().replace('\\','/'),sha(bytes));
+        return bytes;
+    }
+    JsonNode read(Path path) throws Exception{return mapper.readTree(readBytes(path));}
+    /** 建库前读取实际运行依赖；草案只作本机选题描述，hash不授予外发或政策解释资格。 */
+    public List<Map<String,String>> runtimeAssetManifest() throws Exception {
+        var draft=Reviewed2025TopicCatalogue.validateAsset(root,this);
+        com.zhku.knowledge.ruleagent.RuleArticle4Overlay.validateAssets(root);
+        readBytes(root.resolve("docs/evidence/rule-agent-evidence/2026-10-13/t02-01/article4-overlay-draft.json"));
+        readBytes(root.resolve("docs/evidence/rule-agent-evidence/2026-10-13/t02-01/human-confirmation.json"));
+        var result=new ArrayList<Map<String,String>>();
+        assetHashes.forEach((path,hash)->result.add(Map.of("path",path,"sha256",hash,"useBoundary",path.endsWith("rule-check-c05-topic-catalogue.json")?draft.path("status").asText():"EXISTING_REVIEW_BOUNDARY_UNCHANGED")));
+        return List.copyOf(result);
+    }
     static String sha(byte[] bytes){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));}catch(java.security.NoSuchAlgorithmException failure){throw new AssertionError(failure);}}
     static Map<String,String> values(JsonNode node){var m=new LinkedHashMap<String,String>();node.fields().forEachRemaining(e->m.put(e.getKey(),e.getValue().asText()));return m;}
     static List<String> strings(JsonNode node){var list=new ArrayList<String>();node.forEach(n->list.add(n.asText()));return list;}
@@ -190,6 +206,7 @@ public class Reviewed2025ControlledCatalogue implements AutoCloseable {
         var matcher=java.util.regex.Pattern.compile("^jdbc:postgresql://127\\.0\\.0\\.1:([0-9]{4,5})/zhkuagent_rulecheck_e2e$").matcher(url==null?"":url);
         require(matcher.matches(),"只允许专用回环临时库");int port=Integer.parseInt(matcher.group(1));
         require(port>=1024&&port<=65535&&port!=54329,"拒绝原库或非法端口");
+        runtimeAssetManifest();
         try(var connection=target.getConnection();var statement=connection.createStatement();
                 var rows=statement.executeQuery("SELECT (SELECT count(*) FROM knowledge_source)+(SELECT count(*) FROM embedding_profile)")) {
             rows.next();require(rows.getLong(1)==0,"受控资料导入只允许空临时库");
