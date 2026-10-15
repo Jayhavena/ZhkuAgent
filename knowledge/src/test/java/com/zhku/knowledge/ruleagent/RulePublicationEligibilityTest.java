@@ -37,6 +37,12 @@ class RulePublicationEligibilityTest {
  }
  JsonNode body(Path p)throws Exception{return j.readTree(j.readTree(Files.readAllBytes(p)).path("body").asText());}
  SemanticAssessment valid(SemanticInput s){var raw=j.convertValue(wireReview,SemanticAssessment.class);return new SemanticAssessment(REVISION,s.inputFingerprint(),raw.requirements().stream().map(q->new Requirement(q.id(),q.span(),q.dimension(),q.subject(),q.recognition(),List.of("courseType"))).toList(),raw.bindings(),List.of());}
+ /** 条件已补齐后的合规核验形态：不再按条件值展开分支，只保留与已知条件一致的需求与CORE绑定。 */
+ SemanticAssessment knownValid(SemanticInput s){
+  var raw=j.convertValue(wireReview,SemanticAssessment.class);
+  var only=raw.requirements().stream().filter(q->q.id().equals("req_q1_public_retake")).findFirst().orElseThrow();
+  return new SemanticAssessment(REVISION,s.inputFingerprint(),List.of(new Requirement(only.id(),only.span(),only.dimension(),only.subject(),only.recognition(),List.of("courseType"))),raw.bindings().stream().filter(b->b.factId().equals(pub)).toList(),List.of());
+ }
  RuleAgentEvidenceTools tools(){var b=facts.getFirst().definition().evidenceBindings().getFirst();var candidate=new RetrievedChunk(b.chunkId(),b.quote(),"LOCAL","LOCAL",1,b.revision(),b.checksum(),b.sourceId());var current=new RuleCheckEvidenceSnapshot("LOCAL",b.sourceId(),b.chunkId(),b.revision(),b.checksum(),b.quote(),true);return new RuleAgentEvidenceTools(input.owner(),input.taskId(),new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->entries,(q,n)->List.of(candidate),(s,c)->Optional.of(current),audit->{},Clock.systemUTC());}
  RuleAgentRunner.Outcome run(boolean eligible,AtomicInteger reviews,List<String> payloads)throws Exception{
   RuleAgentRunner.DecisionPort decision=(v,t)->{try{
@@ -59,6 +65,33 @@ class RulePublicationEligibilityTest {
   var finish=new Finish(List.of(new Proposal("q1",List.of("S10/COMBINED:public-failed-no-retake"),List.of(),null)));
   var out=new RuleAgentRunner(decision(finish),new RuleActionBroker(tools()),Clock.systemUTC(),(s,t)->{reviews.incrementAndGet();return valid(s);}).run(AgentRunContext.create(known.question()),known);
   assertThat(reviews).hasValue(0);assertThat(out.events()).anySatisfy(e->{assertThat(e.action()).isEqualTo("FINISH_CHECK");assertThat(e.publicationReason()).isEqualTo(Code.CAPABILITY_UNAVAILABLE);});assertThat(out.events()).noneMatch(e->e.action().equals("PUBLICATION_REVIEW"));assertThat(out.snapshot().result().items().getFirst().claims()).isEmpty();
+ }
+ @Test void knownConditionFinishWithRegisteredFactPublishesComplete()throws Exception{
+  var known=new RuleAgentRunner.Input(input.owner(),input.taskId(),input.version(),input.question(),input.questions(),Map.of("courseType","PUBLIC"));var reviews=new AtomicInteger();
+  var expected=facts.stream().filter(f->f.id().equals(pub)).findFirst().orElseThrow().definition().text();
+  var finish=new Finish(List.of(new Proposal("q1",List.of(pub),List.of(),null)));
+  var out=new RuleAgentRunner(decision(finish),new RuleActionBroker(tools()),Clock.systemUTC(),(s,t)->{reviews.incrementAndGet();return knownValid(s);}).run(AgentRunContext.create(known.question()),known);
+  assertThat(reviews).hasValue(1);
+  assertThat(out.snapshot().taskStatus()).isEqualTo(TaskStatus.RESOLVED);
+  assertThat(out.snapshot().runState()).isEqualTo(com.zhku.agent.agent.runtime.AgentRunState.SUCCEEDED);
+  assertThat(out.snapshot().result().coverage()).isEqualTo(Coverage.COMPLETE);
+  var item=out.snapshot().result().items().getFirst();
+  assertThat(item.claims()).extracting(Claim::text).containsExactly(expected);
+  assertThat(item.issues()).isEmpty();
+  assertThat(item.clarification()).isEmpty();
+  assertThat(out.snapshot().continuationToken()).isNull();
+  assertThat(out.snapshot().result().evidence()).isNotEmpty();
+ }
+ @Test void knownConditionFinishWithBothBranchRequirementsFailsWithoutClaimingComplete()throws Exception{
+  var known=new RuleAgentRunner.Input(input.owner(),input.taskId(),input.version(),input.question(),input.questions(),Map.of("courseType","PUBLIC"));var reviews=new AtomicInteger();
+  var finish=new Finish(List.of(new Proposal("q1",List.of(pub),List.of(),null)));
+  var out=new RuleAgentRunner(decision(finish),new RuleActionBroker(tools()),Clock.systemUTC(),(s,t)->{reviews.incrementAndGet();return valid(s);}).run(AgentRunContext.create(known.question()),known);
+  assertThat(reviews).hasValue(1);
+  assertThat(out.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);
+  assertThat(out.snapshot().result().coverage()).isEqualTo(Coverage.PARTIAL);
+  var item=out.snapshot().result().items().getFirst();
+  assertThat(item.claims()).isNotEmpty();
+  assertThat(item.issues()).extracting(Issue::reasonCode).containsExactly(ReasonCode.ANSWER_COVERAGE_INCOMPLETE);
  }
  @Test void driftedRegisteredDefinitionIsExcludedAndBothChecksReject(){
   var caps=RuleFactCapabilityCatalogue.fromReviewed(entries);var original=facts.stream().filter(f->f.id().equals(pub)).findFirst().orElseThrow();var d=original.definition();var changed=new RuleAgentEvidenceTools.VerifiedFact(pub,original.ruleId(),new RuleCheckRuleTemplate.Fact(d.id(),d.text()+"changed",d.independentlyAnswerable(),d.when(),d.evidenceBindings()));var all=new ArrayList<>(facts);all.set(all.indexOf(original),changed);

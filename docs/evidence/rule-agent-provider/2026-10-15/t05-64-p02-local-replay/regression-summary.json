@@ -1,0 +1,29 @@
+{
+  "scope": "Eleven explicit unit classes including local loopback factory, no DB tests",
+  "evidenceDir": "docs/evidence/rule-agent-provider/2026-10-15/t05-64-p02-local-replay/regression",
+  "tests": 204,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "commandExitCode": 0,
+  "perClass": [
+    {"name": "RuleAgentContractTest", "tests": 7, "failures": 0, "errors": 0},
+    {"name": "RuleAgentEvidenceToolsTest", "tests": 12, "failures": 0, "errors": 0},
+    {"name": "RuleAgentOnlineFactoryTest", "tests": 46, "failures": 0, "errors": 0},
+    {"name": "RuleAgentProviderTest", "tests": 54, "failures": 0, "errors": 0},
+    {"name": "RuleAgentReviewDiagnosticsTest", "tests": 15, "failures": 0, "errors": 0},
+    {"name": "RuleAgentReviewPayloadBudgetTest", "tests": 1, "failures": 0, "errors": 0},
+    {"name": "RuleAgentRunnerTest", "tests": 22, "failures": 0, "errors": 0},
+    {"name": "RuleAgentTaskStoreTest", "tests": 14, "failures": 0, "errors": 0},
+    {"name": "RuleClarificationContractTest", "tests": 8, "failures": 0, "errors": 0},
+    {"name": "RulePublicationEligibilityTest", "tests": 10, "failures": 0, "errors": 0},
+    {"name": "RulePublicationGateTest", "tests": 15, "failures": 0, "errors": 0}
+  ],
+  "firstRunWithoutEvidenceDir": {
+    "tests": 204,
+    "failures": 1,
+    "errors": 8,
+    "cause": "missing -Dzhku.rulecheck.evidenceDir; same pitfall recorded in t05-49; not a code regression",
+    "failingClasses": ["RuleAgentProviderTest(1F)", "RuleAgentOnlineFactoryTest(6E)", "RuleAgentReviewPayloadBudgetTest(1E)", "RuleAgentTaskStoreTest(1E)"]
+  }
+}

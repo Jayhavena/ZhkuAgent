@@ -1,0 +1,7 @@
+test(rule-agent): 本地回放锁定P02合规核验发布路径
+
+问题：P02三次在线失败均被一票否决，从未观察"核验改键后能否过剩余门禁"（t05-63 unknowns第一项）。
+实现：仅增测试。run2单分支全对→RESOLVED/COMPLETE（SEARCH→READ→FINISH→REVIEW四调用内，主张/证据/无澄清断言）；run2双分支核验→PARTIAL+ANSWER_COVERAGE_INCOMPLETE+FAILED不谎称完整。
+实际验证：TDD先红（2失败FAILED），诊断根因为测试助手误用t05-62需求ID（r1_public_retake）于t05-55夹具（req_q1_public_retake），orElseThrow异常从核验端口逃逸被最外层吞成INVALID_MODEL_RESPONSE且无事件；修正后10/10。11类204项回归0失败0错误（首跑漏传-Dzhku.rulecheck.evidenceDir致4类失败，与t05-49同因，补参全绿，日志保留）。
+未验证：零外发零数据库零Docker；本机替身不代表真实模型合规率；t05-63其余unknowns未触及；P02真实在线验收仍未通过、T05未收口、历史失败记录不改写。
+恢复：反向撤回本提交；不恢复任何已关闭额度。
