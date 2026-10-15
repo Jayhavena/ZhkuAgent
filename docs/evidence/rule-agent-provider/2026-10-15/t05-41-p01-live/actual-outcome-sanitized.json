@@ -1,0 +1,96 @@
+{
+  "batch": "P01_TRANSPORT_CLOSEOUT_01",
+  "round": "t05-41-p01-live",
+  "baseHead": "cb96646e174563e946f9dbfb22f8dd7d1b012d6c",
+  "implementationCommit": "3b4dca601156625c4e18a21977765291d1583ee1",
+  "packageSha256": "5400bbf7fa1e9bb1566f0481f571584c585bb2b06481687b2075e87ddb849d6a",
+  "jarSha256": "47e5fbbd35b5396ab7828aaed1b94e58df7fab1b105432e7f1a665e7d9b0db74",
+  "execution": {
+    "automaticRetries": 0,
+    "launcherExitCode": 1,
+    "temporaryPort": 45064,
+    "monetaryCapCny": 6,
+    "elapsedSeconds": 8.1857301,
+    "finishedAt": "2026-10-15T08:11:45.4600572+08:00",
+    "maximumProviderCalls": 5,
+    "startedAt": "2026-10-15T08:11:37.2743271+08:00",
+    "probeLaunches": 1
+  },
+  "liveEvidenceDirectory": "docs/evidence/rule-agent-provider/2026-10-15/t05-38-request/live-f4a4e4464cd441cdb317fe27df0281f3",
+  "earliestFailure": {
+    "stage": "HOST_REVIEWED_CATALOGUE_INSTALL_BEFORE_PROVIDER_FACTORY",
+    "type": "NoSuchFileException",
+    "missingRuntimeAsset": "docs/product/rule-check-c05-topic-catalogue.json",
+    "hostLocation": "RuleAgentOnlineProbeHost.java:73",
+    "catalogueLocation": "Reviewed2025ControlledCatalogue.java:197",
+    "loaderLocation": "Reviewed2025TopicCatalogue.java:23",
+    "confirmedCause": "Required runtime topic catalogue absent in this worktree; present but untracked in main checkout. CheckPackage does not call runtime reviewedCatalogue path."
+  },
+  "allowance": {
+    "authorized": 5,
+    "probeLaunches": 1,
+    "runCreated": false,
+    "providerFactoryCreated": false,
+    "dispatchedAttempts": 0,
+    "receivedResponses": 0,
+    "consumed": 0,
+    "unusedClosed": 5,
+    "remaining": 0,
+    "automaticRetries": 0
+  },
+  "cost": {
+    "authorizedMaximumCny": 6,
+    "actualCny": 0,
+    "status": "ZERO_NO_PROVIDER_FACTORY_OR_DISPATCH"
+  },
+  "temporaryDatabase": {
+    "port": 45064,
+    "migrationsApplied": 18,
+    "reviewedDataImportAttempted": true,
+    "sqlOperationCount": null,
+    "scope": "DEDICATED_TEMPORARY_DATABASE_ONLY",
+    "containerDeletedAfterRun": true
+  },
+  "resources": {
+    "rawHostResourcesClosed": false,
+    "ownedProbeJavaRemaining": 0,
+    "temporaryContainersRemaining": 0,
+    "originalDemoStateAfter": "exited|2026-10-08T14:16:55.843361949Z|2026-10-08T14:16:57.333736996Z",
+    "originalDemoStateUnchanged": true,
+    "note": "Preserve raw resourcesClosed=false; independent process/container checks confirm no owned residue. This does not rewrite host assertion."
+  },
+  "stageCoverage": {
+    "decision": "NOT_EXECUTED",
+    "search": "NOT_EXECUTED",
+    "read": "NOT_EXECUTED",
+    "finish": "NOT_EXECUTED",
+    "independentReview": "NOT_EXECUTED",
+    "publication": "NOT_EXECUTED",
+    "p02": "NOT_EXECUTED"
+  },
+  "identityCheck": {
+    "sourceFilesChecked": 22,
+    "sourceDrift": 0,
+    "jarIdentityMatches": true,
+    "packageIdentityMatches": true
+  },
+  "runtimeAssetObservation": {
+    "mainExists": true,
+    "worktreeExists": false,
+    "trackedInEitherCheckout": false,
+    "mainSha256": "90bbff0d4ce198687d720ecb44c08ccc553668c1e566bcde7cc9e5f233f2951a",
+    "contentsNotCopied": true,
+    "qualificationForNewExternalUseNotRevalidated": true
+  },
+  "unknown": [
+    "No new evidence of online provider latency/schema behavior",
+    "Whether other runtime-only assets are also missing has not been exhaustively checked in this batch",
+    "Why host resource flag remains false is not fixed in this batch"
+  ],
+  "rawArtifactsSha256": {
+    "host.log": "7219c76e3ac5c94472b704a8d89d925e294b46788b23f6b40b8bffa654b83592",
+    "probe-result.json": "abe196a220c099576df59901010f2dd1099cb594e54faef903ff304171cf9b80"
+  },
+  "recordedAt": "2026-10-15T08:15:54.729763+08:00",
+  "conclusion": "ENGINEERING_FROZEN_ONLINE_ACCEPTANCE_NOT_PASSED"
+}
