@@ -1,0 +1,30 @@
+{
+  "firstFailure": {
+    "stage": "PUBLICATION_GATE_ASSESS_ASK",
+    "code": "CAPABILITY_UNAVAILABLE",
+    "path": "RulePublicationGate.assessAsk:88-91 -> capability:155",
+    "basis": "ASK selected S10/COMBINED supporting facts; both read but absent from capability catalogue. Review binding facts RETAKE_ONLY have exact original definition fingerprints matching catalogue, so earlier binding checks do not explain this code."
+  },
+  "confirmedContractMismatch": "Decision facts/availableConditions include COMBINED facts; precheckAsk accepts them and spends review call; publication authority does not register them. Gate rejects safely. This is not a network timeout or missing original evidence.",
+  "additionalObservedButNotReached": {
+    "field": "requirements[].necessaryConditionIds",
+    "actual": [
+      "S10/RETAKE_ONLY:courseType"
+    ],
+    "requiredRawKey": "courseType",
+    "laterBranch": "RulePublicationGate.java:95-98",
+    "limit": "Not this batch first trigger; no altered-response replay or claim that fixing first trigger would pass."
+  },
+  "notShown": "No valid WAITING_USER, no PUBLIC injected, no second run/FINISH/answer publication.",
+  "newDiagnostics": "Complete Fact snapshot, original uppercase checksum, source capability fingerprint and review inputFingerprint retained and verified. Snapshot alone does not fix contract inconsistency.",
+  "feedbackLimits": "No earlier rejected decision and no subsequent decision after gate failure; new rejection feedback efficacy untested in this batch.",
+  "historicalBoundary": "Do not infer causes of t05-48/t05-52 from this new response.",
+  "remainingUnknown": [
+    "Why proposal chose equivalent COMBINED facts while review chose RETAKE_ONLY",
+    "Why review emitted prefixed condition IDs despite raw-key contract",
+    "Second run behavior and reliable success rate",
+    "Supplier actual invoice",
+    "Temporary DB row counts before auto-deletion",
+    "Original task-store published failure snapshot not independently saved (task-results only written for successful whole probe)"
+  ]
+}
