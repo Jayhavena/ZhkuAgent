@@ -1,0 +1,51 @@
+{
+  "batch": "P01_TRANSPORT_CLOSEOUT_01",
+  "stage": "ENVIRONMENT_PREFLIGHT_BEFORE_LAUNCHER",
+  "directTrigger": "DOCKER_LINUX_ENGINE_PIPE_UNAVAILABLE",
+  "observedError": "failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine; open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.",
+  "dockerContext": "desktop-linux",
+  "dockerEndpoint": "npipe:////./pipe/dockerDesktopLinuxEngine",
+  "desktopProcessPresent": true,
+  "backendProcessPresent": true,
+  "commandExitCode": 1,
+  "launcherInvoked": false,
+  "probeLaunches": 0,
+  "modelAttempts": [],
+  "dispatchedAttempts": 0,
+  "providerResponses": 0,
+  "databaseOperations": 0,
+  "temporaryContainersCreatedByThisRun": 0,
+  "migrationsApplied": 0,
+  "ownedJavaProcessesStarted": 0,
+  "originalDemoContainerOperationsStartedByThisRun": 0,
+  "originalDemoContainerState": null,
+  "originalDemoContainerStateStatus": "UNKNOWN_PREFLIGHT_INSPECTION_FAILED",
+  "allowance": {
+    "authorized": 5,
+    "consumed": 0,
+    "unusedClosed": 5,
+    "remaining": 0,
+    "automaticRetries": 0
+  },
+  "cost": {
+    "authorizedMaximumCny": 6,
+    "actualCny": 0,
+    "status": "ZERO_NO_PROVIDER_DISPATCH"
+  },
+  "stageCoverage": {
+    "decision": "NOT_EXECUTED",
+    "search": "NOT_EXECUTED",
+    "read": "NOT_EXECUTED",
+    "finish": "NOT_EXECUTED",
+    "independentReview": "NOT_EXECUTED",
+    "publication": "NOT_EXECUTED",
+    "p02": "NOT_EXECUTED"
+  },
+  "unknown": [
+    "Why Docker Desktop/backend processes exist but Linux-engine named pipe is absent; no repair attempted",
+    "Original demo container current state cannot be observed while engine is unavailable",
+    "All online model behavior remains unobserved in this batch"
+  ],
+  "inspectionBoundary": "Initial non-escalated local-context inspection could not read .docker/config.json and showed fallback default; elevated read-only inspection confirmed desktop-linux. No engine start or Probe retry.",
+  "recordedAt": "2026-10-15T08:01:40.893322+08:00"
+}
