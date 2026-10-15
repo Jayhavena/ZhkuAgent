@@ -524,7 +524,7 @@ class RuleAgentProviderTest {
         start(200,response(reviewJson().replace("a".repeat(64),"b".repeat(64)),"stop"),0);
         var reviewer=reviewPort();
         assertThatThrownBy(()->reviewer.assess(reviewInput(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
-        assertThat(new ObjectMapper().valueToTree(traces.getLast()).path("validation").path("code").asText()).isEqualTo("REVIEW_BINDING_INVALID");
+        assertThat(new ObjectMapper().valueToTree(traces.getLast()).path("validation").path("code").asText()).isEqualTo("REVIEW_INPUT_MISMATCH");
         responseBody.set(response(reviewJson().replace("AMBIGUOUS_SCOPE","invented"),"stop"));
         assertThatThrownBy(()->reviewer.assess(reviewInput(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
         responseBody.set(response(reviewJson().replace("\"requirements\":[]","\"extra\":7,\"requirements\":[]"),"stop"));

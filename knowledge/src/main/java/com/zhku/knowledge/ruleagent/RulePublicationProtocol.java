@@ -44,21 +44,22 @@ public final class RulePublicationProtocol {
             requirements.put(requirement.id(),requirement);
         }
         for(var unresolved:result.unresolvedDemands())checkSpan(unresolved.span(),questions);
-        check(result.inputFingerprint().equals(input.inputFingerprint()));
+        check(result.inputFingerprint().equals(input.inputFingerprint()),RuleAgentProtocol.Code.REVIEW_INPUT_MISMATCH);
         for(String q:questions.keySet())check(result.requirements().stream().anyMatch(r->r.span().subquestionId().equals(q))
-            ||result.unresolvedDemands().stream().anyMatch(r->r.span().subquestionId().equals(q)));
+            ||result.unresolvedDemands().stream().anyMatch(r->r.span().subquestionId().equals(q)),RuleAgentProtocol.Code.REVIEW_QUESTION_UNCOVERED);
         for(var binding:result.bindings()) {
-            check(requirements.containsKey(binding.requirementId()));
-            check(input.facts().stream().anyMatch(f->f.id().equals(binding.factId())));
+            check(requirements.containsKey(binding.requirementId()),RuleAgentProtocol.Code.REVIEW_REQUIREMENT_UNKNOWN);
+            check(input.facts().stream().anyMatch(f->f.id().equals(binding.factId())),RuleAgentProtocol.Code.REVIEW_FACT_NOT_IN_INPUT);
         }
         // 这里只验证结构和输入身份；事实能力/条件/提议覆盖仍由独立Gate决定，不能自报通过。
         return result;
     }
     private static void checkSpan(DemandSpan span,Map<String,String> questions) {
-        check(questions.containsKey(span.subquestionId()));
-        check(span.endExclusive()<=questions.get(span.subquestionId()).length());
+        check(questions.containsKey(span.subquestionId()),RuleAgentProtocol.Code.REVIEW_QUESTION_UNKNOWN);
+        check(span.endExclusive()<=questions.get(span.subquestionId()).length(),RuleAgentProtocol.Code.REVIEW_SPAN_OUT_OF_RANGE);
     }
-    private static void check(boolean valid) {
-        if(!valid)throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.REVIEW_BINDING,RuleAgentProtocol.Code.REVIEW_BINDING_INVALID);
+    // 同一拒绝边界保留独立分支码；不能靠响应SHA猜测是哪项关联失败。
+    private static void check(boolean valid,RuleAgentProtocol.Code code) {
+        if(!valid)throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.REVIEW_BINDING,code);
     }
 }

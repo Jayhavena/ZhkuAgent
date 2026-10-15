@@ -22,6 +22,8 @@ class RuleAgentOnlineFactoryTest {
     final RuleAgentRunnerTest fixture=new RuleAgentRunnerTest();
     final UUID staleReplacementChunk=UUID.randomUUID();
     boolean conditional;
+    boolean invalidReviewFingerprint;
+    final List<RuleAgentProvider.Exchange> exchanges=new CopyOnWriteArrayList<>();
     boolean studyArrangement;
     Runnable onOriginalRead=()->{};
     int selectedCount=1;
@@ -87,7 +89,7 @@ class RuleAgentOnlineFactoryTest {
                 when.has("courseType")&&!safe.path("userConditions").has("courseType")?List.of("courseType"):List.of()));
             bindings.add(new RulePublicationContract.SemanticBinding(id,fact.path("id").asText(),RulePublicationContract.BindingRole.CORE));
         }
-        return new RulePublicationContract.SemanticAssessment(RulePublicationContract.REVISION,safe.path("inputFingerprint").asText(),requirements,bindings,List.of());
+        return new RulePublicationContract.SemanticAssessment(RulePublicationContract.REVISION,invalidReviewFingerprint?"b".repeat(64):safe.path("inputFingerprint").asText(),requirements,bindings,List.of());
     }
     void start(int quota)throws Exception{
         workers=Executors.newFixedThreadPool(2);
@@ -159,7 +161,23 @@ class RuleAgentOnlineFactoryTest {
             }
         });
         server.start();
-        factory=new RuleAgentOnlineFactory(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),RuleAgentProvider.MODEL,"LOCAL_TEST_ONLY"),()->"local-test-placeholder",(owner,task)->{try{return mappedTools(owner,task);}catch(Exception invalid){throw new IllegalStateException("合成资料初始化失败");}},traces::add,quota,Clock.systemUTC());
+        factory=new RuleAgentOnlineFactory(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),RuleAgentProvider.MODEL,"LOCAL_TEST_ONLY"),()->"local-test-placeholder",(owner,task)->{try{return mappedTools(owner,task);}catch(Exception invalid){throw new IllegalStateException("合成资料初始化失败");}},traces::add,exchanges::add,quota,Clock.systemUTC());
+    }
+    @Test void failedReviewKeepsActualFactoryExchangeAndAskProposal()throws Exception{
+        conditional=true;invalidReviewFingerprint=true;start(10);
+        var input=RuleAgentRunner.Input.single(fixture.owner,fixture.task,"我这门选修课没过，能不能重修？");
+        var result=factory.open(fixture.owner,fixture.task).run(AgentRunContext.create(input.question()),input);
+        assertThat(result.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);assertThat(calls).hasValue(4);
+        assertThat(factory.remainingCalls()).isEqualTo(6);assertThat(factory.resourcesClosed()).isTrue();
+        assertThat(traces.getLast().validation().code().name()).isEqualTo("REVIEW_INPUT_MISMATCH");
+        assertThat(result.events()).anySatisfy(e->{assertThat(e.action()).isEqualTo("ASK_NECESSARY_CONDITION");assertThat(e.reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);});
+        assertThat(result.events()).anySatisfy(e->{assertThat(e.action()).isEqualTo("PUBLICATION_REVIEW");assertThat(e.reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);});
+        assertThat(exchanges).hasSize(11);
+        var proposal=exchanges.stream().filter(e->e.attempt()==3&&e.direction()==RuleAgentProvider.Direction.PROPOSED_ACTION).findFirst().orElseThrow();
+        assertThat(new ObjectMapper().readTree(proposal.body()).path("type").asText()).isEqualTo("ASK_NECESSARY_CONDITION");
+        var json=new ObjectMapper();assertThat(json.writeValueAsString(exchanges)).doesNotContain("local-test-placeholder","Bearer ");
+        String output=System.getProperty("zhku.ruleagent.diagnostics.output");
+        if(output!=null){var dir=java.nio.file.Path.of(output);java.nio.file.Files.createDirectories(dir);java.nio.file.Files.write(dir.resolve("factory-failed-review.json"),json.writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("synthetic",true,"exchanges",exchanges,"outcome",result,"traces",traces)));}
     }
     @AfterEach void cleanup()throws Exception{
         releaseReview.countDown();

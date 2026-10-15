@@ -7,9 +7,13 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 /** 仅装配ONLINE，工具资格由调用方的实际证据工厂提供，不加载回放。 */
 public final class RuleAgentOnlineFactory implements RuleAgentTaskStore.Factory,AutoCloseable {
     private final RuleAgentProvider.Settings settings;private final Supplier<String> key;private final BiFunction<Owner,UUID,RuleAgentEvidenceTools> tools;
-    private final Consumer<RuleAgentProvider.Trace> audit;private final AtomicInteger allowance;private final Clock clock;
+    private final Consumer<RuleAgentProvider.Trace> audit;private final Consumer<RuleAgentProvider.Exchange> exchangeAudit;private final AtomicInteger allowance;private final Clock clock;
     private final Set<RuleAgentProvider> ports=new HashSet<>();private boolean closed;
     public RuleAgentOnlineFactory(RuleAgentProvider.Settings settings,Supplier<String> key,BiFunction<Owner,UUID,RuleAgentEvidenceTools> tools,Consumer<RuleAgentProvider.Trace> audit,int allowance,Clock clock){
+        this(settings,key,tools,audit,null,allowance,clock);
+    }
+    public RuleAgentOnlineFactory(RuleAgentProvider.Settings settings,Supplier<String> key,BiFunction<Owner,UUID,RuleAgentEvidenceTools> tools,Consumer<RuleAgentProvider.Trace> audit,Consumer<RuleAgentProvider.Exchange> exchangeAudit,int allowance,Clock clock){
+        this.exchangeAudit=exchangeAudit;
         if(allowance<1||allowance>24)throw new IllegalArgumentException("本批调用额度非法");
         this.settings=Objects.requireNonNull(settings);this.key=Objects.requireNonNull(key);this.tools=Objects.requireNonNull(tools);this.audit=Objects.requireNonNull(audit);this.allowance=new AtomicInteger(allowance);this.clock=Objects.requireNonNull(clock);
     }
@@ -21,7 +25,7 @@ public final class RuleAgentOnlineFactory implements RuleAgentTaskStore.Factory,
                 RuleAgentProvider port;synchronized(ports){if(closed)throw new IllegalStateException("在线装配已关闭");ports.removeIf(RuleAgentProvider::isTerminated);
                     // 端口归每run；批次额度归宿主，澄清后不能重新获得外发额度。
                     if(ports.size()>=2)throw new RuleAgentProvider.Failure(ReasonCode.TASK_EXECUTION_UNAVAILABLE,false);
-                    port=new RuleAgentProvider(settings,task,context.runId(),key,audit,allowance);ports.add(port);}
+                    port=new RuleAgentProvider(settings,task,context.runId(),key,audit,exchangeAudit,allowance);ports.add(port);}
                 // 同一run端口兼任决策/独立核验；不能另开客户端、额度或漏掉核验后回退旧门禁。
                 return new RuleAgentRunner(port,new RuleActionBroker(actual),clock,port).run(context,input);
             }

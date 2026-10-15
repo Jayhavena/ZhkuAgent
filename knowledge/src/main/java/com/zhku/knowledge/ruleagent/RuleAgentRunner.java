@@ -131,6 +131,12 @@ public final class RuleAgentRunner {
                         reason=ReasonCode.INVALID_MODEL_RESPONSE;
                         published=new RuleResultPublisher(broker,input,context.runId()).failed(reason);
                         context.recordToolResult(call,new AgentToolCall.Result(AgentToolCall.Status.REJECTED,null,null,com.zhku.agent.agent.runtime.contract.AgentRuntimeError.of(com.zhku.agent.agent.runtime.contract.AgentRuntimeError.Category.DOMAIN_FAILURE)));
+                    }catch(RuleAgentProvider.Failure invalid){
+                        // Provider失败越过原领域异常分支；先留下提议和核验失败，不能在外层收敛时丢失动作。
+                        events.add(new Event(decisionAttempt,name,null,invalid.reason));
+                        if(attempts>decisionAttempt)events.add(new Event(attempts,"PUBLICATION_REVIEW",null,invalid.reason));
+                        context.recordToolResult(call,new AgentToolCall.Result(AgentToolCall.Status.FAILED,null,null,com.zhku.agent.agent.runtime.contract.AgentRuntimeError.of(com.zhku.agent.agent.runtime.contract.AgentRuntimeError.Category.TOOL_FAILURE)));
+                        throw invalid;
                     }catch(Rejected invalid){reason=invalid.reason;context.recordToolResult(call,new AgentToolCall.Result(AgentToolCall.Status.REJECTED,null,null,com.zhku.agent.agent.runtime.contract.AgentRuntimeError.of(com.zhku.agent.agent.runtime.contract.AgentRuntimeError.Category.DOMAIN_FAILURE)));}
                     events.add(new Event(decisionAttempt,name,observation,reason));
                     if(reviewEvent!=null)events.add(reviewEvent);

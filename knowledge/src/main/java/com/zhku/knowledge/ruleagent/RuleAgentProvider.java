@@ -45,6 +45,9 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         BEGIN, RECEIVED, FINISHED
     }
     public enum Purpose { DECISION, PUBLICATION_REVIEW }
+    public enum Direction { REQUEST, RESPONSE, PROPOSED_ACTION }
+    /** 仅显式装配的本机受控探针保存正文；无HTTP头，原字节摘要与脱敏正文分开标记。 */
+    public record Exchange(UUID taskId,UUID runId,int attempt,Purpose purpose,Direction direction,String bodySha256,String body,boolean redacted) {}
     public record Trace(UUID taskId,UUID runId,int attempt,String requestSha256,String responseSha256,Integer status,ReasonCode reason,boolean responseReceived,Long inputTokens,Long outputTokens,Diagnostics diagnostics,Phase phase,RuleAgentProtocol.Validation validation,Purpose purpose){
     }
     public static final class Failure extends RuntimeException {
@@ -88,6 +91,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     private final UUID task,run;
     private final Supplier<String> key;
     private final Consumer<Trace> audit;
+    private final Consumer<Exchange> exchangeAudit;
     private final AtomicInteger allowance;
     private final ExecutorService io;
     private final HttpClient client;
@@ -96,6 +100,10 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     private int attempts;
     private final RuleCandidateReferences references=new RuleCandidateReferences();
     public RuleAgentProvider(Settings settings,UUID task,UUID run,Supplier<String> key,Consumer<Trace> audit,AtomicInteger allowance){
+        this(settings,task,run,key,audit,null,allowance);
+    }
+    public RuleAgentProvider(Settings settings,UUID task,UUID run,Supplier<String> key,Consumer<Trace> audit,Consumer<Exchange> exchangeAudit,AtomicInteger allowance){
+        this.exchangeAudit=exchangeAudit;
         this.settings=Objects.requireNonNull(settings);
         this.task=Objects.requireNonNull(task);
         this.run=Objects.requireNonNull(run);
@@ -242,6 +250,8 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             .header("Content-Type","application/json")
             .POST(HttpRequest.BodyPublishers.ofString(payload,StandardCharsets.UTF_8))
             .build();
+            exchangeRecord(attempt,purpose,Direction.REQUEST,payload.getBytes(StandardCharsets.UTF_8),secret,false);
+            measured.remainingNanos();
             measured.dispatch();
             var future=client.sendAsync(request,info->{
                 measured.headers(info,secret);
@@ -259,6 +269,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             }
             catch(IllegalArgumentException invalid) {
                 if(status>=200&&status<300) {
+                    exchangeRecord(attempt,purpose,Direction.RESPONSE,body,secret,true);
                     throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.SUPPLIER_RESPONSE,RuleAgentProtocol.Code.RESPONSE_JSON_INVALID);
                 }
             }
@@ -269,6 +280,8 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             }
             // 完整可解析响应的usage先独立落审计；动作非法也不能丢失已知成本。
             record(new Trace(task,run,attempt,requestHash,responseHash,status,null,true,input,output,measured.snapshot(),Phase.RECEIVED,validation,purpose));
+            // 已知usage先入白名单审计；正文落盘失败也不能把已花费用降为未知。
+            exchangeRecord(attempt,purpose,Direction.RESPONSE,body,secret,true);
             if(status==401||status==403) {
                 throw new Failure(ReasonCode.MODEL_AUTH_FAILURE,true);
             }
@@ -285,6 +298,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             // 决策与核验属于两种响应合同，分别提取；都不回退到对方的解析路径。
             String content=purpose==Purpose.DECISION?decisionAction(choice):reviewContent(choice);
             var result=decode.apply(content);
+            if(result instanceof RuleAgentRunner.Reply reply)exchangeRecord(attempt,purpose,Direction.PROPOSED_ACTION,reply.actionJson().getBytes(StandardCharsets.UTF_8),secret,true);
             if(closed)throw new Failure(ReasonCode.CANCELLED,true);
             measured.remainingNanos();
             record(new Trace(task,run,attempt,requestHash,responseHash,status,null,true,input,output,measured.snapshot(),Phase.FINISHED,validation,purpose));
@@ -371,6 +385,44 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.SUPPLIER_RESPONSE,RuleAgentProtocol.Code.CONTENT_INVALID);
         }
         return content.textValue();
+    }
+    private void exchangeRecord(int attempt,Purpose purpose,Direction direction,byte[] bytes,String secret,boolean received) {
+        if(exchangeAudit==null)return;
+        String original=new String(bytes,StandardCharsets.UTF_8),safe=original;
+        try {
+            try {
+                var parsed=RuleAgentJson.readTreeStrict(original);var scrubbed=scrubDiagnostic(parsed,secret);
+                if(!parsed.equals(scrubbed))safe=JSON.writeValueAsString(scrubbed);
+            }catch(IllegalArgumentException malformed){
+                // 非法JSON无法可靠解释转义，正文保守省略；原字节SHA仍供关联，绝不伪装为完整原文。
+                safe="[UNPARSEABLE_JSON_OMITTED]";
+            }
+            exchangeAudit.accept(new Exchange(task,run,attempt,purpose,direction,sha(bytes),safe,!safe.equals(original)));
+        } catch(Exception failure) {
+            // 记录器异常不携带正文或异常cause；诊断写入失败不能被当作正常可发布响应。
+            throw new Failure(ReasonCode.AUDIT_UNAVAILABLE,received);
+        }
+    }
+    private JsonNode scrubDiagnostic(JsonNode value,String secret) {
+        if(value.isTextual())return JSON.getNodeFactory().textNode(scrubText(value.textValue(),secret));
+        if(value.isObject()){
+            var result=JSON.createObjectNode();value.fields().forEachRemaining(e->result.set(scrubText(e.getKey(),secret),scrubDiagnostic(e.getValue(),secret)));return result;
+        }
+        if(value.isArray()){
+            var result=JSON.createArrayNode();value.forEach(e->result.add(scrubDiagnostic(e,secret)));return result;
+        }
+        return value;
+    }
+    private String scrubText(String text,String secret) {
+        String decoded=text;
+        var escaped=java.util.regex.Pattern.compile(java.util.regex.Pattern.quote(String.valueOf((char)92)+"u")+"([0-9a-fA-F]{4})");
+        // 嵌套文本也可能含Unicode转义；限定展开深度，超限正文省略，避免诊断反过来耗尽预算。
+        for(int depth=0;depth<8;depth++){
+            if(secret!=null&&!secret.isBlank()&&decoded.contains(secret))return "[REDACTED]";
+            var matcher=escaped.matcher(decoded);if(!matcher.find())return text;
+            decoded=matcher.replaceAll(m->java.util.regex.Matcher.quoteReplacement(String.valueOf((char)Integer.parseInt(m.group(1),16))));
+        }
+        return "[ESCAPED_TEXT_OMITTED]";
     }
     private void record(Trace trace) {
         try {
