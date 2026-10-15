@@ -121,7 +121,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             references.refresh(view);
             references.project(data);
             // 候选枚举与消息里的currentCandidates必须来自同一次刷新，否则响应Schema与宿主表会错位。
-            actionSchema=RuleAgentProtocol.decisionSchema(references.references(),view.state()==null?null:view.state().allowedActions());
+            actionSchema=RuleAgentProtocol.decisionSchema(references.references(),view.state()==null?null:view.state().allowedActions(),view.publicationFactIds());
         }
         if(view.state()!=null){
             var state=JSON.valueToTree(view.state());((ObjectNode)state).remove("candidates");data.set("executionState",state);
@@ -134,10 +134,12 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         data.set("ruleContexts",JSON.valueToTree(view.ruleContexts()));
         data.set("actionContract",RuleAgentProtocol.description());
         data.set("remainingBudget",RuleAgentProtocol.remainingBudget(view.attemptsRemaining(),view.stepsRemaining()));
+        if(view.publicationFactIds()!=null)data.set("publicationFactIds",JSON.valueToTree(view.publicationFactIds()));
         var facts=data.putArray("facts");
         for(var fact:view.facts()){
             var item=facts.addObject();
             item.put("id",fact.id());
+            if(view.publicationFactIds()!=null)item.put("publicationEligible",view.publicationFactIds().contains(fact.id()));
             item.put("ruleId",fact.ruleId());
             item.put("text",fact.definition().text());
             item.set("when",JSON.valueToTree(fact.definition().when()));
@@ -147,6 +149,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         var failures=view.events().stream().filter(e->e.reason()!=null).toList();
         for(var e:failures.subList(Math.max(0,failures.size()-2),failures.size())) {
             var item=rejected.addObject();item.put("attempt",e.attempt());item.put("action",e.action());item.put("reasonCode",e.reason().name());
+            if(e.publicationReason()!=null)item.put("publicationReason",e.publicationReason().name());
         }
         var declared=data.putArray("availableConditions");
         view.ruleContexts().forEach(c->c.conditions().forEach(condition->{var item=declared.addObject();item.put("ruleId",c.ruleId());item.put("conditionId",condition.key());item.set("allowedValues",JSON.valueToTree(condition.allowedValues()));}));

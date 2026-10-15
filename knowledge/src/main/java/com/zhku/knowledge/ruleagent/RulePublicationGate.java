@@ -152,9 +152,7 @@ public final class RulePublicationGate {
         }
     }
     private FactCapability capability(RuleAgentEvidenceTools.VerifiedFact fact) {
-        var capability=catalogue.find(fact.id()).orElseThrow(()->new Rejected(Code.CAPABILITY_UNAVAILABLE));
-        if(!capability.sourceFingerprint().equals(fingerprint(fact.definition())))throw new Rejected(Code.CAPABILITY_UNAVAILABLE);
-        return capability;
+        return catalogue.requireCapability(fact);
     }
     private static void span(DemandSpan span,Map<String,RuleAgentRunner.Question> questions) {
         var question=questions.get(span.subquestionId());

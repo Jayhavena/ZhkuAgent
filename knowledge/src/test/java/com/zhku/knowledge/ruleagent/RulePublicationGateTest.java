@@ -220,9 +220,9 @@ class RulePublicationGateTest {
     }
 
     @Test void cancelDuringIndependentReviewDoesNotPublishAndClosesReviewPort()throws Exception {
-        var fixture=new RuleAgentRunnerTest();
+        var fixture=new RulePublicationEligibilityTest();
         var closed=new java.util.concurrent.atomic.AtomicBoolean();
-        var original=RuleAgentRunner.Input.single(fixture.owner,fixture.task,"选修课程类别有哪些？");
+        var original=fixture.input;
         var context=com.zhku.agent.agent.runtime.AgentRunContext.create(original.question());
         RuleSemanticReviewPort reviewer=new RuleSemanticReviewPort(){
             public SemanticAssessment assess(SemanticInput safe,java.time.Duration timeout){
@@ -231,7 +231,7 @@ class RulePublicationGateTest {
             }
             public void close(){closed.set(true);}
         };
-        var outcome=new RuleAgentRunner(fixture.responding(false),new RuleActionBroker(fixture.tools(true,true,false)),java.time.Clock.systemUTC(),reviewer).run(context,original);
+        var outcome=new RuleAgentRunner(fixture.decision(new Ask("q1","courseType","controlled",List.of(fixture.pub,fixture.pro))),new RuleActionBroker(fixture.tools()),java.time.Clock.systemUTC(),reviewer).run(context,original);
         assertThat(closed.get()).isTrue();
         assertThat(outcome.snapshot().taskStatus()).isEqualTo(TaskStatus.STOPPED);
         assertThat(outcome.snapshot().execution().modelAttemptCount()).isEqualTo(4);

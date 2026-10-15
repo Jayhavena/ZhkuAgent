@@ -94,9 +94,9 @@ class RuleAgentReviewDiagnosticsTest {
         save("escaped-credential-"+variant,exchanges);
     }
     @Test void providerReviewFailureKeepsProposedActionAndReviewEvent()throws Exception{
-        var f=new RuleAgentRunnerTest();var in=RuleAgentRunner.Input.single(f.owner,f.task,"选修课程类别有哪些？");
+        var f=new RulePublicationEligibilityTest();var in=f.input;
         RuleSemanticReviewPort review=(safe,timeout)->{throw new RuleAgentProvider.Failure(ReasonCode.INVALID_MODEL_RESPONSE,true);};
-        var result=new RuleAgentRunner(f.responding(true),new RuleActionBroker(f.tools(true,true,true)),Clock.systemUTC(),review).run(AgentRunContext.create(in.question()),in);
+        var result=new RuleAgentRunner(f.decision(new Ask("q1","courseType","controlled",List.of(f.pub,f.pro))),new RuleActionBroker(f.tools()),Clock.systemUTC(),review).run(AgentRunContext.create(in.question()),in);
         assertThat(result.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);
         assertThat(result.events()).anySatisfy(e->{assertThat(e.action()).isEqualTo("ASK_NECESSARY_CONDITION");assertThat(e.reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);});
         assertThat(result.events()).anySatisfy(e->{assertThat(e.action()).isEqualTo("PUBLICATION_REVIEW");assertThat(e.reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);});save("runner-failed-proposal",result);

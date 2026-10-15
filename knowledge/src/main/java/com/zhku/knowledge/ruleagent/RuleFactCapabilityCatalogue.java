@@ -31,6 +31,22 @@ public final class RuleFactCapabilityCatalogue {
     public String version() {return VERSION;}
     public Optional<FactCapability> find(String id) {return Optional.ofNullable(capabilities.get(id));}
 
+    /** 可读事实不等于可发布事实；提议、Schema与Gate共用同一登记和原始定义指纹。 */
+    public List<String> publicationFactIds(List<RuleAgentEvidenceTools.VerifiedFact> facts) {
+        return facts.stream().filter(f->find(f.id()).filter(c->c.sourceFingerprint().equals(fingerprint(f.definition()))).isPresent())
+            .map(RuleAgentEvidenceTools.VerifiedFact::id).distinct().sorted().toList();
+    }
+    FactCapability requireCapability(RuleAgentEvidenceTools.VerifiedFact fact) {
+        var capability=find(fact.id()).orElseThrow(()->new Rejected(Code.CAPABILITY_UNAVAILABLE));
+        if(!capability.sourceFingerprint().equals(fingerprint(fact.definition())))throw new Rejected(Code.CAPABILITY_UNAVAILABLE);
+        return capability;
+    }
+    void requireProposal(RuleAgentContract.NextAction proposal,List<RuleAgentEvidenceTools.VerifiedFact> facts) {
+        var ids=proposal instanceof RuleAgentContract.Ask ask?ask.supportingFactIds():
+            ((RuleAgentContract.Finish)proposal).items().stream().flatMap(i->i.factIds().stream()).toList();
+        for(String id:ids)requireCapability(facts.stream().filter(f->f.id().equals(id)).findFirst().orElseThrow(()->new Rejected(Code.FACT_NOT_READ)));
+    }
+
     public static RuleFactCapabilityCatalogue fromReviewed(List<RuleCheckApplicationService.CatalogEntry> entries) {
         var capabilities=new LinkedHashMap<String,FactCapability>();
         var conditions=new ArrayList<RulePublicationContract.ReviewedCondition>();

@@ -52,6 +52,10 @@ public final class RulePublicationProtocol {
             check(requirements.containsKey(binding.requirementId()),RuleAgentProtocol.Code.REVIEW_REQUIREMENT_UNKNOWN);
             check(input.facts().stream().anyMatch(f->f.id().equals(binding.factId())),RuleAgentProtocol.Code.REVIEW_FACT_NOT_IN_INPUT);
         }
+        // 原键属于当前审核输入；形状合法的带前缀ID仍不能被静默纠正。
+        var conditionIds=input.conditions().stream().map(ReviewedCondition::conditionId).collect(java.util.stream.Collectors.toSet());
+        for(var requirement:result.requirements())for(String id:requirement.necessaryConditionIds())
+            check(conditionIds.contains(id),RuleAgentProtocol.Code.REVIEW_CONDITION_UNKNOWN);
         // 这里只验证结构和输入身份；事实能力/条件/提议覆盖仍由独立Gate决定，不能自报通过。
         return result;
     }

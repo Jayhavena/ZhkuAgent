@@ -357,7 +357,7 @@ class RuleAgentOnlineFactoryTest {
         pack.put("remainingBudgetRule","每run3次决策加1次独立核验，共4次/45秒；单次10秒/1024输出token，无自动重试。新检索使旧编号失效。");
         pack.put("dynamicFeedback","完整当前候选摘要、c编号及宿主集合代号；实际UUID映射仅留宿主。已读取的审核原文、事实、条件及独立核验能力/来源指纹不变。不发送owner/session/token/凭证/参考答案/整本PDF。");
         pack.put("executionReadiness","PACKAGE_ONLY; current old-batch launcher must reject this packet; require P01-only preflight and new explicit authorization before any call");
-        assertThat(pack.path("protocolRevision").asText()).isEqualTo("RULE_AGENT_ACTION_CONTRACT_05");
+        assertThat(pack.path("protocolRevision").asText()).isEqualTo("RULE_AGENT_ACTION_CONTRACT_06");
         assertThat(pack.path("automaticRetries").asInt()).isZero();
         assertThat(factory).isNull();
         assertThat(calls).hasValue(0);
