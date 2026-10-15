@@ -1,0 +1,128 @@
+{
+  "allMatched" : true,
+  "checks" : [ {
+    "actual" : "DECODED",
+    "matched" : true,
+    "id" : "R01_original_decode",
+    "expected" : "DECODED"
+  }, {
+    "actual" : "CONDITION_NOT_NECESSARY",
+    "matched" : true,
+    "id" : "R02_original_gate",
+    "expected" : "CONDITION_NOT_NECESSARY"
+  }, {
+    "actual" : "INVALID_MODEL_RESPONSE",
+    "matched" : true,
+    "id" : "R03_original_prefixed_condition_precheck",
+    "expected" : "INVALID_MODEL_RESPONSE"
+  }, {
+    "actual" : "CONDITION_NOT_NECESSARY",
+    "matched" : true,
+    "id" : "R04_add_condition_only",
+    "expected" : "CONDITION_NOT_NECESSARY"
+  }, {
+    "actual" : "REVIEW_JSON:REVIEW_JSON_INVALID",
+    "matched" : true,
+    "id" : "R05_identified_unspecified",
+    "expected" : "REVIEW_JSON:REVIEW_JSON_INVALID"
+  }, {
+    "actual" : "REVIEW_BINDING_INVALID",
+    "matched" : true,
+    "id" : "R06_one_subject_two_facts",
+    "expected" : "REVIEW_BINDING_INVALID"
+  }, {
+    "actual" : "UNRESOLVED",
+    "matched" : true,
+    "id" : "R07_two_conditional_branches",
+    "expected" : "UNRESOLVED"
+  }, {
+    "actual" : "CONDITION_NOT_NECESSARY",
+    "matched" : true,
+    "id" : "R08_keep_unresolved_demand",
+    "expected" : "CONDITION_NOT_NECESSARY"
+  }, {
+    "actual" : "CONDITION_ALREADY_PROVIDED",
+    "matched" : true,
+    "id" : "R09_known_condition_no_reask",
+    "expected" : "CONDITION_ALREADY_PROVIDED"
+  }, {
+    "actual" : "CONDITION_NOT_NECESSARY",
+    "matched" : true,
+    "id" : "R10_omit_one_support_for_two_requirements",
+    "expected" : "CONDITION_NOT_NECESSARY"
+  }, {
+    "actual" : "WHEN_NOT_SATISFIED",
+    "matched" : true,
+    "id" : "R11_finish_before_condition",
+    "expected" : "WHEN_NOT_SATISFIED"
+  }, {
+    "actual" : "UNRESOLVED",
+    "matched" : true,
+    "id" : "R12_single_branch_admitted_gap",
+    "expected" : "UNRESOLVED"
+  }, {
+    "actual" : "REVIEW_BINDING_INVALID",
+    "matched" : true,
+    "id" : "R13_wrong_dimension",
+    "expected" : "REVIEW_BINDING_INVALID"
+  }, {
+    "actual" : "CONDITION_NOT_NECESSARY",
+    "matched" : true,
+    "id" : "R14_no_necessary_condition",
+    "expected" : "CONDITION_NOT_NECESSARY"
+  }, {
+    "actual" : "REVIEW_BINDING:REVIEW_INPUT_MISMATCH",
+    "matched" : true,
+    "id" : "R15_foreign_fingerprint",
+    "expected" : "REVIEW_BINDING:REVIEW_INPUT_MISMATCH"
+  }, {
+    "actual" : "REVIEW_BINDING:REVIEW_FACT_NOT_IN_INPUT",
+    "matched" : true,
+    "id" : "R16_unread_fact",
+    "expected" : "REVIEW_BINDING:REVIEW_FACT_NOT_IN_INPUT"
+  } ],
+  "gateAcceptsSingleAlternativeWithoutBranchCoverage" : true,
+  "freshPublicationExecuted" : false,
+  "syntheticReviewVariant" : {
+    "protocolRevision" : "RULE_PUBLICATION_REVIEW_01",
+    "inputFingerprint" : "46b21dd1b5d3c2c6170c6083c092269e73ad917fdcf346178be5784c73760b50",
+    "requirements" : [ {
+      "id" : "r_public",
+      "span" : {
+        "subquestionId" : "q1",
+        "startInclusive" : 0,
+        "endExclusive" : 15
+      },
+      "dimension" : "RETAKE",
+      "subject" : "PUBLIC_ELECTIVE",
+      "recognition" : "IDENTIFIED",
+      "necessaryConditionIds" : [ "courseType" ]
+    }, {
+      "id" : "r_professional",
+      "span" : {
+        "subquestionId" : "q1",
+        "startInclusive" : 0,
+        "endExclusive" : 15
+      },
+      "dimension" : "RETAKE",
+      "subject" : "PROFESSIONAL_ELECTIVE",
+      "recognition" : "IDENTIFIED",
+      "necessaryConditionIds" : [ "courseType" ]
+    } ],
+    "bindings" : [ {
+      "requirementId" : "r_public",
+      "factId" : "S10/RETAKE_ONLY:public-failed-no-retake",
+      "role" : "CORE"
+    }, {
+      "requirementId" : "r_professional",
+      "factId" : "S10/RETAKE_ONLY:professional-failed-retake-application",
+      "role" : "CORE"
+    } ],
+    "unresolvedDemands" : [ ]
+  },
+  "networkDeniedBySecurityManager" : true,
+  "actualFrozenClasses" : true,
+  "fullOriginalSemanticInputReconstructed" : false,
+  "realProviderCalls" : 0,
+  "databaseOperations" : 0
+}
