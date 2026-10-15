@@ -1,0 +1,284 @@
+{
+  "taskId": "7a8ed1f1-12f6-4b33-9a2d-da4460b0db4a",
+  "runId": "a8e790e6-23d7-4ac3-a763-f2575796d911",
+  "attempts": [
+    {
+      "attempt": 1,
+      "purpose": "DECISION",
+      "status": 200,
+      "providerReason": null,
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "requestSha256": "6eecaa2a9b9a31d8830cd1bfcdbdb5bd2dbb610243ef68923a1234b37b5ff7e4",
+      "responseSha256": "6ba8e9441e1904cea222d1751bb84a373a1cbc3edcde3e04f1e83bb4c0c8de1d",
+      "diagnostics": {
+        "requestBytes": 4509,
+        "elapsedMillis": 1947,
+        "dispatchedMillis": 78,
+        "connectedMillis": null,
+        "headersMillis": 1912,
+        "firstBodyMillis": 1917,
+        "bodyCompletedMillis": 1917,
+        "responseBytes": 457,
+        "requestId": "b2b7acdd-0a08-9169-a0f5-05c3dda96b32",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 821,
+      "outputTokens": 26,
+      "wireAction": {
+        "type": "SEARCH_REVIEWED_RULES",
+        "subquestionId": "q1",
+        "query": "选修课不及格重修规定"
+      },
+      "canonicalProposedAction": {
+        "type": "SEARCH_REVIEWED_RULES",
+        "subquestionId": "q1",
+        "query": "选修课不及格重修规定"
+      },
+      "runnerEvent": {
+        "action": "SEARCH_REVIEWED_RULES",
+        "reason": null
+      },
+      "semanticReview": null
+    },
+    {
+      "attempt": 2,
+      "purpose": "DECISION",
+      "status": 200,
+      "providerReason": null,
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "requestSha256": "b5ccfe06951bb582fdba52aaa5cb2b12be56a7b33566016c6c5baea738020b15",
+      "responseSha256": "b4889062e770577a3fd6c80a1764018aedeaa1defdd5388ae23fc513db442082",
+      "diagnostics": {
+        "requestBytes": 9873,
+        "elapsedMillis": 1303,
+        "dispatchedMillis": 7,
+        "connectedMillis": null,
+        "headersMillis": 1295,
+        "firstBodyMillis": 1295,
+        "bodyCompletedMillis": 1295,
+        "responseBytes": 473,
+        "requestId": "9a989e79-9860-9112-9443-1ed1a9134c37",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 1464,
+      "outputTokens": 35,
+      "wireAction": {
+        "type": "READ_VERIFIED_RULE",
+        "subquestionId": "q1",
+        "handles": [
+          "c1"
+        ],
+        "candidateSetId": "ZvyDJas_pSqNvdcY"
+      },
+      "canonicalProposedAction": {
+        "type": "READ_VERIFIED_RULE",
+        "subquestionId": "q1",
+        "handles": [
+          "1cb1cb38-e655-4f6f-9ecd-f93f120656f1"
+        ]
+      },
+      "runnerEvent": {
+        "action": "READ_VERIFIED_RULE",
+        "reason": null
+      },
+      "semanticReview": null
+    },
+    {
+      "attempt": 3,
+      "purpose": "DECISION",
+      "status": 200,
+      "providerReason": null,
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "requestSha256": "7ee103f65bea1a4fd553e9f0a5ee301246c25f5739b2fb82db937e368e6695a0",
+      "responseSha256": "bca5cfbf59df9317415672a56ba02f072dfe64074ea2362f74d0e27a3c7e05f2",
+      "diagnostics": {
+        "requestBytes": 13460,
+        "elapsedMillis": 2087,
+        "dispatchedMillis": 6,
+        "connectedMillis": null,
+        "headersMillis": 2065,
+        "firstBodyMillis": 2065,
+        "bodyCompletedMillis": 2065,
+        "responseBytes": 699,
+        "requestId": "5e6bae7b-cff8-9b66-8ff0-d6bdc43572e7",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 2302,
+      "outputTokens": 111,
+      "wireAction": {
+        "type": "ASK_NECESSARY_CONDITION",
+        "subquestionId": "q1",
+        "conditionId": "S10/RETAKE_ONLY:courseType",
+        "reason": "需要确定课程类别以判断重修规则。",
+        "supportingFactIds": [
+          "S10/RETAKE_ONLY:public-failed-no-retake",
+          "S10/RETAKE_ONLY:professional-failed-retake-application"
+        ]
+      },
+      "canonicalProposedAction": {
+        "type": "ASK_NECESSARY_CONDITION",
+        "subquestionId": "q1",
+        "conditionId": "S10/RETAKE_ONLY:courseType",
+        "reason": "需要确定课程类别以判断重修规则。",
+        "supportingFactIds": [
+          "S10/RETAKE_ONLY:public-failed-no-retake",
+          "S10/RETAKE_ONLY:professional-failed-retake-application"
+        ]
+      },
+      "runnerEvent": {
+        "attempt": 3,
+        "action": "ASK_NECESSARY_CONDITION",
+        "observation": null,
+        "reason": "INVALID_MODEL_RESPONSE",
+        "publicationReason": null
+      },
+      "semanticReview": null
+    },
+    {
+      "attempt": 4,
+      "purpose": "DECISION",
+      "status": 200,
+      "providerReason": null,
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "requestSha256": "9f1841842353cdeeabe24d459511e6fa9efbf93dba98a381132de2e99311e50c",
+      "responseSha256": "031e0b643aa3f4edd572fb0dbf779ebd61d30eda6c52ff1a4a87c67559ec84eb",
+      "diagnostics": {
+        "requestBytes": 12624,
+        "elapsedMillis": 3082,
+        "dispatchedMillis": 5,
+        "connectedMillis": null,
+        "headersMillis": 3079,
+        "firstBodyMillis": 3079,
+        "bodyCompletedMillis": 3079,
+        "responseBytes": 808,
+        "requestId": "00a02624-3cda-97be-a6e5-208adf35c06a",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 2297,
+      "outputTokens": 132,
+      "wireAction": {
+        "type": "ASK_NECESSARY_CONDITION",
+        "subquestionId": "q1",
+        "conditionId": "courseType",
+        "reason": "用户未说明课程类型（公共选修或专业选修），而2025.9.2文本规定两类选修课不合格后的重修政策不同，需澄清以适用对应规则。",
+        "supportingFactIds": [
+          "S10/RETAKE_ONLY:public-failed-no-retake",
+          "S10/RETAKE_ONLY:professional-failed-retake-application"
+        ]
+      },
+      "canonicalProposedAction": {
+        "type": "ASK_NECESSARY_CONDITION",
+        "subquestionId": "q1",
+        "conditionId": "courseType",
+        "reason": "用户未说明课程类型（公共选修或专业选修），而2025.9.2文本规定两类选修课不合格后的重修政策不同，需澄清以适用对应规则。",
+        "supportingFactIds": [
+          "S10/RETAKE_ONLY:public-failed-no-retake",
+          "S10/RETAKE_ONLY:professional-failed-retake-application"
+        ]
+      },
+      "runnerEvent": {
+        "attempt": 4,
+        "action": "ASK_NECESSARY_CONDITION",
+        "observation": null,
+        "reason": "INVALID_MODEL_RESPONSE",
+        "publicationReason": null
+      },
+      "semanticReview": null
+    },
+    {
+      "attempt": 5,
+      "purpose": "PUBLICATION_REVIEW",
+      "status": 200,
+      "providerReason": null,
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "requestSha256": "7107af67e70e1ff74547476f7a6b70d37cd0d589eb0d7bcf60939b33eb4f5777",
+      "responseSha256": "bc4040a066fbddb484b0649627021fad7b4cb89c52110814578b345ada35bd15",
+      "diagnostics": {
+        "requestBytes": 6014,
+        "elapsedMillis": 4100,
+        "dispatchedMillis": 6,
+        "connectedMillis": null,
+        "headersMillis": 4089,
+        "firstBodyMillis": 4089,
+        "bodyCompletedMillis": 4089,
+        "responseBytes": 1085,
+        "requestId": "53ca7db3-e3f4-94a4-9384-082e1e2e7728",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 1552,
+      "outputTokens": 264,
+      "wireAction": null,
+      "canonicalProposedAction": null,
+      "runnerEvent": {
+        "attempt": 5,
+        "action": "PUBLICATION_REVIEW",
+        "observation": null,
+        "reason": "INVALID_MODEL_RESPONSE",
+        "publicationReason": "CONDITION_NOT_NECESSARY"
+      },
+      "semanticReview": {
+        "protocolRevision": "RULE_PUBLICATION_REVIEW_01",
+        "inputFingerprint": "439ceef8ed7bd25682808eb416a1ef0021bf0e9b241b548d5c53a3485e03088f",
+        "requirements": [
+          {
+            "id": "r1",
+            "span": {
+              "subquestionId": "q1",
+              "startInclusive": 0,
+              "endExclusive": 15
+            },
+            "dimension": "RETAKE",
+            "subject": "UNSPECIFIED",
+            "recognition": "AMBIGUOUS",
+            "necessaryConditionIds": []
+          }
+        ],
+        "bindings": [],
+        "unresolvedDemands": [
+          {
+            "span": {
+              "subquestionId": "q1",
+              "startInclusive": 0,
+              "endExclusive": 15
+            },
+            "reason": "AMBIGUOUS_SCOPE"
+          }
+        ]
+      }
+    }
+  ],
+  "inputTokens": 8436,
+  "outputTokens": 568,
+  "usageEstimatedCny": "0.0082824",
+  "actualInvoiceCny": null,
+  "invoiceStatus": "NOT_RECONCILED",
+  "pricingSource": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+  "inputCnyPerMillion": "0.8",
+  "outputCnyPerMillion": "2.7",
+  "cachedTokensDiscountAssumed": false
+}
