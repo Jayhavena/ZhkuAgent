@@ -1,0 +1,21 @@
+WARNING: A terminally deprecated method in java.lang.System has been called
+WARNING: System::setSecurityManager has been called by PackageOperations (file:/C:/Users/nangua/AppData/Local/Temp/zhku-t05-62-674wph4l/)
+WARNING: Please consider reporting this to the maintainers of PackageOperations
+WARNING: System::setSecurityManager will be removed in a future release
+Exception in thread "main" java.lang.reflect.InvocationTargetException
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:118)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64)
+	at org.springframework.boot.loader.launch.PropertiesLauncher.main(PropertiesLauncher.java:580)
+Caused by: java.lang.reflect.InvocationTargetException
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:118)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at PackageOperations.main(PackageOperations.java:4)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	... 4 more
+Caused by: java.nio.file.FileAlreadyExistsException: D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-15\t05-62-eligibility-request\request-package.json
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineProbeHost.prepare(RuleAgentOnlineProbeHost.java:168)
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineProbeHost.main(RuleAgentOnlineProbeHost.java:63)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	... 7 more

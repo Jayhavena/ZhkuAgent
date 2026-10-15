@@ -1,0 +1,40 @@
+{
+  "status": "NOT_STARTED_NOT_AUTHORIZED",
+  "packageSha256": "1e44705ae88a7fea23852862bc365da1c764357ef3664ed5139b96ace9cf2fd0",
+  "attempts": [],
+  "dispatchedCalls": 0,
+  "authorizedCalls": 0,
+  "remainingAuthorizedCalls": 0,
+  "actualInvoiceCny": null,
+  "invoiceStatus": "NO_MODEL_REQUESTS_THIS_PREPARATION; future actual invoice remains unknown until reconciliation",
+  "futureDedupKey": [
+    "taskId",
+    "runId",
+    "attempt"
+  ],
+  "futureRecordFields": [
+    "purpose",
+    "dispatchState",
+    "requestSha256",
+    "responseSha256",
+    "receivedHeaders",
+    "requestId",
+    "httpStatus",
+    "elapsedMillis",
+    "inputTokens",
+    "outputTokens",
+    "usageEstimateCny",
+    "actualInvoiceCny",
+    "feeStatus",
+    "proposedActionFile",
+    "validationStage",
+    "validationCode",
+    "readSelection",
+    "publicationReason",
+    "terminalState",
+    "resourcesClosed"
+  ],
+  "timeoutPolicy": "Dispatched timeout consumes allowance; missing usage -> UNKNOWN fee, never zero or extra replacement call",
+  "phaseAccounting": "BEGIN/RECEIVED/FINISHED/REVIEW_INPUT_SNAPSHOT are phases of one attempt, not extra calls",
+  "closeoutPolicy": "Record every attempt and unknown cost, close all unused allowance, no repair/retry/next batch"
+}
