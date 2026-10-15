@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "case": "matching-copy",
+      "exitCode": 0,
+      "stdout": "{\"maximumProviderCalls\":5,\"protocolRevision\":\"RULE_AGENT_ACTION_CONTRACT_05\",\"packageSha256\":\"850b8b681e140a95e8e861f72fd40a55a8f24db71b982ea2edabf7891410bf77\",\"databaseOperations\":0,\"providerCalls\":0,\"mode\":\"PACKAGE_CHECK_ONLY\",\"passed\":true}\n",
+      "stderr": "",
+      "providerCalls": 0,
+      "databaseOperations": 0
+    },
+    {
+      "case": "jar-identity-changed",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Exception in thread \"main\" java.lang.reflect.InvocationTargetException\n\tat java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:118)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:580)\n\tat org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102)\n\tat org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64)\n\tat org.springframework.boot.loader.launch.PropertiesLauncher.main(PropertiesLauncher.java:580)\nCaused by: java.lang.IllegalArgumentException: 本机审核资产或请求定义已漂移\n\tat com.zhku.knowledge.ruleagent.RuleAgentOnlineProbeHost.main(RuleAgentOnlineProbeHost.java:65)\n\tat java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)\n\t... 4 more\n",
+      "providerCalls": 0,
+      "databaseOperations": 0
+    }
+  ],
+  "temporaryFixtureDeleted": true,
+  "credentialsRemovedFromChild": true,
+  "scope": "LOCAL_ZERO_PROVIDER_CHECK_ONLY"
+}
