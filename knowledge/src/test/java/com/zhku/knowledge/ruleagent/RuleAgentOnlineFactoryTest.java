@@ -437,6 +437,17 @@ class RuleAgentOnlineFactoryTest {
         env.put("ZHKU_RULE_AGENT_PROBE_CASE","P02");
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
     }
+    @Test void diagnosticRequestUsesFreshPackageLocation()throws Exception{
+        var field=RuleAgentOnlineProbeHost.class.getDeclaredField("PACKAGE");field.setAccessible(true);
+        assertThat(field.get(null)).isEqualTo("docs/evidence/rule-agent-provider/2026-10-15/t05-51-p02-diagnostic-request/request-package.json");
+    }
+    @Test void diagnosticPacketRejectsMissingOrDisabledControlledExchangePolicy()throws Throwable{
+        var valid=packet();validate(valid);
+        var missing=valid.deepCopy();missing.remove("localExchangeRecording");
+        assertThatThrownBy(()->validate(missing)).isInstanceOf(IllegalArgumentException.class);
+        var disabled=valid.deepCopy();disabled.put("localExchangeRecording","DISABLED");
+        assertThatThrownBy(()->validate(disabled)).isInstanceOf(IllegalArgumentException.class);
+    }
     @Test void revisedProbeCannotSilentlyUseOldAllCaseAuthorization(){
         var env=Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64));
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
@@ -455,6 +466,7 @@ class RuleAgentOnlineFactoryTest {
         p.put("model",RuleAgentProvider.MODEL);
         p.put("budgetRevision",BUDGET_REVISION);
         p.put("executionPolicyRevision","STATE_AWARE_P02_CONTINUATION_01");
+        p.put("localExchangeRecording","OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION; NO_HTTP_HEADERS; API_KEY_REDACTED; MALFORMED_JSON_OMITTED; ORIGINAL_SHA_AND_REDACTION_FLAG");
         p.put("maximumProviderCalls",2*DEFAULT_BUDGET.maxModelAttemptsPerRun());
         p.put("maximumTaskRunsThisBatch",2);p.put("ownedProcessMillis",235000);
         p.put("perRunCalls",DEFAULT_BUDGET.maxModelAttemptsPerRun());

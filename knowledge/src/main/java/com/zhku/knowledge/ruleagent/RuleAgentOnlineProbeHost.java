@@ -15,7 +15,8 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 /** 独立工程探针宿主；学生HTTP入口由T06另行接入。 */
 public final class RuleAgentOnlineProbeHost {
     private static final ObjectMapper JSON=new ObjectMapper().findAndRegisterModules();
-    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-15/t05-46-p02-request/request-package.json";
+    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-15/t05-51-p02-diagnostic-request/request-package.json";
+    private static final String LOCAL_EXCHANGE_RECORDING="OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION; NO_HTTP_HEADERS; API_KEY_REDACTED; MALFORMED_JSON_OMITTED; ORIGINAL_SHA_AND_REDACTION_FLAG";
     private static final String P01_QUESTION="专业选修课和公共选修课在修读安排上有什么不同？";
     private static final int MAXIMUM=2*DEFAULT_BUDGET.maxModelAttemptsPerRun();
     private static final String P02_QUESTION="我这门选修课没过，能不能重修？";
@@ -33,7 +34,8 @@ public final class RuleAgentOnlineProbeHost {
     }
     static void validatePackage(JsonNode pack){
         // P02仅同一任务两轮；旧P01和组合批次必须在创建数据库/模型前拒绝。
-        if(!pack.path("executionPolicyRevision").asText().equals("STATE_AWARE_P02_CONTINUATION_01")
+        if(!pack.path("localExchangeRecording").asText().equals(LOCAL_EXCHANGE_RECORDING)
+            ||!pack.path("executionPolicyRevision").asText().equals("STATE_AWARE_P02_CONTINUATION_01")
             ||!pack.path("protocolRevision").asText().equals(RuleAgentProtocol.REVISION)
             ||!pack.path("actionContract").equals(RuleAgentProtocol.description())
             ||!pack.path("actionSchema").equals(RuleAgentProtocol.decisionSchema(List.of()))
@@ -169,7 +171,7 @@ public final class RuleAgentOnlineProbeHost {
             var bundle=JSON.readTree(Files.readAllBytes(root.resolve("docs/product/rule-check-2025-verbatim-import-draft.json")));var semantics=JSON.readTree(Files.readAllBytes(root.resolve("docs/product/rule-check-2025-b02-semantic-review.json")));var overlay=JSON.readTree(Files.readAllBytes(root.resolve("docs/evidence/rule-agent-evidence/2026-10-13/t02-01/article4-overlay-draft.json")));
             var pack=JSON.createObjectNode();
             pack.set("runtimeAssets",JSON.valueToTree(qualification.runtimeAssetManifest()));
-            pack.put("purpose","T05_P02_SAME_TASK_CLARIFY_RESUME_NOT_PRODUCT_QUALITY_EVAL");
+            pack.put("purpose","T05_P02_SAME_TASK_DIAGNOSTIC_NOT_PRODUCT_QUALITY_EVAL");
             pack.put("protocolRevision",RuleAgentProtocol.REVISION);
             pack.set("actionContract",RuleAgentProtocol.description());
             // 决策侧实际下发的机器可读动作定义；候选枚举按当次集合注入，这里记录静态部分。
@@ -196,7 +198,7 @@ public final class RuleAgentOnlineProbeHost {
             pack.put("executionPolicyRevision","STATE_AWARE_P02_CONTINUATION_01");
             pack.put("monetaryApprovalRequired",true);
             pack.put("publicationReserveMillis",5000);
-            pack.put("localExchangeRecording","OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION; NO_HTTP_HEADERS; API_KEY_REDACTED; ORIGINAL_SHA_AND_REDACTION_FLAG");
+            pack.put("localExchangeRecording",LOCAL_EXCHANGE_RECORDING);
             pack.put("readStateFeedback","完整候选均保留并标记alreadyRead；反馈证据剩余份数/字节、run剩余时间、核验预留；不按模型自报完整发布。");
             pack.put("referenceRevision","2025.9.2");
             pack.put("authorizationStatus","NOT_AUTHORIZED");
@@ -209,7 +211,7 @@ public final class RuleAgentOnlineProbeHost {
             pack.put("factCapabilityAuthoritySha256",sha(Files.readAllBytes(root.resolve("knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleFactCapabilityCatalogue.java"))));
             pack.put("dynamicFeedback","完整当前候选摘要、c编号、宿主集合代号及与编号同源的工具枚举；实际UUID映射仅留宿主。已读取的审核原文、事实、条件及独立核验能力/来源指纹不变。不发送owner/session/token/凭证/参考答案/整本PDF。");
             // 新批次绑定已补齐的运行资产及实际构建；保留业务合同和全部候选，旧授权不恢复。
-            pack.put("executionReadiness","PACKAGE_ONLY; runtime assets and actual jar/source bound; prior local isolated assembly passed; old batches rejected; require new explicit authorization for this package before any call");
+            pack.put("executionReadiness","PACKAGE_ONLY; CURRENT_BUILD_AND_RUNTIME_ASSETS_BOUND; ZERO_REAL_CALLS_THIS_BATCH; PRIOR_AUTHORIZATIONS_CLOSED; REQUIRE_NEW_EXPLICIT_AUTHORIZATION");
             return pack;
         }
     }
