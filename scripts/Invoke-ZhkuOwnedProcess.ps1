@@ -1,6 +1,7 @@
+# P02两run共用进程可显式申请235秒；默认5秒及各调用方原预算不变。
 function Invoke-ZhkuOwnedProcess {
     param([Parameter(Mandatory)][string]$Executable,[string[]]$Arguments=@(),
-        [ValidateRange(1,150)][int]$TimeoutSeconds=5,[string[]]$Secrets=@())
+        [ValidateRange(1,250)][int]$TimeoutSeconds=5,[string[]]$Secrets=@())
     $info=[Diagnostics.ProcessStartInfo]::new($Executable)
     $info.UseShellExecute=$false;$info.CreateNoWindow=$true
     $info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true

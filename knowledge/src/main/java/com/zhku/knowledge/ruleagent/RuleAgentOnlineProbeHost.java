@@ -15,24 +15,25 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 /** 独立工程探针宿主；学生HTTP入口由T06另行接入。 */
 public final class RuleAgentOnlineProbeHost {
     private static final ObjectMapper JSON=new ObjectMapper().findAndRegisterModules();
-    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-15/t05-43-request/request-package.json";
+    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-15/t05-46-p02-request/request-package.json";
     private static final String P01_QUESTION="专业选修课和公共选修课在修读安排上有什么不同？";
-    private static final int MAXIMUM=DEFAULT_BUDGET.maxModelAttemptsPerRun();
+    private static final int MAXIMUM=2*DEFAULT_BUDGET.maxModelAttemptsPerRun();
+    private static final String P02_QUESTION="我这门选修课没过，能不能重修？";
     private static JsonNode expectedCases(){
         var cases=JSON.createArrayNode();
-        cases.addObject().put("id","P01").put("question",P01_QUESTION);
+        cases.addObject().put("id","P02").put("question",P02_QUESTION).put("reply","PUBLIC");
         return cases;
     }
     public static Map<String,Object> environmentCheck(Map<String,String> env){
         var settings=RuleAgentProvider.Settings.environment(env);String sha=env.get("ZHKU_RULE_AGENT_PROBE_SHA256");
         if(sha==null||!sha.matches("[a-f0-9]{64}")||!settings.authorizationId().equals(sha))throw new IllegalArgumentException("探针未绑定具体请求包授权");
         String selected=env.get("ZHKU_RULE_AGENT_PROBE_CASE");
-        if(!"P01_RUNTIME_READY_01".equals(selected))throw new IllegalArgumentException("本批只允许运行资产齐备的P01候选；不接受已关闭的旧批次或P02");
+        if(!"P02_CONTINUATION_01".equals(selected))throw new IllegalArgumentException("本批只允许P02必要澄清续答；不重放已通过P01或已关闭批次");
         return Map.of("mode","ONLINE","endpoint",settings.endpoint().toString(),"model",settings.model(),"maximumProviderCalls",MAXIMUM,"providerCalls",0,"databaseOperations",0,"builds",0,"budgetRevision",BUDGET_REVISION,"timeoutMillis",DEFAULT_BUDGET.maxModelMillis(),"runTimeoutMillis",DEFAULT_BUDGET.maxRunMillis());
     }
     static void validatePackage(JsonNode pack){
-        // 当前批次只允许一次P01；旧12次批次与P02必须在建库和创建客户端前拒绝。
-        if(!pack.path("executionPolicyRevision").asText().equals("STATE_AWARE_RUNTIME_READY_01")
+        // P02仅同一任务两轮；旧P01和组合批次必须在创建数据库/模型前拒绝。
+        if(!pack.path("executionPolicyRevision").asText().equals("STATE_AWARE_P02_CONTINUATION_01")
             ||!pack.path("protocolRevision").asText().equals(RuleAgentProtocol.REVISION)
             ||!pack.path("actionContract").equals(RuleAgentProtocol.description())
             ||!pack.path("actionSchema").equals(RuleAgentProtocol.decisionSchema(List.of()))
@@ -42,6 +43,7 @@ public final class RuleAgentOnlineProbeHost {
             ||!pack.path("publicationReviewPolicy").equals(JSON.valueToTree(RulePublicationContract.policy()))
             ||!pack.path("reviewSystemPrompt").asText().equals(RuleAgentProvider.REVIEW_SYSTEM)
             ||!pack.path("endpoint").asText().equals(RuleAgentProvider.BEIJING.toString())||!pack.path("model").asText().equals(RuleAgentProvider.MODEL)||!pack.path("budgetRevision").asText().equals(BUDGET_REVISION)
+            ||pack.path("maximumTaskRunsThisBatch").asInt(-1)!=2||pack.path("ownedProcessMillis").asInt(-1)!=235000
             ||pack.path("maximumProviderCalls").asInt(-1)!=MAXIMUM||pack.path("perRunCalls").asInt(-1)!=DEFAULT_BUDGET.maxModelAttemptsPerRun()||pack.path("timeoutMillis").asInt(-1)!=DEFAULT_BUDGET.maxModelMillis()
             ||pack.path("runTimeoutMillis").asInt(-1)!=DEFAULT_BUDGET.maxRunMillis()||pack.path("maximumOutputTokens").asInt(-1)!=DEFAULT_BUDGET.maxOutputTokens()||pack.path("automaticRetries").asInt(-1)!=0
             ||!pack.path("systemPrompt").asText().equals(RuleAgentProvider.SYSTEM)||!pack.path("budget").equals(JSON.valueToTree(DEFAULT_BUDGET))||!pack.path("cases").equals(expectedCases()))throw new IllegalArgumentException("请求包预算、问题或协议身份变化");
@@ -78,22 +80,70 @@ public final class RuleAgentOnlineProbeHost {
         try(var catalogue=new Reviewed2025ControlledCatalogue(root)){
             catalogue.installOnIsolatedDatabase(db);var settings=catalogue.settings();
             try(var factory=new RuleAgentOnlineFactory(RuleAgentProvider.Settings.environment(System.getenv()),()->System.getenv("DASHSCOPE_API_KEY"),(actor,task)->new RuleAgentEvidenceTools(actor,task,settings,()->{try{return RuleArticle4Overlay.apply(root,catalogue.reviewedCatalogue(root));}catch(Exception invalid){throw new IllegalArgumentException("目录不可用");}},JdbcLexicalCandidateRetriever.forChineseBigramEvaluation(db,new RetrievalEligibilityFilter(clock),settings.profileId(),settings.requiredScope(),settings.chunkingVersion()),new JdbcRuleCheckEvidenceReader(db,settings.profileId(),settings.chunkingVersion(),settings.requiredScope()),new JdbcRuleCheckCitationAuditRepository(db,settings.profileId(),settings.chunkingVersion(),settings.requiredScope()),clock),trace->{synchronized(traces){try{Files.writeString(evidence.resolve("provider-traces.jsonl"),JSON.writeValueAsString(trace)+"\n",StandardCharsets.UTF_8,StandardOpenOption.CREATE,StandardOpenOption.APPEND);traces.add(trace);}catch(Exception failure){throw new IllegalStateException("调用审计未保存");}}},maximum,clock)){
-                RuleAgentTaskStore.Factory recording=(actor,task)->{var actual=factory.open(actor,task);return new RuleAgentTaskStore.Work(){public RuleAgentRunner.Outcome run(com.zhku.agent.agent.runtime.AgentRunContext context,RuleAgentRunner.Input input){var output=actual.run(context,input);outcomes.put(context.runId(),output);try{Files.write(evidence.resolve(context.runId()+"-outcome.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(output),StandardOpenOption.CREATE_NEW);}catch(Exception failure){throw new IllegalStateException("运行产物未保存");}return output;}public boolean revalidate(ResultEnvelope previous){return actual.revalidate(previous);}};};
+                RuleAgentTaskStore.Factory recording=(actor,task)->{var actual=factory.open(actor,task);return new RuleAgentTaskStore.Work(){public RuleAgentRunner.Outcome run(com.zhku.agent.agent.runtime.AgentRunContext context,RuleAgentRunner.Input input){var output=actual.run(context,input);recordOutcome(evidence,outcomes,output);return output;}public boolean revalidate(ResultEnvelope previous){return actual.revalidate(previous);}};};
                 try(var store=new RuleAgentTaskStore(executor,recording,clock,RuleAgentTaskStore.DEFAULT_LIMITS)){
                     var outputs=new ArrayList<TaskSnapshot>();
                     for(JsonNode test:pack.path("cases")){
                         var accepted=store.create(owner,new CreateTask(test.path("question").asText(),UUID.randomUUID()));TaskSnapshot output=waitFor(store,owner,accepted.taskId());outputs.add(output);
-                        if(test.path("id").asText().equals("P01")){
-                            if(!p01Passed(outcomes.get(output.runId())))throw new IllegalStateException("P01未达标，停止本批不追加调用");
-                        }
+                        if(!publishedMatches(outcomes.get(output.runId()),output)||!p02WaitingPassed(outcomes.get(output.runId())))throw new IllegalStateException("P02首轮未形成合格必要追问，停止本批");
+                        // 回复是申请中预登记的用户输入，不是模型答案；首轮必须先独立核验必要性。
+                        var reply=new Message(test.path("reply").asText(),output.continuationToken(),output.version(),UUID.randomUUID());
+                        var resumed=store.message(owner,accepted.taskId(),reply);
+                        var duplicate=store.message(owner,accepted.taskId(),reply);
+                        if(!duplicate.duplicate()||!duplicate.runId().equals(resumed.runId()))throw new IllegalStateException("重复续答产生额外run");
+                        var completed=waitFor(store,owner,accepted.taskId());outputs.add(completed);
+                        if(!publishedMatches(outcomes.get(completed.runId()),completed)||!p02Passed(outcomes.get(output.runId()),outcomes.get(completed.runId())))throw new IllegalStateException("P02续答未达发布标准，停止本批");
+                        if(!store.message(owner,accepted.taskId(),reply).runId().equals(resumed.runId()))throw new IllegalStateException("终态重复续答变化");
                     }
-                    boolean p01Passed=!outputs.isEmpty()&&p01Passed(outcomes.get(outputs.get(0).runId()));
-                    passed=p01Passed&&outputs.size()==1;
+                    passed=outputs.size()==2&&publishedMatches(outcomes.get(outputs.get(0).runId()),outputs.get(0))&&publishedMatches(outcomes.get(outputs.get(1).runId()),outputs.get(1))&&p02Passed(outcomes.get(outputs.get(0).runId()),outcomes.get(outputs.get(1).runId()));
                     Files.write(evidence.resolve("task-results.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(outputs),StandardOpenOption.CREATE_NEW);
                 }finally{used=maximum-factory.remainingCalls();factory.close();closed=factory.resourcesClosed();}
             }
-        }finally{executor.shutdownNow();closed=closed&&executor.awaitTermination(3,TimeUnit.SECONDS);Files.write(evidence.resolve("probe-result.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("passed",passed&&closed,"resourcesClosed",closed,"allowanceConsumed",used,"maximumProviderCalls",maximum,"caseSelection","P01_RUNTIME_READY_01","languageQualityNotScored",true,"budgetRevision",BUDGET_REVISION)),StandardOpenOption.CREATE_NEW);}
+        }finally{executor.shutdownNow();closed=closed&&executor.awaitTermination(3,TimeUnit.SECONDS);Files.write(evidence.resolve("probe-result.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("passed",passed&&closed,"resourcesClosed",closed,"allowanceConsumed",used,"maximumProviderCalls",maximum,"caseSelection","P02_CONTINUATION_01","languageQualityNotScored",true,"budgetRevision",BUDGET_REVISION)),StandardOpenOption.CREATE_NEW);}
         if(!passed||!closed)throw new IllegalStateException("真实探针未达退出标准；不重试");
+    }
+    static void recordOutcome(Path evidence,Map<UUID,RuleAgentRunner.Outcome> outcomes,RuleAgentRunner.Outcome output) {
+        try {Files.write(evidence.resolve(output.snapshot().runId()+"-outcome.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(output),StandardOpenOption.CREATE_NEW);}
+        catch(Exception failure){throw new IllegalStateException("运行产物未保存",failure);}
+        // 没有落盘的成功不得进入验收映射，否则可能与实际发布状态分叉。
+        outcomes.put(output.snapshot().runId(),output);
+    }
+    static boolean publishedMatches(RuleAgentRunner.Outcome o,TaskSnapshot published) {
+        if(o==null||published==null)return false;var actual=o.snapshot();
+        // turnId由任务仓拥有；其余发布身份/结果须一致，拒绝ACTIVE、失败或被替换的快照。
+        return actual.taskId().equals(published.taskId())&&actual.runId().equals(published.runId())&&actual.version()==published.version()
+            &&actual.taskStatus()==published.taskStatus()&&actual.runState()==published.runState()&&actual.terminated()==published.terminated()
+            &&Objects.equals(actual.result(),published.result())&&Objects.equals(actual.continuationToken(),published.continuationToken())
+            &&actual.execution().equals(published.execution());
+    }
+    private static boolean successfulAction(RuleAgentRunner.Outcome o,String action) {
+        return o.events().stream().anyMatch(e->e.action().equals(action)&&e.reason()==null&&e.publicationReason()==null
+            &&(e.observation()==null||e.observation().runId().equals(o.snapshot().runId())&&e.observation().status()==ObservationStatus.SUCCEEDED));
+    }
+    static boolean p02WaitingPassed(RuleAgentRunner.Outcome o) {
+        if(o==null)return false;var s=o.snapshot();var r=s.result();
+        if(s.taskStatus()!=TaskStatus.WAITING_USER||s.runState()!=com.zhku.agent.agent.runtime.AgentRunState.INCOMPLETE||!s.terminated()
+            ||s.continuationToken()==null||!s.execution().providerResponseReceived()||s.execution().answerSource()!=AnswerSource.LIVE_AGENT
+            ||r==null||r.items().size()!=1||!r.originatingRunId().equals(s.runId())||r.evidence().isEmpty())return false;
+        var item=r.items().getFirst();
+        return item.claims().isEmpty()&&item.clarification().size()==1&&item.clarification().getFirst().conditionId().equals("courseType")
+            &&new HashSet<>(item.clarification().getFirst().allowedValues()).equals(Set.of("PUBLIC","PROFESSIONAL"))
+            &&r.evidenceRelations().stream().anyMatch(e->e.role()==EvidenceRole.CLARIFICATION&&e.targetId().equals("courseType"))
+            &&successfulAction(o,"SEARCH_REVIEWED_RULES")&&successfulAction(o,"READ_VERIFIED_RULE")
+            &&successfulAction(o,"ASK_NECESSARY_CONDITION")&&successfulAction(o,"PUBLICATION_REVIEW");
+    }
+    /** 两轮必须由同一任务真实完成；不能将另一个task或旧run成功拼到必要追问之后。 */
+    static boolean p02Passed(RuleAgentRunner.Outcome waiting,RuleAgentRunner.Outcome completed) {
+        if(!p02WaitingPassed(waiting)||completed==null)return false;var before=waiting.snapshot();var s=completed.snapshot();var r=s.result();
+        if(!s.taskId().equals(before.taskId())||s.runId().equals(before.runId())||s.version()<=before.version()
+            ||s.taskStatus()!=TaskStatus.RESOLVED||s.runState()!=com.zhku.agent.agent.runtime.AgentRunState.SUCCEEDED||!s.terminated()
+            ||!s.execution().providerResponseReceived()||s.execution().answerSource()!=AnswerSource.LIVE_AGENT||r==null||r.coverage()!=Coverage.COMPLETE
+            ||!r.originatingRunId().equals(s.runId())||r.items().size()!=1||r.evidence().isEmpty()||r.evidenceRelations().isEmpty())return false;
+        var item=r.items().getFirst();
+        return item.claims().size()==1&&item.claims().getFirst().factId().equals("S10/RETAKE_ONLY:public-failed-no-retake")
+            &&"PUBLIC".equals(item.claims().getFirst().when().get("courseType"))&&item.issues().isEmpty()&&item.clarification().isEmpty()
+            &&successfulAction(completed,"SEARCH_REVIEWED_RULES")&&successfulAction(completed,"READ_VERIFIED_RULE")
+            &&successfulAction(completed,"FINISH_CHECK")&&successfulAction(completed,"PUBLICATION_REVIEW");
     }
     /** 阶段到达不能代替整链成功；必须有同run核验通过、完整发布和准确事实集合。 */
     static boolean p01Passed(RuleAgentRunner.Outcome outcome){
@@ -119,7 +169,7 @@ public final class RuleAgentOnlineProbeHost {
             var bundle=JSON.readTree(Files.readAllBytes(root.resolve("docs/product/rule-check-2025-verbatim-import-draft.json")));var semantics=JSON.readTree(Files.readAllBytes(root.resolve("docs/product/rule-check-2025-b02-semantic-review.json")));var overlay=JSON.readTree(Files.readAllBytes(root.resolve("docs/evidence/rule-agent-evidence/2026-10-13/t02-01/article4-overlay-draft.json")));
             var pack=JSON.createObjectNode();
             pack.set("runtimeAssets",JSON.valueToTree(qualification.runtimeAssetManifest()));
-            pack.put("purpose","T05_P01_RUNTIME_ASSETS_READY_FULL_FLOW_NOT_PRODUCT_QUALITY_EVAL");
+            pack.put("purpose","T05_P02_SAME_TASK_CLARIFY_RESUME_NOT_PRODUCT_QUALITY_EVAL");
             pack.put("protocolRevision",RuleAgentProtocol.REVISION);
             pack.set("actionContract",RuleAgentProtocol.description());
             // 决策侧实际下发的机器可读动作定义；候选枚举按当次集合注入，这里记录静态部分。
@@ -130,7 +180,7 @@ public final class RuleAgentOnlineProbeHost {
             pack.set("publicationReviewContract",RulePublicationProtocol.description());
             pack.set("publicationReviewPolicy",JSON.valueToTree(RulePublicationContract.policy()));
             pack.put("reviewSystemPrompt",RuleAgentProvider.REVIEW_SYSTEM);
-            pack.put("remainingBudgetRule","每run最多4次决策加1次独立核验，共5次/110秒；单次20秒/1024输出token，无自动重试。保留核验20秒和发布5000ms，状态不允许的探索动作不执行。新检索使旧编号失效。");
+            pack.put("remainingBudgetRule","P02同task两run，每run最多4次决策加1次独立核验，共5次/110秒，整批最多10次/220秒；单次20秒/1024输出token；Java总235秒。每run保留核验20秒和发布5000ms，无自动重试、无第三run。新检索使旧编号失效。");
             pack.put("endpoint",RuleAgentProvider.BEIJING.toString());
             pack.put("model",RuleAgentProvider.MODEL);
             pack.put("budgetRevision",BUDGET_REVISION);
@@ -141,7 +191,9 @@ public final class RuleAgentOnlineProbeHost {
             pack.put("runTimeoutMillis",DEFAULT_BUDGET.maxRunMillis());
             pack.put("maximumOutputTokens",DEFAULT_BUDGET.maxOutputTokens());
             pack.put("automaticRetries",0);
-            pack.put("executionPolicyRevision","STATE_AWARE_RUNTIME_READY_01");
+            pack.put("maximumTaskRunsThisBatch",2);
+            pack.put("ownedProcessMillis",235000);
+            pack.put("executionPolicyRevision","STATE_AWARE_P02_CONTINUATION_01");
             pack.put("monetaryApprovalRequired",true);
             pack.put("publicationReserveMillis",5000);
             pack.put("readStateFeedback","完整候选均保留并标记alreadyRead；反馈证据剩余份数/字节、run剩余时间、核验预留；不按模型自报完整发布。");
@@ -173,7 +225,7 @@ public final class RuleAgentOnlineProbeHost {
             for(var path:files.filter(p->p.toString().endsWith(".java")).sorted().toList())
                 sources.put(root.relativize(path).toString().replace('\\','/'),sha(Files.readAllBytes(path)));
         }
-        for(String path:List.of(".gitattributes","knowledge/scripts/start-rule-agent-probe.cmd","knowledge/scripts/start-rule-agent-probe.ps1"))
+        for(String path:List.of(".gitattributes","knowledge/scripts/start-rule-agent-probe.cmd","knowledge/scripts/start-rule-agent-probe.ps1","scripts/Invoke-ZhkuOwnedProcess.ps1"))
             sources.put(path,sha(Files.readAllBytes(root.resolve(path))));
         return identity;
     }
