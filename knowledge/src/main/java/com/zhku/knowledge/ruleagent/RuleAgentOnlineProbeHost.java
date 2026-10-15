@@ -15,8 +15,8 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 /** 独立工程探针宿主；学生HTTP入口由T06另行接入。 */
 public final class RuleAgentOnlineProbeHost {
     private static final ObjectMapper JSON=new ObjectMapper().findAndRegisterModules();
-    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-15/t05-51-p02-diagnostic-request/request-package.json";
-    private static final String LOCAL_EXCHANGE_RECORDING="OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION; NO_HTTP_HEADERS; API_KEY_REDACTED; MALFORMED_JSON_OMITTED; ORIGINAL_SHA_AND_REDACTION_FLAG";
+    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-15/t05-55-clarification-request/request-package.json";
+    private static final String LOCAL_EXCHANGE_RECORDING="OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION_REVIEW_INPUT_SNAPSHOT; NO_HTTP_HEADERS; API_KEY_REDACTED; MALFORMED_JSON_OMITTED; ORIGINAL_SHA_AND_REDACTION_FLAG";
     private static final String P01_QUESTION="专业选修课和公共选修课在修读安排上有什么不同？";
     private static final int MAXIMUM=2*DEFAULT_BUDGET.maxModelAttemptsPerRun();
     private static final String P02_QUESTION="我这门选修课没过，能不能重修？";

@@ -99,6 +99,7 @@ public final class RulePublicationGate {
             accepted.addAll(matching);
             matching.forEach(b->pending.add(b.requirementId()));
         }
+        requireCompleteBranches(input,ask,review,read,requirements,accepted);
         var assessments=new LinkedHashMap<String,QuestionAssessment>();
         boolean hasKnown=false;
         for(String q:questions.keySet()) {
@@ -129,6 +130,27 @@ public final class RulePublicationGate {
         return new PublicationAssessment(hasKnown?Verdict.PARTIAL:Verdict.UNRESOLVED,accepted,assessments);
     }
 
+    /** 同一原始需求的条件分支必须覆盖审核允许值；不能由模型漏报一侧缩小验收集合。 */
+    private void requireCompleteBranches(RuleAgentRunner.Input input,RuleAgentContract.Ask ask,SemanticAssessment review,
+        Map<String,RuleAgentEvidenceTools.VerifiedFact> read,Map<String,Requirement> requirements,List<SemanticBinding> accepted) {
+        var declarations=catalogue.conditions(List.copyOf(read.values()));
+        var groups=accepted.stream().map(b->requirements.get(b.requirementId())).collect(java.util.stream.Collectors.groupingBy(r->List.of(r.span(),r.dimension())));
+        for(var group:groups.values()) {
+            var first=group.getFirst();var expected=new LinkedHashSet<String>();var represented=new LinkedHashSet<String>();
+            for(var declaration:declarations) {
+                if(!declaration.conditionId().equals(ask.conditionId()))continue;
+                boolean relevant=declaration.factIds().stream().map(read::get).filter(Objects::nonNull).anyMatch(f->catalogue.find(f.id()).orElseThrow().dimension()==first.dimension());
+                if(relevant)expected.addAll(catalogue.feasibleValues(declaration,first.dimension(),input.userConditions()));
+            }
+            for(var binding:accepted) {
+                var requirement=requirements.get(binding.requirementId());
+                if(!requirement.span().equals(first.span())||requirement.dimension()!=first.dimension())continue;
+                var fact=read.get(binding.factId());String value=fact.definition().when().get(ask.conditionId());
+                if(value!=null)represented.add(value);
+            }
+            if(expected.isEmpty()||!expected.equals(represented))throw new Rejected(Code.CONDITION_NOT_NECESSARY);
+        }
+    }
     private FactCapability capability(RuleAgentEvidenceTools.VerifiedFact fact) {
         var capability=catalogue.find(fact.id()).orElseThrow(()->new Rejected(Code.CAPABILITY_UNAVAILABLE));
         if(!capability.sourceFingerprint().equals(fingerprint(fact.definition())))throw new Rejected(Code.CAPABILITY_UNAVAILABLE);

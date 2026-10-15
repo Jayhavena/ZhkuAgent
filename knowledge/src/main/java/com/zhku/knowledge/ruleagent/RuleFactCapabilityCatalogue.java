@@ -8,14 +8,33 @@ import static com.zhku.knowledge.ruleagent.RulePublicationContract.*;
 public final class RuleFactCapabilityCatalogue {
     public static final String VERSION="REVIEWED_FACT_CAPABILITY_01";
     private final Map<String,FactCapability> capabilities;
-    private RuleFactCapabilityCatalogue(Map<String,FactCapability> capabilities) {
+    private final List<RulePublicationContract.ReviewedCondition> conditions;
+    private final Map<String,Map<String,String>> reviewedWhen;
+    private RuleFactCapabilityCatalogue(Map<String,FactCapability> capabilities,List<RulePublicationContract.ReviewedCondition> conditions,Map<String,Map<String,String>> reviewedWhen) {
+        this.reviewedWhen=Map.copyOf(reviewedWhen);
+        this.conditions=List.copyOf(conditions);
         this.capabilities=Map.copyOf(capabilities);
+    }
+    public List<RulePublicationContract.ReviewedCondition> conditions(List<RuleAgentEvidenceTools.VerifiedFact> facts) {
+        var read=facts.stream().map(RuleAgentEvidenceTools.VerifiedFact::id).collect(java.util.stream.Collectors.toSet());
+        return conditions.stream().map(c->new RulePublicationContract.ReviewedCondition(c.ruleId(),c.conditionId(),c.question(),c.allowedValues(),c.factIds().stream().filter(read::contains).toList())).filter(c->!c.factIds().isEmpty()).toList();
+    }
+    /** 缺少某值的事实不等于该值不可行；只用已读并进入核验身份的事实排除被其他用户已知条件明确否定的分支。 */
+    public Set<String> feasibleValues(RulePublicationContract.ReviewedCondition condition,Dimension dimension,Map<String,String> known) {
+        var result=new LinkedHashSet<String>();
+        for(String value:condition.allowedValues()) {
+            var candidates=reviewedWhen.entrySet().stream().filter(e->condition.factIds().contains(e.getKey())&&e.getKey().startsWith(condition.ruleId()+":")&&capabilities.get(e.getKey()).dimension()==dimension&&value.equals(e.getValue().get(condition.conditionId()))).toList();
+            if(candidates.isEmpty()||candidates.stream().anyMatch(e->e.getValue().entrySet().stream().allMatch(w->w.getKey().equals(condition.conditionId())||!known.containsKey(w.getKey())||known.get(w.getKey()).equals(w.getValue()))))result.add(value);
+        }
+        return Set.copyOf(result);
     }
     public String version() {return VERSION;}
     public Optional<FactCapability> find(String id) {return Optional.ofNullable(capabilities.get(id));}
 
     public static RuleFactCapabilityCatalogue fromReviewed(List<RuleCheckApplicationService.CatalogEntry> entries) {
         var capabilities=new LinkedHashMap<String,FactCapability>();
+        var conditions=new ArrayList<RulePublicationContract.ReviewedCondition>();
+        var reviewedWhen=new LinkedHashMap<String,Map<String,String>>();
         for(var entry:entries) {
             var rule=entry.template();
             if(rule.reviewState()!=RuleCheckRuleTemplate.ReviewState.APPROVED||!rule.referenceRevision().equals("2025.9.2"))continue;
@@ -23,11 +42,20 @@ public final class RuleFactCapabilityCatalogue {
                 String id=rule.ruleId()+":"+fact.id();
                 var capability=capability(id,fact);
                 if(capability==null)continue;
+                reviewedWhen.put(id,fact.when());
                 var previous=capabilities.putIfAbsent(id,capability);
                 if(previous!=null&&!previous.equals(capability))throw new Rejected(Code.CAPABILITY_UNAVAILABLE);
             }
         }
-        return new RuleFactCapabilityCatalogue(capabilities);
+        for(var entry:entries) {
+            var rule=entry.template();
+            if(rule.reviewState()!=RuleCheckRuleTemplate.ReviewState.APPROVED||!rule.referenceRevision().equals("2025.9.2"))continue;
+            for(var c:rule.conditions()) {
+                var ids=rule.facts().stream().filter(f->f.when().containsKey(c.key())&&capabilities.containsKey(rule.ruleId()+":"+f.id())).map(f->rule.ruleId()+":"+f.id()).toList();
+                if(!ids.isEmpty())conditions.add(new RulePublicationContract.ReviewedCondition(rule.ruleId(),c.key(),c.question(),c.allowedValues(),ids));
+            }
+        }
+        return new RuleFactCapabilityCatalogue(capabilities,conditions.stream().distinct().sorted(Comparator.comparing(RulePublicationContract.ReviewedCondition::ruleId).thenComparing(RulePublicationContract.ReviewedCondition::conditionId)).toList(),reviewedWhen);
     }
 
     private static FactCapability capability(String id,RuleCheckRuleTemplate.Fact fact) {

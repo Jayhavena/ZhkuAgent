@@ -281,7 +281,7 @@ class RuleAgentProviderTest {
      * 本地重建P01首决策，核对字节数和所列字段；不证明历史逐字节身份或供应商接受该schema。
      * 运行时剩余时间会变化，超时原因仍须真实交换证据判断。
      */
-    @Test void firstDecisionPayloadReproducesRecordedShape()throws Exception{
+    @Test void firstDecisionPayloadIncludesBoundedFeedbackShape()throws Exception{
         start(200,good(),0);
         String question="专业选修课和公共选修课在修读安排上有什么不同？";
         var state=new RuleAgentRunner.ActionState(List.of("SEARCH_REVIEWED_RULES"),List.of(),
@@ -289,7 +289,7 @@ class RuleAgentProviderTest {
         var view=new RuleAgentRunner.View(question,List.of(new RuleAgentRunner.Question("q1",question)),Map.of(),List.of(),List.of(),List.of(),List.of(),
             RulePublicationContract.MAX_DECISION_CALLS,DEFAULT_BUDGET.maxToolStepsPerRun(),state);
         String payload=port.payload(view);
-        assertThat(payload.getBytes(StandardCharsets.UTF_8).length).isEqualTo(4557);
+        assertThat(payload.getBytes(StandardCharsets.UTF_8).length).isEqualTo(4607); // 原4557属于旧冻结合同；新增两个空反馈数组增加50字节，不是供应商兼容性证明。
         var wire=new ObjectMapper().readTree(payload);
         var format=wire.path("response_format").path("json_schema");
         assertThat(format.path("name").asText()).isEqualTo("zhku_rule_agent_action");

@@ -106,6 +106,7 @@ public final class RuleAgentRunner {
                                 attempts++;context.advanceStep();
                                 Instant reviewStarted=clock.instant();
                                 try{
+                                    publicationReview.captureInput(input,broker.facts(),capabilities);
                                     var assessed=publicationReview.assess(safe,Duration.ofMillis(Math.min(DEFAULT_BUDGET.maxModelMillis(),Math.max(1,Duration.between(reviewStarted,deadline).toMillis()-5000))));
                                     if(context.isStopRequested())throw new Rejected(ReasonCode.CANCELLED);
                                     if(Duration.between(reviewStarted,clock.instant()).toMillis()>DEFAULT_BUDGET.maxModelMillis())throw new Rejected(ReasonCode.MODEL_TIMEOUT);

@@ -11,7 +11,7 @@ $importer=Join-Path $root 'scripts/Import-ZhkuCredentials.ps1'
 $java=Get-Command java.exe -ErrorAction SilentlyContinue
 $docker=Get-Command docker.exe -ErrorAction SilentlyContinue
 $jar=Join-Path $root 'knowledge/target/knowledge-0.1.0-rc.1-controlled.jar'
-$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-15/t05-51-p02-diagnostic-request/request-package.json'
+$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-15/t05-55-clarification-request/request-package.json'
 if($CheckEnvironment){
  & $importer -UseDashScope
  @{javaAvailable=($null-ne $java);dockerAvailable=($null-ne $docker);keyAvailable=![string]::IsNullOrWhiteSpace($env:DASHSCOPE_API_KEY);mode='P02_DIAGNOSTIC_PREFLIGHT';maximumProviderCalls=10;providerCalls=0;databaseOperations=0;builds=0;encodingSample='规则查证：在线探针、等待授权';encoding=[Console]::OutputEncoding.CodePage;requiresRipgrep=$false}|ConvertTo-Json
@@ -62,7 +62,7 @@ try{
  $env:ZHKU_RULE_AGENT_PROBE_CASE='P02_CONTINUATION_01'
  # 当前.NET/PowerShell可能将null转换为空值而保留键；ONLINE拒绝任何回放键，必须真正删除。
  foreach($name in @('ZHKU_RULECHECK_TASK_BATCH_DIRECTORY','ZHKU_RULECHECK_TASK_PACKAGE_SHA256','ZHKU_RULECHECK_TASK_SUMMARY_SHA256')){Remove-Item -LiteralPath "Env:\$name" -ErrorAction SilentlyContinue}
- $env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-15/t05-51-p02-diagnostic-request/live-'+[guid]::NewGuid().ToString('N')
+ $env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-15/t05-55-clarification-request/live-'+[guid]::NewGuid().ToString('N')
  $container='zhku-rule-agent-probe-'+[guid]::NewGuid().ToString('N')
  function Docker([string[]]$argsForDocker){
   & $importer -RequireDatabase
@@ -78,7 +78,7 @@ try{
   & $importer -RequireDatabase -RequireDashScope
   $result=Invoke-ZhkuOwnedProcess -Executable $java.Source -Arguments ($arguments+@('--Probe')) -TimeoutSeconds 235 -Secrets $secrets
   # 宿主可能在创建业务证据目录前失败，也必须保留已脱敏的启动诊断，不能丢失失败位置。
-  $launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-15/t05-51-p02-diagnostic-request/launcher-'+[guid]::NewGuid().ToString('N')+'.log')
+  $launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-15/t05-55-clarification-request/launcher-'+[guid]::NewGuid().ToString('N')+'.log')
   New-Item -ItemType Directory -Force (Split-Path $launcherLog -Parent)|Out-Null
   [IO.File]::WriteAllText($launcherLog,$result.output+"`n"+$result.errorOutput,$utf8)
   $directory=Join-Path $root $env:ZHKU_RULE_AGENT_EVIDENCE

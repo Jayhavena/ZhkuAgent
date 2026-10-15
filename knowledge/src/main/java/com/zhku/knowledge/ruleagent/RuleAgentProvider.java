@@ -45,7 +45,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         BEGIN, RECEIVED, FINISHED
     }
     public enum Purpose { DECISION, PUBLICATION_REVIEW }
-    public enum Direction { REQUEST, RESPONSE, PROPOSED_ACTION }
+    public enum Direction { REQUEST, RESPONSE, PROPOSED_ACTION, REVIEW_INPUT_SNAPSHOT }
     /** 仅显式装配的本机受控探针保存正文；无HTTP头，原字节摘要与脱敏正文分开标记。 */
     public record Exchange(UUID taskId,UUID runId,int attempt,Purpose purpose,Direction direction,String bodySha256,String body,boolean redacted) {}
     public record Trace(UUID taskId,UUID runId,int attempt,String requestSha256,String responseSha256,Integer status,ReasonCode reason,boolean responseReceived,Long inputTokens,Long outputTokens,Diagnostics diagnostics,Phase phase,RuleAgentProtocol.Validation validation,Purpose purpose){
@@ -142,6 +142,14 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             item.put("text",fact.definition().text());
             item.set("when",JSON.valueToTree(fact.definition().when()));
         }
+        var rejected=data.putArray("rejectedActions");
+        // 只反馈有界结构化失败；不把历史自由文本或模型理由重新注入提示词。
+        var failures=view.events().stream().filter(e->e.reason()!=null).toList();
+        for(var e:failures.subList(Math.max(0,failures.size()-2),failures.size())) {
+            var item=rejected.addObject();item.put("attempt",e.attempt());item.put("action",e.action());item.put("reasonCode",e.reason().name());
+        }
+        var declared=data.putArray("availableConditions");
+        view.ruleContexts().forEach(c->c.conditions().forEach(condition->{var item=declared.addObject();item.put("ruleId",c.ruleId());item.put("conditionId",condition.key());item.set("allowedValues",JSON.valueToTree(condition.allowedValues()));}));
         var observations=data.putArray("observations");
         for(var observation:view.observations()){
             var item=observations.addObject();
@@ -161,6 +169,15 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         }
         // 不发送主体/Session、原文token、数据库身份、历史结果或自由工具事件。
         return envelope(SYSTEM,data,actionSchema);
+    }
+    @Override public void captureInput(RuleAgentRunner.Input input,List<RuleAgentEvidenceTools.VerifiedFact> facts,RuleFactCapabilityCatalogue catalogue) {
+        if(exchangeAudit==null)return;
+        try {
+            // 完整Fact保留原始checksum大小写；展示层会归一化，不能据展示层重建身份。
+            byte[] bytes=JSON.writeValueAsBytes(Map.of("taskId",input.taskId(),"taskVersion",input.version(),"input",RulePublicationContract.input(input,facts,catalogue),"facts",facts));
+            if(bytes.length>DEFAULT_BUDGET.maxRequestBytes())throw new Failure(ReasonCode.AUDIT_UNAVAILABLE,false);
+            exchangeRecord(attempts+1,Purpose.PUBLICATION_REVIEW,Direction.REVIEW_INPUT_SNAPSHOT,bytes,key.get(),false);
+        } catch(Failure failure){throw failure;}catch(Exception failure){throw new Failure(ReasonCode.AUDIT_UNAVAILABLE,false);}
     }
     String reviewPayload(RulePublicationContract.SemanticInput input){
         var data=JSON.createObjectNode();

@@ -172,7 +172,8 @@ class RuleAgentOnlineFactoryTest {
         assertThat(traces.getLast().validation().code().name()).isEqualTo("REVIEW_INPUT_MISMATCH");
         assertThat(result.events()).anySatisfy(e->{assertThat(e.action()).isEqualTo("ASK_NECESSARY_CONDITION");assertThat(e.reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);});
         assertThat(result.events()).anySatisfy(e->{assertThat(e.action()).isEqualTo("PUBLICATION_REVIEW");assertThat(e.reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);});
-        assertThat(exchanges).hasSize(11);
+        assertThat(exchanges).hasSize(12);
+        assertThat(exchanges).filteredOn(e->e.direction()==RuleAgentProvider.Direction.REVIEW_INPUT_SNAPSHOT).hasSize(1);
         var proposal=exchanges.stream().filter(e->e.attempt()==3&&e.direction()==RuleAgentProvider.Direction.PROPOSED_ACTION).findFirst().orElseThrow();
         assertThat(new ObjectMapper().readTree(proposal.body()).path("type").asText()).isEqualTo("ASK_NECESSARY_CONDITION");
         var json=new ObjectMapper();assertThat(json.writeValueAsString(exchanges)).doesNotContain("local-test-placeholder","Bearer ");
@@ -439,7 +440,7 @@ class RuleAgentOnlineFactoryTest {
     }
     @Test void diagnosticRequestUsesFreshPackageLocation()throws Exception{
         var field=RuleAgentOnlineProbeHost.class.getDeclaredField("PACKAGE");field.setAccessible(true);
-        assertThat(field.get(null)).isEqualTo("docs/evidence/rule-agent-provider/2026-10-15/t05-51-p02-diagnostic-request/request-package.json");
+        assertThat(field.get(null)).isEqualTo("docs/evidence/rule-agent-provider/2026-10-15/t05-55-clarification-request/request-package.json");
     }
     @Test void diagnosticPacketRejectsMissingOrDisabledControlledExchangePolicy()throws Throwable{
         var valid=packet();validate(valid);
@@ -466,7 +467,7 @@ class RuleAgentOnlineFactoryTest {
         p.put("model",RuleAgentProvider.MODEL);
         p.put("budgetRevision",BUDGET_REVISION);
         p.put("executionPolicyRevision","STATE_AWARE_P02_CONTINUATION_01");
-        p.put("localExchangeRecording","OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION; NO_HTTP_HEADERS; API_KEY_REDACTED; MALFORMED_JSON_OMITTED; ORIGINAL_SHA_AND_REDACTION_FLAG");
+        p.put("localExchangeRecording","OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION_REVIEW_INPUT_SNAPSHOT; NO_HTTP_HEADERS; API_KEY_REDACTED; MALFORMED_JSON_OMITTED; ORIGINAL_SHA_AND_REDACTION_FLAG");
         p.put("maximumProviderCalls",2*DEFAULT_BUDGET.maxModelAttemptsPerRun());
         p.put("maximumTaskRunsThisBatch",2);p.put("ownedProcessMillis",235000);
         p.put("perRunCalls",DEFAULT_BUDGET.maxModelAttemptsPerRun());
