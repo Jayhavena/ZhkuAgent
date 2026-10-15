@@ -440,7 +440,7 @@ class RuleAgentOnlineFactoryTest {
     }
     @Test void diagnosticRequestUsesFreshPackageLocation()throws Exception{
         var field=RuleAgentOnlineProbeHost.class.getDeclaredField("PACKAGE");field.setAccessible(true);
-        assertThat(field.get(null)).isEqualTo("docs/evidence/rule-agent-provider/2026-10-15/t05-55-clarification-request/request-package.json");
+        assertThat(field.get(null)).isEqualTo("docs/evidence/rule-agent-provider/2026-10-15/t05-62-eligibility-request/request-package.json");
     }
     @Test void diagnosticPacketRejectsMissingOrDisabledControlledExchangePolicy()throws Throwable{
         var valid=packet();validate(valid);

@@ -15,7 +15,7 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 /** 独立工程探针宿主；学生HTTP入口由T06另行接入。 */
 public final class RuleAgentOnlineProbeHost {
     private static final ObjectMapper JSON=new ObjectMapper().findAndRegisterModules();
-    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-15/t05-55-clarification-request/request-package.json";
+    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-15/t05-62-eligibility-request/request-package.json";
     private static final String LOCAL_EXCHANGE_RECORDING="OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION_REVIEW_INPUT_SNAPSHOT; NO_HTTP_HEADERS; API_KEY_REDACTED; MALFORMED_JSON_OMITTED; ORIGINAL_SHA_AND_REDACTION_FLAG";
     private static final String P01_QUESTION="专业选修课和公共选修课在修读安排上有什么不同？";
     private static final int MAXIMUM=2*DEFAULT_BUDGET.maxModelAttemptsPerRun();
@@ -163,7 +163,10 @@ public final class RuleAgentOnlineProbeHost {
     }
     private static TaskSnapshot waitFor(RuleAgentTaskStore store,Owner owner,UUID task)throws Exception{long deadline=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(DEFAULT_BUDGET.maxRunMillis()+3000);TaskSnapshot result;while((result=store.snapshot(owner,task)).taskStatus()==TaskStatus.ACTIVE){if(System.nanoTime()>=deadline)throw new IllegalStateException("探针运行预算耗尽");Thread.sleep(20);}return result;}
     private static void prepare(Path root)throws Exception{
-        var pack=preparedPackage(root);validatePackage(pack);Path path=root.resolve(PACKAGE);Files.createDirectories(path.getParent());byte[] bytes=JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(pack);Files.write(path,bytes,StandardOpenOption.CREATE_NEW);System.out.println("PROBE_PACKAGE_SHA256="+sha(bytes));
+        Path path=root.resolve(PACKAGE);
+        // 已有申请不可覆盖；先拒绝再读取资产，避免误操作改变已冻结身份。
+        if(Files.exists(path))throw new FileAlreadyExistsException(path.toString());
+        var pack=preparedPackage(root);validatePackage(pack);Files.createDirectories(path.getParent());byte[] bytes=JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(pack);Files.write(path,bytes,StandardOpenOption.CREATE_NEW);System.out.println("PROBE_PACKAGE_SHA256="+sha(bytes));
     }
     private static ObjectNode packageNode(Path root)throws Exception{
         // 构造审核目录只验证本机资产；不安装数据库、不创建模型客户端。
