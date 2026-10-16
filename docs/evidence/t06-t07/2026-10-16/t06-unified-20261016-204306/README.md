@@ -78,4 +78,6 @@ cd C:/Users/nangua/.codex/worktrees/t06-controlled-launch/ZhkuAgent
 
 - 在线分支真机（非 T06 授权）；浏览器整体验收；多实例/重启运行时行为。
 - 脚本只在**本机**验证过；`-DockerHostIp` 等参数在其它机器的 Docker Desktop 上可能不同。
-- 真实库上的取消/容量/终态矩阵尚未搬到真实层（下一项，进行中）。
+- ~~真实库上的取消/容量/终态矩阵尚未搬到真实层（下一项，进行中）~~ → **已完成**（2026-10-16 21:16）：
+  见 [`../t06-cancel-capacity-01/`](../t06-cancel-capacity-01/) 与脚本级复跑
+  [`../t06-unified-20261016-211949/`](../t06-unified-20261016-211949/)；chain 场景现已收两个方法。

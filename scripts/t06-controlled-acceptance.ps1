@@ -7,7 +7,7 @@
 #
 # 用法（PowerShell 5.1，普通用户终端，无需管理员）：
 #   .\scripts\t06-controlled-acceptance.ps1 -Scenario existing  # 既有 RuleAgentTaskHttpTest（无 Docker 依赖）
-#   .\scripts\t06-controlled-acceptance.ps1 -Scenario chain     # SIMULATED 直连整链（自动建一次性临时库）
+#   .\scripts\t06-controlled-acceptance.ps1 -Scenario chain     # SIMULATED 直连整链：两个方法（身份/资料/幂等主链 + 取消/容量/终态矩阵），自动建一次性临时库
 #   .\scripts\t06-controlled-acceptance.ps1 -Scenario proxy     # 经仓库 nginx.conf 的代理贯通（需要 Docker + Python）
 #   .\scripts\t06-controlled-acceptance.ps1 -Scenario all       # 依次跑 existing -> chain -> proxy，任一失败即停
 #
@@ -207,14 +207,21 @@ function Invoke-MavenAcceptance {
 }
 
 function Test-EvidenceLanded {
-    param([string]$EvidenceDir, [string]$ExpectedFile)
-    $path = Join-Path $EvidenceDir $ExpectedFile
-    if (Test-Path $path) {
-        Write-Host "[t06] 证据已归档：$path（$((Get-Item $path).Length) 字节）"
-        return $true
+    param([string]$EvidenceDir, [string[]]$ExpectedFiles)
+    $missing = @()
+    foreach ($file in $ExpectedFiles) {
+        $path = Join-Path $EvidenceDir $file
+        if (Test-Path $path) {
+            Write-Host "[t06] 证据已归档：$path（$((Get-Item $path).Length) 字节）"
+        } else {
+            $missing += $file
+        }
     }
-    Write-Warning "[t06] 未找到证据文件 $ExpectedFile：测试可能被假设跳过（跳过不算通过）或未写证据，请核对 maven 输出。"
-    return $false
+    if ($missing.Count -gt 0) {
+        Write-Warning "[t06] 未找到证据文件 $($missing -join '、')：测试可能被假设跳过（跳过不算通过）或未写证据，请核对 maven 输出。"
+        return $false
+    }
+    return $true
 }
 
 function Start-ProxyScaffold {
@@ -341,7 +348,7 @@ foreach ($name in $plan) {
             $evidenceDir = Join-Path $evidenceRunRoot 'existing'
             New-Item -ItemType Directory -Path $evidenceDir -Force *> $null
             $overall = Invoke-MavenAcceptance -TestFilter 'RuleAgentTaskHttpTest' -EvidenceDir $evidenceDir
-            Test-EvidenceLanded -EvidenceDir $evidenceDir -ExpectedFile 'http-exchanges.json' | Out-Null
+            Test-EvidenceLanded -EvidenceDir $evidenceDir -ExpectedFiles 'http-exchanges.json' | Out-Null
         }
         'chain' {
             $db = New-TempDatabase
@@ -349,9 +356,9 @@ foreach ($name in $plan) {
                 $evidenceDir = Join-Path $evidenceRunRoot 'chain'
                 New-Item -ItemType Directory -Path $evidenceDir -Force *> $null
                 $overall = Invoke-MavenAcceptance `
-                    -TestFilter 'RuleAgentSimulatedChainTempDbHttpTest#realIdentityAndReviewedAssetsOverActualHttpWithCsrfIdempotencyAndIsolation' `
+                    -TestFilter 'RuleAgentSimulatedChainTempDbHttpTest#realIdentityAndReviewedAssetsOverActualHttpWithCsrfIdempotencyAndIsolation+realTempDbCancelCapacityAndTerminalStatesOverActualHttp' `
                     -EvidenceDir $evidenceDir -DbUrl $db.Url -AssetsRootForTests $script:AssetsRoot
-                Test-EvidenceLanded -EvidenceDir $evidenceDir -ExpectedFile 'simulated-chain-tempdb.json' | Out-Null
+                Test-EvidenceLanded -EvidenceDir $evidenceDir -ExpectedFiles 'simulated-chain-tempdb.json','cancel-capacity-terminal.json' | Out-Null
             } finally {
                 Remove-TempDatabase -Container $db.Container
             }
@@ -367,7 +374,7 @@ foreach ($name in $plan) {
                     $overall = Invoke-MavenAcceptance `
                         -TestFilter 'RuleAgentSimulatedChainTempDbHttpTest#sameChainThroughRepoNginxProxyWithActualProxiedResponses' `
                         -EvidenceDir $evidenceDir -DbUrl $db.Url -AssetsRootForTests $script:AssetsRoot -ExtraArgs $extra
-                    Test-EvidenceLanded -EvidenceDir $evidenceDir -ExpectedFile 'proxied-chain.json' | Out-Null
+                    Test-EvidenceLanded -EvidenceDir $evidenceDir -ExpectedFiles 'proxied-chain.json' | Out-Null
                 } finally {
                     Stop-ProxyScaffold
                 }

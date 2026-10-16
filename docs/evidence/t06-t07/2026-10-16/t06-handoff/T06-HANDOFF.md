@@ -2,6 +2,31 @@
 
 > 生成时间 2026-10-16。供其他 Agent / 集成方消费。**全部为本地提交，未 push、未 PR、未标签、未部署、未合并。**
 
+## 状态更新（2026-10-16 21:16，真实库取消/容量/并发/终态矩阵）
+
+**第 3 节第 1 项的收尾扩展已完成并通过**：把取消、413 容量、终态矩阵从合成层搬到
+**真实一次性临时库 + 真实已审核资料 + 真实回环 HTTP**（`RuleAgentSimulatedChainTempDbHttpTest`
+新方法 `realTempDbCancelCapacityAndTerminalStatesOverActualHttp`，1 项 12.66s，0 失败 0 错误 0 跳过）。
+逐条覆盖：70000 字节请求体 413 且**不产生任务**；受理后取消→执行未完成 `terminated=false`→
+迟到执行结果保持 `STOPPED`/`terminated=true`/`coverage=NONE`/**evidence 空**/`CANCELLED`/
+`answerSource=NONE`/原文 404/跨主体 404；4 线程同键并行受理全部 202、**同一 taskId**、
+`duplicate=true`×3、队列 size=1、执行次数 +1、`RESOLVED` 带真实证据；终态矩阵三条
+（部分覆盖带真实证据 + `ANSWER_COVERAGE_INCOMPLETE`；检索未命中 `RETRIEVAL_NO_MATCH`+`REPLAY_NOT_COVERED`
+双 reasonCode + `MISS`；处理失败 `MODEL_UNAVAILABLE`+`REPLAY_NOT_COVERED` + `MISS` + `modelAttemptCount=0`）。
+
+同轮把新方法并入统一受控验收脚本 chain 场景（两方法、双证据核对），脚本级复跑
+**2 项 15.62s 0 失败、退出码 0**；整类运行确认**原主链方法无回归**（代理方法本轮按假设跳过，
+**跳过不算通过**）。开发过程保留**四条红**（`execution` 路径层级、`ENGINEERING_REPLAY` 禁
+`NOT_APPLICABLE`、MISS 必须披露 `REPLAY_NOT_COVERED`、证据目录路径拼错——非回归），
+并固化三条合同硬约束。证据与失败轨迹：
+[`../t06-cancel-capacity-01/README.md`](../t06-cancel-capacity-01/README.md)；
+脚本级运行：[`../t06-unified-20261016-211949/README.md`](../t06-unified-20261016-211949/README.md)。
+
+**至此第 3 节授权范围内第 1/2/3 项全部完成**（① SIMULATED 真实身份／资料 HTTP 整链 + 本轮收尾扩展；
+② 既有 `RuleAgentTaskHttpTest`；③ 统一受控启动脚本）；第 4 项（在线真机）与第 5 项（浏览器、
+多实例/重启）**状态不变**，均不属于 T06 授权范围。决策段仍为宿主显式模拟执行器
+（模型尝试 0、供应商调用 0），**三层记账不变**。
+
 ## 状态更新（2026-10-16 20:45，统一受控验收脚本）
 
 **第 3 节第 3 项「统一受控启动脚本」已完成并通过**：新增

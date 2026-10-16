@@ -64,6 +64,13 @@ class RuleAgentSimulatedChainTempDbHttpTest {
     static final String CORRECT = "t06-chain-correct-pass";
     static final String WRONG = "t06-chain-wrong-pass";
     static final String ASK_QUESTION = "需要澄清";
+    /** 取消/终态矩阵用的提问：同一执行器按问题文本走不同分支，输出仍标 ENGINEERING_REPLAY。 */
+    static final String CANCEL_QUESTION = "直接查证";
+    static final String PARTIAL_QUESTION = "部分覆盖";
+    static final String GAP_QUESTION = "检索未命中";
+    static final String FAIL_QUESTION = "处理失败";
+    /** 保证检索不命中的提问：走真实检索链路证明"未命中"也是真实搜索结果，而非跳过检索。 */
+    static final String GAP_QUERY = "不存在的检索词-zzz-确保未命中";
 
     static DriverManagerDataSource db;
     static Reviewed2025ControlledCatalogue catalogue;
@@ -175,11 +182,16 @@ class RuleAgentSimulatedChainTempDbHttpTest {
                 }
                 private RuleAgentRunner.Outcome execute(AgentRunContext context, RuleAgentRunner.Input input) {
                     boolean waiting = ASK_QUESTION.equals(input.question()) && input.userConditions().isEmpty();
+                    // 终态矩阵分支：部分覆盖（有真实证据但不完整）、检索未命中（走真实检索证明没命中）、
+                    // 处理失败（不检索，直接失败）。取消不需要分支——取消发生在执行之前。
+                    boolean partial = PARTIAL_QUESTION.equals(input.question());
+                    boolean gap = GAP_QUESTION.equals(input.question());
+                    boolean failed = FAIL_QUESTION.equals(input.question());
                     var tools = registry.open(owner, task);
                     List<Evidence> evidence = List.of();
                     int steps = 0;
-                    if (!waiting) {
-                        var found = tools.search(owner, task, context.runId(), 1, new Search("q1", query));
+                    if (!waiting && !failed) {
+                        var found = tools.search(owner, task, context.runId(), 1, new Search("q1", gap ? GAP_QUERY : query));
                         steps = 1;
                         if (found.status() == ObservationStatus.SUCCEEDED && !found.candidates().isEmpty()) {
                             var read = tools.read(owner, task, context.runId(), 2,
@@ -188,22 +200,45 @@ class RuleAgentSimulatedChainTempDbHttpTest {
                             if (read.observation().status() == ObservationStatus.SUCCEEDED) evidence = read.observation().evidence();
                         }
                     }
-                    var items = List.of(new Subquestion("q1", waiting || evidence.isEmpty() ? Coverage.NONE : Coverage.COMPLETE,
-                            evidence.isEmpty() ? List.of() : List.of(new Claim("answer", "chain-fixture", "工程模拟确认内容", Map.of(), ConditionSource.USER_DECLARED)),
-                            waiting ? List.of(new Issue("condition", IssueKind.CLARIFICATION, ReasonCode.MISSING_CONDITION, "请确认课程类别", "补充必要条件")) : List.of(),
+                    Issue issue = waiting
+                            ? new Issue("condition", IssueKind.CLARIFICATION, ReasonCode.MISSING_CONDITION, "请确认课程类别", "补充必要条件")
+                            : failed ? new Issue("failure", IssueKind.PROCESSING_FAILURE, ReasonCode.MODEL_UNAVAILABLE, "模型处理失败", "稍后重新查证")
+                            : gap ? new Issue("gap", IssueKind.DATA_GAP, ReasonCode.RETRIEVAL_NO_MATCH, "未检索到已审核条款", "更换关键词或核对当期通知")
+                            : partial ? new Issue("partial", IssueKind.PROCESSING_FAILURE, ReasonCode.ANSWER_COVERAGE_INCOMPLETE, "覆盖不完整", "补充说明后重新查证")
+                            : null;
+                    // 回放覆盖的诚实记账：等待澄清与有证据都是"回放达成了它的产出"（HIT）；
+                    // 没有证据时必须标 MISS，而合同要求 MISS 的非 ACTIVE 快照必须显式披露
+                    // REPLAY_NOT_COVERED——不能把"回放没覆盖"伪装成"资料没有规定"或静默留空。
+                    boolean replayHit = waiting || !evidence.isEmpty();
+                    var issues = new ArrayList<Issue>();
+                    if (issue != null) issues.add(issue);
+                    if (!replayHit) {
+                        issues.add(new Issue("replay-miss", IssueKind.REPLAY_MISS, ReasonCode.REPLAY_NOT_COVERED,
+                                "本次为工程模拟回放，未产出可核验证据", "以真实查证结果为准"));
+                    }
+                    Coverage coverage = waiting || failed || gap ? Coverage.NONE : partial ? Coverage.PARTIAL : Coverage.COMPLETE;
+                    var items = List.of(new Subquestion("q1", coverage,
+                            !waiting && !failed && !gap && !evidence.isEmpty()
+                                    ? List.of(new Claim("answer", "chain-fixture", "工程模拟确认内容", Map.of(), ConditionSource.USER_DECLARED)) : List.of(),
+                            issues,
                             // 合同要求澄清必须给出至少两个可取值：单选的"澄清"无法被用户区分，也不构成真正的追问。
                             waiting ? List.of(new Clarification("courseType", "课程类别？", List.of("PUBLIC", "PROFESSIONAL"))) : List.of()));
                     var relations = evidence.isEmpty() ? List.<EvidenceRelation>of()
                             : List.of(new EvidenceRelation(evidence.getFirst().id(), "q1", EvidenceRole.CLAIM, "answer"));
                     var result = new ResultEnvelope(input.version(), context.runId(), "chain-fixture-v1", "2025.9.2",
-                            items.getFirst().coverage(), items, evidence, relations);
-                    var state = waiting ? AgentRunState.INCOMPLETE : AgentRunState.SUCCEEDED;
+                            coverage, items, evidence, relations);
+                    var state = failed ? AgentRunState.FAILED : waiting || gap || partial ? AgentRunState.INCOMPLETE : AgentRunState.SUCCEEDED;
                     context.finish(state); context.cleanupOnce(() -> {}); context.signalTermination(); context.publishTermination();
+                    // 模拟执行不得声称在线成功：模型尝试 0、未收到供应商响应；没有证据时不得声称已核验。
+                    // 合同硬约束：ENGINEERING_REPLAY 的 replayCoverage 只能是 HIT/MISS，
+                    // NOT_APPLICABLE 是 ONLINE 专属——"没有可回放的内容"必须标成 MISS 而不是"不适用"，
+                    // 且 MISS 的非 ACTIVE 快照必须带 REPLAY_NOT_COVERED 披露（见上方 issues 组装）。
                     return new RuleAgentRunner.Outcome(new TaskSnapshot(3, task, UUID.randomUUID(), context.runId(), input.version(),
-                            waiting ? TaskStatus.WAITING_USER : TaskStatus.RESOLVED, state, true, result,
+                            waiting ? TaskStatus.WAITING_USER : failed ? TaskStatus.FAILED : TaskStatus.RESOLVED, state, true, result,
                             waiting ? UUID.randomUUID() : null,
-                            // 模拟执行不得声称在线成功：模型尝试 0、未收到供应商响应。
-                            new Execution(Mode.ENGINEERING_REPLAY, 0, steps, false, AnswerSource.VERIFIED_RULE_ONLY, ReplayCoverage.HIT)), List.of());
+                            new Execution(Mode.ENGINEERING_REPLAY, 0, steps, false,
+                                    evidence.isEmpty() ? AnswerSource.NONE : AnswerSource.VERIFIED_RULE_ONLY,
+                                    replayHit ? ReplayCoverage.HIT : ReplayCoverage.MISS)), List.of());
                 }
             };
         }
@@ -378,6 +413,152 @@ class RuleAgentSimulatedChainTempDbHttpTest {
                                     "publicPort", publicPort, "backendPort", backendPort, "backendAddress", bindAddress),
                             "providerCalls", 0, "modelAttemptCount", 0, "resourcesExited", true, "exchanges", exchanges));
         }
+    }
+
+    /**
+     * 真实库 + 真实已审核资料上的取消、容量与终态矩阵。
+     *
+     * <p>为什么单列一个方法：这些路径在合成层（{@code RuleAgentTaskHttpTest}）已验证过接口形状，
+     * 但那里的身份是替身、资料是合成 fixture；这里把它们搬到真实身份仓储 + 真实已审核资料上，
+     * 且断言的是<b>结果内容</b>而不只是状态码——部分覆盖必须带真实片段证据，检索未命中必须真的是
+     * 真实检索的结果，取消后迟到的执行结果必须被丢弃而不是改写成有结论的状态。
+     */
+    @Test void realTempDbCancelCapacityAndTerminalStatesOverActualHttp() throws Exception {
+        runs.set(0); queue.clear(); exchanges.clear();
+        String injectedPort = System.getenv("SERVER__PORT");
+        String previousPort = System.getProperty("server.port");
+        System.setProperty("server.port", "0");
+        int port = -1;
+        try {
+            var app = new SpringApplication(App.class);
+            app.setAdditionalProfiles("zhku-rule-check-preview");
+            var settings = baseSettings();
+            app.setDefaultProperties(settings);
+            try (var context = (ServletWebServerApplicationContext) app.run()) {
+                port = context.getWebServer().getPort();
+                assertThat(port).isNotEqualTo(Integer.parseInt(injectedPort == null ? "-1" : injectedPort));
+                var a = new User(port); var b = new User(port);
+                a.login("t06-chain-a", CORRECT);
+                b.login("t06-chain-b", CORRECT);
+                // (1) 容量：超长请求体在过滤器层被拒，且按 clientRequestId 查不到任务（未产生任务）。
+                String oversizeKey = UUID.randomUUID().toString();
+                var oversize = a.send("POST", "/tasks",
+                        JSON.writeValueAsString(Map.of("question", "x".repeat(70000), "clientRequestId", oversizeKey)), true);
+                assertThat(oversize.statusCode()).isEqualTo(413);
+                assertThat(a.get("/tasks/requests/CREATE/" + oversizeKey).statusCode()).isEqualTo(404);
+                // (2) 取消：受理后、执行前取消；执行完成后迟到结果不得被改写成有结论的状态。
+                String cancelKey = UUID.randomUUID().toString();
+                var accepted = a.post("/tasks", Map.of("question", CANCEL_QUESTION, "clientRequestId", cancelKey), true);
+                assertThat(accepted.statusCode()).isEqualTo(202);
+                var ticket = JSON.readTree(accepted.body());
+                String cancelTask = ticket.path("taskId").asText();
+                var cancel = Map.of("runId", ticket.path("runId").asText(), "expectedVersion", ticket.path("version").asLong(),
+                        "clientRequestId", UUID.randomUUID().toString());
+                assertThat(a.post("/tasks/" + cancelTask + "/cancel", cancel, true).statusCode()).isEqualTo(202);
+                var stopping = JSON.readTree(a.get("/tasks/" + cancelTask).body());
+                assertThat(stopping.path("terminated").asBoolean()).as("执行尚未完成时不得虚称已终止").isFalse();
+                queue.remove().run();
+                var stopped = JSON.readTree(a.get("/tasks/" + cancelTask).body());
+                if (RUN_FAILURE.get() != null) RUN_FAILURE.get().printStackTrace();
+                assertThat(stopped.path("taskStatus").asText()).as("取消后迟到的执行结果必须保持 STOPPED；模拟执行器内部异常=%s", RUN_FAILURE.get()).isEqualTo("STOPPED");
+                assertThat(stopped.path("terminated").asBoolean()).isTrue();
+                assertThat(stopped.path("result").path("coverage").asText()).isEqualTo("NONE");
+                assertThat(stopped.path("result").path("evidence")).as("已取消的任务不得留下证据").isEmpty();
+                assertThat(stopped.path("result").path("items").get(0).path("issues").get(0).path("reasonCode").asText()).isEqualTo("CANCELLED");
+                assertThat(stopped.path("execution").path("answerSource").asText()).as("已取消的任务不得声称答案来源").isEqualTo("NONE");
+                assertThat(a.get("/tasks/" + cancelTask + "/originals/" + UUID.randomUUID()).statusCode()).isEqualTo(404);
+                assertThat(b.get("/tasks/" + cancelTask).statusCode()).isEqualTo(404);
+                // (3) 并发幂等：同一 clientRequestId 并行受理，只允许一个任务、一次执行。
+                String concurrentKey = UUID.randomUUID().toString();
+                int parallelism = 4;
+                var latch = new CountDownLatch(1);
+                var responses = new CopyOnWriteArrayList<HttpResponse<String>>();
+                var clientFailures = new CopyOnWriteArrayList<Throwable>();
+                var threads = new ArrayList<Thread>();
+                for (int i = 0; i < parallelism; i++) {
+                    var thread = new Thread(() -> {
+                        try {
+                            latch.await();
+                            responses.add(a.post("/tasks", Map.of("question", CANCEL_QUESTION, "clientRequestId", concurrentKey), true));
+                        } catch (Throwable failure) { clientFailures.add(failure); }
+                    });
+                    threads.add(thread); thread.start();
+                }
+                latch.countDown();
+                for (var thread : threads) thread.join(30_000);
+                assertThat(clientFailures).as("并行受理不得出现客户端异常").isEmpty();
+                assertThat(responses).hasSize(parallelism);
+                var ids = new HashSet<String>();
+                int duplicates = 0;
+                for (var response : responses) {
+                    assertThat(response.statusCode()).as("同一幂等键的并行受理都必须被受理").isEqualTo(202);
+                    var node = JSON.readTree(response.body());
+                    ids.add(node.path("taskId").asText());
+                    if (node.path("duplicate").asBoolean()) duplicates++;
+                }
+                assertThat(ids).as("同一 clientRequestId 并行受理只允许产生一个任务").hasSize(1);
+                assertThat(duplicates).as("只有首个受理可以不是重复").isEqualTo(parallelism - 1);
+                assertThat(queue).as("只允许排队一个执行").hasSize(1);
+                int beforeConcurrent = runs.get();
+                queue.remove().run();
+                assertThat(runs.get()).as("同键并发不得产生第二次执行").isEqualTo(beforeConcurrent + 1);
+                var concurrent = JSON.readTree(a.get("/tasks/" + ids.iterator().next()).body());
+                assertThat(concurrent.path("taskStatus").asText()).isEqualTo("RESOLVED");
+                assertThat(concurrent.path("result").path("evidence")).as("并发受理的任务同样必须带真实已审核证据").isNotEmpty();
+                // (4) 终态矩阵：部分覆盖（有真实证据但不完整）、检索未命中（真实检索没命中）、处理失败。
+                for (String question : List.of(PARTIAL_QUESTION, GAP_QUESTION, FAIL_QUESTION)) {
+                    var t = JSON.readTree(a.post("/tasks", Map.of("question", question, "clientRequestId", UUID.randomUUID().toString()), true).body());
+                    String id = t.path("taskId").asText();
+                    queue.remove().run();
+                    var s = JSON.readTree(a.get("/tasks/" + id).body());
+                    if (RUN_FAILURE.get() != null) RUN_FAILURE.get().printStackTrace();
+                    if (PARTIAL_QUESTION.equals(question)) {
+                        assertThat(s.path("taskStatus").asText()).isEqualTo("RESOLVED");
+                        assertThat(s.path("result").path("coverage").asText()).isEqualTo("PARTIAL");
+                        assertThat(s.path("result").path("evidence")).as("部分覆盖也必须带真实已审核证据").isNotEmpty();
+                        assertThat(s.path("result").path("items").get(0).path("issues").get(0).path("reasonCode").asText())
+                                .isEqualTo("ANSWER_COVERAGE_INCOMPLETE");
+                    } else if (GAP_QUESTION.equals(question)) {
+                        assertThat(s.path("taskStatus").asText()).isEqualTo("RESOLVED");
+                        assertThat(s.path("result").path("coverage").asText()).isEqualTo("NONE");
+                        assertThat(s.path("result").path("evidence")).isEmpty();
+                        assertThat(reasonCodesOf(s)).as("未命中必须同时披露资料缺口与回放未覆盖").containsExactly("RETRIEVAL_NO_MATCH", "REPLAY_NOT_COVERED");
+                        assertThat(s.path("execution").path("replayCoverage").asText()).isEqualTo("MISS");
+                    } else {
+                        assertThat(s.path("taskStatus").asText()).isEqualTo("FAILED");
+                        assertThat(s.path("result").path("coverage").asText()).isEqualTo("NONE");
+                        assertThat(reasonCodesOf(s)).as("失败必须同时披露处理失败与回放未覆盖").containsExactly("MODEL_UNAVAILABLE", "REPLAY_NOT_COVERED");
+                        assertThat(s.path("execution").path("replayCoverage").asText()).isEqualTo("MISS");
+                        assertThat(s.path("execution").path("modelAttemptCount").asInt()).as("模拟执行不得声称模型尝试").isZero();
+                    }
+                    assertThat(a.get("/tasks/" + id + "/originals/" + UUID.randomUUID()).statusCode()).isEqualTo(404);
+                }
+                // (5) 退出：无在途任务、无待执行。
+                assertThat(context.getBean(RuleAgentTaskStore.class).activeJobs()).isZero();
+                assertThat(queue).isEmpty();
+            }
+            int boundPort = port;
+            try (var socket = new java.net.Socket()) {
+                assertThatThrownBy(() -> socket.connect(new InetSocketAddress("127.0.0.1", boundPort), 500)).isInstanceOf(java.io.IOException.class);
+            }
+        } finally {
+            if (previousPort == null) System.clearProperty("server.port"); else System.setProperty("server.port", previousPort);
+        }
+        if (!evidenceDirectory.isBlank()) {
+            JSON.writerWithDefaultPrettyPrinter().writeValue(Path.of(evidenceDirectory, "cancel-capacity-terminal.json").toFile(),
+                    Map.of("schemaVersion", 3, "executionMode", "SIMULATED_ENGINEERING_REPLAY",
+                            "database", "zhkuagent_rulecheck_e2e(temp,一次性容器)", "assetsRevision", catalogue == null ? "" : catalogue.settings().referenceRevision(),
+                            "providerCalls", 0, "modelAttemptCount", 0, "injectedServerPort", String.valueOf(injectedPort),
+                            "resourcesExited", true, "exchanges", exchanges));
+        }
+    }
+
+    /** 取出快照里第一个子问题的全部 reasonCode（顺序即序列化顺序），用于整表比对而不是只查第一条。 */
+    private static List<String> reasonCodesOf(JsonNode snapshot) {
+        var codes = new ArrayList<String>();
+        snapshot.path("result").path("items").get(0).path("issues")
+                .forEach(issue -> codes.add(issue.path("reasonCode").asText()));
+        return codes;
     }
 
     static class User {
