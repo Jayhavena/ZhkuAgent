@@ -121,6 +121,24 @@ class RuleAgentSimulatedChainTempDbHttpTest {
         if (catalogue != null) catalogue.close();
     }
 
+    /** 受控启动的公共设置；端口/绑定地址由调用方覆盖，便于同一个装配分别跑直连与代理两种验收。 */
+    private static Map<String, Object> baseSettings() {
+        var settings = new HashMap<String, Object>();
+        settings.put("server.port", "0"); settings.put("server.address", "127.0.0.1"); settings.put("server.servlet.context-path", "/api");
+        settings.put("server.servlet.session.timeout", "15m"); settings.put("server.servlet.session.persistent", "false");
+        settings.put("server.servlet.session.tracking-modes", "cookie");
+        settings.put("server.servlet.session.cookie.name", "ZHKU_RULE_CHECK_SESSION"); settings.put("server.servlet.session.cookie.path", P);
+        settings.put("server.servlet.session.cookie.http-only", "true"); settings.put("server.servlet.session.cookie.secure", "false");
+        settings.put("server.servlet.session.cookie.same-site", "strict");
+        settings.put("zhku.rule-check-preview.enabled", "true"); settings.put("zhku.rule-agent-http.enabled", "true");
+        settings.put("zhku.rule-agent-launch.enabled", "true"); settings.put("zhku.rule-agent-http.reviewed-tools-enabled", "true");
+        settings.put(RuleAgentControlledLaunchConfiguration.MODE_PROPERTY, RuleAgentControlledLaunchConfiguration.SIMULATED);
+        settings.put("spring.flyway.enabled", "false"); settings.put("logging.level.root", "ERROR");
+        settings.put("spring.config.location", "optional:classpath:/http-fixture-no-config.yml");
+        settings.put("spring.main.allow-bean-definition-overriding", "true");
+        return settings;
+    }
+
     @SpringBootConfiguration(proxyBeanMethods = false)
     @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, UserDetailsServiceAutoConfiguration.class})
     @Import({RuleCheckPreviewSecurityConfiguration.class, RuleCheckAuthController.class,
@@ -130,7 +148,12 @@ class RuleAgentSimulatedChainTempDbHttpTest {
         @Bean Clock clock() { return Clock.systemUTC(); }
         /** 必须是专用直连数据源：受控资料组件会逐个核对库名与端口，连接池或代理都会被拒。 */
         @Bean javax.sql.DataSource dataSource() { return db; }
-        @Bean Reviewed2025ControlledCatalogue catalogue() { return catalogue; }
+        /**
+         * 安装是任务级作用域：{@code close()} 会卸载本次安装的数据。因此显式禁止 Spring 在上下文关闭时
+         * 调用销毁方法——否则本类第一个应用的关闭就会把资料卸载掉，第二个应用（以及后续断言）将查无数据。
+         * 数据生命周期由 {@code @AfterAll} 统一结束。
+         */
+        @Bean(destroyMethod = "") Reviewed2025ControlledCatalogue catalogue() { return catalogue; }
         @Bean RuleAgentReviewedToolsConfiguration.Assets assets() { return new RuleAgentReviewedToolsConfiguration.Assets(root); }
         @Bean(destroyMethod = "close") PreviewIdentityRepository identities() { return new PreviewIdentityRepository(db); }
         /** 在线装配被 SIMULATED 准入排除，工具索引由本宿主显式装配，来源仍是真实已审核组件。 */
@@ -196,19 +219,7 @@ class RuleAgentSimulatedChainTempDbHttpTest {
         try {
             var app = new SpringApplication(App.class);
             app.setAdditionalProfiles("zhku-rule-check-preview");
-            var settings = new HashMap<String, Object>();
-            settings.put("server.port", "0"); settings.put("server.address", "127.0.0.1"); settings.put("server.servlet.context-path", "/api");
-            settings.put("server.servlet.session.timeout", "15m"); settings.put("server.servlet.session.persistent", "false");
-            settings.put("server.servlet.session.tracking-modes", "cookie");
-            settings.put("server.servlet.session.cookie.name", "ZHKU_RULE_CHECK_SESSION"); settings.put("server.servlet.session.cookie.path", P);
-            settings.put("server.servlet.session.cookie.http-only", "true"); settings.put("server.servlet.session.cookie.secure", "false");
-            settings.put("server.servlet.session.cookie.same-site", "strict");
-            settings.put("zhku.rule-check-preview.enabled", "true"); settings.put("zhku.rule-agent-http.enabled", "true");
-            settings.put("zhku.rule-agent-launch.enabled", "true"); settings.put("zhku.rule-agent-http.reviewed-tools-enabled", "true");
-            settings.put(RuleAgentControlledLaunchConfiguration.MODE_PROPERTY, RuleAgentControlledLaunchConfiguration.SIMULATED);
-            settings.put("spring.flyway.enabled", "false"); settings.put("logging.level.root", "ERROR");
-            settings.put("spring.config.location", "optional:classpath:/http-fixture-no-config.yml");
-            settings.put("spring.main.allow-bean-definition-overriding", "true");
+            var settings = baseSettings();
             app.setDefaultProperties(settings);
             try (var context = (ServletWebServerApplicationContext) app.run()) {
                 port = context.getWebServer().getPort();
@@ -290,6 +301,82 @@ class RuleAgentSimulatedChainTempDbHttpTest {
                             "database", "zhkuagent_rulecheck_e2e(temp,一次性容器)", "assetsRevision", catalogue == null ? "" : catalogue.settings().referenceRevision(),
                             "providerCalls", 0, "modelAttemptCount", 0, "injectedServerPort", String.valueOf(injectedPort),
                             "resourcesExited", true, "exchanges", exchanges));
+        }
+    }
+
+    /**
+     * 代理贯通：使用仓库自带的 {@code agent/frontend/nginx.conf}（官方镜像模板机制生成）起真实 nginx，
+     * 后端绑定到 Docker 网桥地址，客户端只经代理端口访问。计划明确要求"不能仅用 mock 控制器证明代理
+     * 正确"，因此归档的是代理实际响应，而不是控制器直连响应。
+     *
+     * <p>为什么单独占一个方法而不是并进直连验收：端口与绑定地址都不同（代理场景后端必须可被容器访问），
+     * 且必须显式提供 {@code zhku.proxy.*} 才会执行，避免没有 nginx 的机器上把"未验证"跑成"失败"。
+     */
+    @Test void sameChainThroughRepoNginxProxyWithActualProxiedResponses() throws Exception {
+        String bindAddress = System.getProperty("zhku.proxy.bindAddress", "172.17.0.1");
+        int backendPort = Integer.parseInt(System.getProperty("zhku.proxy.backendPort", "-1"));
+        int publicPort = Integer.parseInt(System.getProperty("zhku.proxy.publicPort", "-1"));
+        Assumptions.assumeTrue(backendPort > 0 && publicPort > 0,
+                "未提供 zhku.proxy.backendPort / zhku.proxy.publicPort：代理端口未配置，本项未验证");
+        exchanges.clear();
+        String previousPort = System.getProperty("server.port");
+        System.setProperty("server.port", String.valueOf(backendPort));
+        try {
+            var app = new SpringApplication(App.class);
+            app.setAdditionalProfiles("zhku-rule-check-preview");
+            var settings = baseSettings();
+            settings.put("server.port", String.valueOf(backendPort));
+            settings.put("server.address", bindAddress);
+            app.setDefaultProperties(settings);
+            try (var context = (ServletWebServerApplicationContext) app.run()) {
+                assertThat(context.getWebServer().getPort()).isEqualTo(backendPort);
+                var anonymous = new User(publicPort);
+                var a = new User(publicPort); var b = new User(publicPort);
+                assertThat(anonymous.get("/tasks/capabilities").statusCode()).as("匿名仍须被拒").isEqualTo(401);
+                a.login("t06-chain-a", CORRECT);
+                b.login("t06-chain-b", CORRECT);
+                assertThat(a.get("/tasks/capabilities").statusCode()).as("经代理的能力查询").isEqualTo(200);
+                // 上游 Cache-Control 被 nginx 隐藏，no-store 必须由代理自己补齐，否则浏览器可能缓存任务状态。
+                assertThat(a.get("/tasks/capabilities").headers().firstValue("Cache-Control")).hasValue("no-store");
+                String key = UUID.randomUUID().toString();
+                assertThat(a.post("/tasks", Map.of("question", ASK_QUESTION, "clientRequestId", key), false)
+                        .statusCode()).as("经代理同样必须校验 CSRF").isEqualTo(403);
+                var accepted = a.post("/tasks", Map.of("question", ASK_QUESTION, "clientRequestId", key), true);
+                assertThat(accepted.statusCode()).isEqualTo(202);
+                assertThat(JSON.readTree(a.post("/tasks", Map.of("question", ASK_QUESTION, "clientRequestId", key), true).body())
+                        .path("duplicate").asBoolean()).isTrue();
+                String task = JSON.readTree(accepted.body()).path("taskId").asText();
+                assertThat(b.get("/tasks/" + task).statusCode()).as("代理不授予跨主体访问").isEqualTo(404);
+                assertThat(runs.get()).isZero(); queue.remove().run(); assertThat(runs.get()).isEqualTo(1);
+                var waiting = JSON.readTree(a.get("/tasks/" + task).body());
+                assertThat(waiting.path("taskStatus").asText()).isEqualTo("WAITING_USER");
+                var message = new HashMap<String, Object>();
+                message.put("message", "PUBLIC"); message.put("continuationToken", waiting.path("continuationToken").asText());
+                message.put("expectedVersion", waiting.path("version").asLong()); message.put("clientRequestId", UUID.randomUUID());
+                assertThat(a.post("/tasks/" + task + "/messages", message, true).statusCode()).isEqualTo(202);
+                queue.remove().run(); assertThat(runs.get()).isEqualTo(2);
+                var resolved = JSON.readTree(a.get("/tasks/" + task).body());
+                assertThat(resolved.path("taskStatus").asText()).isEqualTo("RESOLVED");
+                assertThat(resolved.path("result").path("evidence")).as("代理不得替换或裁剪证据").isNotEmpty();
+                String token = resolved.path("result").path("evidence").get(0).path("originalToken").asText();
+                assertThat(a.get("/tasks/" + task + "/originals/" + token).statusCode()).isEqualTo(200);
+                assertThat(b.get("/tasks/" + task + "/originals/" + token).statusCode()).isEqualTo(404);
+                assertThat(context.getBean(RuleAgentTaskStore.class).activeJobs()).isZero();
+                assertThat(queue).isEmpty();
+            }
+            try (var socket = new java.net.Socket()) {
+                assertThatThrownBy(() -> socket.connect(new InetSocketAddress(bindAddress, backendPort), 500))
+                        .isInstanceOf(java.io.IOException.class);
+            }
+        } finally {
+            if (previousPort == null) System.clearProperty("server.port"); else System.setProperty("server.port", previousPort);
+        }
+        if (!evidenceDirectory.isBlank()) {
+            JSON.writerWithDefaultPrettyPrinter().writeValue(Path.of(evidenceDirectory, "proxied-chain.json").toFile(),
+                    Map.of("schemaVersion", 3, "executionMode", "SIMULATED_ENGINEERING_REPLAY_VIA_REPO_NGINX",
+                            "proxy", Map.of("image", "nginx:1.27-alpine", "config", "agent/frontend/nginx.conf(官方镜像模板机制生成)",
+                                    "publicPort", publicPort, "backendPort", backendPort, "backendAddress", bindAddress),
+                            "providerCalls", 0, "modelAttemptCount", 0, "resourcesExited", true, "exchanges", exchanges));
         }
     }
 
