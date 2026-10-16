@@ -1,0 +1,29 @@
+{
+  "reviewedUtc": "2026-10-16T00:28:56.786911+00:00",
+  "mode": "SELF_REVIEW_AGAINST_CURRENT_SOURCE_AND_ACTUAL_REBUILT_JAR",
+  "findingsCorrected": [
+    "Verified outbound payload is byte-identical to the executed t05-62 package via deep comparison excluding buildIdentity",
+    "Proved via git line diff that the only source differences are four batch path constant strings",
+    "Re-verified 15 overlapping static attachment keys against the actual t05-65 package",
+    "Reconstructed 17 scope strings and compared 10 capability mappings against current source",
+    "Re-fetched public pricing page and reconfirmed 0.8/2.7 CNY per million and 991808/131072 token limits",
+    "Recorded that this preparation rebuilt the jar twice (offline Maven), unlike t05-62 frozen-jar preparation",
+    "Clarified that the package records no additionalBuildInputSha256; class-level jar verification supplements coverage"
+  ],
+  "remainingLimitations": [
+    "No new online success",
+    "Current supplier Schema behavior unverified",
+    "Package buildIdentity does not enumerate POM/shared-module/wrapper extra build inputs; class-level and jar-SHA binding used instead",
+    "No Docker engine/DB readiness operations this turn",
+    "Actual invoice for any future dispatched call remains unknown until reconciled",
+    "Historical three failure modes were all one-vote vetoes; more batch calls do not guarantee success"
+  ],
+  "sourceLocations": {
+    "decisionFields": "RuleAgentProvider.java:124-157",
+    "dynamicFactSchema": "RuleAgentProtocol.java:131-146",
+    "publicationEligibility": "RuleFactCapabilityCatalogue.java:35-40",
+    "originalConditionKeyRejection": "RulePublicationProtocol.java:55-58",
+    "fullSnapshotLocalOnly": "RuleAgentProvider.java:185-195"
+  },
+  "requiresExternalAuthorization": true
+}

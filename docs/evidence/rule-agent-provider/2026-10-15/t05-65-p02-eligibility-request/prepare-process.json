@@ -1,0 +1,35 @@
+{
+  "timeBasis": "startedUtc uses first path-constant commit time as preparation start marker; finishedUtc uses request-package.json mtime; no separate wall-clock was recorded for the two build/prepare attempts",
+  "startedUtc": "2026-10-16T00:01:26+00:00",
+  "finishedUtc": "2026-10-16T00:05:44.239481+00:00",
+  "sourceCommit": "9e28e451ed02a1b2fa733192828e0913d9ead0b5",
+  "preparationHead": "43ecebc638cfe3788071b6ecdff47ed26523fd1c",
+  "jarSha256": "79a22f1c24c0a893d52a888c7e5678e4988f3e8484088ee2ead85ba89259ed70",
+  "networkConnectionsDenied": true,
+  "credentialsRemoved": true,
+  "realProviderCalls": 0,
+  "databaseOperations": 0,
+  "dockerOperations": 0,
+  "rebuilds": 2,
+  "firstPrepareAttempt": {
+    "result": "FAILED",
+    "reason": "RuleAgentOnlineProbeHost.PACKAGE still pointed at t05-62 package path; prepare wrote old path and was rejected with FileAlreadyExistsException; t05-62 package preserved untouched",
+    "fixedByCommit": "9e28e451ed02a1b2fa733192828e0913d9ead0b5"
+  },
+  "buildTooling": "mvnw.cmd -o -Dmaven.repo.local=%USERPROFILE%/.m2/repository -Dfile.encoding=UTF-8 -pl knowledge -am -DskipTests package (credentials cleared from process environment before build)",
+  "prepareExitCode": 0,
+  "checkPackage": {
+    "protocolRevision": "RULE_AGENT_ACTION_CONTRACT_06",
+    "packageSha256": "ce4ddb851fd59328bd039e75e3e837e5891e08d6011a83ba954530ed0692754e",
+    "databaseOperations": 0,
+    "providerCalls": 0,
+    "mode": "PACKAGE_CHECK_ONLY",
+    "passed": true,
+    "maximumProviderCalls": 10
+  },
+  "oldShaRejected": true,
+  "duplicatePrepareRejectedWithoutOverwrite": true,
+  "packageSha256": "ce4ddb851fd59328bd039e75e3e837e5891e08d6011a83ba954530ed0692754e",
+  "passed": true,
+  "temporaryDirectoryRemoved": true
+}
