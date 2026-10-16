@@ -13,3 +13,7 @@ Ruling: 测试的当前路径预期必须独立于Host常量，避免一起写�
 RED:5 tests,5 expected failures,0 errors. Production host/launcher paths now changed from65 to69; no guard or business behavior changed.
 
 首次完整回归213项：0断言失败、9夹具输出目录缺失错误；原日志和XML保留。显式创建本轮test-evidence目录后，同一13类命令重跑：213项、0失败/错误/跳过。独立审查无Critical/Important；CRLF提示按项目cr-at-eol检查，保留原字节。本检查点仅绑定路径及本地测试，尚未重建jar。
+
+源码已提交bc5cdf4。普通终端离线BuildOnly退出0；实际jar/class/15资产运行核对通过。未生成69目录，真实模型/DB/Docker均0。原始诊断XML尾空格按准确范围豁免，不改写历史证据。详见README及build/runtime/execution记录。
+
+归档检查发现manifest提取的换行转换；已改二进制原样提取并重跑身份核对，通过。jar标准manifest末尾空行精确豁免，不修改实际jar。
