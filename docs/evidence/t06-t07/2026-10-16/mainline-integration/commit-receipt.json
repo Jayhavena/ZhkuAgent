@@ -46,10 +46,16 @@
   },
   "notDone": [
     "未 push / PR / 打标签 / 部署 / 改写历史",
-    "未裁决 T05 与 T06 的 13 个 ruleagent Java 冲突",
-    "未合入 T06 代码（T06 与 T07 文件交集为 0，可后续以 ff 方式跟进）",
+    "未合入 T05 代码（经更正：T05 × 新主线 0 冲突且结果正确，属范围决策而非技术障碍）",
+    "未合入 T06 代码（T06 与 T07 文件交集为 0，T06 × 新主线 0 冲突，可后续直接跟进）",
     "未在合并提交上重跑两窗口浏览器验收"
   ],
+  "correction": {
+    "file": "CORRECTION-20261016-T05-conflict-direction.md",
+    "what": "原判断'T05 停在旧版本、属版本陈旧'方向说反；真实方向为 T05 建立在主线 58e1ef7 之上继续演进",
+    "impactOnThisMerge": "无。本次只合 T07，T05 未参与，主线 d3937d6 无需回滚",
+    "unavoidableResidue": "合并提交 d3937d6 的消息中含同一错误表述，按不改写历史原则保留，以更正文件为准"
+  },
   "standingLabels": {
     "providerCalls": 0,
     "databaseCalls": 0,

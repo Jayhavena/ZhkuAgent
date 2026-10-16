@@ -48,6 +48,13 @@
 
 ## 四、不在本次范围内的冲突（需另行裁决）
 
+> ⚠ **本节"版本陈旧"的判断已于同日更正，方向说反了，以
+> [`CORRECTION-20261016-T05-conflict-direction.md`](./CORRECTION-20261016-T05-conflict-direction.md) 为准。**
+> 更正要点：真实方向是主线 `58e1ef7(2f82467a)` → **T05 在其之上继续演进为 `6b79b0bf`**；
+> T06/T07/基线停在 `2f82467a`。故 T05 是**更新**的一侧，
+> 那 14 个冲突是 merge-base 取到更早的 `5ee26d8` 造成的**假冲突**，不是设计分歧。
+> 原文按"保留原字节"原则不予改写。
+
 13 个 `ruleagent` Java/测试文件在 T05 × T06 上冲突。以 `RuleAgentRunner.java` 的 blob 为例：
 
 | 角色 | blob |
