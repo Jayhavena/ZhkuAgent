@@ -1,0 +1,36 @@
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+08:33:07.475 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55518/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+08:33:07.545 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Schema history table "public"."flyway_schema_history" does not exist yet
+08:33:07.551 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.032s)
+08:33:07.573 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "public"."flyway_schema_history" ...
+08:33:07.673 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": << Empty Schema >>
+08:33:07.690 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "1 - create zhku knowledge schema"
+08:33:07.828 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "2 - add knowledge source visibility governance"
+08:33:07.870 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "3 - create zhku knowledge governance staging"
+08:33:07.981 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "4 - add zhku knowledge source version scope"
+08:33:08.017 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "5 - allow archived knowledge submission reimport"
+08:33:08.052 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "6 - add official notice lifecycle"
+08:33:08.141 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "7 - allow superseded notice audit visibility"
+08:33:08.167 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "8 - support reviewed internal official notice material"
+08:33:08.199 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "9 - add retrieval catalog and index audit"
+08:33:08.332 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "12 - create conversation session store"
+08:33:08.372 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "15 - create service guides"
+08:33:08.558 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "16 - create anonymous feedback"
+08:33:08.615 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "17 - create anonymous telemetry"
+08:33:08.694 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "18 - create campus agent run archive"
+08:33:08.774 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "19 - create preview identity and run ownership"
+08:33:08.835 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "20 - add conversation session ownership"
+08:33:08.876 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "21 - create campus run submission"
+08:33:08.924 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "22 - allow rule check capture audit"
+08:33:08.956 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 18 migrations to schema "public", now at version v22 (execution time 00:00.831s)
+
+Exception in thread "main" java.lang.reflect.InvocationTargetException
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:118)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64)
+	at org.springframework.boot.loader.launch.PropertiesLauncher.main(PropertiesLauncher.java:580)
+Caused by: java.lang.IllegalStateException: P02首轮未形成合格必要追问，停止本批
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineProbeHost.main(RuleAgentOnlineProbeHost.java:90)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	... 4 more

@@ -1,0 +1,71 @@
+{
+  "executedUtc": "2026-10-16T00:51:26.268761+00:00",
+  "mode": "ONLINE",
+  "case": "P02_CONTINUATION_01",
+  "entry": "普通Windows PowerShell 5.1 → start-rule-agent-probe.cmd -Probe -OnlyP02 -ApprovedPackageSha256 ce4ddb851fd59328bd039e75e3e837e5891e08d6011a83ba954530ed0692754e",
+  "approvedPackageSha256": "ce4ddb851fd59328bd039e75e3e837e5891e08d6011a83ba954530ed0692754e",
+  "approvedBy": "user explicit approval 2026-10-16",
+  "temporaryDatabase": {
+    "image": "pgvector/pgvector:0.8.6-pg16-bookworm",
+    "port": 55518,
+    "database": "zhkuagent_rulecheck_e2e",
+    "containerRemovedAfterRun": true,
+    "demoDatabase54329Touched": false
+  },
+  "modelCalls": 4,
+  "runsExecuted": 1,
+  "maximumRuns": 2,
+  "hostExit": "non-zero by design: P02首轮未形成合格必要追问，停止本批 (RuleAgentOnlineProbeHost.java:90) → ps1 line 88 throw, no extra calls or retries",
+  "probeResult": {
+    "passed": false,
+    "allowanceConsumed": 4,
+    "caseSelection": "P02_CONTINUATION_01",
+    "languageQualityNotScored": true,
+    "resourcesClosed": true,
+    "maximumProviderCalls": 10,
+    "budgetRevision": "T05_CLOSEOUT_BUDGET_04"
+  },
+  "resourcesClosed": true,
+  "resourceVerification": {
+    "leftoverProbeContainers": 0,
+    "probeJvmExited": true,
+    "note": "only remaining java.exe is the Qoder IDE language server (redhat.java), unrelated to the probe; not terminated by name",
+    "launcherLog": "launcher-6c5c079473fe4e608c862f7cf425dadf.log",
+    "liveEvidenceDirectory": "live-9e82970ee7d048adb14fa7f666e8019b"
+  },
+  "sequence": [
+    {
+      "attempt": 1,
+      "action": "SEARCH_REVIEWED_RULES",
+      "result": "SUCCEEDED",
+      "note": "11 candidates incl. 第十八条 retake/deferred-exam article"
+    },
+    {
+      "attempt": 2,
+      "action": "READ_VERIFIED_RULE",
+      "result": "SUCCEEDED",
+      "note": "read 第十八条; 6 verified facts across S10/COMBINED, S10/DEFERRED_EXAM_ONLY, S10/RETAKE_ONLY"
+    },
+    {
+      "attempt": 3,
+      "action": "ASK_NECESSARY_CONDITION",
+      "result": "PROPOSAL ACCEPTED (precheck + capability + snapshot capture passed)",
+      "note": "bare conditionId courseType with two registered eligible facts; decision-side namespace confusion did NOT recur this run"
+    },
+    {
+      "attempt": 4,
+      "action": "PUBLICATION_REVIEW",
+      "result": "REJECTED REVIEW_CONDITION_UNKNOWN",
+      "note": "model emitted prefixed key S10/RETAKE_ONLY:courseType in necessaryConditionIds; host rejects without silent normalization; provider Failure propagated to both decision and review events by design"
+    }
+  ],
+  "run1Outcome": {
+    "taskStatus": "FAILED",
+    "runState": "FAILED",
+    "coverage": "NONE",
+    "publishedVersion": 2,
+    "waitingUserNotFormed": true,
+    "publicInjected": false,
+    "secondRunStarted": false
+  }
+}
