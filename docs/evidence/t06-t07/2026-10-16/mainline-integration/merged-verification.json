@@ -1,0 +1,59 @@
+{
+  "purpose": "在合并提交（而非脚手架 50f8122）上取得的运行证据",
+  "verifiedOn": {
+    "mergedTree": "f628ba3a432f72271ad3df483322795ddf8ba185",
+    "parents": {
+      "first": "ec1e36234327e1de2d14c0a9ddb05148a02b885a (zhkuagent-modules)",
+      "second": "c052c45cf0238c89b7930cfc9ab40942842e598d (codex/t07-student-entry)"
+    },
+    "checkout": "在 T07 worktree 上 git checkout 到合并提交后执行，工作区干净"
+  },
+  "noLossCheck": {
+    "againstMainline": {"added": 125, "modified": 9, "deleted": 0},
+    "againstT07": {"added": 387, "modified": 2, "deleted": 0},
+    "mainlineCareerDocsPresent": true,
+    "modifiedAgainstT07": [
+      "docs/evidence/rule-agent-progress.md",
+      "knowledge/scripts/start-rule-agent-probe.ps1"
+    ],
+    "note": "397 个'基线缺失'文件实为主线在 5ee26d8 之后新增，三方合并后全部保留，未丢失"
+  },
+  "frontendRegression": {
+    "command": "node --test \"agent/frontend/tests/*.test.mjs\"",
+    "nodeVersion": "22.22.2 (managed)",
+    "tests": 176,
+    "pass": 176,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "log": "regression-merged.log"
+  },
+  "builds": [
+    {
+      "name": "student",
+      "command": "npm run build",
+      "exitCode": 0,
+      "assetCount": 24,
+      "assetsIdenticalToT07Record": true,
+      "log": "student-build-merged.log"
+    },
+    {
+      "name": "engineering",
+      "command": "VITE_ENTRY_MODE=engineering npx vite build --outDir dist-engineering",
+      "exitCode": 0,
+      "modulesTransformed": 134,
+      "assetCount": 24,
+      "assetsIdenticalToT07Record": true,
+      "log": "engineering-build-merged.log"
+    }
+  ],
+  "interpretation": {
+    "assetHashIdentity": "两种构建的 24 个资产 hash 与 T07 线留存记录逐一相同；vite 按内容生成 hash，故可判定合并后前端源码与 T07 线字节级等价",
+    "doesNotCover": [
+      "真实身份 + 真实资料的浏览器验收（未执行）",
+      "T05 / T06 的代码（未合入，亦未验证）",
+      "在线链路（providerCalls=0，databaseCalls=0，本轮无新增）"
+    ]
+  }
+}

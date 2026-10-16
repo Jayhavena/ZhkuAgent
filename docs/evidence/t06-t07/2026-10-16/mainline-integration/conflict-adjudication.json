@@ -1,0 +1,31 @@
+{
+  "file": "knowledge/scripts/verify-rule-check-refactor.ps1",
+  "conflictShape": "两侧都往同一行（$unit=@( 数组首项）插入测试类名，剪除点相同",
+  "hunkCount": 1,
+  "numstat": {"mainlineVsAncestor": "1 1", "baselineVsAncestor": "1 1"},
+  "blobs": {
+    "5ee26d8_commonAncestor": "c785c29d56ad0e4796e029de213d89954255f0bd",
+    "zhkuagent-modules": "42e6e77ebe6da257c33cfd2ce81c03a478502254",
+    "codex/t05-online-evidence": "42e6e77ebe6da257c33cfd2ce81c03a478502254",
+    "88e57d6_baseline": "57ad1336db7f9c9d3df74cfd19020193b626aecd",
+    "codex/t06-controlled-launch": "57ad1336db7f9c9d3df74cfd19020193b626aecd",
+    "codex/t07-student-entry": "57ad1336db7f9c9d3df74cfd19020193b626aecd"
+  },
+  "insertedByMainline": ["'RulePublicationGateTest',"],
+  "insertedByBaseline": [
+    "'RulePublicationGateTest',",
+    "'RuleAgentReviewPayloadBudgetTest',",
+    "'RuleAgentTaskToolsRegistryTest',",
+    "'RuleAgentReviewedToolsConfigurationTest',",
+    "'RuleAgentTaskBrowserHttpTest',",
+    "'RuleAgentTaskHttpTest',"
+  ],
+  "isBaselineStrictSupersetOfMainline": true,
+  "adjudication": {
+    "decision": "取并集 = 直接采用基线侧 blob 57ad1336db7f9c9d3df74cfd19020193b626aecd",
+    "reason": "基线侧已包含主线侧插入的全部项，并多出 5 个测试类；两边各只改一行，无语义分歧",
+    "kind": "MECHANICAL_UNION — 无语义取舍",
+    "touchedByT07Itself": false,
+    "note": "该文件是 T06/T07 共同基线 88e57d6 引入的，T07 线自身从未改动它"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "recordedAt": "2026-10-16",
+  "authorization": {
+    "request": "集成进主线",
+    "scopeChosenByUser": "只合 T07（不含 T05/T06 代码）",
+    "verificationChosenByUser": "回归 + 双构建（不含浏览器两窗口）"
+  },
+  "evidenceCommit": {
+    "branch": "codex/t07-student-entry",
+    "sha": "PENDING — 见本提交落定后的 git rev-parse HEAD",
+    "parent": "c052c45cf0238c89b7930cfc9ab40942842e598d",
+    "contains": [
+      "README.md",
+      "merge-dry-run.json",
+      "conflict-adjudication.json",
+      "merged-verification.json",
+      "commit-receipt.json",
+      "regression-merged.log",
+      "student-build-merged.log",
+      "engineering-build-merged.log"
+    ]
+  },
+  "mergeCommit": {
+    "sha": "PENDING — 证据提交必须先落定，合并提交才能产生；最终 SHA 记录在主线 ref 与合并提交消息中",
+    "parents": ["ec1e36234327e1de2d14c0a9ddb05148a02b885a", "本证据提交"],
+    "method": "merge-tree + commit-tree + update-ref（不在主线 worktree 执行 git merge）",
+    "safetyRef": "backup-zhkuagent-modules-before-t07-<sha>"
+  },
+  "notDone": [
+    "未 push / PR / 打标签 / 部署 / 改写历史",
+    "未裁决 T05 与 T06 的 13 个 ruleagent Java 冲突",
+    "未合入 T06 代码（T06 与 T07 文件交集为 0，可后续以 ff 方式跟进）",
+    "未在合并提交上重跑两窗口浏览器验收"
+  ],
+  "standingLabels": {
+    "providerCalls": 0,
+    "databaseCalls": 0,
+    "claimLevel": "工程局部，不得表述为'学生验证有效'或'真实在线整链通过'"
+  }
+}
