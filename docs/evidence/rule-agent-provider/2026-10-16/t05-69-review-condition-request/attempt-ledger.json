@@ -1,10 +1,383 @@
 {
   "packageSha256": "3d6a515c2eeae15732540bf8fb96d87f52a6691b94a5e6131d67d8b7445999e5",
-  "realAttempts": [],
-  "actualProviderCalls": 0,
+  "status": "CLOSED_PASSED",
+  "authorizedCallsThisBatch": 10,
+  "actualProviderCalls": 8,
+  "unusedCallsClosed": 2,
   "remainingAuthorizedCalls": 0,
-  "proposedMaximumCalls": 10,
+  "inputTokens": 13521,
+  "outputTokens": 1005,
+  "usageEstimateCny": "0.0135303",
   "actualInvoiceCny": null,
-  "actualInvoiceStatus": "NO_REAL_CALLS_THIS_BATCH",
-  "futureRecording": "Deduplicate dispatch by task/run/attempt; record dispatched,response headers/requestId,status,duration,request/response SHA,usage,proposed action,provider rejection and gate branch. Missing usage or timeout after dispatch consumes allowance; invoice UNKNOWN not zero; no refunds,retries or replacement calls."
+  "invoiceStatus": "UNKNOWN_UNTIL_RECONCILED",
+  "realAttempts": [
+    {
+      "taskId": "8c687d69-833f-405f-aaeb-80f0ec5cb386",
+      "runId": "9ad28cae-9f00-4c32-a40d-7443ccf017cb",
+      "attempt": 1,
+      "purpose": "DECISION",
+      "dispatchState": "DISPATCHED",
+      "httpStatus": 200,
+      "responseReceived": true,
+      "headersObserved": true,
+      "requestId": "6b8e5924-d643-90a7-8162-8e8eea985731",
+      "requestSha256": "e4a27ce0f0af29cd610a3d6f1160161c02ce491eaa0b5f77d7b32abf0a40429f",
+      "responseSha256": "9d7ec87360303da5befcb4c9493f13c00d7919056e1c0e012c65254b6810c2c5",
+      "requestRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/9ad28cae-9f00-4c32-a40d-7443ccf017cb-1-REQUEST.json",
+      "responseRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/9ad28cae-9f00-4c32-a40d-7443ccf017cb-1-RESPONSE.json",
+      "proposedAction": {
+        "type": "SEARCH_REVIEWED_RULES",
+        "subquestionId": "q1",
+        "query": "选修课不及格重修规定"
+      },
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "providerReason": null,
+      "diagnostics": {
+        "requestBytes": 4585,
+        "elapsedMillis": 1879,
+        "dispatchedMillis": 65,
+        "connectedMillis": null,
+        "headersMillis": 1830,
+        "firstBodyMillis": 1835,
+        "bodyCompletedMillis": 1836,
+        "responseBytes": 457,
+        "requestId": "6b8e5924-d643-90a7-8162-8e8eea985731",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 834,
+      "outputTokens": 26,
+      "usageEstimateCny": "0.0007374",
+      "actualInvoiceCny": null,
+      "invoiceStatus": "UNKNOWN_UNTIL_RECONCILED"
+    },
+    {
+      "taskId": "8c687d69-833f-405f-aaeb-80f0ec5cb386",
+      "runId": "9ad28cae-9f00-4c32-a40d-7443ccf017cb",
+      "attempt": 2,
+      "purpose": "DECISION",
+      "dispatchState": "DISPATCHED",
+      "httpStatus": 200,
+      "responseReceived": true,
+      "headersObserved": true,
+      "requestId": "27ea73ca-e6d4-9cb3-aa50-7a377bcc8464",
+      "requestSha256": "75be52f8946a75fba3ae1ae4a04b6b75295618f18da2ffa8b4afab3292ad82dd",
+      "responseSha256": "e127110c221559b4f718fad00ef3127b3c1587d986a3f42dc73088b836c19195",
+      "requestRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/9ad28cae-9f00-4c32-a40d-7443ccf017cb-2-REQUEST.json",
+      "responseRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/9ad28cae-9f00-4c32-a40d-7443ccf017cb-2-RESPONSE.json",
+      "proposedAction": {
+        "type": "READ_VERIFIED_RULE",
+        "subquestionId": "q1",
+        "handles": [
+          "c1"
+        ],
+        "candidateSetId": "F6dMgltFHuPdl0vd"
+      },
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "providerReason": null,
+      "diagnostics": {
+        "requestBytes": 9948,
+        "elapsedMillis": 1230,
+        "dispatchedMillis": 9,
+        "connectedMillis": null,
+        "headersMillis": 1218,
+        "firstBodyMillis": 1219,
+        "bodyCompletedMillis": 1219,
+        "responseBytes": 473,
+        "requestId": "27ea73ca-e6d4-9cb3-aa50-7a377bcc8464",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 1479,
+      "outputTokens": 37,
+      "usageEstimateCny": "0.0012831",
+      "actualInvoiceCny": null,
+      "invoiceStatus": "UNKNOWN_UNTIL_RECONCILED"
+    },
+    {
+      "taskId": "8c687d69-833f-405f-aaeb-80f0ec5cb386",
+      "runId": "9ad28cae-9f00-4c32-a40d-7443ccf017cb",
+      "attempt": 3,
+      "purpose": "DECISION",
+      "dispatchState": "DISPATCHED",
+      "httpStatus": 200,
+      "responseReceived": true,
+      "headersObserved": true,
+      "requestId": "02de278e-4505-9c4a-bd9b-f095996c36e9",
+      "requestSha256": "ff192653e7cbb3c96af6913eb381f3da33c6faa7f107b7e7e45a9b29bc34dbc0",
+      "responseSha256": "213cfdb824da5fa54c6b5f8f6f2be8e3609bc9c1b0d532a886a5b2c8658c1782",
+      "requestRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/9ad28cae-9f00-4c32-a40d-7443ccf017cb-3-REQUEST.json",
+      "responseRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/9ad28cae-9f00-4c32-a40d-7443ccf017cb-3-RESPONSE.json",
+      "proposedAction": {
+        "type": "ASK_NECESSARY_CONDITION",
+        "subquestionId": "q1",
+        "conditionId": "courseType",
+        "reason": "根据2025.9.2版规则，公共选修课成绩不合格不安排重修，而专业选修课成绩不合格可申请重修。用户未说明课程类别，需澄清以给出准确结论。",
+        "supportingFactIds": [
+          "S10/RETAKE_ONLY:public-failed-no-retake",
+          "S10/RETAKE_ONLY:professional-failed-retake-application"
+        ]
+      },
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "providerReason": null,
+      "diagnostics": {
+        "requestBytes": 14554,
+        "elapsedMillis": 3008,
+        "dispatchedMillis": 36,
+        "connectedMillis": null,
+        "headersMillis": 2999,
+        "firstBodyMillis": 3000,
+        "bodyCompletedMillis": 3000,
+        "responseBytes": 823,
+        "requestId": "02de278e-4505-9c4a-bd9b-f095996c36e9",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 2496,
+      "outputTokens": 136,
+      "usageEstimateCny": "0.002364",
+      "actualInvoiceCny": null,
+      "invoiceStatus": "UNKNOWN_UNTIL_RECONCILED"
+    },
+    {
+      "taskId": "8c687d69-833f-405f-aaeb-80f0ec5cb386",
+      "runId": "9ad28cae-9f00-4c32-a40d-7443ccf017cb",
+      "attempt": 4,
+      "purpose": "PUBLICATION_REVIEW",
+      "dispatchState": "DISPATCHED",
+      "httpStatus": 200,
+      "responseReceived": true,
+      "headersObserved": true,
+      "requestId": "7d83863c-b003-9ec4-b19f-c64ae1128d77",
+      "requestSha256": "f37426e4826522252583f5ca11b7c2df804bf0cfe53e4b583675fb90570ba5ac",
+      "responseSha256": "23bded184706fb7fa04d8d8cd220220a49585c5dba4c527015588f5099c7e394",
+      "requestRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/9ad28cae-9f00-4c32-a40d-7443ccf017cb-4-REQUEST.json",
+      "responseRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/9ad28cae-9f00-4c32-a40d-7443ccf017cb-4-RESPONSE.json",
+      "proposedAction": null,
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "providerReason": null,
+      "diagnostics": {
+        "requestBytes": 7706,
+        "elapsedMillis": 6487,
+        "dispatchedMillis": 5,
+        "connectedMillis": null,
+        "headersMillis": 6474,
+        "firstBodyMillis": 6475,
+        "bodyCompletedMillis": 6475,
+        "responseBytes": 1589,
+        "requestId": "7d83863c-b003-9ec4-b19f-c64ae1128d77",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 1948,
+      "outputTokens": 415,
+      "usageEstimateCny": "0.0026789",
+      "actualInvoiceCny": null,
+      "invoiceStatus": "UNKNOWN_UNTIL_RECONCILED"
+    },
+    {
+      "taskId": "8c687d69-833f-405f-aaeb-80f0ec5cb386",
+      "runId": "1fb4624b-9623-465b-a153-8a11d3deced3",
+      "attempt": 1,
+      "purpose": "DECISION",
+      "dispatchState": "DISPATCHED",
+      "httpStatus": 200,
+      "responseReceived": true,
+      "headersObserved": true,
+      "requestId": "49e11fb8-b47b-92b4-8c81-d47688b91ab1",
+      "requestSha256": "27fc2949ac7e849f050cfb0da694838b1f6281338c4b988eb019ab52fb70382a",
+      "responseSha256": "0093c65adb11a0bfb796f35e065327549cffb7b290317a2a188b90a88a54ec7e",
+      "requestRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/1fb4624b-9623-465b-a153-8a11d3deced3-1-REQUEST.json",
+      "responseRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/1fb4624b-9623-465b-a153-8a11d3deced3-1-RESPONSE.json",
+      "proposedAction": {
+        "type": "SEARCH_REVIEWED_RULES",
+        "subquestionId": "q1",
+        "query": "选修课不及格重修规定"
+      },
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "providerReason": null,
+      "diagnostics": {
+        "requestBytes": 4610,
+        "elapsedMillis": 1183,
+        "dispatchedMillis": 4,
+        "connectedMillis": null,
+        "headersMillis": 1161,
+        "firstBodyMillis": 1161,
+        "bodyCompletedMillis": 1161,
+        "responseBytes": 457,
+        "requestId": "49e11fb8-b47b-92b4-8c81-d47688b91ab1",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 837,
+      "outputTokens": 26,
+      "usageEstimateCny": "0.0007398",
+      "actualInvoiceCny": null,
+      "invoiceStatus": "UNKNOWN_UNTIL_RECONCILED"
+    },
+    {
+      "taskId": "8c687d69-833f-405f-aaeb-80f0ec5cb386",
+      "runId": "1fb4624b-9623-465b-a153-8a11d3deced3",
+      "attempt": 2,
+      "purpose": "DECISION",
+      "dispatchState": "DISPATCHED",
+      "httpStatus": 200,
+      "responseReceived": true,
+      "headersObserved": true,
+      "requestId": "506bea5c-5941-97c3-8779-d71ab492b3c7",
+      "requestSha256": "94f070fba7395cdea035bb0ffee1e66818de76cca85d0317c8c24a37cd62de0c",
+      "responseSha256": "0e472c980b9b075ae2822d2cc795362a7a11400d78013d4d12b97b3881c0e4f8",
+      "requestRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/1fb4624b-9623-465b-a153-8a11d3deced3-2-REQUEST.json",
+      "responseRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/1fb4624b-9623-465b-a153-8a11d3deced3-2-RESPONSE.json",
+      "proposedAction": {
+        "type": "READ_VERIFIED_RULE",
+        "subquestionId": "q1",
+        "handles": [
+          "c1"
+        ],
+        "candidateSetId": "9swuqvvXtYrNI_e1"
+      },
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "providerReason": null,
+      "diagnostics": {
+        "requestBytes": 9973,
+        "elapsedMillis": 1546,
+        "dispatchedMillis": 3,
+        "connectedMillis": null,
+        "headersMillis": 1523,
+        "firstBodyMillis": 1523,
+        "bodyCompletedMillis": 1523,
+        "responseBytes": 473,
+        "requestId": "506bea5c-5941-97c3-8779-d71ab492b3c7",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 1482,
+      "outputTokens": 37,
+      "usageEstimateCny": "0.0012855",
+      "actualInvoiceCny": null,
+      "invoiceStatus": "UNKNOWN_UNTIL_RECONCILED"
+    },
+    {
+      "taskId": "8c687d69-833f-405f-aaeb-80f0ec5cb386",
+      "runId": "1fb4624b-9623-465b-a153-8a11d3deced3",
+      "attempt": 3,
+      "purpose": "DECISION",
+      "dispatchState": "DISPATCHED",
+      "httpStatus": 200,
+      "responseReceived": true,
+      "headersObserved": true,
+      "requestId": "bedfd043-0ede-9efc-9fd7-565b12f9300d",
+      "requestSha256": "fc76f96412a87a81083b76e677d026a5ddc79742d5b5751470ea354e544a83b6",
+      "responseSha256": "fa8b1d5cb106b7c8e9e12d674ba8124939929b2639401642ad34795fd4d3fb9c",
+      "requestRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/1fb4624b-9623-465b-a153-8a11d3deced3-3-REQUEST.json",
+      "responseRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/1fb4624b-9623-465b-a153-8a11d3deced3-3-RESPONSE.json",
+      "proposedAction": {
+        "type": "FINISH_CHECK",
+        "items": [
+          {
+            "subquestionId": "q1",
+            "factIds": [
+              "S10/RETAKE_ONLY:public-failed-no-retake"
+            ],
+            "issues": [],
+            "operation": null
+          }
+        ]
+      },
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "providerReason": null,
+      "diagnostics": {
+        "requestBytes": 14579,
+        "elapsedMillis": 1938,
+        "dispatchedMillis": 4,
+        "connectedMillis": null,
+        "headersMillis": 1918,
+        "firstBodyMillis": 1919,
+        "bodyCompletedMillis": 1919,
+        "responseBytes": 593,
+        "requestId": "bedfd043-0ede-9efc-9fd7-565b12f9300d",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 2499,
+      "outputTokens": 80,
+      "usageEstimateCny": "0.0022152",
+      "actualInvoiceCny": null,
+      "invoiceStatus": "UNKNOWN_UNTIL_RECONCILED"
+    },
+    {
+      "taskId": "8c687d69-833f-405f-aaeb-80f0ec5cb386",
+      "runId": "1fb4624b-9623-465b-a153-8a11d3deced3",
+      "attempt": 4,
+      "purpose": "PUBLICATION_REVIEW",
+      "dispatchState": "DISPATCHED",
+      "httpStatus": 200,
+      "responseReceived": true,
+      "headersObserved": true,
+      "requestId": "175ffaa7-5fff-9877-8e8f-9051dc929055",
+      "requestSha256": "ba8a949d26f950c38b6f40fe90814ad23c826a006d89011bfe68a69c6e2748d7",
+      "responseSha256": "ddd9e8d618e587d54a48df6b703894e2ecaacb9cefd7f7ff3745a698d4528d27",
+      "requestRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/1fb4624b-9623-465b-a153-8a11d3deced3-4-REQUEST.json",
+      "responseRecord": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047/1fb4624b-9623-465b-a153-8a11d3deced3-4-RESPONSE.json",
+      "proposedAction": null,
+      "validation": {
+        "stage": "NONE",
+        "code": "NONE",
+        "readSelection": null
+      },
+      "providerReason": null,
+      "diagnostics": {
+        "requestBytes": 7731,
+        "elapsedMillis": 3667,
+        "dispatchedMillis": 3,
+        "connectedMillis": null,
+        "headersMillis": 3655,
+        "firstBodyMillis": 3655,
+        "bodyCompletedMillis": 3655,
+        "responseBytes": 1048,
+        "requestId": "175ffaa7-5fff-9877-8e8f-9051dc929055",
+        "responseModel": "qwen3.8-flash",
+        "transportFailure": null
+      },
+      "inputTokens": 1946,
+      "outputTokens": 248,
+      "usageEstimateCny": "0.0022264",
+      "actualInvoiceCny": null,
+      "invoiceStatus": "UNKNOWN_UNTIL_RECONCILED"
+    }
+  ],
+  "tracePhasesNotDoubleCounted": {
+    "BEGIN": 8,
+    "RECEIVED": 8,
+    "FINISHED": 8
+  }
 }
