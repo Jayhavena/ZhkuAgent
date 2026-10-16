@@ -1,0 +1,52 @@
+﻿
+[t06] ===== 场景 existing =====
+[t06] maven: mvnw.cmd -pl knowledge -Dtest=RuleAgentTaskHttpTest -Dzhku.ruleche
+ck.evidenceDir=C:\Users\nangua\.codex\worktrees\t06-controlled-launch\ZhkuAgent
+\docs\evidence\t06-t07\2026-10-16\t06-unified-20261016-204306\existing test
+[t06] 证据已归档：C:\Users\nangua\.codex\worktrees\t06-controlled-launch\ZhkuAgent\do
+cs\evidence\t06-t07\2026-10-16\t06-unified-20261016-204306\existing\http-exchan
+ges.json（25319 字节）
+
+[t06] ===== 场景 chain =====
+[t06] 一次性临时库 zhku-t06-tmpdb-20261016-204306-1（127.0.0.1:56884/zhkuagent_ruleche
+ck_e2e）
+[t06] maven: mvnw.cmd -pl knowledge -Dtest=RuleAgentSimulatedChainTempDbHttpTes
+t#realIdentityAndReviewedAssetsOverActualHttpWithCsrfIdempotencyAndIsolation -D
+zhku.rulecheck.evidenceDir=C:\Users\nangua\.codex\worktrees\t06-controlled-laun
+ch\ZhkuAgent\docs\evidence\t06-t07\2026-10-16\t06-unified-20261016-204306\chain
+ -Dzhku.db.url=jdbc:postgresql://127.0.0.1:56884/zhkuagent_rulecheck_e2e -Dzhku
+.t06.root=D:\alldesk\Projects\ZhkuAgent test
+[t06] 证据已归档：C:\Users\nangua\.codex\worktrees\t06-controlled-launch\ZhkuAgent\do
+cs\evidence\t06-t07\2026-10-16\t06-unified-20261016-204306\chain\simulated-chai
+n-tempdb.json（8902 字节）
+[t06] 已回收临时库容器 zhku-t06-tmpdb-20261016-204306-1
+
+[t06] ===== 场景 proxy =====
+[t06] 一次性临时库 zhku-t06-tmpdb-20261016-204306-2（127.0.0.1:56884/zhkuagent_ruleche
+ck_e2e）
+[t06] 宿主转发已就绪（PID 53736，脚本 C:\Users\nangua\AppData\Local\Temp\t06-proxy-relay-2
+0261016-204306.py）
+[t06] nginx 已就绪（zhku-t06-nginx-20261016-204306：127.0.0.1:18082 -> 仓库 nginx.conf
+ -> host.docker.internal:18083 -> 后端 127.0.0.1:18081）
+[t06] maven: mvnw.cmd -pl knowledge -Dtest=RuleAgentSimulatedChainTempDbHttpTes
+t#sameChainThroughRepoNginxProxyWithActualProxiedResponses -Dzhku.rulecheck.evi
+denceDir=C:\Users\nangua\.codex\worktrees\t06-controlled-launch\ZhkuAgent\docs\
+evidence\t06-t07\2026-10-16\t06-unified-20261016-204306\proxy -Dzhku.db.url=jdb
+c:postgresql://127.0.0.1:56884/zhkuagent_rulecheck_e2e -Dzhku.t06.root=D:\allde
+sk\Projects\ZhkuAgent -Dzhku.proxy.backendPort=18081 -Dzhku.proxy.bindAddress=1
+27.0.0.1 -Dzhku.proxy.publicPort=18082 test
+[t06] 证据已归档：C:\Users\nangua\.codex\worktrees\t06-controlled-launch\ZhkuAgent\do
+cs\evidence\t06-t07\2026-10-16\t06-unified-20261016-204306\proxy\proxied-chain.
+json（7136 字节）
+[t06] 宿主转发已终止（PID 53736）
+[t06] nginx 容器已回收（zhku-t06-nginx-20261016-204306）
+[t06] 已回收临时库容器 zhku-t06-tmpdb-20261016-204306-2
+
+[t06] ===== 汇总 =====
+  场景：existing -> chain -> proxy
+  证据目录：C:\Users\nangua\.codex\worktrees\t06-controlled-launch\ZhkuAgent\docs\ev
+idence\t06-t07\2026-10-16\t06-unified-20261016-204306
+  maven 退出码：0（0=通过）
+  记账边界：chain/proxy 决策段为宿主模拟执行器（模型尝试 0、供应商 0）；existing 为 HTTP 契约面（databaseCalls=
+0）。
+  结论：本轮各场景 maven 判定通过；在线链路未运行，不得读作在线可用。
