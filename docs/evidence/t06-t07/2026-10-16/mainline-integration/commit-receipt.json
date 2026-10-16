@@ -21,10 +21,28 @@
     ]
   },
   "mergeCommit": {
-    "sha": "PENDING — 证据提交必须先落定，合并提交才能产生；最终 SHA 记录在主线 ref 与合并提交消息中",
-    "parents": ["ec1e36234327e1de2d14c0a9ddb05148a02b885a", "本证据提交"],
+    "sha": "d3937d619441a9ed63843f44d6ff2cc926c5f7d1",
+    "short": "d3937d6",
+    "parents": [
+      "ec1e36234327e1de2d14c0a9ddb05148a02b885a (zhkuagent-modules 推进前)",
+      "6803e2b0837ba1daa1183b8dcdf08be57b200255 (本证据提交)"
+    ],
+    "mergedTree": "d3a4f35b012f860dc63c60fdf79f74b9221dc476",
+    "frontendSubtree": "3237572c35dfe207b77bd59f7f204cf31ec049c6",
+    "frontendSubtreeIdenticalToPreEvidenceTree": true,
     "method": "merge-tree + commit-tree + update-ref（不在主线 worktree 执行 git merge）",
-    "safetyRef": "backup-zhkuagent-modules-before-t07-<sha>"
+    "safetyRef": "refs/backup/backup-zhkuagent-modules-before-t07-ec1e362 -> ec1e36234327e1de2d14c0a9ddb05148a02b885a",
+    "mainlineAdvancedAt": "2026-10-16",
+    "intermediateState": "update-ref 后主线 worktree 索引仍停在 ec1e362，status 一度显示 997 项'待提交的回退'；已用 git reset --mixed 同步索引（不动工作区）",
+    "mainlineWorktreeSync": {
+      "action": "git checkout --pathspec-from-file（142 条路径，取自 ec1e362..d3937d6）",
+      "excluded": "刻意排除别人未提交改动的 4 个 docs/product 文件（命中 0 条，未覆盖）",
+      "resultBefore": "997 条 status 条目",
+      "resultAfter": "4 条已跟踪改动（正是那 4 个 docs/product）+ 851 条未跟踪（与推进前一致）",
+      "untrackedDirsPreserved": [".learnings/", ".superpowers/", "career/"],
+      "othersUncommittedDiffPreserved": true,
+      "backupOfTheirDiff": "tmp/t07-merge/mainline-worktree-uncommitted.patch（1438 行，未入库，含他人未提交内容）"
+    }
   },
   "notDone": [
     "未 push / PR / 打标签 / 部署 / 改写历史",

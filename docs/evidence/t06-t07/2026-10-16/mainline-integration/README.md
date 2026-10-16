@@ -81,6 +81,26 @@
 
 资产 hash 完全一致说明：合并后的前端源码与 T07 线**字节级等价**（vite 按内容生成 hash）。
 
+## 六之二、主线 worktree 的收尾处理（副作用，须披露）
+
+`update-ref` 只移动 ref、不触碰工作区，因此主线 worktree 的索引仍停在 `ec1e362`，
+`git status` 一度显示 **997 项"待提交的回退"**（含 `D agent/frontend/src/state/identity-bus.js`）。
+此时任何人执行 `git commit` 都会把这次合并反向提交掉，必须收尾。
+
+处理步骤与依据：
+
+1. **先备份他人未提交改动**：`git diff` 导出 1438 行 patch（4 个 `docs/product` 文件），
+   存于 `tmp/` 未入库——含他人未提交内容，不应进仓库。
+2. **`git reset --mixed d3937d6`**：只同步索引，不动工作区。已验证
+   `.learnings/`、`.superpowers/`、`career/` 与 4 个 `docs/product` 改动全部原样保留。
+3. **`git checkout --pathspec-from-file`（142 条路径）**：只同步 `ec1e362..d3937d6` 的
+   差异路径，刻意排除那 4 个文件（命中 0 条），因此**未覆盖任何他人改动**。
+4. 结果：status 从 997 条收敛到 **4 条已跟踪改动（正是那 4 个文件）+ 851 条未跟踪**，
+   与推进前一致；HEAD / 索引 / 工作区三者同步。
+
+一处需要澄清的现象：`RuleAgentTaskBrowserHttpTest.java` 等文件在同步前显示 GONE，
+**不是被删除**——主线 worktree 的工作区本来就停在 `ec1e362`，从未包含这些基线带入的文件。
+
 ## 七、边界声明
 
 - 本轮**只合 T07**，未合 T05、T06 的代码。
