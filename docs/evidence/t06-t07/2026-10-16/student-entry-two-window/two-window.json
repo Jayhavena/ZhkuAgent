@@ -1,0 +1,28 @@
+{
+  "mode": "attached",
+  "baseUrl": "http://127.0.0.1:8161",
+  "executionMode": "TEST_SIMULATION_NO_PROVIDER",
+  "startedHost": false,
+  "checks": {
+    "aHadPublishedResult": true,
+    "otherWindowRevokedDisplay": true,
+    "revocationMessageShown": true,
+    "lateResponseDidNotRevive": true,
+    "cannotSubmitWithoutConfirmedIdentity": true,
+    "resumesOnlyAfterBackendConfirmation": true,
+    "browserExitVerified": true
+  },
+  "steps": [
+    "A in rule-check workbench",
+    "B in rule-check workbench",
+    "A obtained a published result",
+    "B logged out",
+    "A re-authenticated and can query again"
+  ],
+  "unverified": [
+    "宿主自身的退出（由宿主方按其稳定退出方式核对）",
+    "真实供应商（本轮零调用）"
+  ],
+  "edgePidsBeforeLaunch": 0,
+  "edgePidsLeaked": []
+}

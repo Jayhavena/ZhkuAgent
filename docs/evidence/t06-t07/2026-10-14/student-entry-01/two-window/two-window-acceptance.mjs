@@ -72,13 +72,14 @@ async function startFixture() {
   return server
 }
 
-// 退出核对按 PID 集合差集做，而不是只看命令返回：本机常驻用户自己的 Edge，
-// 因此只要求「本工具启动后新增的 msedge 进程在关闭后全部消失」，绝不影响既有进程。
-const EDGE_IMAGE = 'msedge.exe'
+// 退出核对只统计**本工具拉起的**浏览器进程：按命令行特征（headless / playwright 临时 profile）归属，
+// 而不是"运行期间新出现的任意 msedge"。本机用户自己的 Edge 会随时开关标签页，
+// 实测一次被误判成泄漏的两个 PID 全带 --lang=zh-CN、无 headless/playwright 特征。
 function edgePids() {
+  const script = "Get-CimInstance Win32_Process -Filter \"Name='msedge.exe'\" | Where-Object { $_.CommandLine -match 'headless|playwright' } | ForEach-Object { $_.ProcessId }"
   try {
-    const csv = execFileSync('tasklist', ['/FI', `IMAGENAME eq ${EDGE_IMAGE}`, '/FO', 'CSV', '/NH'], { encoding: 'utf8' })
-    return new Set(csv.split(/\r?\n/).map(line => /^"[^"]+","(\d+)"/.exec(line)?.[1]).filter(Boolean))
+    const out = execFileSync('powershell', ['-NoProfile', '-NonInteractive', '-Command', script], { encoding: 'utf8' })
+    return new Set(out.split(/\r?\n/).map(line => line.trim()).filter(Boolean))
   } catch { return new Set() }
 }
 const leaked = baseline => [...edgePids()].filter(pid => !baseline.has(pid))
@@ -155,37 +156,51 @@ async function attachedRun() {
     browser = await chromium.launch({ channel: 'msedge' })
     const context = await browser.newContext({ viewport: { width: 1280, height: 900 } })
     const pageA = await context.newPage(), pageB = await context.newPage()
-    const login = async page => {
+    // 同一上下文里后开的标签页会成为前台，另一个进入后台：Chromium 会限制后台页的渲染，
+    // 可见性类断言会失败。每次操作前把目标页切到前台（这仍然是同上下文的两个窗口）。
+    const focus = async page => { await page.bringToFront() }
+    // 同源 Cookie 会话在两个窗口间共享：后开的窗口通常**已经带身份**，不会出现登录表单，
+    // 因此这里必须幂等——先看是查证台还是登录区，只有真的未登录才走表单。
+    const enterRuleCheck = async page => {
+      await focus(page)
       await page.goto(`${BASE_URL}/rules`, { waitUntil: 'domcontentloaded' })
-      await page.fill('#username', username)
-      await page.fill('#rule-password, input[type=password]', password)
-      await page.click('button[type=submit]')
-      await page.waitForSelector('#rule-question', { timeout: 20000 })
+      await page.waitForSelector('#rule-question, #username', { timeout: 25000 })
+      if (await page.locator('#username').count()) {
+        await page.waitForSelector('#username:not([disabled])', { timeout: 20000 })
+        await page.fill('#username', username)
+        await page.fill('#password', password)
+        await page.click('button[type=submit]')
+      }
+      await page.waitForSelector('#rule-question', { timeout: 25000 })
     }
-    // A、B 同身份登录（同一 Cookie 会话）。
-    await login(pageA); record.steps.push('A logged in')
-    await login(pageB); record.steps.push('B logged in')
+    // A、B 同身份（同一 Cookie 会话）。
+    await enterRuleCheck(pageA); record.steps.push('A in rule-check workbench')
+    await enterRuleCheck(pageB); record.steps.push('B in rule-check workbench')
     // A 取得已发布结果。
+    await focus(pageA)
     await pageA.fill('#rule-question', '合成问题：本工具的两窗口验收')
     await pageA.click('button[type=submit]')
     await pageA.waitForSelector('#decision-title', { timeout: 60000 })
     record.checks.aHadPublishedResult = true
     record.steps.push('A obtained a published result')
     // B 退出（换身份/退出的等价触发）。
+    await focus(pageB)
     await pageB.click('button:has-text("退出登录")')
     await pageB.waitForSelector('#rule-login-title', { timeout: 20000 })
     record.steps.push('B logged out')
     // 另一窗口必须撤销展示，而不是等下一次响应。
+    await focus(pageA)
     await pageA.waitForSelector('#rule-login-title', { timeout: 10000 })
     record.checks.otherWindowRevokedDisplay = (await pageA.locator('#decision-title').count()) === 0
     record.checks.revocationMessageShown = await pageA.getByText('登录状态已在其他窗口变更').count() > 0
     // 迟到响应不得复活旧结果：留出观察窗口后仍须保持已撤销。
+    await focus(pageA)
     await pageA.waitForTimeout(5000)
     record.checks.lateResponseDidNotRevive = (await pageA.locator('#decision-title').count()) === 0
     // 未获后端确认前不能再提交。
     record.checks.cannotSubmitWithoutConfirmedIdentity = (await pageA.locator('#rule-question').count()) === 0
     // 经后端确认的新身份之后才允许继续。
-    await login(pageA)
+    await enterRuleCheck(pageA)
     record.checks.resumesOnlyAfterBackendConfirmation = (await pageA.locator('#rule-question').count()) === 1
     record.steps.push('A re-authenticated and can query again')
     await context.close()
