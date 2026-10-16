@@ -1,0 +1,219 @@
+✔ login uses form protocol then renews CSRF and confirms current actor (62.2437ms)
+✔ 503 accepted preserves runId without repeating POST (1.3574ms)
+✔ lost POST response is unknown and is never retried (1.4894ms)
+✔ 401 clears identity whereas 403 preserves it (1.5673ms)
+✔ late old identity response cannot overwrite new actor even when transport ignores abort (0.8662ms)
+✔ deadline during anonymous CSRF is network failure, not identity change (6.9441ms)
+✔ malformed successful POST is unknown and malformed GET hides result (1.9291ms)
+✔ late 401 from previous identity cannot clear new identity (0.8248ms)
+✔ late logout completion cannot erase a newly logged identity (0.9546ms)
+✔ login cannot overlap pending logout and race server Cookie changes (0.783ms)
+✔ conversation four APIs send only actual fields with CSRF and explicit revision (54.5165ms)
+✔ unknown create and write are distinct and never automatically POST again (1.0475ms)
+✔ restore only exact control snapshot; malformed revisions and pending pairs rejected (0.9815ms)
+✔ evidence unavailable and non-answer types never project a supplied stale answer (0.4338ms)
+✔ message confirms new revision with GET before publishing current exchange (1.4135ms)
+✔ conflict needs explicit read and confirmation, never automatic resubmission (1.0517ms)
+✔ confirmed POST but follow-up GET failure shows no answer and locks writes (0.6558ms)
+✔ expired or cancelled control state cannot be revived by send (0.6337ms)
+✔ cancel clears current body and preserves returned revision and expiry (0.6676ms)
+✔ unknown creation stays locked until explicit acknowledgement, no fabricated ID (0.8253ms)
+✔ dispose and route change discard late reply even if transport ignores abort (0.831ms)
+✔ explicit refresh clears old exchange and restores pending without chat history (0.4473ms)
+✔ recovery GET failure cannot remove the explicit confirmation gate (0.6506ms)
+✔ late conversation GET after identity invalidation is discarded by real client (0.9198ms)
+✔ withdrawn evidence replaces prior answer without preserving source (0.3657ms)
+[Vue Router warn]: No match found for location with path "/campus/history"
+[Vue Router warn]: No match found for location with path "/campus/history"
+[Vue Router warn]: No match found for location with path "/campus/history"
+[Vue Router warn]: No match found for location with path "/campus/history"
+[Vue Router warn]: No match found for location with path "/campus/history"
+[Vue Router warn]: No match found for location with path "/campus/history"
+✔ same submission key with different content explains conflict and deliberate new task (1.8099ms)
+✔ completed live and finalized archived tasks never claim still confirming submission (18.3138ms)
+✔ missing or unconfirmed record retains uncertainty without asserting never accepted (3.383ms)
+✔ known running task is found but not called completed (1.3721ms)
+✔ submission projection matches actual live/archived contract and hides unconfirmed cached body (1.9675ms)
+✔ interrupted and admitted archive facts do not invent Runtime termination or running state (0.8325ms)
+✔ online hidden or unconfirmed never renders cached body despite SUCCEEDED (0.4083ms)
+✔ cancelled response with terminated false is not finished cleanup (0.3363ms)
+✔ history requires confirmed final archive and current visible permission (0.6166ms)
+✔ visible real response is text plus response source, without fabricated total (1.2588ms)
+✔ return route permits only internal campus pages (1.0748ms)
+✔ cancel and timeout labels wait for termination instead of promising completion (0.2983ms)
+✔ generated online result and finalized history do not invent the same cleanup signal (0.4249ms)
+✔ hidden and unconfirmed results explain access without calling execution a failure (0.317ms)
+✔ cancelled and incomplete tasks offer relevant next actions rather than waiting for an answer (0.1951ms)
+✔ identity invalidation clears actor and token and advances generation (2.0839ms)
+✔ clear aborts registered readers and invalidates delivery ticket (0.5875ms)
+✔ freeze original request, manual resend retains key and body, refresh persists metadata only (5.297ms)
+✔ at most five hints, new task new key, logout and switch erase old identity hints (0.877ms)
+✔ confirmed expiry and runId survive refresh, stale owner cannot attach reply (1.0307ms)
+✔ no insecure UUID fallback; corrupt storage cannot restore request or results (0.5347ms)
+✔ one POST with original key, loss followed by GET confirmation never automatic resend (35.4231ms)
+✔ invalid/missing key performs zero HTTP; late confirmation cannot affect new identity (1.543ms)
+✔ explicit retry uses frozen original and the same header, not edited form content (1.18ms)
+✔ 401 keeps confirmation metadata for same-user reauthentication; explicit logout removes it (3.2383ms)
+✔ shared snapshot: complete (6.1167ms)
+✔ shared snapshot: partial-and-clarification (0.6614ms)
+✔ shared snapshot: partial-and-data-gap (0.3846ms)
+✔ shared snapshot: partial-and-processing-failure (0.4102ms)
+✔ shared snapshot: conflict-only-blocks-related-item (0.4394ms)
+✔ shared snapshot: honest-data-gap (0.3651ms)
+✔ shared snapshot: replay-not-covered (0.3557ms)
+✔ shared snapshot: cancel-request-is-not-termination (0.1999ms)
+✔ shared snapshot: cancelled-with-safe-partial-content (0.3483ms)
+✔ shared snapshot: resume-can-retain-previous-result (0.4151ms)
+✔ reject snapshot: unknown-schema (1.6505ms)
+✔ reject snapshot: unknown-field (0.195ms)
+✔ reject snapshot: missing-field (0.1356ms)
+✔ reject snapshot: invalid-uuid (0.1233ms)
+✔ reject snapshot: unsafe-version (0.1122ms)
+✔ reject snapshot: numeric-enum (0.1663ms)
+✔ reject snapshot: coverage-cannot-hide-unknown (0.21ms)
+✔ reject snapshot: partial-without-missing-item (0.1471ms)
+✔ reject snapshot: unrelated-evidence (0.2183ms)
+✔ reject snapshot: claim-without-evidence (0.2253ms)
+✔ reject snapshot: forged-relation (0.4323ms)
+✔ reject snapshot: duplicate-relation (0.2117ms)
+✔ reject snapshot: quote-span-mismatch (0.5692ms)
+✔ reject snapshot: source-revision-mismatch (0.181ms)
+✔ reject snapshot: conflict-with-one-side (0.2615ms)
+✔ reject snapshot: waiting-without-token (0.2767ms)
+✔ reject snapshot: resolved-with-open-clarification (0.1847ms)
+✔ reject snapshot: active-run-not-terminated (0.16ms)
+✔ reject snapshot: cancelled-but-resource-not-closed (0.1584ms)
+✔ reject snapshot: failure-must-state-processing-reason (0.2011ms)
+✔ reject snapshot: current-result-run-mismatch (0.1369ms)
+✔ reject snapshot: active-cannot-publish-current-version (0.2206ms)
+✔ reject snapshot: replay-must-not-call-provider (0.1579ms)
+✔ reject snapshot: online-cannot-relabel-replay (0.1243ms)
+✔ reject snapshot: response-without-attempt (0.1232ms)
+✔ reject snapshot: unknown-reason-code (0.1605ms)
+✔ reject snapshot: inconsistent-reason-kind (0.1546ms)
+✔ reject snapshot: duplicate-question-id (0.1329ms)
+✔ reject snapshot: candidate-not-publishable-fact (0.1065ms)
+✔ reject snapshot: unicode-surrogate (0.1575ms)
+✔ reject snapshot: model-budget-exceeded (0.1092ms)
+✔ reject snapshot: evidence-byte-budget (1.1033ms)
+✔ old reply cannot be silently upgraded to the new task schema (0.3112ms)
+✔ five calls fit the closeout budget and six remain invalid (0.4991ms)
+✔ actual Java HTTP answer accepts declaredConditions and normalizes UI conditions (51.9246ms)
+✔ v2 login renews CSRF and reads independent actor without v1 calls (2.4685ms)
+✔ check sends only explicit conditions and server continuation token (0.628ms)
+✔ supporting references obey the same citation contract and a five item limit (1.319ms)
+✔ new question discards late successful answer even when abort ignored (3.2225ms)
+✔ late old epoch 401 cannot clear new logged in actor (1.0306ms)
+✔ all five statuses pass contract but contradictory fact shapes are refused (2.2798ms)
+✔ original rejects invalid context spans and unsafe links without showing old text (1.9157ms)
+✔ invalid request or original handle never invokes transport (0.4464ms)
+✔ network loss does not retry and does not claim not accepted (0.4102ms)
+✔ new question discards original response from earlier round (3.499ms)
+✔ identity changes are serialized and me detects changed auth revision (1.3348ms)
+✔ current 401 clears its own identity but preserves actionable auth error (0.3718ms)
+✔ half surrogate quote and context boundary are rejected (0.6206ms)
+✔ current empty or HTML 401 clears identity independently of error body parsing (0.4473ms)
+✔ old epoch non JSON 401 never clears new current actor (1.0059ms)
+✔ public me during logout cannot refill actor with late success (0.8536ms)
+✔ old question CSRF preflight 401 cannot erase new successful question (1.6938ms)
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+[Vue Router warn]: No match found for location with path "/campus/run"
+[Vue Router warn]: No match found for location with path "/super-agent"
+✔ student page has independent login and explicit first reference boundary (58.9462ms)
+✔ clarification and refusal show separate original controls without confirmed facts (13.2669ms)
+✔ all five decisions have distinct visible outcomes (26.67ms)
+✔ confirmed facts disclose declared conditions and original action (6.0736ms)
+✔ necessary clarification displays only allowed choices and no invented fact (5.304ms)
+✔ reviewed course type choices and confirmed facts use student labels while preserving submitted codes (26.34ms)
+✔ original highlight uses relative span and recorded page mapping remains unknown (25.757ms)
+✔ policy and original are escaped text and javascript links are never emitted (25.1636ms)
+✔ pending, missing evidence, unconfirmed outcome and logout uncertainty stay distinct (50.2252ms)
+✔ maintainer cannot use student question form (8.5953ms)
+✔ unconfirmed login requires identity read before another login attempt (15.6735ms)
+✔ login pending then unmount and return preserves uncertainty until identity read (28.8941ms)
+✔ unmounted login failure cannot mark a later identity uncertain (6.6283ms)
+✔ busy execution is separate from business decision and no retry on unknown outcome (3.0268ms)
+✔ clarification sends only current allowed delta and never guesses unknown conditions (1.7742ms)
+✔ new question clears previous answer and original before pending query completes (0.6696ms)
+✔ identity epoch change immediately clears displayed content and old async response (0.8871ms)
+✔ reset and disposal reject late original response even if transport resolves (0.4397ms)
+✔ failed original retrieval clears old original and outcome remains explicit (0.7849ms)
+✔ explicitly expired or changed original invalidates the supported answer without automatic retry (0.8568ms)
+✔ an original network failure alone does not claim that the already received answer was revoked (0.4566ms)
+✔ a late expired original response cannot invalidate a newer answer (0.5342ms)
+✔ connection loss records unconfirmed result and never automatically resubmits (0.6649ms)
+✔ student login and navigation expose rules only (119.2983ms)
+✔ student presents shared complete (11.2383ms)
+✔ student presents shared partial-and-clarification (9.8353ms)
+✔ student presents shared partial-and-data-gap (7.2479ms)
+✔ student presents shared partial-and-processing-failure (6.0713ms)
+✔ student presents shared conflict-only-blocks-related-item (4.7995ms)
+✔ student presents shared honest-data-gap (6.6811ms)
+✔ student presents shared replay-not-covered (4.3953ms)
+✔ student presents shared cancel-request-is-not-termination (6.4666ms)
+✔ student presents shared cancelled-with-safe-partial-content (6.4228ms)
+✔ student presents shared resume-can-retain-previous-result (2.6976ms)
+✔ partial answers, processing failure, missing data and replay have separate labels (10.026ms)
+✔ identity uncertainty and task receipt uncertainty provide explicit recovery (7.0201ms)
+✔ rules are escaped and only related evidence is rendered after explanations (6.1879ms)
+✔ frozen T05 processing reasons and five simulated attempts preserve safe partial content (20.754ms)
+✔ accepted contract rejects unsafe identifiers, versions and extra server authority (1.1585ms)
+✔ task transport consumes async receipt and validates snapshot (1.8951ms)
+✔ create returns immediately then polling stops on published snapshot (3.3166ms)
+✔ query failure keeps accepted task and does not repeat POST (0.4703ms)
+✔ lost create acknowledgement recovers by original request key only (0.3581ms)
+✔ same-task clarification uses nonce/version; new run accepts safe old result (0.8879ms)
+✔ cancel accepted is not terminal and continues polling until backend termination (0.6161ms)
+✔ old polling success cannot repopulate next question or identity (1.3873ms)
+✔ snapshot identity and version conflicts are rejected without inventing task failure (1.3439ms)
+✔ HTTP version conflict preserves snapshot and asks for fresh query (0.857ms)
+✔ late original and dispose cannot retain old identity content (0.9184ms)
+✔ student route / resolves to rules only (4.2353ms)
+✔ student route /campus/run resolves to rules only (0.8083ms)
+✔ student route /campus/history resolves to rules only (1.3092ms)
+✔ student route /campus/conversation resolves to rules only (0.3595ms)
+✔ student route /campus/login resolves to rules only (0.3541ms)
+✔ student route /super-agent resolves to rules only (0.3429ms)
+ℹ tests 167
+ℹ suites 0
+ℹ pass 167
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6494.4271

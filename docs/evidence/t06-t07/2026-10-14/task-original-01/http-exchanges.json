@@ -1,0 +1,285 @@
+{
+  "executionMode" : "TEST_SIMULATION_NO_PROVIDER",
+  "resourcesExited" : true,
+  "sourceSha" : "5ee26d897d21b9639eae6852d1fbfd14f0e3afd4",
+  "databaseCalls" : 0,
+  "exchanges" : [ {
+    "path" : "/tasks/capabilities",
+    "actual" : "{\"code\":\"AUTHENTICATION_REQUIRED\",\"message\":\"需要有效登录\"}",
+    "method" : "GET",
+    "status" : 401,
+    "input" : ""
+  }, {
+    "path" : "/tasks/capabilities",
+    "actual" : "{\"code\":\"ACCESS_DENIED\",\"message\":\"请求未获许可\"}",
+    "method" : "GET",
+    "status" : 403,
+    "input" : ""
+  }, {
+    "path" : "/tasks/capabilities",
+    "actual" : "{\"schemaVersion\":3,\"asynchronous\":true}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"code\":\"ACCESS_DENIED\",\"message\":\"请求未获许可\"}",
+    "method" : "POST",
+    "status" : 403,
+    "input" : "{\"clientRequestId\":\"10b1279a-128e-4d49-bd52-98df16d02867\",\"question\":\"澄清\"}"
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"code\":\"INVALID_TASK_REQUEST\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "POST",
+    "status" : 400,
+    "input" : "{\"clientRequestId\":\"10b1279a-128e-4d49-bd52-98df16d02867\",\"question\":\"问题\",\"actorId\":\"76faca6e-54f1-4d90-9297-e51092cb6e89\"}"
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"code\":\"INVALID_TASK_REQUEST\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "POST",
+    "status" : 400,
+    "input" : "{\"question\":\"一\",\"question\":\"二\",\"clientRequestId\":\"10b1279a-128e-4d49-bd52-98df16d02867\"}"
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"code\":\"REQUEST_TOO_LARGE\",\"message\":\"请求内容超过大小限制\"}",
+    "method" : "POST",
+    "status" : 413,
+    "input" : "OVERSIZE_SYNTHETIC_INPUT"
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"taskId\":\"c33f3ef6-7a23-41bb-88c7-0cda299039b7\",\"turnId\":\"84568661-b103-49b8-88a1-8d697bf10d0e\",\"runId\":\"cdc0f5c7-1734-4539-a15f-a6a4aa36bc24\",\"version\":1,\"duplicate\":false}",
+    "method" : "POST",
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"10b1279a-128e-4d49-bd52-98df16d02867\",\"question\":\"澄清\"}"
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"taskId\":\"c33f3ef6-7a23-41bb-88c7-0cda299039b7\",\"turnId\":\"84568661-b103-49b8-88a1-8d697bf10d0e\",\"runId\":\"cdc0f5c7-1734-4539-a15f-a6a4aa36bc24\",\"version\":1,\"duplicate\":true}",
+    "method" : "POST",
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"10b1279a-128e-4d49-bd52-98df16d02867\",\"question\":\"澄清\"}"
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"code\":\"TASK_CONFLICT\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "POST",
+    "status" : 409,
+    "input" : "{\"clientRequestId\":\"10b1279a-128e-4d49-bd52-98df16d02867\",\"question\":\"不同问题\"}"
+  }, {
+    "path" : "/tasks/requests/CREATE/10b1279a-128e-4d49-bd52-98df16d02867",
+    "actual" : "{\"taskId\":\"c33f3ef6-7a23-41bb-88c7-0cda299039b7\",\"turnId\":\"84568661-b103-49b8-88a1-8d697bf10d0e\",\"runId\":\"cdc0f5c7-1734-4539-a15f-a6a4aa36bc24\",\"version\":1,\"duplicate\":false}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET",
+    "status" : 404,
+    "input" : ""
+  }, {
+    "path" : "/tasks/requests/CREATE/10b1279a-128e-4d49-bd52-98df16d02867",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET",
+    "status" : 404,
+    "input" : ""
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"c33f3ef6-7a23-41bb-88c7-0cda299039b7\",\"turnId\":\"84568661-b103-49b8-88a1-8d697bf10d0e\",\"runId\":\"cdc0f5c7-1734-4539-a15f-a6a4aa36bc24\",\"version\":1,\"taskStatus\":\"ACTIVE\",\"runState\":\"CREATED\",\"terminated\":false,\"result\":null,\"continuationToken\":null,\"execution\":{\"mode\":\"ONLINE\",\"modelAttemptCount\":0,\"toolStepCount\":0,\"providerResponseReceived\":false,\"answerSource\":\"NONE\",\"replayCoverage\":\"NOT_APPLICABLE\"}}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"c33f3ef6-7a23-41bb-88c7-0cda299039b7\",\"turnId\":\"84568661-b103-49b8-88a1-8d697bf10d0e\",\"runId\":\"cdc0f5c7-1734-4539-a15f-a6a4aa36bc24\",\"version\":2,\"taskStatus\":\"WAITING_USER\",\"runState\":\"INCOMPLETE\",\"terminated\":true,\"result\":{\"publishedVersion\":2,\"originatingRunId\":\"cdc0f5c7-1734-4539-a15f-a6a4aa36bc24\",\"catalogueVersion\":\"synthetic-http-v1\",\"referenceRevision\":\"2025.9.2\",\"coverage\":\"NONE\",\"items\":[{\"id\":\"q1\",\"coverage\":\"NONE\",\"claims\":[],\"issues\":[{\"id\":\"condition\",\"kind\":\"CLARIFICATION\",\"reasonCode\":\"MISSING_CONDITION\",\"message\":\"请确认课程类别\",\"nextStep\":\"补充必要条件\"}],\"clarification\":[{\"conditionId\":\"courseType\",\"question\":\"课程类别？\",\"allowedValues\":[\"PUBLIC\",\"PROFESSIONAL\"]}]}],\"evidence\":[],\"evidenceRelations\":[]},\"continuationToken\":\"84e54d3a-b8c9-4362-becd-47048926476d\",\"execution\":{\"mode\":\"ONLINE\",\"modelAttemptCount\":0,\"toolStepCount\":0,\"providerResponseReceived\":false,\"answerSource\":\"NONE\",\"replayCoverage\":\"NOT_APPLICABLE\"}}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7/messages",
+    "actual" : "{\"code\":\"TASK_CONFLICT\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "POST",
+    "status" : 409,
+    "input" : "{\"clientRequestId\":\"549e56b6-ac64-4c28-ada6-e0ef6ac680cb\",\"expectedVersion\":1,\"message\":\"PUBLIC\",\"continuationToken\":\"84e54d3a-b8c9-4362-becd-47048926476d\"}"
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7/messages",
+    "actual" : "{\"code\":\"INVALID_TASK_REQUEST\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "POST",
+    "status" : 400,
+    "input" : "{\"clientRequestId\":\"549e56b6-ac64-4c28-ada6-e0ef6ac680cb\",\"expectedVersion\":1.5,\"message\":\"PUBLIC\",\"continuationToken\":\"84e54d3a-b8c9-4362-becd-47048926476d\"}"
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7/messages",
+    "actual" : "{\"taskId\":\"c33f3ef6-7a23-41bb-88c7-0cda299039b7\",\"turnId\":\"61a5ddf6-96dc-4f52-a37e-3b04dbe2d80f\",\"runId\":\"6a7a6397-6eef-4203-bd73-a840f2c404e2\",\"version\":3,\"duplicate\":false}",
+    "method" : "POST",
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"549e56b6-ac64-4c28-ada6-e0ef6ac680cb\",\"expectedVersion\":2,\"message\":\"PUBLIC\",\"continuationToken\":\"84e54d3a-b8c9-4362-becd-47048926476d\"}"
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7/messages",
+    "actual" : "{\"taskId\":\"c33f3ef6-7a23-41bb-88c7-0cda299039b7\",\"turnId\":\"61a5ddf6-96dc-4f52-a37e-3b04dbe2d80f\",\"runId\":\"6a7a6397-6eef-4203-bd73-a840f2c404e2\",\"version\":3,\"duplicate\":true}",
+    "method" : "POST",
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"549e56b6-ac64-4c28-ada6-e0ef6ac680cb\",\"expectedVersion\":2,\"message\":\"PUBLIC\",\"continuationToken\":\"84e54d3a-b8c9-4362-becd-47048926476d\"}"
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7/messages",
+    "actual" : "{\"code\":\"TASK_CONFLICT\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "POST",
+    "status" : 409,
+    "input" : "{\"clientRequestId\":\"efd94c10-6d20-45a6-8d9c-9a8a0368884f\",\"expectedVersion\":2,\"message\":\"PUBLIC\",\"continuationToken\":\"84e54d3a-b8c9-4362-becd-47048926476d\"}"
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"c33f3ef6-7a23-41bb-88c7-0cda299039b7\",\"turnId\":\"61a5ddf6-96dc-4f52-a37e-3b04dbe2d80f\",\"runId\":\"6a7a6397-6eef-4203-bd73-a840f2c404e2\",\"version\":4,\"taskStatus\":\"RESOLVED\",\"runState\":\"SUCCEEDED\",\"terminated\":true,\"result\":{\"publishedVersion\":4,\"originatingRunId\":\"6a7a6397-6eef-4203-bd73-a840f2c404e2\",\"catalogueVersion\":\"synthetic-http-v1\",\"referenceRevision\":\"2025.9.2\",\"coverage\":\"COMPLETE\",\"items\":[{\"id\":\"q1\",\"coverage\":\"COMPLETE\",\"claims\":[{\"id\":\"answer\",\"factId\":\"fixture-fact\",\"text\":\"合成确认内容\",\"when\":{},\"conditionSource\":\"USER_DECLARED\"}],\"issues\":[],\"clarification\":[]}],\"evidence\":[{\"id\":\"ba3336f4-1ef1-4b3b-93ec-fd27ab3f626f:0-13\",\"sourceId\":\"013779bd-9506-40ee-b0b7-b1cd737bc51b\",\"chunkId\":\"9e7e8175-a53a-4034-b34f-444232c067ba\",\"revision\":\"2025.9.2\",\"checksum\":\"835c13f5bebe3033bc3638b22fbdebee79c8d4ae676c59b1fb28e24cf4c830b1\",\"startInclusive\":0,\"endExclusive\":13,\"quote\":\"合成条款：仅用于接口验收。\",\"originalToken\":\"28140c78-99aa-40f5-b35e-b59d947860d9\"}],\"evidenceRelations\":[{\"evidenceId\":\"ba3336f4-1ef1-4b3b-93ec-fd27ab3f626f:0-13\",\"subquestionId\":\"q1\",\"role\":\"CLAIM\",\"targetId\":\"answer\"}]},\"continuationToken\":null,\"execution\":{\"mode\":\"ONLINE\",\"modelAttemptCount\":0,\"toolStepCount\":2,\"providerResponseReceived\":false,\"answerSource\":\"VERIFIED_RULE_ONLY\",\"replayCoverage\":\"NOT_APPLICABLE\"}}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7/originals/28140c78-99aa-40f5-b35e-b59d947860d9",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET",
+    "status" : 404,
+    "input" : ""
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7/originals/1273a6dd-2613-4531-9b2c-137b0d719977",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET",
+    "status" : 404,
+    "input" : ""
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7/originals/28140c78-99aa-40f5-b35e-b59d947860d9",
+    "actual" : "{\"citationId\":\"ba3336f4-1ef1-4b3b-93ec-fd27ab3f626f\",\"sourceId\":\"013779bd-9506-40ee-b0b7-b1cd737bc51b\",\"chunkId\":\"9e7e8175-a53a-4034-b34f-444232c067ba\",\"revision\":\"2025.9.2\",\"title\":\"合成手册\",\"sourceLocator\":\"合成条款\",\"recordedPageNumber\":null,\"pageNumberKind\":\"UNKNOWN\",\"sectionTitle\":null,\"safeSourceUrl\":null,\"contextText\":\"合成条款：仅用于接口验收。\",\"contextStartInclusive\":0,\"quoteStartInclusive\":0,\"quoteEndExclusive\":13,\"unknownItems\":[\"来源页码尚未记录\",\"暂无已验证安全的原件地址\"]}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7/originals/28140c78-99aa-40f5-b35e-b59d947860d9",
+    "actual" : "{\"code\":\"TASK_EXPIRED\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET",
+    "status" : 409,
+    "input" : ""
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"taskId\":\"e31bcf43-187c-4496-a53e-18c3fd357605\",\"turnId\":\"547ebb4d-a5db-42f5-b039-b62214368e12\",\"runId\":\"a4f0b602-0a42-41b3-b3e0-0260db2e4cb4\",\"version\":1,\"duplicate\":false}",
+    "method" : "POST",
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"87bfbdaf-c8d8-4118-9a07-b5e3adca6483\",\"question\":\"部分\"}"
+  }, {
+    "path" : "/tasks/e31bcf43-187c-4496-a53e-18c3fd357605",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"e31bcf43-187c-4496-a53e-18c3fd357605\",\"turnId\":\"547ebb4d-a5db-42f5-b039-b62214368e12\",\"runId\":\"a4f0b602-0a42-41b3-b3e0-0260db2e4cb4\",\"version\":2,\"taskStatus\":\"RESOLVED\",\"runState\":\"INCOMPLETE\",\"terminated\":true,\"result\":{\"publishedVersion\":2,\"originatingRunId\":\"a4f0b602-0a42-41b3-b3e0-0260db2e4cb4\",\"catalogueVersion\":\"synthetic-http-v1\",\"referenceRevision\":\"2025.9.2\",\"coverage\":\"PARTIAL\",\"items\":[{\"id\":\"q1\",\"coverage\":\"PARTIAL\",\"claims\":[{\"id\":\"answer\",\"factId\":\"fixture-fact\",\"text\":\"合成确认内容\",\"when\":{},\"conditionSource\":\"USER_DECLARED\"}],\"issues\":[{\"id\":\"gap\",\"kind\":\"DATA_GAP\",\"reasonCode\":\"CURRENT_NOTICE_MISSING\",\"message\":\"未取得当期通知\",\"nextStep\":\"核对当期通知\"}],\"clarification\":[]}],\"evidence\":[{\"id\":\"d6c73137-973b-428e-947a-eced88a19e2a:0-13\",\"sourceId\":\"013779bd-9506-40ee-b0b7-b1cd737bc51b\",\"chunkId\":\"9e7e8175-a53a-4034-b34f-444232c067ba\",\"revision\":\"2025.9.2\",\"checksum\":\"835c13f5bebe3033bc3638b22fbdebee79c8d4ae676c59b1fb28e24cf4c830b1\",\"startInclusive\":0,\"endExclusive\":13,\"quote\":\"合成条款：仅用于接口验收。\",\"originalToken\":\"44d7a700-cda9-4635-b24f-25f948822281\"}],\"evidenceRelations\":[{\"evidenceId\":\"d6c73137-973b-428e-947a-eced88a19e2a:0-13\",\"subquestionId\":\"q1\",\"role\":\"CLAIM\",\"targetId\":\"answer\"}]},\"continuationToken\":null,\"execution\":{\"mode\":\"ONLINE\",\"modelAttemptCount\":0,\"toolStepCount\":2,\"providerResponseReceived\":false,\"answerSource\":\"VERIFIED_RULE_ONLY\",\"replayCoverage\":\"NOT_APPLICABLE\"}}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks/e31bcf43-187c-4496-a53e-18c3fd357605/originals/28140c78-99aa-40f5-b35e-b59d947860d9",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET",
+    "status" : 404,
+    "input" : ""
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"taskId\":\"c864fdf5-c823-43f3-aed2-79313abc6de6\",\"turnId\":\"3d9144da-42b2-4fa7-b6cb-c25eab94323e\",\"runId\":\"e0f6033b-0921-47e3-8773-62ee37dc2e51\",\"version\":1,\"duplicate\":false}",
+    "method" : "POST",
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"0727badc-0acc-4a2a-9727-fc5e738a75bc\",\"question\":\"缺证\"}"
+  }, {
+    "path" : "/tasks/c864fdf5-c823-43f3-aed2-79313abc6de6",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"c864fdf5-c823-43f3-aed2-79313abc6de6\",\"turnId\":\"3d9144da-42b2-4fa7-b6cb-c25eab94323e\",\"runId\":\"e0f6033b-0921-47e3-8773-62ee37dc2e51\",\"version\":2,\"taskStatus\":\"RESOLVED\",\"runState\":\"INCOMPLETE\",\"terminated\":true,\"result\":{\"publishedVersion\":2,\"originatingRunId\":\"e0f6033b-0921-47e3-8773-62ee37dc2e51\",\"catalogueVersion\":\"synthetic-http-v1\",\"referenceRevision\":\"2025.9.2\",\"coverage\":\"NONE\",\"items\":[{\"id\":\"q1\",\"coverage\":\"NONE\",\"claims\":[],\"issues\":[{\"id\":\"gap\",\"kind\":\"DATA_GAP\",\"reasonCode\":\"CURRENT_NOTICE_MISSING\",\"message\":\"未取得当期通知\",\"nextStep\":\"核对当期通知\"}],\"clarification\":[]}],\"evidence\":[],\"evidenceRelations\":[]},\"continuationToken\":null,\"execution\":{\"mode\":\"ONLINE\",\"modelAttemptCount\":0,\"toolStepCount\":0,\"providerResponseReceived\":false,\"answerSource\":\"NONE\",\"replayCoverage\":\"NOT_APPLICABLE\"}}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks/c864fdf5-c823-43f3-aed2-79313abc6de6/originals/28140c78-99aa-40f5-b35e-b59d947860d9",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET",
+    "status" : 404,
+    "input" : ""
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"taskId\":\"99af5634-7f62-4b88-a029-3bcd20273f68\",\"turnId\":\"1981ebdb-1ebf-4c20-9bb6-f155178c2e55\",\"runId\":\"b2e2a1e3-983b-44a5-9505-a4bbf6285477\",\"version\":1,\"duplicate\":false}",
+    "method" : "POST",
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"e62fb6cc-1407-486c-ac87-8a56f7c78070\",\"question\":\"故障\"}"
+  }, {
+    "path" : "/tasks/99af5634-7f62-4b88-a029-3bcd20273f68",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"99af5634-7f62-4b88-a029-3bcd20273f68\",\"turnId\":\"1981ebdb-1ebf-4c20-9bb6-f155178c2e55\",\"runId\":\"b2e2a1e3-983b-44a5-9505-a4bbf6285477\",\"version\":2,\"taskStatus\":\"FAILED\",\"runState\":\"FAILED\",\"terminated\":true,\"result\":{\"publishedVersion\":2,\"originatingRunId\":\"b2e2a1e3-983b-44a5-9505-a4bbf6285477\",\"catalogueVersion\":\"synthetic-http-v1\",\"referenceRevision\":\"2025.9.2\",\"coverage\":\"NONE\",\"items\":[{\"id\":\"q1\",\"coverage\":\"NONE\",\"claims\":[],\"issues\":[{\"id\":\"failure\",\"kind\":\"PROCESSING_FAILURE\",\"reasonCode\":\"MODEL_UNAVAILABLE\",\"message\":\"模型处理失败\",\"nextStep\":\"稍后重新查证\"}],\"clarification\":[]}],\"evidence\":[],\"evidenceRelations\":[]},\"continuationToken\":null,\"execution\":{\"mode\":\"ONLINE\",\"modelAttemptCount\":0,\"toolStepCount\":0,\"providerResponseReceived\":false,\"answerSource\":\"NONE\",\"replayCoverage\":\"NOT_APPLICABLE\"}}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks/99af5634-7f62-4b88-a029-3bcd20273f68/originals/28140c78-99aa-40f5-b35e-b59d947860d9",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET",
+    "status" : 404,
+    "input" : ""
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"taskId\":\"5f6e4c93-6ce1-46ef-981c-bf2d39c00881\",\"turnId\":\"d7359934-354b-4fc9-b9f0-c85b3b33a53d\",\"runId\":\"23a5f307-b278-4579-91fe-e53544940678\",\"version\":1,\"duplicate\":false}",
+    "method" : "POST",
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"4d15ff0f-cd05-418e-9c5f-1eefbd6ac9ee\",\"question\":\"取消\"}"
+  }, {
+    "path" : "/tasks/5f6e4c93-6ce1-46ef-981c-bf2d39c00881/cancel",
+    "actual" : "{\"taskId\":\"5f6e4c93-6ce1-46ef-981c-bf2d39c00881\",\"turnId\":\"d7359934-354b-4fc9-b9f0-c85b3b33a53d\",\"runId\":\"23a5f307-b278-4579-91fe-e53544940678\",\"version\":1,\"duplicate\":false}",
+    "method" : "POST",
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"4c4b135b-cf62-477d-ac60-725d29497a53\",\"runId\":\"23a5f307-b278-4579-91fe-e53544940678\",\"expectedVersion\":1}"
+  }, {
+    "path" : "/tasks/5f6e4c93-6ce1-46ef-981c-bf2d39c00881",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"5f6e4c93-6ce1-46ef-981c-bf2d39c00881\",\"turnId\":\"d7359934-354b-4fc9-b9f0-c85b3b33a53d\",\"runId\":\"23a5f307-b278-4579-91fe-e53544940678\",\"version\":1,\"taskStatus\":\"ACTIVE\",\"runState\":\"STOP_REQUESTED\",\"terminated\":false,\"result\":null,\"continuationToken\":null,\"execution\":{\"mode\":\"ONLINE\",\"modelAttemptCount\":0,\"toolStepCount\":0,\"providerResponseReceived\":false,\"answerSource\":\"NONE\",\"replayCoverage\":\"NOT_APPLICABLE\"}}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks/5f6e4c93-6ce1-46ef-981c-bf2d39c00881",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"5f6e4c93-6ce1-46ef-981c-bf2d39c00881\",\"turnId\":\"d7359934-354b-4fc9-b9f0-c85b3b33a53d\",\"runId\":\"23a5f307-b278-4579-91fe-e53544940678\",\"version\":2,\"taskStatus\":\"STOPPED\",\"runState\":\"CANCELLED\",\"terminated\":true,\"result\":{\"publishedVersion\":2,\"originatingRunId\":\"23a5f307-b278-4579-91fe-e53544940678\",\"catalogueVersion\":\"unavailable\",\"referenceRevision\":\"2025.9.2\",\"coverage\":\"NONE\",\"items\":[{\"id\":\"q1\",\"coverage\":\"NONE\",\"claims\":[],\"issues\":[{\"id\":\"failure\",\"kind\":\"PROCESSING_FAILURE\",\"reasonCode\":\"CANCELLED\",\"message\":\"本轮已停止，未完成的部分不作结论。\",\"nextStep\":\"请查询任务状态后重新查证，不自动重复提交。\"}],\"clarification\":[]}],\"evidence\":[],\"evidenceRelations\":[]},\"continuationToken\":null,\"execution\":{\"mode\":\"ONLINE\",\"modelAttemptCount\":0,\"toolStepCount\":0,\"providerResponseReceived\":false,\"answerSource\":\"NONE\",\"replayCoverage\":\"NOT_APPLICABLE\"}}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks/5f6e4c93-6ce1-46ef-981c-bf2d39c00881/originals/28140c78-99aa-40f5-b35e-b59d947860d9",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET",
+    "status" : 404,
+    "input" : ""
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"taskId\":\"01875a53-24cf-4b35-b740-5a8bef3aea05\",\"turnId\":\"44f88cdf-0fb1-4e2f-8975-d51e19351ea7\",\"runId\":\"94946870-bda2-4f8f-baed-cc6ddd0430fd\",\"version\":1,\"duplicate\":false}",
+    "method" : "POST",
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"c6a52f27-f585-423b-b0cf-01df5c86654e\",\"question\":\"理解未完成\"}"
+  }, {
+    "path" : "/tasks/01875a53-24cf-4b35-b740-5a8bef3aea05",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"01875a53-24cf-4b35-b740-5a8bef3aea05\",\"turnId\":\"44f88cdf-0fb1-4e2f-8975-d51e19351ea7\",\"runId\":\"94946870-bda2-4f8f-baed-cc6ddd0430fd\",\"version\":2,\"taskStatus\":\"FAILED\",\"runState\":\"FAILED\",\"terminated\":true,\"result\":{\"publishedVersion\":2,\"originatingRunId\":\"94946870-bda2-4f8f-baed-cc6ddd0430fd\",\"catalogueVersion\":\"synthetic-http-v1\",\"referenceRevision\":\"2025.9.2\",\"coverage\":\"NONE\",\"items\":[{\"id\":\"q1\",\"coverage\":\"NONE\",\"claims\":[],\"issues\":[{\"id\":\"failure\",\"kind\":\"PROCESSING_FAILURE\",\"reasonCode\":\"QUESTION_UNDERSTANDING_UNRESOLVED\",\"message\":\"模型处理失败\",\"nextStep\":\"稍后重新查证\"}],\"clarification\":[]}],\"evidence\":[],\"evidenceRelations\":[]},\"continuationToken\":null,\"execution\":{\"mode\":\"ONLINE\",\"modelAttemptCount\":0,\"toolStepCount\":0,\"providerResponseReceived\":false,\"answerSource\":\"NONE\",\"replayCoverage\":\"NOT_APPLICABLE\"}}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks/01875a53-24cf-4b35-b740-5a8bef3aea05/originals/28140c78-99aa-40f5-b35e-b59d947860d9",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET",
+    "status" : 404,
+    "input" : ""
+  }, {
+    "path" : "/tasks",
+    "actual" : "{\"taskId\":\"67f077b5-c0e0-4582-ade8-23923aa0fd5f\",\"turnId\":\"9e487b4a-b3c7-45ee-acef-047ed8d15d05\",\"runId\":\"46c1ac84-5227-45ab-8997-42e9f0a7f278\",\"version\":1,\"duplicate\":false}",
+    "method" : "POST",
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"c83fd187-5365-4f3e-b3c5-1941caecb54d\",\"question\":\"漏答\"}"
+  }, {
+    "path" : "/tasks/67f077b5-c0e0-4582-ade8-23923aa0fd5f",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"67f077b5-c0e0-4582-ade8-23923aa0fd5f\",\"turnId\":\"9e487b4a-b3c7-45ee-acef-047ed8d15d05\",\"runId\":\"46c1ac84-5227-45ab-8997-42e9f0a7f278\",\"version\":2,\"taskStatus\":\"FAILED\",\"runState\":\"FAILED\",\"terminated\":true,\"result\":{\"publishedVersion\":2,\"originatingRunId\":\"46c1ac84-5227-45ab-8997-42e9f0a7f278\",\"catalogueVersion\":\"synthetic-http-v1\",\"referenceRevision\":\"2025.9.2\",\"coverage\":\"PARTIAL\",\"items\":[{\"id\":\"q1\",\"coverage\":\"PARTIAL\",\"claims\":[{\"id\":\"answer\",\"factId\":\"fixture-fact\",\"text\":\"合成确认内容\",\"when\":{},\"conditionSource\":\"USER_DECLARED\"}],\"issues\":[{\"id\":\"failure\",\"kind\":\"PROCESSING_FAILURE\",\"reasonCode\":\"ANSWER_COVERAGE_INCOMPLETE\",\"message\":\"模型处理失败\",\"nextStep\":\"稍后重新查证\"}],\"clarification\":[]}],\"evidence\":[{\"id\":\"b13bd7b4-9052-421f-b66c-c04c2e19c2d8:0-13\",\"sourceId\":\"013779bd-9506-40ee-b0b7-b1cd737bc51b\",\"chunkId\":\"9e7e8175-a53a-4034-b34f-444232c067ba\",\"revision\":\"2025.9.2\",\"checksum\":\"835c13f5bebe3033bc3638b22fbdebee79c8d4ae676c59b1fb28e24cf4c830b1\",\"startInclusive\":0,\"endExclusive\":13,\"quote\":\"合成条款：仅用于接口验收。\",\"originalToken\":\"df04debe-67ca-4bb5-a252-6fa326a7a5d0\"}],\"evidenceRelations\":[{\"evidenceId\":\"b13bd7b4-9052-421f-b66c-c04c2e19c2d8:0-13\",\"subquestionId\":\"q1\",\"role\":\"CLAIM\",\"targetId\":\"answer\"}]},\"continuationToken\":null,\"execution\":{\"mode\":\"ONLINE\",\"modelAttemptCount\":5,\"toolStepCount\":2,\"providerResponseReceived\":false,\"answerSource\":\"VERIFIED_RULE_ONLY\",\"replayCoverage\":\"NOT_APPLICABLE\"}}",
+    "method" : "GET",
+    "status" : 200,
+    "input" : ""
+  }, {
+    "path" : "/tasks/67f077b5-c0e0-4582-ade8-23923aa0fd5f/originals/28140c78-99aa-40f5-b35e-b59d947860d9",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET",
+    "status" : 404,
+    "input" : ""
+  }, {
+    "path" : "/tasks/c33f3ef6-7a23-41bb-88c7-0cda299039b7",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET",
+    "status" : 404,
+    "input" : ""
+  } ],
+  "providerCalls" : 0,
+  "schemaVersion" : 3
+}

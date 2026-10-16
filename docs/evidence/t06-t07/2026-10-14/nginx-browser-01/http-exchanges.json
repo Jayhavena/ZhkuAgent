@@ -1,0 +1,2390 @@
+{
+  "sourceSha": "1e27e3c898c4b498ffde3fd07d9159003db5fc2a",
+  "schemaVersion": 3,
+  "executionMode": "TEST_SIMULATION_NO_PROVIDER",
+  "proxy": "ACTUAL_NGINX",
+  "providerCalls": 0,
+  "databaseCalls": 0,
+  "passed": true,
+  "exchanges": [
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "input": {
+        "question": "澄清",
+        "clientRequestId": "8e5a5550-c8ea-405f-a049-3a36dd47b0de"
+      },
+      "status": 403,
+      "cacheControl": "no-store",
+      "actual": {
+        "code": "ACCESS_DENIED",
+        "message": "请求未获许可"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "input": {
+        "question": "澄清",
+        "clientRequestId": "8e5a5550-c8ea-405f-a049-3a36dd47b0de"
+      },
+      "status": 202,
+      "cacheControl": "no-store",
+      "actual": {
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "duplicate": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "input": {
+        "question": "澄清",
+        "clientRequestId": "8e5a5550-c8ea-405f-a049-3a36dd47b0de"
+      },
+      "status": 202,
+      "cacheControl": "no-store",
+      "actual": {
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "duplicate": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 404,
+      "cacheControl": "no-store",
+      "actual": {
+        "code": "TASK_NOT_AVAILABLE",
+        "message": "请求未获确认，请根据任务状态继续操作。"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "f486d33d-aca6-4440-8218-b66e07450260",
+        "runId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+        "version": 2,
+        "taskStatus": "WAITING_USER",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "condition",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "请确认课程类别",
+                  "nextStep": "补充必要条件"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "课程类别？",
+                  "allowedValues": [
+                    "PUBLIC",
+                    "PROFESSIONAL"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": "b0774d27-0b5e-4651-accf-cb929e600c91",
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8/messages",
+      "input": {
+        "continuationToken": "b0774d27-0b5e-4651-accf-cb929e600c91",
+        "message": "PUBLIC",
+        "clientRequestId": "a9b9ad4f-571e-4574-ae90-00362214979a",
+        "expectedVersion": 2
+      },
+      "status": 409,
+      "cacheControl": "no-store",
+      "actual": {
+        "code": "TASK_CONFLICT",
+        "message": "请求未获确认，请根据任务状态继续操作。"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8/messages",
+      "input": {
+        "continuationToken": "b0774d27-0b5e-4651-accf-cb929e600c91",
+        "message": "PUBLIC",
+        "clientRequestId": "a9b9ad4f-571e-4574-ae90-00362214979a",
+        "expectedVersion": 2
+      },
+      "status": 202,
+      "cacheControl": "no-store",
+      "actual": {
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 3,
+        "duplicate": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8/messages",
+      "input": {
+        "continuationToken": "b0774d27-0b5e-4651-accf-cb929e600c91",
+        "message": "PUBLIC",
+        "clientRequestId": "a9b9ad4f-571e-4574-ae90-00362214979a",
+        "expectedVersion": 2
+      },
+      "status": 409,
+      "cacheControl": "no-store",
+      "actual": {
+        "code": "TASK_CONFLICT",
+        "message": "请求未获确认，请根据任务状态继续操作。"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 3,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "condition",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "请确认课程类别",
+                  "nextStep": "补充必要条件"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "课程类别？",
+                  "allowedValues": [
+                    "PUBLIC",
+                    "PROFESSIONAL"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 3,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "condition",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "请确认课程类别",
+                  "nextStep": "补充必要条件"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "课程类别？",
+                  "allowedValues": [
+                    "PUBLIC",
+                    "PROFESSIONAL"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 3,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "condition",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "请确认课程类别",
+                  "nextStep": "补充必要条件"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "课程类别？",
+                  "allowedValues": [
+                    "PUBLIC",
+                    "PROFESSIONAL"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 3,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "condition",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "请确认课程类别",
+                  "nextStep": "补充必要条件"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "课程类别？",
+                  "allowedValues": [
+                    "PUBLIC",
+                    "PROFESSIONAL"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 3,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "condition",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "请确认课程类别",
+                  "nextStep": "补充必要条件"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "课程类别？",
+                  "allowedValues": [
+                    "PUBLIC",
+                    "PROFESSIONAL"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 3,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "condition",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "请确认课程类别",
+                  "nextStep": "补充必要条件"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "课程类别？",
+                  "allowedValues": [
+                    "PUBLIC",
+                    "PROFESSIONAL"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 3,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "condition",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "请确认课程类别",
+                  "nextStep": "补充必要条件"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "课程类别？",
+                  "allowedValues": [
+                    "PUBLIC",
+                    "PROFESSIONAL"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 3,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "condition",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "请确认课程类别",
+                  "nextStep": "补充必要条件"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "课程类别？",
+                  "allowedValues": [
+                    "PUBLIC",
+                    "PROFESSIONAL"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 3,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "condition",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "请确认课程类别",
+                  "nextStep": "补充必要条件"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "课程类别？",
+                  "allowedValues": [
+                    "PUBLIC",
+                    "PROFESSIONAL"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 3,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "condition",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "请确认课程类别",
+                  "nextStep": "补充必要条件"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "课程类别？",
+                  "allowedValues": [
+                    "PUBLIC",
+                    "PROFESSIONAL"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 3,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "47bf0d26-9c5e-48f3-b5e3-856a6d9b50aa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "condition",
+                  "kind": "CLARIFICATION",
+                  "reasonCode": "MISSING_CONDITION",
+                  "message": "请确认课程类别",
+                  "nextStep": "补充必要条件"
+                }
+              ],
+              "clarification": [
+                {
+                  "conditionId": "courseType",
+                  "question": "课程类别？",
+                  "allowedValues": [
+                    "PUBLIC",
+                    "PROFESSIONAL"
+                  ]
+                }
+              ]
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "1f44576d-d42f-4dc7-aea6-13ec4a9031a8",
+        "turnId": "4be6e1c3-d082-41f7-8315-8e2a63f0ef79",
+        "runId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+        "version": 4,
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 4,
+          "originatingRunId": "9c573b96-6fa5-4824-b6b4-3693751b19c7",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "COMPLETE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "COMPLETE",
+              "claims": [
+                {
+                  "id": "answer",
+                  "factId": "fixture-fact",
+                  "text": "合成确认内容",
+                  "when": {},
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "b4d7efb5-44e8-4063-9231-f7a1229ab520",
+              "chunkId": "15af4cb1-3780-4827-8cad-92428bc70f3c",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 13,
+              "quote": "合成条款：仅用于接口验收。",
+              "originalToken": "6f8e726c-6ff7-4888-afc9-7723fbd86008"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "answer"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "VERIFIED_RULE_ONLY",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/1f44576d-d42f-4dc7-aea6-13ec4a9031a8/originals/6f8e726c-6ff7-4888-afc9-7723fbd86008",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "citationId": "e1",
+        "sourceId": "b4d7efb5-44e8-4063-9231-f7a1229ab520",
+        "chunkId": "15af4cb1-3780-4827-8cad-92428bc70f3c",
+        "revision": "2025.9.2",
+        "title": "合成手册",
+        "sourceLocator": "合成条款",
+        "recordedPageNumber": null,
+        "pageNumberKind": "UNKNOWN",
+        "sectionTitle": null,
+        "safeSourceUrl": null,
+        "contextText": "合成条款：仅用于接口验收。",
+        "contextStartInclusive": 0,
+        "quoteStartInclusive": 0,
+        "quoteEndExclusive": 13,
+        "unknownItems": [
+          "页码尚未记录"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "input": {
+        "question": "部分",
+        "clientRequestId": "0ecad3de-38e5-4f34-a54c-ee1aed02c7d4"
+      },
+      "status": 202,
+      "cacheControl": "no-store",
+      "actual": {
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 1,
+        "duplicate": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "c4f24d95-bbc8-4cb6-8d1f-e5bf708f3e3e",
+        "turnId": "8ced7750-ed5a-40ed-abca-d55ea971df01",
+        "runId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+        "version": 2,
+        "taskStatus": "RESOLVED",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "97c69384-aede-4184-99b0-a6eeaf3870a3",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "PARTIAL",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "PARTIAL",
+              "claims": [
+                {
+                  "id": "answer",
+                  "factId": "fixture-fact",
+                  "text": "合成确认内容",
+                  "when": {},
+                  "conditionSource": "USER_DECLARED"
+                }
+              ],
+              "issues": [
+                {
+                  "id": "gap",
+                  "kind": "DATA_GAP",
+                  "reasonCode": "CURRENT_NOTICE_MISSING",
+                  "message": "未取得当期通知",
+                  "nextStep": "核对当期通知"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "e1",
+              "sourceId": "b4d7efb5-44e8-4063-9231-f7a1229ab520",
+              "chunkId": "15af4cb1-3780-4827-8cad-92428bc70f3c",
+              "revision": "2025.9.2",
+              "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "startInclusive": 0,
+              "endExclusive": 13,
+              "quote": "合成条款：仅用于接口验收。",
+              "originalToken": "6f8e726c-6ff7-4888-afc9-7723fbd86008"
+            }
+          ],
+          "evidenceRelations": [
+            {
+              "evidenceId": "e1",
+              "subquestionId": "q1",
+              "role": "CLAIM",
+              "targetId": "answer"
+            }
+          ]
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "VERIFIED_RULE_ONLY",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "input": {
+        "question": "故障",
+        "clientRequestId": "d89eaf55-2d5a-4d62-86a6-dd17e86bbc6b"
+      },
+      "status": 202,
+      "cacheControl": "no-store",
+      "actual": {
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 1,
+        "duplicate": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/dbe21542-4c42-4932-9da8-27c4a2a371e4",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/dbe21542-4c42-4932-9da8-27c4a2a371e4",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/dbe21542-4c42-4932-9da8-27c4a2a371e4",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/dbe21542-4c42-4932-9da8-27c4a2a371e4",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/dbe21542-4c42-4932-9da8-27c4a2a371e4",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/dbe21542-4c42-4932-9da8-27c4a2a371e4",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/dbe21542-4c42-4932-9da8-27c4a2a371e4",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/dbe21542-4c42-4932-9da8-27c4a2a371e4",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/dbe21542-4c42-4932-9da8-27c4a2a371e4",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/dbe21542-4c42-4932-9da8-27c4a2a371e4",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/dbe21542-4c42-4932-9da8-27c4a2a371e4",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "CREATED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/dbe21542-4c42-4932-9da8-27c4a2a371e4",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "dbe21542-4c42-4932-9da8-27c4a2a371e4",
+        "turnId": "9dcce2b5-61ae-4abe-bebf-8b613dde11ca",
+        "runId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+        "version": 2,
+        "taskStatus": "FAILED",
+        "runState": "FAILED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "865520c4-d677-4ee6-98eb-02ef56a4cffa",
+          "catalogueVersion": "synthetic-http-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "failure",
+                  "kind": "PROCESSING_FAILURE",
+                  "reasonCode": "MODEL_UNAVAILABLE",
+                  "message": "模型处理失败",
+                  "nextStep": "稍后重新查证"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "input": {
+        "question": "取消",
+        "clientRequestId": "37ba1139-0953-4486-a489-9efcf7209e46"
+      },
+      "status": 202,
+      "cacheControl": "no-store",
+      "actual": {
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "duplicate": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275/cancel",
+      "input": {
+        "expectedVersion": 1,
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "clientRequestId": "41fac1da-926f-4858-8df6-1f73b6a8ca68"
+      },
+      "status": 202,
+      "cacheControl": "no-store",
+      "actual": {
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "duplicate": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 1,
+        "taskStatus": "ACTIVE",
+        "runState": "STOP_REQUESTED",
+        "terminated": false,
+        "result": null,
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/3ef56946-a0ae-41a1-b986-87aeabde5275",
+      "input": null,
+      "status": 200,
+      "cacheControl": "no-store",
+      "actual": {
+        "schemaVersion": 3,
+        "taskId": "3ef56946-a0ae-41a1-b986-87aeabde5275",
+        "turnId": "3174a421-85bb-4df4-8ad4-815541df2ec4",
+        "runId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+        "version": 2,
+        "taskStatus": "STOPPED",
+        "runState": "CANCELLED",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 2,
+          "originatingRunId": "7101654f-8dcf-4473-b3c4-4bf129c3d0d7",
+          "catalogueVersion": "unavailable",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "failure",
+                  "kind": "PROCESSING_FAILURE",
+                  "reasonCode": "CANCELLED",
+                  "message": "本轮已停止，未完成的部分不作结论。",
+                  "nextStep": "请查询任务状态后重新查证，不自动重复提交。"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 0,
+          "toolStepCount": 0,
+          "providerResponseReceived": false,
+          "answerSource": "NONE",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    }
+  ]
+}

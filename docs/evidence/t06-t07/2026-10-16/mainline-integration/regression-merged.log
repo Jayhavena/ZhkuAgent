@@ -1,0 +1,1111 @@
+TAP version 13
+# Subtest: login uses form protocol then renews CSRF and confirms current actor
+ok 1 - login uses form protocol then renews CSRF and confirms current actor
+  ---
+  duration_ms: 85.6414
+  type: 'test'
+  ...
+# Subtest: 503 accepted preserves runId without repeating POST
+ok 2 - 503 accepted preserves runId without repeating POST
+  ---
+  duration_ms: 3.1478
+  type: 'test'
+  ...
+# Subtest: lost POST response is unknown and is never retried
+ok 3 - lost POST response is unknown and is never retried
+  ---
+  duration_ms: 1.3445
+  type: 'test'
+  ...
+# Subtest: 401 clears identity whereas 403 preserves it
+ok 4 - 401 clears identity whereas 403 preserves it
+  ---
+  duration_ms: 2.1523
+  type: 'test'
+  ...
+# Subtest: late old identity response cannot overwrite new actor even when transport ignores abort
+ok 5 - late old identity response cannot overwrite new actor even when transport ignores abort
+  ---
+  duration_ms: 1.3501
+  type: 'test'
+  ...
+# Subtest: deadline during anonymous CSRF is network failure, not identity change
+ok 6 - deadline during anonymous CSRF is network failure, not identity change
+  ---
+  duration_ms: 6.7945
+  type: 'test'
+  ...
+# Subtest: malformed successful POST is unknown and malformed GET hides result
+ok 7 - malformed successful POST is unknown and malformed GET hides result
+  ---
+  duration_ms: 4.996
+  type: 'test'
+  ...
+# Subtest: late 401 from previous identity cannot clear new identity
+ok 8 - late 401 from previous identity cannot clear new identity
+  ---
+  duration_ms: 2.7364
+  type: 'test'
+  ...
+# Subtest: late logout completion cannot erase a newly logged identity
+ok 9 - late logout completion cannot erase a newly logged identity
+  ---
+  duration_ms: 4.2322
+  type: 'test'
+  ...
+# Subtest: login cannot overlap pending logout and race server Cookie changes
+ok 10 - login cannot overlap pending logout and race server Cookie changes
+  ---
+  duration_ms: 1.862
+  type: 'test'
+  ...
+# Subtest: conversation four APIs send only actual fields with CSRF and explicit revision
+ok 11 - conversation four APIs send only actual fields with CSRF and explicit revision
+  ---
+  duration_ms: 69.5382
+  type: 'test'
+  ...
+# Subtest: unknown create and write are distinct and never automatically POST again
+ok 12 - unknown create and write are distinct and never automatically POST again
+  ---
+  duration_ms: 0.9753
+  type: 'test'
+  ...
+# Subtest: restore only exact control snapshot; malformed revisions and pending pairs rejected
+ok 13 - restore only exact control snapshot; malformed revisions and pending pairs rejected
+  ---
+  duration_ms: 0.6985
+  type: 'test'
+  ...
+# Subtest: evidence unavailable and non-answer types never project a supplied stale answer
+ok 14 - evidence unavailable and non-answer types never project a supplied stale answer
+  ---
+  duration_ms: 0.3837
+  type: 'test'
+  ...
+# Subtest: message confirms new revision with GET before publishing current exchange
+ok 15 - message confirms new revision with GET before publishing current exchange
+  ---
+  duration_ms: 1.5706
+  type: 'test'
+  ...
+# Subtest: conflict needs explicit read and confirmation, never automatic resubmission
+ok 16 - conflict needs explicit read and confirmation, never automatic resubmission
+  ---
+  duration_ms: 1.0788
+  type: 'test'
+  ...
+# Subtest: confirmed POST but follow-up GET failure shows no answer and locks writes
+ok 17 - confirmed POST but follow-up GET failure shows no answer and locks writes
+  ---
+  duration_ms: 0.7211
+  type: 'test'
+  ...
+# Subtest: expired or cancelled control state cannot be revived by send
+ok 18 - expired or cancelled control state cannot be revived by send
+  ---
+  duration_ms: 0.7285
+  type: 'test'
+  ...
+# Subtest: cancel clears current body and preserves returned revision and expiry
+ok 19 - cancel clears current body and preserves returned revision and expiry
+  ---
+  duration_ms: 0.7854
+  type: 'test'
+  ...
+# Subtest: unknown creation stays locked until explicit acknowledgement, no fabricated ID
+ok 20 - unknown creation stays locked until explicit acknowledgement, no fabricated ID
+  ---
+  duration_ms: 1.5953
+  type: 'test'
+  ...
+# Subtest: dispose and route change discard late reply even if transport ignores abort
+ok 21 - dispose and route change discard late reply even if transport ignores abort
+  ---
+  duration_ms: 0.9929
+  type: 'test'
+  ...
+# Subtest: explicit refresh clears old exchange and restores pending without chat history
+ok 22 - explicit refresh clears old exchange and restores pending without chat history
+  ---
+  duration_ms: 0.7327
+  type: 'test'
+  ...
+# Subtest: recovery GET failure cannot remove the explicit confirmation gate
+ok 23 - recovery GET failure cannot remove the explicit confirmation gate
+  ---
+  duration_ms: 0.6148
+  type: 'test'
+  ...
+# Subtest: late conversation GET after identity invalidation is discarded by real client
+ok 24 - late conversation GET after identity invalidation is discarded by real client
+  ---
+  duration_ms: 1.412
+  type: 'test'
+  ...
+# Subtest: withdrawn evidence replaces prior answer without preserving source
+ok 25 - withdrawn evidence replaces prior answer without preserving source
+  ---
+  duration_ms: 1.1526
+  type: 'test'
+  ...
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# [Vue Router warn]: No match found for location with path "/campus/history"
+# Subtest: same submission key with different content explains conflict and deliberate new task
+ok 26 - same submission key with different content explains conflict and deliberate new task
+  ---
+  duration_ms: 1.9809
+  type: 'test'
+  ...
+# Subtest: completed live and finalized archived tasks never claim still confirming submission
+ok 27 - completed live and finalized archived tasks never claim still confirming submission
+  ---
+  duration_ms: 28.7548
+  type: 'test'
+  ...
+# Subtest: missing or unconfirmed record retains uncertainty without asserting never accepted
+ok 28 - missing or unconfirmed record retains uncertainty without asserting never accepted
+  ---
+  duration_ms: 6.2384
+  type: 'test'
+  ...
+# Subtest: known running task is found but not called completed
+ok 29 - known running task is found but not called completed
+  ---
+  duration_ms: 2.6906
+  type: 'test'
+  ...
+# Subtest: submission projection matches actual live/archived contract and hides unconfirmed cached body
+ok 30 - submission projection matches actual live/archived contract and hides unconfirmed cached body
+  ---
+  duration_ms: 1.7718
+  type: 'test'
+  ...
+# Subtest: interrupted and admitted archive facts do not invent Runtime termination or running state
+ok 31 - interrupted and admitted archive facts do not invent Runtime termination or running state
+  ---
+  duration_ms: 0.6204
+  type: 'test'
+  ...
+# Subtest: online hidden or unconfirmed never renders cached body despite SUCCEEDED
+ok 32 - online hidden or unconfirmed never renders cached body despite SUCCEEDED
+  ---
+  duration_ms: 0.2677
+  type: 'test'
+  ...
+# Subtest: cancelled response with terminated false is not finished cleanup
+ok 33 - cancelled response with terminated false is not finished cleanup
+  ---
+  duration_ms: 0.2705
+  type: 'test'
+  ...
+# Subtest: history requires confirmed final archive and current visible permission
+ok 34 - history requires confirmed final archive and current visible permission
+  ---
+  duration_ms: 0.302
+  type: 'test'
+  ...
+# Subtest: visible real response is text plus response source, without fabricated total
+ok 35 - visible real response is text plus response source, without fabricated total
+  ---
+  duration_ms: 0.7661
+  type: 'test'
+  ...
+# Subtest: return route permits only internal campus pages
+ok 36 - return route permits only internal campus pages
+  ---
+  duration_ms: 1.1911
+  type: 'test'
+  ...
+# Subtest: cancel and timeout labels wait for termination instead of promising completion
+ok 37 - cancel and timeout labels wait for termination instead of promising completion
+  ---
+  duration_ms: 0.8057
+  type: 'test'
+  ...
+# Subtest: generated online result and finalized history do not invent the same cleanup signal
+ok 38 - generated online result and finalized history do not invent the same cleanup signal
+  ---
+  duration_ms: 0.7233
+  type: 'test'
+  ...
+# Subtest: hidden and unconfirmed results explain access without calling execution a failure
+ok 39 - hidden and unconfirmed results explain access without calling execution a failure
+  ---
+  duration_ms: 0.5696
+  type: 'test'
+  ...
+# Subtest: cancelled and incomplete tasks offer relevant next actions rather than waiting for an answer
+ok 40 - cancelled and incomplete tasks offer relevant next actions rather than waiting for an answer
+  ---
+  duration_ms: 0.2951
+  type: 'test'
+  ...
+# Subtest: identity invalidation clears actor and token and advances generation
+ok 41 - identity invalidation clears actor and token and advances generation
+  ---
+  duration_ms: 9.8363
+  type: 'test'
+  ...
+# Subtest: clear aborts registered readers and invalidates delivery ticket
+ok 42 - clear aborts registered readers and invalidates delivery ticket
+  ---
+  duration_ms: 0.6348
+  type: 'test'
+  ...
+# Subtest: freeze original request, manual resend retains key and body, refresh persists metadata only
+ok 43 - freeze original request, manual resend retains key and body, refresh persists metadata only
+  ---
+  duration_ms: 4.2935
+  type: 'test'
+  ...
+# Subtest: at most five hints, new task new key, logout and switch erase old identity hints
+ok 44 - at most five hints, new task new key, logout and switch erase old identity hints
+  ---
+  duration_ms: 1.1629
+  type: 'test'
+  ...
+# Subtest: confirmed expiry and runId survive refresh, stale owner cannot attach reply
+ok 45 - confirmed expiry and runId survive refresh, stale owner cannot attach reply
+  ---
+  duration_ms: 1.1842
+  type: 'test'
+  ...
+# Subtest: no insecure UUID fallback; corrupt storage cannot restore request or results
+ok 46 - no insecure UUID fallback; corrupt storage cannot restore request or results
+  ---
+  duration_ms: 0.8521
+  type: 'test'
+  ...
+# Subtest: one POST with original key, loss followed by GET confirmation never automatic resend
+ok 47 - one POST with original key, loss followed by GET confirmation never automatic resend
+  ---
+  duration_ms: 76.6709
+  type: 'test'
+  ...
+# Subtest: invalid/missing key performs zero HTTP; late confirmation cannot affect new identity
+ok 48 - invalid/missing key performs zero HTTP; late confirmation cannot affect new identity
+  ---
+  duration_ms: 8.401
+  type: 'test'
+  ...
+# Subtest: explicit retry uses frozen original and the same header, not edited form content
+ok 49 - explicit retry uses frozen original and the same header, not edited form content
+  ---
+  duration_ms: 2.2764
+  type: 'test'
+  ...
+# Subtest: 401 keeps confirmation metadata for same-user reauthentication; explicit logout removes it
+ok 50 - 401 keeps confirmation metadata for same-user reauthentication; explicit logout removes it
+  ---
+  duration_ms: 6.5159
+  type: 'test'
+  ...
+# Subtest: engineering entry table keeps both experiment entries and their underlying pages
+ok 51 - engineering entry table keeps both experiment entries and their underlying pages
+  ---
+  duration_ms: 1.8519
+  type: 'test'
+  ...
+# Subtest: engineering router resolves both experiment entries to their own pages
+ok 52 - engineering router resolves both experiment entries to their own pages
+  ---
+  duration_ms: 15.2889
+  type: 'test'
+  ...
+# Subtest: experiment entry navigation is still declared in the engineering pages
+ok 53 - experiment entry navigation is still declared in the engineering pages
+  ---
+  duration_ms: 16.9397
+  type: 'test'
+  ...
+# Subtest: student direct access to either experiment entry returns to rule check
+ok 54 - student direct access to either experiment entry returns to rule check
+  ---
+  duration_ms: 7.4634
+  type: 'test'
+  ...
+# Subtest: student table never reaches an engineering page
+ok 55 - student table never reaches an engineering page
+  ---
+  duration_ms: 0.4971
+  type: 'test'
+  ...
+# Subtest: local identity change is broadcast once and the receiving window never echoes
+ok 56 - local identity change is broadcast once and the receiving window never echoes
+  ---
+  duration_ms: 2.2349
+  type: 'test'
+  ...
+# Subtest: the other window drops published results and a late response cannot restore them
+ok 57 - the other window drops published results and a late response cannot restore them
+  ---
+  duration_ms: 5.6057
+  type: 'test'
+  ...
+# Subtest: a session without a document degrades to single-window behaviour instead of failing
+ok 58 - a session without a document degrades to single-window behaviour instead of failing
+  ---
+  duration_ms: 0.4029
+  type: 'test'
+  ...
+# Subtest: shared snapshot: complete
+ok 59 - shared snapshot: complete
+  ---
+  duration_ms: 7.2285
+  type: 'test'
+  ...
+# Subtest: shared snapshot: partial-and-clarification
+ok 60 - shared snapshot: partial-and-clarification
+  ---
+  duration_ms: 0.8145
+  type: 'test'
+  ...
+# Subtest: shared snapshot: partial-and-data-gap
+ok 61 - shared snapshot: partial-and-data-gap
+  ---
+  duration_ms: 0.5488
+  type: 'test'
+  ...
+# Subtest: shared snapshot: partial-and-processing-failure
+ok 62 - shared snapshot: partial-and-processing-failure
+  ---
+  duration_ms: 0.8823
+  type: 'test'
+  ...
+# Subtest: shared snapshot: conflict-only-blocks-related-item
+ok 63 - shared snapshot: conflict-only-blocks-related-item
+  ---
+  duration_ms: 0.8225
+  type: 'test'
+  ...
+# Subtest: shared snapshot: honest-data-gap
+ok 64 - shared snapshot: honest-data-gap
+  ---
+  duration_ms: 0.4233
+  type: 'test'
+  ...
+# Subtest: shared snapshot: replay-not-covered
+ok 65 - shared snapshot: replay-not-covered
+  ---
+  duration_ms: 0.6616
+  type: 'test'
+  ...
+# Subtest: shared snapshot: cancel-request-is-not-termination
+ok 66 - shared snapshot: cancel-request-is-not-termination
+  ---
+  duration_ms: 0.3291
+  type: 'test'
+  ...
+# Subtest: shared snapshot: cancelled-with-safe-partial-content
+ok 67 - shared snapshot: cancelled-with-safe-partial-content
+  ---
+  duration_ms: 1.0806
+  type: 'test'
+  ...
+# Subtest: shared snapshot: resume-can-retain-previous-result
+ok 68 - shared snapshot: resume-can-retain-previous-result
+  ---
+  duration_ms: 0.8551
+  type: 'test'
+  ...
+# Subtest: reject snapshot: unknown-schema
+ok 69 - reject snapshot: unknown-schema
+  ---
+  duration_ms: 31.23
+  type: 'test'
+  ...
+# Subtest: reject snapshot: unknown-field
+ok 70 - reject snapshot: unknown-field
+  ---
+  duration_ms: 0.7575
+  type: 'test'
+  ...
+# Subtest: reject snapshot: missing-field
+ok 71 - reject snapshot: missing-field
+  ---
+  duration_ms: 0.5562
+  type: 'test'
+  ...
+# Subtest: reject snapshot: invalid-uuid
+ok 72 - reject snapshot: invalid-uuid
+  ---
+  duration_ms: 0.5725
+  type: 'test'
+  ...
+# Subtest: reject snapshot: unsafe-version
+ok 73 - reject snapshot: unsafe-version
+  ---
+  duration_ms: 0.2498
+  type: 'test'
+  ...
+# Subtest: reject snapshot: numeric-enum
+ok 74 - reject snapshot: numeric-enum
+  ---
+  duration_ms: 0.5867
+  type: 'test'
+  ...
+# Subtest: reject snapshot: coverage-cannot-hide-unknown
+ok 75 - reject snapshot: coverage-cannot-hide-unknown
+  ---
+  duration_ms: 7.6394
+  type: 'test'
+  ...
+# Subtest: reject snapshot: partial-without-missing-item
+ok 76 - reject snapshot: partial-without-missing-item
+  ---
+  duration_ms: 0.349
+  type: 'test'
+  ...
+# Subtest: reject snapshot: unrelated-evidence
+ok 77 - reject snapshot: unrelated-evidence
+  ---
+  duration_ms: 0.6265
+  type: 'test'
+  ...
+# Subtest: reject snapshot: claim-without-evidence
+ok 78 - reject snapshot: claim-without-evidence
+  ---
+  duration_ms: 0.5023
+  type: 'test'
+  ...
+# Subtest: reject snapshot: forged-relation
+ok 79 - reject snapshot: forged-relation
+  ---
+  duration_ms: 0.3401
+  type: 'test'
+  ...
+# Subtest: reject snapshot: duplicate-relation
+ok 80 - reject snapshot: duplicate-relation
+  ---
+  duration_ms: 0.4196
+  type: 'test'
+  ...
+# Subtest: reject snapshot: quote-span-mismatch
+ok 81 - reject snapshot: quote-span-mismatch
+  ---
+  duration_ms: 0.8509
+  type: 'test'
+  ...
+# Subtest: reject snapshot: source-revision-mismatch
+ok 82 - reject snapshot: source-revision-mismatch
+  ---
+  duration_ms: 0.2729
+  type: 'test'
+  ...
+# Subtest: reject snapshot: conflict-with-one-side
+ok 83 - reject snapshot: conflict-with-one-side
+  ---
+  duration_ms: 0.2831
+  type: 'test'
+  ...
+# Subtest: reject snapshot: waiting-without-token
+ok 84 - reject snapshot: waiting-without-token
+  ---
+  duration_ms: 0.3567
+  type: 'test'
+  ...
+# Subtest: reject snapshot: resolved-with-open-clarification
+ok 85 - reject snapshot: resolved-with-open-clarification
+  ---
+  duration_ms: 0.1987
+  type: 'test'
+  ...
+# Subtest: reject snapshot: active-run-not-terminated
+ok 86 - reject snapshot: active-run-not-terminated
+  ---
+  duration_ms: 0.1236
+  type: 'test'
+  ...
+# Subtest: reject snapshot: cancelled-but-resource-not-closed
+ok 87 - reject snapshot: cancelled-but-resource-not-closed
+  ---
+  duration_ms: 0.1448
+  type: 'test'
+  ...
+# Subtest: reject snapshot: failure-must-state-processing-reason
+ok 88 - reject snapshot: failure-must-state-processing-reason
+  ---
+  duration_ms: 0.1453
+  type: 'test'
+  ...
+# Subtest: reject snapshot: current-result-run-mismatch
+ok 89 - reject snapshot: current-result-run-mismatch
+  ---
+  duration_ms: 0.1773
+  type: 'test'
+  ...
+# Subtest: reject snapshot: active-cannot-publish-current-version
+ok 90 - reject snapshot: active-cannot-publish-current-version
+  ---
+  duration_ms: 0.248
+  type: 'test'
+  ...
+# Subtest: reject snapshot: replay-must-not-call-provider
+ok 91 - reject snapshot: replay-must-not-call-provider
+  ---
+  duration_ms: 0.1528
+  type: 'test'
+  ...
+# Subtest: reject snapshot: online-cannot-relabel-replay
+ok 92 - reject snapshot: online-cannot-relabel-replay
+  ---
+  duration_ms: 0.1394
+  type: 'test'
+  ...
+# Subtest: reject snapshot: response-without-attempt
+ok 93 - reject snapshot: response-without-attempt
+  ---
+  duration_ms: 0.2108
+  type: 'test'
+  ...
+# Subtest: reject snapshot: unknown-reason-code
+ok 94 - reject snapshot: unknown-reason-code
+  ---
+  duration_ms: 0.2335
+  type: 'test'
+  ...
+# Subtest: reject snapshot: inconsistent-reason-kind
+ok 95 - reject snapshot: inconsistent-reason-kind
+  ---
+  duration_ms: 0.1483
+  type: 'test'
+  ...
+# Subtest: reject snapshot: duplicate-question-id
+ok 96 - reject snapshot: duplicate-question-id
+  ---
+  duration_ms: 0.1245
+  type: 'test'
+  ...
+# Subtest: reject snapshot: candidate-not-publishable-fact
+ok 97 - reject snapshot: candidate-not-publishable-fact
+  ---
+  duration_ms: 0.1424
+  type: 'test'
+  ...
+# Subtest: reject snapshot: unicode-surrogate
+ok 98 - reject snapshot: unicode-surrogate
+  ---
+  duration_ms: 0.1508
+  type: 'test'
+  ...
+# Subtest: reject snapshot: model-budget-exceeded
+ok 99 - reject snapshot: model-budget-exceeded
+  ---
+  duration_ms: 0.1313
+  type: 'test'
+  ...
+# Subtest: reject snapshot: evidence-byte-budget
+ok 100 - reject snapshot: evidence-byte-budget
+  ---
+  duration_ms: 0.994
+  type: 'test'
+  ...
+# Subtest: old reply cannot be silently upgraded to the new task schema
+ok 101 - old reply cannot be silently upgraded to the new task schema
+  ---
+  duration_ms: 0.5677
+  type: 'test'
+  ...
+# Subtest: five calls fit the closeout budget and six remain invalid
+ok 102 - five calls fit the closeout budget and six remain invalid
+  ---
+  duration_ms: 0.9501
+  type: 'test'
+  ...
+# Subtest: actual Java HTTP answer accepts declaredConditions and normalizes UI conditions
+ok 103 - actual Java HTTP answer accepts declaredConditions and normalizes UI conditions
+  ---
+  duration_ms: 65.1615
+  type: 'test'
+  ...
+# Subtest: v2 login renews CSRF and reads independent actor without v1 calls
+ok 104 - v2 login renews CSRF and reads independent actor without v1 calls
+  ---
+  duration_ms: 5.5655
+  type: 'test'
+  ...
+# Subtest: check sends only explicit conditions and server continuation token
+ok 105 - check sends only explicit conditions and server continuation token
+  ---
+  duration_ms: 2.606
+  type: 'test'
+  ...
+# Subtest: supporting references obey the same citation contract and a five item limit
+ok 106 - supporting references obey the same citation contract and a five item limit
+  ---
+  duration_ms: 6.8996
+  type: 'test'
+  ...
+# Subtest: new question discards late successful answer even when abort ignored
+ok 107 - new question discards late successful answer even when abort ignored
+  ---
+  duration_ms: 6.4321
+  type: 'test'
+  ...
+# Subtest: late old epoch 401 cannot clear new logged in actor
+ok 108 - late old epoch 401 cannot clear new logged in actor
+  ---
+  duration_ms: 2.0496
+  type: 'test'
+  ...
+# Subtest: all five statuses pass contract but contradictory fact shapes are refused
+ok 109 - all five statuses pass contract but contradictory fact shapes are refused
+  ---
+  duration_ms: 8.5242
+  type: 'test'
+  ...
+# Subtest: original rejects invalid context spans and unsafe links without showing old text
+ok 110 - original rejects invalid context spans and unsafe links without showing old text
+  ---
+  duration_ms: 2.2505
+  type: 'test'
+  ...
+# Subtest: invalid request or original handle never invokes transport
+ok 111 - invalid request or original handle never invokes transport
+  ---
+  duration_ms: 0.5885
+  type: 'test'
+  ...
+# Subtest: network loss does not retry and does not claim not accepted
+ok 112 - network loss does not retry and does not claim not accepted
+  ---
+  duration_ms: 0.9145
+  type: 'test'
+  ...
+# Subtest: new question discards original response from earlier round
+ok 113 - new question discards original response from earlier round
+  ---
+  duration_ms: 6.0764
+  type: 'test'
+  ...
+# Subtest: identity changes are serialized and me detects changed auth revision
+ok 114 - identity changes are serialized and me detects changed auth revision
+  ---
+  duration_ms: 3.2552
+  type: 'test'
+  ...
+# Subtest: current 401 clears its own identity but preserves actionable auth error
+ok 115 - current 401 clears its own identity but preserves actionable auth error
+  ---
+  duration_ms: 0.8445
+  type: 'test'
+  ...
+# Subtest: half surrogate quote and context boundary are rejected
+ok 116 - half surrogate quote and context boundary are rejected
+  ---
+  duration_ms: 1.3885
+  type: 'test'
+  ...
+# Subtest: current empty or HTML 401 clears identity independently of error body parsing
+ok 117 - current empty or HTML 401 clears identity independently of error body parsing
+  ---
+  duration_ms: 0.7385
+  type: 'test'
+  ...
+# Subtest: old epoch non JSON 401 never clears new current actor
+ok 118 - old epoch non JSON 401 never clears new current actor
+  ---
+  duration_ms: 3.1747
+  type: 'test'
+  ...
+# Subtest: public me during logout cannot refill actor with late success
+ok 119 - public me during logout cannot refill actor with late success
+  ---
+  duration_ms: 1.2563
+  type: 'test'
+  ...
+# Subtest: old question CSRF preflight 401 cannot erase new successful question
+ok 120 - old question CSRF preflight 401 cannot erase new successful question
+  ---
+  duration_ms: 2.9146
+  type: 'test'
+  ...
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# [Vue Router warn]: No match found for location with path "/campus/run"
+# [Vue Router warn]: No match found for location with path "/super-agent"
+# Subtest: student page has independent login and explicit first reference boundary
+ok 121 - student page has independent login and explicit first reference boundary
+  ---
+  duration_ms: 16.2533
+  type: 'test'
+  ...
+# Subtest: clarification and refusal show separate original controls without confirmed facts
+ok 122 - clarification and refusal show separate original controls without confirmed facts
+  ---
+  duration_ms: 4.7294
+  type: 'test'
+  ...
+# Subtest: all five decisions have distinct visible outcomes
+ok 123 - all five decisions have distinct visible outcomes
+  ---
+  duration_ms: 5.9362
+  type: 'test'
+  ...
+# Subtest: confirmed facts disclose declared conditions and original action
+ok 124 - confirmed facts disclose declared conditions and original action
+  ---
+  duration_ms: 1.8582
+  type: 'test'
+  ...
+# Subtest: necessary clarification displays only allowed choices and no invented fact
+ok 125 - necessary clarification displays only allowed choices and no invented fact
+  ---
+  duration_ms: 1.4006
+  type: 'test'
+  ...
+# Subtest: reviewed course type choices and confirmed facts use student labels while preserving submitted codes
+ok 126 - reviewed course type choices and confirmed facts use student labels while preserving submitted codes
+  ---
+  duration_ms: 2.3467
+  type: 'test'
+  ...
+# Subtest: original highlight uses relative span and recorded page mapping remains unknown
+ok 127 - original highlight uses relative span and recorded page mapping remains unknown
+  ---
+  duration_ms: 1.1065
+  type: 'test'
+  ...
+# Subtest: policy and original are escaped text and javascript links are never emitted
+ok 128 - policy and original are escaped text and javascript links are never emitted
+  ---
+  duration_ms: 1.1638
+  type: 'test'
+  ...
+# Subtest: pending, missing evidence, unconfirmed outcome and logout uncertainty stay distinct
+ok 129 - pending, missing evidence, unconfirmed outcome and logout uncertainty stay distinct
+  ---
+  duration_ms: 3.0348
+  type: 'test'
+  ...
+# Subtest: maintainer cannot use student question form
+ok 130 - maintainer cannot use student question form
+  ---
+  duration_ms: 1.2386
+  type: 'test'
+  ...
+# Subtest: unconfirmed login requires identity read before another login attempt
+ok 131 - unconfirmed login requires identity read before another login attempt
+  ---
+  duration_ms: 0.9787
+  type: 'test'
+  ...
+# Subtest: login pending then unmount and return preserves uncertainty until identity read
+ok 132 - login pending then unmount and return preserves uncertainty until identity read
+  ---
+  duration_ms: 2.8341
+  type: 'test'
+  ...
+# Subtest: unmounted login failure cannot mark a later identity uncertain
+ok 133 - unmounted login failure cannot mark a later identity uncertain
+  ---
+  duration_ms: 0.6627
+  type: 'test'
+  ...
+# Subtest: busy execution is separate from business decision and no retry on unknown outcome
+ok 134 - busy execution is separate from business decision and no retry on unknown outcome
+  ---
+  duration_ms: 5.2459
+  type: 'test'
+  ...
+# Subtest: clarification sends only current allowed delta and never guesses unknown conditions
+ok 135 - clarification sends only current allowed delta and never guesses unknown conditions
+  ---
+  duration_ms: 3.5747
+  type: 'test'
+  ...
+# Subtest: new question clears previous answer and original before pending query completes
+ok 136 - new question clears previous answer and original before pending query completes
+  ---
+  duration_ms: 2.3364
+  type: 'test'
+  ...
+# Subtest: identity epoch change immediately clears displayed content and old async response
+ok 137 - identity epoch change immediately clears displayed content and old async response
+  ---
+  duration_ms: 3.972
+  type: 'test'
+  ...
+# Subtest: reset and disposal reject late original response even if transport resolves
+ok 138 - reset and disposal reject late original response even if transport resolves
+  ---
+  duration_ms: 1.1224
+  type: 'test'
+  ...
+# Subtest: failed original retrieval clears old original and outcome remains explicit
+ok 139 - failed original retrieval clears old original and outcome remains explicit
+  ---
+  duration_ms: 0.8279
+  type: 'test'
+  ...
+# Subtest: explicitly expired or changed original invalidates the supported answer without automatic retry
+ok 140 - explicitly expired or changed original invalidates the supported answer without automatic retry
+  ---
+  duration_ms: 0.8745
+  type: 'test'
+  ...
+# Subtest: an original network failure alone does not claim that the already received answer was revoked
+ok 141 - an original network failure alone does not claim that the already received answer was revoked
+  ---
+  duration_ms: 0.7158
+  type: 'test'
+  ...
+# Subtest: a late expired original response cannot invalidate a newer answer
+ok 142 - a late expired original response cannot invalidate a newer answer
+  ---
+  duration_ms: 1.2327
+  type: 'test'
+  ...
+# Subtest: connection loss records unconfirmed result and never automatically resubmits
+ok 143 - connection loss records unconfirmed result and never automatically resubmits
+  ---
+  duration_ms: 1.38
+  type: 'test'
+  ...
+# WebSocket server error: Port is already in use
+# Subtest: student login and navigation expose rules only
+ok 144 - student login and navigation expose rules only
+  ---
+  duration_ms: 13.5048
+  type: 'test'
+  ...
+# Subtest: student presents shared complete
+ok 145 - student presents shared complete
+  ---
+  duration_ms: 2.3745
+  type: 'test'
+  ...
+# Subtest: student presents shared partial-and-clarification
+ok 146 - student presents shared partial-and-clarification
+  ---
+  duration_ms: 1.7108
+  type: 'test'
+  ...
+# Subtest: student presents shared partial-and-data-gap
+ok 147 - student presents shared partial-and-data-gap
+  ---
+  duration_ms: 1.4004
+  type: 'test'
+  ...
+# Subtest: student presents shared partial-and-processing-failure
+ok 148 - student presents shared partial-and-processing-failure
+  ---
+  duration_ms: 1.083
+  type: 'test'
+  ...
+# Subtest: student presents shared conflict-only-blocks-related-item
+ok 149 - student presents shared conflict-only-blocks-related-item
+  ---
+  duration_ms: 0.751
+  type: 'test'
+  ...
+# Subtest: student presents shared honest-data-gap
+ok 150 - student presents shared honest-data-gap
+  ---
+  duration_ms: 0.6596
+  type: 'test'
+  ...
+# Subtest: student presents shared replay-not-covered
+ok 151 - student presents shared replay-not-covered
+  ---
+  duration_ms: 1.1024
+  type: 'test'
+  ...
+# Subtest: student presents shared cancel-request-is-not-termination
+ok 152 - student presents shared cancel-request-is-not-termination
+  ---
+  duration_ms: 2.0129
+  type: 'test'
+  ...
+# Subtest: student presents shared cancelled-with-safe-partial-content
+ok 153 - student presents shared cancelled-with-safe-partial-content
+  ---
+  duration_ms: 1.0241
+  type: 'test'
+  ...
+# Subtest: student presents shared resume-can-retain-previous-result
+ok 154 - student presents shared resume-can-retain-previous-result
+  ---
+  duration_ms: 0.6767
+  type: 'test'
+  ...
+# Subtest: partial answers, processing failure, missing data and replay have separate labels
+ok 155 - partial answers, processing failure, missing data and replay have separate labels
+  ---
+  duration_ms: 1.9921
+  type: 'test'
+  ...
+# Subtest: identity uncertainty and task receipt uncertainty provide explicit recovery
+ok 156 - identity uncertainty and task receipt uncertainty provide explicit recovery
+  ---
+  duration_ms: 1.6376
+  type: 'test'
+  ...
+# Subtest: rules are escaped and only related evidence is rendered after explanations
+ok 157 - rules are escaped and only related evidence is rendered after explanations
+  ---
+  duration_ms: 1.2333
+  type: 'test'
+  ...
+# Subtest: another window changing identity is explained and restores no old result
+ok 158 - another window changing identity is explained and restores no old result
+  ---
+  duration_ms: 1.6379
+  type: 'test'
+  ...
+# Subtest: frozen T05 processing reasons and five simulated attempts preserve safe partial content
+ok 159 - frozen T05 processing reasons and five simulated attempts preserve safe partial content
+  ---
+  duration_ms: 4.37
+  type: 'test'
+  ...
+# Subtest: accepted contract rejects unsafe identifiers, versions and extra server authority
+ok 160 - accepted contract rejects unsafe identifiers, versions and extra server authority
+  ---
+  duration_ms: 3.0381
+  type: 'test'
+  ...
+# Subtest: task transport consumes async receipt and validates snapshot
+ok 161 - task transport consumes async receipt and validates snapshot
+  ---
+  duration_ms: 4.8874
+  type: 'test'
+  ...
+# Subtest: create returns immediately then polling stops on published snapshot
+ok 162 - create returns immediately then polling stops on published snapshot
+  ---
+  duration_ms: 4.7916
+  type: 'test'
+  ...
+# Subtest: query failure keeps accepted task and does not repeat POST
+ok 163 - query failure keeps accepted task and does not repeat POST
+  ---
+  duration_ms: 1.2957
+  type: 'test'
+  ...
+# Subtest: lost create acknowledgement recovers by original request key only
+ok 164 - lost create acknowledgement recovers by original request key only
+  ---
+  duration_ms: 1.2711
+  type: 'test'
+  ...
+# Subtest: same-task clarification uses nonce/version; new run accepts safe old result
+ok 165 - same-task clarification uses nonce/version; new run accepts safe old result
+  ---
+  duration_ms: 1.6297
+  type: 'test'
+  ...
+# Subtest: cancel accepted is not terminal and continues polling until backend termination
+ok 166 - cancel accepted is not terminal and continues polling until backend termination
+  ---
+  duration_ms: 2.1081
+  type: 'test'
+  ...
+# Subtest: old polling success cannot repopulate next question or identity
+ok 167 - old polling success cannot repopulate next question or identity
+  ---
+  duration_ms: 2.7862
+  type: 'test'
+  ...
+# Subtest: snapshot identity and version conflicts are rejected without inventing task failure
+ok 168 - snapshot identity and version conflicts are rejected without inventing task failure
+  ---
+  duration_ms: 2.0692
+  type: 'test'
+  ...
+# Subtest: HTTP version conflict preserves snapshot and asks for fresh query
+ok 169 - HTTP version conflict preserves snapshot and asks for fresh query
+  ---
+  duration_ms: 1.7328
+  type: 'test'
+  ...
+# Subtest: late original and dispose cannot retain old identity content
+ok 170 - late original and dispose cannot retain old identity content
+  ---
+  duration_ms: 1.4115
+  type: 'test'
+  ...
+# Subtest: student route / resolves to rules only
+ok 171 - student route / resolves to rules only
+  ---
+  duration_ms: 7.7734
+  type: 'test'
+  ...
+# Subtest: student route /campus/run resolves to rules only
+ok 172 - student route /campus/run resolves to rules only
+  ---
+  duration_ms: 1.9591
+  type: 'test'
+  ...
+# Subtest: student route /campus/history resolves to rules only
+ok 173 - student route /campus/history resolves to rules only
+  ---
+  duration_ms: 0.751
+  type: 'test'
+  ...
+# Subtest: student route /campus/conversation resolves to rules only
+ok 174 - student route /campus/conversation resolves to rules only
+  ---
+  duration_ms: 0.6431
+  type: 'test'
+  ...
+# Subtest: student route /campus/login resolves to rules only
+ok 175 - student route /campus/login resolves to rules only
+  ---
+  duration_ms: 0.9791
+  type: 'test'
+  ...
+# Subtest: student route /super-agent resolves to rules only
+ok 176 - student route /super-agent resolves to rules only
+  ---
+  duration_ms: 0.9597
+  type: 'test'
+  ...
+1..176
+# tests 176
+# suites 0
+# pass 176
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2702.1313

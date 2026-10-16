@@ -143,6 +143,17 @@ export function createRuleCheckClient({ session = ruleCheckSession, fetchImpl = 
   }
   return {
     csrf, me, cancelResults,
+    async taskRequest(method, path, body) {
+      if (!/^\/tasks(?:\/|$)/.test(path) || !["GET", "POST"].includes(method)) throw new RuleCheckError("INVALID_TASK_REQUEST")
+      if (session.state.identityBusy) throw new RuleCheckError("AUTH_TRANSITION")
+      return method === "POST" ? write(path, body, { expectedRound: round }) : request("GET", path, undefined, { expectedRound: round })
+    },
+    async taskOriginal(taskId, token) {
+      if (!id(taskId) || !id(token)) throw new RuleCheckError("INVALID_ORIGINAL_TOKEN")
+      const value = await request("GET", `/tasks/${taskId}/originals/${token}`, undefined, { expectedRound: round })
+      if (!located(value)) throw new RuleCheckError("BAD_RESPONSE")
+      return value
+    },
     async login(username, password) {
       if (session.state.identityBusy) throw new RuleCheckError('AUTH_TRANSITION')
       session.state.identityBusy = true

@@ -1,0 +1,40 @@
+{
+  "task": "T07 学生入口、交互与结果展示（补齐实际缺口）",
+  "branch": "codex/t07-student-entry",
+  "worktree": "C:/Users/nangua/.codex/worktrees/t07-student-entry/ZhkuAgent",
+  "implementationCommit": "94dc928151efd96f08ff99f1280ee1871b05907a",
+  "implementationTree": "8ca021a7517127c28daadaf001bcf8d8e59ad5e9",
+  "baseCommit": "88e57d68799d3a5996bb84346090a84040a88387",
+  "contractVersion": 3,
+  "executionMode": "TEST_SIMULATION_NO_PROVIDER",
+  "frontendRegression": { "tests": 176, "pass": 176, "fail": 0, "baselineTests": 167, "addedTests": 9 },
+  "builds": {
+    "student": { "exit": 0, "modules": 134, "assetNameSetEqualToBaseline": true },
+    "engineering": { "exit": 0, "modules": 134 }
+  },
+  "browserCheck": { "tool": "playwright-core + system Edge", "passed": 10, "total": 10, "failed": 0, "ports": [8131, 8132], "pageErrors": 0, "externalRequests": 0 },
+  "realProviderAttempts": 0,
+  "databaseCalls": 0,
+  "sharedAuthorityChanged": false,
+  "contractGaps": 0,
+  "hostExitEvidencePresent": false,
+  "unverified": [
+    "验收宿主稳定提交与退出方式（浏览器验收卡点未绕过）",
+    "T06 明确提交后的真实身份/资料验收",
+    "真实两窗口/跨标签页（仅注入通道替身的单元级证明）",
+    "正式 nginx 代理、在线模型、T05 在线链路"
+  ],
+  "discoveredNotFixed": [
+    {
+      "item": "学生构建产物同样包含工程 chunk",
+      "preExisting": true,
+      "reason": "import.meta.env.VITE_ENTRY_MODE 构建期未被静态折叠，三元两支都进入产物；基线同样如此",
+      "scopeDecision": "本轮要求是学生入口与运行期路由收敛、工程能力保留，并不要求学生构建彻底排除全部工程资源。只登记事实，不改 vite.config.js，不扩大为构建重构任务。",
+      "retainedEvidence": "学生产物资产名称集合 24 个（16 JS + 8 CSS）与基线逐项一致，diff 为空；模块数 132→134"
+    }
+  ],
+  "onlinePassed": false,
+  "localPartialPass": true,
+  "registration": "T07 工程局部检查点，待统一集成核验；176 项回归、两种构建、10 项路由浏览器检查分别成立，不合并为真实整链通过",
+  "twoWindowAcceptance": "待验证（需宿主稳定提交与退出方式，以及 T06 可登录装配）"
+}

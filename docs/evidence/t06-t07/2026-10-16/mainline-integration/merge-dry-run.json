@@ -1,0 +1,58 @@
+{
+  "recordedAt": "2026-10-16",
+  "scope": "只读干跑，未更新任何 ref；命令为 git merge-tree --write-tree 与 git commit-tree（后者仅产生悬空对象）",
+  "baselineAssumptionCorrected": {
+    "wasAssumed": "T05/T06/T07 三条线都从 88e57d6 出发",
+    "actual": "只有 T06/T07 从 88e57d6 出发；T05 从主线上的 58e1ef7 出发；88e57d6 本身是 codex/t06-t07-student-http 的 HEAD 且不在主线上"
+  },
+  "heads": {
+    "zhkuagent-modules": "ec1e36234327e1de2d14c0a9ddb05148a02b885a",
+    "codex/t05-online-evidence": "1c270c4",
+    "codex/t06-controlled-launch": "a03af69",
+    "codex/t07-student-entry": "c052c45cf0238c89b7930cfc9ab40942842e598d",
+    "codex/t06-t07-student-http": "88e57d6"
+  },
+  "mergeBases": {
+    "t05_x_mainline": "58e1ef751e8a659178afaac04830ae3df86ad579",
+    "t06_x_mainline": "5ee26d897d21b9639eae6852d1fbfd14f0e3afd4",
+    "t07_x_mainline": "5ee26d897d21b9639eae6852d1fbfd14f0e3afd4",
+    "t05_x_t06": "5ee26d897d21b9639eae6852d1fbfd14f0e3afd4",
+    "t06_x_t07": "88e57d68799d3a5996bb84346090a84040a88387"
+  },
+  "dryRuns": [
+    {"pair": "T05 x mainline", "mergeBase": "58e1ef7", "exitCode": 0, "conflicts": 0, "resultTree": "a27300730ccf19e054969bac3088ec27c998d9ba"},
+    {"pair": "T06 x mainline", "mergeBase": "5ee26d8", "exitCode": 1, "conflicts": 1, "resultTree": "b4dfc7f45436e5dd05f0d3aaf941ba372a69bf3b"},
+    {"pair": "T07 x mainline", "mergeBase": "5ee26d8", "exitCode": 1, "conflicts": 1, "resultTree": "09163037f823e9c5fa738ba548dc1d96c515561a"},
+    {"pair": "T06 x T07", "mergeBase": "88e57d6", "exitCode": 0, "conflicts": 0, "resultTree": "341c371096eddec5a7b9dfe28e01bc108cf1b8cd", "changedFileIntersection": 0},
+    {"pair": "T05 x T06", "mergeBase": "5ee26d8", "exitCode": 1, "conflicts": 14, "resultTree": null}
+  ],
+  "t05T06ConflictFiles": [
+    "knowledge/scripts/verify-rule-check-refactor.ps1",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactory.java",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineProbeHost.java",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProtocol.java",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProvider.java",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentRunner.java",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleFactCapabilityCatalogue.java",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationContract.java",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationGate.java",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationProtocol.java",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleSemanticReviewPort.java",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RulePublicationGateTest.java"
+  ],
+  "t05JavaConflictRootCause": {
+    "sampleFile": "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentRunner.java",
+    "blobs": {
+      "5ee26d8_commonAncestor": "3c39d78b102fb0d5c442bd7c784a8ccbea7f8f36",
+      "zhkuagent-modules": "2f82467a10313bb53035a3b7b51ecfece2fa1b99",
+      "t06": "2f82467a10313bb53035a3b7b51ecfece2fa1b99",
+      "t07": "2f82467a10313bb53035a3b7b51ecfece2fa1b99",
+      "t05": "6b79b0bfff28230c34813d9d034d56e952b0c090"
+    },
+    "reading": "主线/T06/T07 三方 Java 已完全一致；只有 T05 停在旧版本上另行演进。属版本陈旧，非设计分歧。",
+    "adjudicatedBy": "NOT_ADJUDICATED — 超出 T07 授权范围"
+  },
+  "baselineVsMainlineFileCounts": {"added": 93, "deletedOrAbsent": 387, "modified": 10}
+}
