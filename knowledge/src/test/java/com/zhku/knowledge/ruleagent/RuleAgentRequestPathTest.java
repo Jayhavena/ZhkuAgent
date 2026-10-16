@@ -7,10 +7,14 @@ import java.lang.reflect.InvocationTargetException;
 import static org.assertj.core.api.Assertions.*;
 /** 用隔离临时根和有标记的假Maven验证入口副作用，不运行真实构建/模型/数据库。 */
 class RuleAgentRequestPathTest {
- static final String NEW="docs/evidence/rule-agent-provider/2026-10-15/t05-62-eligibility-request/request-package.json";
+ static final String NEW="docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json";
  @TempDir Path scratch;
  Path root(){Path p=Path.of("").toAbsolutePath();while(!Files.exists(p.resolve("knowledge/pom.xml")))p=p.getParent();return p;}
  @Test void hostBindsNewDirectoryWithoutReusingClosed55()throws Exception{var f=RuleAgentOnlineProbeHost.class.getDeclaredField("PACKAGE");f.setAccessible(true);assertThat(f.get(null)).isEqualTo(NEW);}
+ @Test void launcherUsesTheSameFreshDirectoryForPackageLiveAndLogs()throws Exception{
+  String directory=NEW.substring(0,NEW.lastIndexOf('/')+1);String script=Files.readString(root().resolve("knowledge/scripts/start-rule-agent-probe.ps1"));
+  assertThat(script).contains("$package=Join-Path $root '"+NEW+"'","$env:ZHKU_RULE_AGENT_EVIDENCE='"+directory+"live-'","$launcherLog=Join-Path $root ('"+directory+"launcher-'");
+ }
  @Test void hostRejectsExistingTargetBeforeReadingAnyAssets()throws Exception{
   Path target=scratch.resolve(NEW);assertThat(target.normalize().startsWith(scratch.normalize())).isTrue();Files.createDirectories(target.getParent());Files.writeString(target,"ORIGINAL_TARGET");
   var m=RuleAgentOnlineProbeHost.class.getDeclaredMethod("prepare",Path.class);m.setAccessible(true);
