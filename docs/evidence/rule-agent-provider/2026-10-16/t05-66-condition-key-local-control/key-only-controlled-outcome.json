@@ -1,0 +1,123 @@
+{
+  "snapshot" : {
+    "schemaVersion" : 3,
+    "taskId" : "81b5a563-b015-4866-b250-89167f97ac19",
+    "turnId" : "dc684b94-01e0-447c-9de1-65453c23632d",
+    "runId" : "78986897-a44a-4a1b-a051-2507c83f1897",
+    "version" : 2,
+    "taskStatus" : "WAITING_USER",
+    "runState" : "INCOMPLETE",
+    "terminated" : true,
+    "result" : {
+      "publishedVersion" : 2,
+      "originatingRunId" : "78986897-a44a-4a1b-a051-2507c83f1897",
+      "catalogueVersion" : "cat-a57e5a4b1194c346a374cce7d9e9278e215a48d081aaff019ef7fc0e4f38db14",
+      "referenceRevision" : "2025.9.2",
+      "coverage" : "NONE",
+      "items" : [ {
+        "id" : "q1",
+        "coverage" : "NONE",
+        "claims" : [ ],
+        "issues" : [ {
+          "id" : "i-MISSING_CONDITION",
+          "kind" : "CLARIFICATION",
+          "reasonCode" : "MISSING_CONDITION",
+          "message" : "还缺影响结论的必要条件。",
+          "nextStep" : "请补充下方必要条件。"
+        } ],
+        "clarification" : [ {
+          "conditionId" : "courseType",
+          "question" : "这门课属于公共选修还是专业选修？",
+          "allowedValues" : [ "PUBLIC", "PROFESSIONAL" ]
+        } ]
+      } ],
+      "evidence" : [ {
+        "id" : "2673eb4f-0ded-467b-b386-ca6397be92b9:0-48",
+        "sourceId" : "c8a2c3a6-c78f-4615-8844-265f1c009f16",
+        "chunkId" : "1969038a-4b29-3e8e-8c46-763bd43342d9",
+        "revision" : "2025.9.2",
+        "checksum" : "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
+        "startInclusive" : 0,
+        "endExclusive" : 48,
+        "quote" : "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+        "originalToken" : "090b080f-989f-4c07-b1f5-e3973f31a978"
+      } ],
+      "evidenceRelations" : [ {
+        "evidenceId" : "2673eb4f-0ded-467b-b386-ca6397be92b9:0-48",
+        "subquestionId" : "q1",
+        "role" : "CLARIFICATION",
+        "targetId" : "courseType"
+      } ]
+    },
+    "continuationToken" : "e0e3f921-dfcb-4925-a25a-100bf2bb958b",
+    "execution" : {
+      "mode" : "ONLINE",
+      "modelAttemptCount" : 4,
+      "toolStepCount" : 3,
+      "providerResponseReceived" : false,
+      "answerSource" : "VERIFIED_RULE_ONLY",
+      "replayCoverage" : "NOT_APPLICABLE"
+    }
+  },
+  "events" : [ {
+    "attempt" : 1,
+    "action" : "SEARCH_REVIEWED_RULES",
+    "observation" : {
+      "actionId" : "5d2d70c5-0738-43f6-bb69-02d30d6bd478",
+      "runId" : "78986897-a44a-4a1b-a051-2507c83f1897",
+      "step" : 1,
+      "status" : "SUCCEEDED",
+      "reasonCode" : null,
+      "dataLevel" : "CANDIDATE",
+      "catalogueVersion" : "cat-a57e5a4b1194c346a374cce7d9e9278e215a48d081aaff019ef7fc0e4f38db14",
+      "candidates" : [ {
+        "handle" : "c6baec7b-676b-48db-a16d-c03698ac66fd",
+        "excerpt" : "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+        "revision" : "2025.9.2"
+      } ],
+      "evidence" : [ ],
+      "factIds" : [ ]
+    },
+    "reason" : null,
+    "publicationReason" : null
+  }, {
+    "attempt" : 2,
+    "action" : "READ_VERIFIED_RULE",
+    "observation" : {
+      "actionId" : "1209b79b-a043-4f9c-826c-3fbf451b5263",
+      "runId" : "78986897-a44a-4a1b-a051-2507c83f1897",
+      "step" : 2,
+      "status" : "SUCCEEDED",
+      "reasonCode" : null,
+      "dataLevel" : "VERIFIED_FACT",
+      "catalogueVersion" : "cat-a57e5a4b1194c346a374cce7d9e9278e215a48d081aaff019ef7fc0e4f38db14",
+      "candidates" : [ ],
+      "evidence" : [ {
+        "id" : "2673eb4f-0ded-467b-b386-ca6397be92b9:0-48",
+        "sourceId" : "c8a2c3a6-c78f-4615-8844-265f1c009f16",
+        "chunkId" : "1969038a-4b29-3e8e-8c46-763bd43342d9",
+        "revision" : "2025.9.2",
+        "checksum" : "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
+        "startInclusive" : 0,
+        "endExclusive" : 48,
+        "quote" : "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+        "originalToken" : "090b080f-989f-4c07-b1f5-e3973f31a978"
+      } ],
+      "factIds" : [ "S10/COMBINED:public-no-deferred-exam", "S10/COMBINED:public-failed-no-retake", "S10/COMBINED:professional-failed-retake-application", "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam", "S10/RETAKE_ONLY:public-failed-no-retake", "S10/RETAKE_ONLY:professional-failed-retake-application" ]
+    },
+    "reason" : null,
+    "publicationReason" : null
+  }, {
+    "attempt" : 3,
+    "action" : "ASK_NECESSARY_CONDITION",
+    "observation" : null,
+    "reason" : null,
+    "publicationReason" : null
+  }, {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "observation" : null,
+    "reason" : null,
+    "publicationReason" : null
+  } ]
+}

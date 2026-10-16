@@ -1,0 +1,37 @@
+{
+  "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+  "inputFingerprint" : "b6cb8690f7f2e981727fd8aa9ec9e0e5887f70e94c8ae20a8b19aba807aca19f",
+  "requirements" : [ {
+    "id" : "r1",
+    "span" : {
+      "subquestionId" : "q1",
+      "startInclusive" : 0,
+      "endExclusive" : 14
+    },
+    "dimension" : "RETAKE",
+    "subject" : "PUBLIC_ELECTIVE",
+    "recognition" : "IDENTIFIED",
+    "necessaryConditionIds" : [ "courseType" ]
+  }, {
+    "id" : "r2",
+    "span" : {
+      "subquestionId" : "q1",
+      "startInclusive" : 0,
+      "endExclusive" : 14
+    },
+    "dimension" : "RETAKE",
+    "subject" : "PROFESSIONAL_ELECTIVE",
+    "recognition" : "IDENTIFIED",
+    "necessaryConditionIds" : [ "courseType" ]
+  } ],
+  "bindings" : [ {
+    "requirementId" : "r1",
+    "factId" : "S10/RETAKE_ONLY:public-failed-no-retake",
+    "role" : "CORE"
+  }, {
+    "requirementId" : "r2",
+    "factId" : "S10/RETAKE_ONLY:professional-failed-retake-application",
+    "role" : "CORE"
+  } ],
+  "unresolvedDemands" : [ ]
+}

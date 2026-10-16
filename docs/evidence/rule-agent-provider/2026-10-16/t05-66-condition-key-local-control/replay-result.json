@@ -1,0 +1,86 @@
+{
+  "original" : {
+    "taskStatus" : "FAILED",
+    "runState" : "FAILED",
+    "coverage" : "NONE",
+    "answerSource" : "NONE",
+    "providerResponseReceived" : false,
+    "continuationPresent" : false,
+    "decisionPortInvocations" : 3,
+    "reviewPortInvocations" : 1,
+    "validation" : [ {
+      "stage" : "REVIEW_BINDING",
+      "code" : "REVIEW_CONDITION_UNKNOWN",
+      "readSelection" : null
+    } ],
+    "evidenceCount" : 0,
+    "evidenceRelations" : [ ],
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "NONE",
+      "claims" : [ ],
+      "issues" : [ {
+        "id" : "i-INVALID_MODEL_RESPONSE",
+        "kind" : "PROCESSING_FAILURE",
+        "reasonCode" : "INVALID_MODEL_RESPONSE",
+        "message" : "本轮处理未完成，不能将处理失败当作资料缺失。",
+        "nextStep" : "可核对原文或重新发起查证；本轮不作无依据结论。"
+      } ],
+      "clarification" : [ ]
+    } ],
+    "terminated" : true
+  },
+  "keyOnly" : {
+    "taskStatus" : "WAITING_USER",
+    "runState" : "INCOMPLETE",
+    "coverage" : "NONE",
+    "answerSource" : "VERIFIED_RULE_ONLY",
+    "providerResponseReceived" : false,
+    "continuationPresent" : true,
+    "decisionPortInvocations" : 3,
+    "reviewPortInvocations" : 1,
+    "validation" : [ ],
+    "evidenceCount" : 1,
+    "evidenceRelations" : [ {
+      "evidenceId" : "2673eb4f-0ded-467b-b386-ca6397be92b9:0-48",
+      "subquestionId" : "q1",
+      "role" : "CLARIFICATION",
+      "targetId" : "courseType"
+    } ],
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "NONE",
+      "claims" : [ ],
+      "issues" : [ {
+        "id" : "i-MISSING_CONDITION",
+        "kind" : "CLARIFICATION",
+        "reasonCode" : "MISSING_CONDITION",
+        "message" : "还缺影响结论的必要条件。",
+        "nextStep" : "请补充下方必要条件。"
+      } ],
+      "clarification" : [ {
+        "conditionId" : "courseType",
+        "question" : "这门课属于公共选修还是专业选修？",
+        "allowedValues" : [ "PUBLIC", "PROFESSIONAL" ]
+      } ]
+    } ],
+    "terminated" : true
+  },
+  "directGateVerdict" : "UNRESOLVED",
+  "safeInputReconstructedExactly" : true,
+  "onlyTwoKeysChanged" : true,
+  "realModelCalls" : 0,
+  "databaseOperations" : 0,
+  "dockerOperations" : 0,
+  "socketConnectionsDenied" : true,
+  "secondRunExecuted" : false,
+  "onlineAcceptancePassed" : false,
+  "productionClassOrigins" : {
+    "RuleAgentRunner" : "jar:nested:/D:/alldesk/Projects/ZhkuAgent-t05/knowledge/target/knowledge-0.1.0-rc.1-controlled.jar/!BOOT-INF/classes/!/com/zhku/knowledge/ruleagent/RuleAgentRunner.class",
+    "RulePublicationProtocol" : "jar:nested:/D:/alldesk/Projects/ZhkuAgent-t05/knowledge/target/knowledge-0.1.0-rc.1-controlled.jar/!BOOT-INF/classes/!/com/zhku/knowledge/ruleagent/RulePublicationProtocol.class",
+    "RulePublicationGate" : "jar:nested:/D:/alldesk/Projects/ZhkuAgent-t05/knowledge/target/knowledge-0.1.0-rc.1-controlled.jar/!BOOT-INF/classes/!/com/zhku/knowledge/ruleagent/RulePublicationGate.class",
+    "RuleResultPublisher" : "jar:nested:/D:/alldesk/Projects/ZhkuAgent-t05/knowledge/target/knowledge-0.1.0-rc.1-controlled.jar/!BOOT-INF/classes/!/com/zhku/knowledge/ruleagent/RuleResultPublisher.class",
+    "RuleFactCapabilityCatalogue" : "jar:nested:/D:/alldesk/Projects/ZhkuAgent-t05/knowledge/target/knowledge-0.1.0-rc.1-controlled.jar/!BOOT-INF/classes/!/com/zhku/knowledge/ruleagent/RuleFactCapabilityCatalogue.class"
+  },
+  "checksPassed" : true
+}
