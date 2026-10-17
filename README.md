@@ -1,10 +1,20 @@
 # 仲园 Agent（ZhkuAgent）
 
+**当前进度（2026-10-18）：规则查证 Agent 已形成分支工程成果，正在等待统一集成与整链验收收口。** T00—T04 基础与 T07 学生入口已进入主线；T05 真实模型工程验收在独立分支通过，T06 真实身份/资料/HTTP/代理的模拟决策验收已完成，但两条线的后续成果尚未合入。T08 正式在线质量、T09 学生/PDF 对照和 T10 最终冻结均未完成，不能宣称产品目标已经达成。
+
+- [项目全貌与当前进度](docs/zhkuagent/2026-10-18-project-status.md)：模块、历史成果、T00—T10、分支差距与证据边界。
+- [当前实施计划](docs/superpowers/plans/2026-10-18-project-integration-and-closeout-plan.md)：先整合 T05/T06 与学生入口并复验同版本整链，再做 T08 → T09 → T10。
+- [离线规则回放启动](docs/manual/nginx-local-preview.md#启动和停止)：10 月 17 日已修复回放同步后端与异步页面配错问题，必须搭配 `replay` 前端；该演示没有实时模型调用。
+
+下文的“当前”、测试数字及功能收口均按对应历史阶段理解；旧学分网页验收不等于新规则 Agent 或学生收益验收。
+
+## 历史受控学分网页阶段（2026-10-05—06）
+
 **当前受控校园网页版本已获用户确认：P4 人工功能验收通过，功能开发收口。** 本机 Nginx 下可登录、提交学分任务、查询本人历史和进行重修澄清；[一键启动与短演示](docs/manual/controlled-campus-web-demo.md)。P1 固定真实模型12/12、P4定向回归227项及校园真库11项、后续页面整理36项前端测试有各自执行证据；[人工确认与最终收尾](docs/evidence/controlled-web-demo/2026-10-06/p4/final-closeout/manual-acceptance.md)区分用户报告、自动测试及当前演示退出状态。本次文档收尾没有重跑这些测试，不宣称生产部署或全部浏览器质量检查通过。下文4A/3B的替身说明及计数仅对应历史时点。
 
 当前 **4A＋3B 已验收**，见 [整合核验](docs/evidence/milestone-4a/2026-10-05/A/20-4a-3b-integration-review.md)。Session 恢复仅限本人重修澄清控制状态，不恢复完整聊天记录或自动续跑 Run。项目面向校园资料维护者和本机演示开发者：根据用户提供的虚构公共选修课计算合计，核对已发布的学分上限及出处，证据不足时转人工核实。
 
-**Milestone 4A 本机受控身份与 Run 归属入口**的独立验收见 [4A 历史记录（V19 时点）](docs/evidence/milestone-4a/2026-10-05/A/18-4a-acceptance.md)，后续会话验收见 [3B 记录](docs/evidence/milestone-3b/2026-10-05/B/07-3b-acceptance.md)。合成 USER A/B 只能访问自己的 Run 和历史；MAINTAINER 不继承 USER 权限。实际回环 HTTP、不同 PID、旧 Cookie 失效和归属隔离已验证，该阶段模型为 src/test 替身。原单人匿名入口独立保留；两个模式不可混用，也不能通过隧道或代理变成生产多用户服务。代码未提交、未推送。
+**Milestone 4A 本机受控身份与 Run 归属入口**的独立验收见 [4A 历史记录（V19 时点）](docs/evidence/milestone-4a/2026-10-05/A/18-4a-acceptance.md)，后续会话验收见 [3B 记录](docs/evidence/milestone-3b/2026-10-05/B/07-3b-acceptance.md)。合成 USER A/B 只能访问自己的 Run 和历史；MAINTAINER 不继承 USER 权限。实际回环 HTTP、不同 PID、旧 Cookie 失效和归属隔离已验证，该阶段模型为 src/test 替身。原单人匿名入口独立保留；两个模式不可混用，也不能通过隧道或代理变成生产多用户服务。当时尚未提交，后续已有本地工程检查点；实际身份见[当前项目状态](docs/zhkuagent/2026-10-18-project-status.md)。
 
 前一版 [2026-10-04 三批收口](docs/evidence/single-session/2026-10-04/r22/README.md) 的去重407项及 [4A/V19 测试报告](docs/evidence/milestone-4a/2026-10-05/A/17-final-test-report.md)保留为各自时点的历史结果。当前命令、计数与去重来源见 [3B 最终测试报告](docs/evidence/milestone-3b/2026-10-05/B/08-final-test-report.md)，相关覆盖去重591项，不代表全仓测试。真实SDK对接合成服务端只验证传输协议，不等于真实供应商验证。
 
@@ -49,8 +59,8 @@ $mavenRepo = Join-Path $env:USERPROFILE '.m2/repository'
 | [Milestone 3A 当前验收](docs/evidence/milestone-3a/05-验收记录.md) | 归档、历史、实际进程中断对账的完成范围与未验证项 |
 | [3A 实施与受控演示](docs/evidence/milestone-3a/02-实施记录.md) | 默认关闭、显式目标、只读历史、关闭与故障运维 |
 | [3A 本轮测试报告](docs/evidence/milestone-3a/04-测试报告.md) | 基线、修改后回归、真实 JDBC、实际 JVM 重启与原 Golden 分开统计 |
-| [3A 后端后续开发计划](docs/superpowers/plans/2026-10-03-post-3a-backend-roadmap.md) | 工程优先：身份与归属、Session、幂等预算、受限恢复、真实模型及非本机 HTTP；尚未实施 |
-| [当前状态](docs/evidence/milestone-2.5/01-当前状态.md) | 已实现、验证范围、限制及下一阶段候选 |
+| [3A 后端历史路线](docs/superpowers/plans/2026-10-03-post-3a-backend-roadmap.md) | 4A/3B/3C 已有后续成果；受限恢复、非本机入口仍不在当前收口范围 |
+| [2.5 历史状态](docs/evidence/milestone-2.5/01-当前状态.md) | 该时点实现、验证范围、限制及候选，不代表全项目最新状态 |
 | [本地预览与演示指南](docs/evidence/milestone-2.5/02-本地预览与演示指南.md) | 网页预览条件、受控 Golden Task、请求/查询/取消示例 |
 | [阶段性发布说明](docs/evidence/milestone-2.5/03-阶段性发布说明.md) | 本机候选的产品范围和兼容性说明 |
 | [本阶段范围、基线与验证](docs/evidence/milestone-2.5/04-范围基线与验证.md) | 本轮实测、历史结果、源码审计和未执行项 |
