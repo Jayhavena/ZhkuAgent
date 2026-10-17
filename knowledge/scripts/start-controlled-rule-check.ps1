@@ -36,7 +36,29 @@ foreach($port in @($DatabasePort,$BackendPort)){
     try{$probe.Start()}finally{$probe.Stop()}
 }
 # 共享target不能并发构建；仅查看进程，绝不关闭用户的Java、客户端或浏览器。
-if(@(Get-CimInstance Win32_Process -Filter "Name='java.exe'"|Where-Object {$_.CommandLine-match 'org\.codehaus\.plexus\.classworlds\.launcher\.Launcher|Controlled2025RuleCheckHost'}).Count){throw '已有构建/查证宿主，请正常结束后启动'}
+if (@(Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object {
+    $command=$_.CommandLine
+    $demoMain=$command -match '(?:-Dloader\.main=|\s)\S*\.(?:Controlled2025RuleCheckHost)(?=[\s"]|$)'
+    $mavenMain=$command -match '\borg\.codehaus\.plexus\.classworlds\.launcher\.Launcher\b'
+    if($demoMain){return $true}
+    if(!$mavenMain){return $false}
+    # 冲突来自共享target，不能把别的仓库构建或IDE类路径jar当成本仓Maven。
+    # 工作目录缺失/相对/无法解析时仍拒绝，不能用猜测绕过同仓串行保护。
+    $project=[regex]::Match($command,'(?i)-Dmaven\.multiModuleProjectDirectory=(?:"([^"]+)"|([^\s]+))')
+    if(!$project.Success){return $true}
+    try {
+        $directory=($project.Groups[1].Value+$project.Groups[2].Value).Trim([char[]]@('"','\'))
+        if(![IO.Path]::IsPathFullyQualified($directory)){return $true}
+        $directory=[IO.Path]::GetFullPath($directory).Replace('\','/').TrimEnd('/')
+        $repository=[IO.Path]::GetFullPath($root).Replace('\','/').TrimEnd('/')
+        $comparison=[StringComparison]::OrdinalIgnoreCase
+        $sameTree=$directory.Equals($repository,$comparison) -or $directory.StartsWith($repository+'/',$comparison) -or $repository.StartsWith($directory+'/',$comparison)
+        $explicitRepository=$command.Replace('\','/') -match ([regex]::Escape($repository)+'(?=[/"\s]|$)')
+        return $sameTree -or $explicitRepository
+    } catch {return $true}
+}).Count) {
+    throw '已有构建/查证宿主占用本仓库或目录无法确认，请正常退出后再运行；不会停止它。'
+}
 $phase=(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N').Substring(0,8)
 $directory=Join-Path $root ('docs/evidence/rule-check-refactor/2026-10-10/package-02/startup/'+$phase)
 New-Item -ItemType Directory -Path $directory -Force|Out-Null
