@@ -1,0 +1,69 @@
+{
+  "scope": "T06 controlled acceptance script boundary contract tests",
+  "actualExternalCalls": {
+    "provider": 0,
+    "maven": 0,
+    "docker": 0,
+    "database": 0
+  },
+  "redSource": "C:/Users/nangua/.codex/worktrees/t06-controlled-launch/ZhkuAgent/scripts/t06-controlled-acceptance.ps1",
+  "redSourceSha256": "F066B4A701E83860DA7154C893E4540D71760E224F159B7C8F082687A0F2C37B",
+  "red": {
+    "log": "red-ps51.log",
+    "exitCode": 1,
+    "failed": 8,
+    "passed": 5,
+    "engine": "Windows PowerShell 5.1"
+  },
+  "retentionCorrection": "The initial 11-case run (3 passed, 8 failed) was written to red-ps51.log, then overwritten by the 13-case run (5 passed, 8 failed). The initial log is unavailable as a separate file; its output remains only in the session. No initial log was reconstructed. All subsequent evidence will use new filenames.",
+  "notVerified": [
+    "Real Docker and temporary PostgreSQL",
+    "Real Maven/Java acceptance",
+    "Real provider",
+    "Browser proxy topology",
+    "Actual credential store fallback; helper invocation is a controlled boundary double"
+  ],
+  "candidate": {
+    "path": "C:\\Users\\nangua\\.codex\\worktrees\\rule-agent-integration\\ZhkuAgent\\.superpowers\\t06-script-hardening\\t06-controlled-acceptance.ps1",
+    "sha256": "FC8BA9A69F5ED7E78371B4A09DF24C8A8EC9D76C40EB564DB7B2EC84F2F53AD1",
+    "appliedToFinalScriptsPath": false,
+    "utf8Bom": true,
+    "parserErrorsPS51": 0
+  },
+  "contract": {
+    "path": "C:\\Users\\nangua\\.codex\\worktrees\\rule-agent-integration\\ZhkuAgent\\scripts\\tests\\t06-controlled-acceptance-contract.ps1",
+    "sha256": "17D8BEB81A2D2880CF4F29E618EB60D87F9749950BCF3512A59E8F56FFCEB9B6",
+    "cases": 13,
+    "execution": "Production functions and scenario tail extracted by AST; Docker/credential-store/Maven/proxy external boundaries replaced; final exit statement omitted and its actual overall value asserted.",
+    "utf8Bom": true,
+    "parserErrorsPS51": 0
+  },
+  "finalRuns": [
+    {
+      "exitCode": 1,
+      "engine": "Windows PowerShell 5.1",
+      "source": "original",
+      "log": "red-02-ps51.log",
+      "failed": 8,
+      "passed": 5
+    },
+    {
+      "exitCode": 0,
+      "engine": "Windows PowerShell 5.1",
+      "source": "scratch candidate",
+      "log": "green-03-ps51.log",
+      "failed": 0,
+      "passed": 13
+    },
+    {
+      "exitCode": 0,
+      "engine": "PowerShell 7",
+      "source": "scratch candidate",
+      "log": "green-04-ps7.log",
+      "failed": 0,
+      "passed": 13
+    }
+  ],
+  "proxyBoundary": "Existing proxy relay remains 0.0.0.0 and is unchanged; real Docker-host reachability and proxy topology were not tested by this subtask.",
+  "integrationInstructions": "Before applying, verify merged scripts/t06-controlled-acceptance.ps1 SHA256 equals redSourceSha256. Copy candidate to that path only if equal, then rerun the contract test with its default AcceptanceScript and record a fresh final-path log. No staging, commits or merges were performed by this subtask."
+}

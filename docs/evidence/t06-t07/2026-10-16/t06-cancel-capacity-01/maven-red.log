@@ -1,0 +1,105 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.1.0-rc.1
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 5 resources from src\main\resources to target\classes
+[INFO] Copying 21 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 3 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 283 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /C:/Users/nangua/.codex/worktrees/t06-controlled-launch/ZhkuAgent/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheck2025LexicalCalibrationTest.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /C:/Users/nangua/.codex/worktrees/t06-controlled-launch/ZhkuAgent/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheck2025LexicalCalibrationTest.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.ruleagent.web.RuleAgentSimulatedChainTempDbHttpTest
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+21:01:44.422 [main] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:55013/zhkuagent_rulecheck_e2e (PostgreSQL 16.15)
+21:01:44.539 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Schema history table "public"."flyway_schema_history" does not exist yet
+21:01:44.545 [main] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 18 migrations (execution time 00:00.075s)
+21:01:44.566 [main] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "public"."flyway_schema_history" ...
+21:01:44.669 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": << Empty Schema >>
+21:01:44.670 [main] WARN org.flywaydb.core.internal.command.DbMigrate -- outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+21:01:44.691 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "1 - create zhku knowledge schema"
+21:01:44.811 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "2 - add knowledge source visibility governance"
+21:01:44.862 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "3 - create zhku knowledge governance staging"
+21:01:44.974 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "4 - add zhku knowledge source version scope"
+21:01:45.011 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "5 - allow archived knowledge submission reimport"
+21:01:45.049 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "6 - add official notice lifecycle"
+21:01:45.134 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "7 - allow superseded notice audit visibility"
+21:01:45.159 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "8 - support reviewed internal official notice material"
+21:01:45.187 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "9 - add retrieval catalog and index audit"
+21:01:45.316 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "12 - create conversation session store"
+21:01:45.359 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "15 - create service guides"
+21:01:45.534 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "16 - create anonymous feedback"
+21:01:45.583 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "17 - create anonymous telemetry"
+21:01:45.645 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "18 - create campus agent run archive"
+21:01:45.730 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "19 - create preview identity and run ownership"
+21:01:45.788 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "20 - add conversation session ownership"
+21:01:45.826 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "21 - create campus run submission"
+21:01:45.869 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "22 - allow rule check capture audit"
+21:01:45.905 [main] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 18 migrations to schema "public", now at version v22 (execution time 00:00.796s)
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.4)
+
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 9.570 s <<< FAILURE! -- in com.zhku.knowledge.ruleagent.web.RuleAgentSimulatedChainTempDbHttpTest
+[ERROR] com.zhku.knowledge.ruleagent.web.RuleAgentSimulatedChainTempDbHttpTest.realTempDbCancelCapacityAndTerminalStatesOverActualHttp -- Time elapsed: 6.231 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "NONE"
+ but was: ""
+	at com.zhku.knowledge.ruleagent.web.RuleAgentSimulatedChainTempDbHttpTest.realTempDbCancelCapacityAndTerminalStatesOverActualHttp(RuleAgentSimulatedChainTempDbHttpTest.java:455)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   RuleAgentSimulatedChainTempDbHttpTest.realTempDbCancelCapacityAndTerminalStatesOverActualHttp:455 
+expected: "NONE"
+ but was: ""
+[INFO] 
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:02 min
+[INFO] Finished at: 2026-10-16T21:01:53+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: There are test failures.
+[ERROR] 
+[ERROR] See C:\Users\nangua\.codex\worktrees\t06-controlled-launch\ZhkuAgent\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

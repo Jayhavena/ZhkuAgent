@@ -1,0 +1,14 @@
+[PASS] 缺凭证时先失败，不能自造口令或创建数据库
+[PASS] Docker 口令仅通过环境传入并还原宿主环境
+[PASS] 临时数据库只发布到回环地址
+[PASS] Docker 创建失败也还原宿主口令环境
+[PASS] 建库、就绪检查和空库查询各自重新导入凭证
+[PASS] 数据库 Maven 每轮重读并还原凭证、端口及目录
+[PASS] existing Maven 不要求数据库凭证
+[PASS] Maven 非零退出仍还原环境与目录
+[PASS] existing 缺证据必须失败且临时库已回收
+[PASS] chain 缺证据必须失败且临时库已回收
+[PASS] proxy 缺证据必须失败且临时库已回收
+[PASS] 完整证据与 Maven 成功返回成功
+[PASS] Maven 原失败码保留且 all 停止后续场景
+T06 contract: 13 passed, 0 failed; Docker/DB/provider calls: 0 real.

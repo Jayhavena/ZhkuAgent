@@ -1,0 +1,53 @@
+{
+  "scope": "Proxy relay loopback boundary; runner and contract test only",
+  "runnerSha256": "D60FE1C985EA45826B23589E82F429D7F6C1F5C5B4C6030B8B2649E99FC30ABB",
+  "contractSha256": "F326D97DAB4C219C12CCA973CB0EAB1454EEC7276DBEBEA2D02550F8CD648539",
+  "previousCandidateSha256": "FC8BA9A69F5ED7E78371B4A09DF24C8A8EC9D76C40EB564DB7B2EC84F2F53AD1",
+  "red": {
+    "passed": 13,
+    "failed": 2,
+    "exitCode": 1,
+    "source": "previous scratch candidate",
+    "log": "proxy-red-01-ps51.log"
+  },
+  "green": [
+    {
+      "passed": 15,
+      "source": "final scripts path",
+      "engine": "Windows PowerShell 5.1",
+      "exitCode": 0,
+      "log": "proxy-green-01-ps51.log",
+      "failed": 0
+    },
+    {
+      "passed": 15,
+      "source": "final scripts path",
+      "engine": "PowerShell 7",
+      "exitCode": 0,
+      "log": "proxy-green-02-ps7.log",
+      "failed": 0
+    }
+  ],
+  "behavior": [
+    "Explicit 0.0.0.0, ::1, localhost and Docker host IP rejected before process/container start",
+    "Real generated Python executed by controlled process boundary",
+    "Loopback path calls actual OS socket bind and verifies getsockname host",
+    "Non-loopback RED path is blocked before real OS bind",
+    "Socket closed before listen; no daemon or live relay retained"
+  ],
+  "actualExternalCalls": {
+    "provider": 0,
+    "docker": 0,
+    "database": 0,
+    "maven": 0
+  },
+  "supportingParentEvidence": "docs/evidence/rule-agent-integration/2026-10-18/docker-loopback-probe.json",
+  "utf8Bom": true,
+  "notVerified": [
+    "Actual product HTTP/DB/proxy acceptance",
+    "Full relay byte forwarding",
+    "Docker reachability rerun; parent-owned synthetic probe was read only",
+    "Actual credential-store fallback"
+  ],
+  "repositoryActions": "No staging, commits, merges, Java/frontend changes or existing evidence overwrites"
+}

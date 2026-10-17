@@ -1,0 +1,87 @@
+{
+  "executionMode" : "SIMULATED_ENGINEERING_REPLAY_VIA_REPO_NGINX",
+  "schemaVersion" : 3,
+  "providerCalls" : 0,
+  "exchanges" : [ {
+    "input" : "",
+    "status" : 401,
+    "method" : "GET",
+    "actual" : "{\"code\":\"AUTHENTICATION_REQUIRED\",\"message\":\"需要有效登录\"}",
+    "path" : "/tasks/capabilities"
+  }, {
+    "input" : "",
+    "status" : 200,
+    "method" : "GET",
+    "actual" : "{\"schemaVersion\":3,\"asynchronous\":true}",
+    "path" : "/tasks/capabilities"
+  }, {
+    "input" : "",
+    "status" : 200,
+    "method" : "GET",
+    "actual" : "{\"schemaVersion\":3,\"asynchronous\":true}",
+    "path" : "/tasks/capabilities"
+  }, {
+    "input" : "{\"question\":\"需要澄清\",\"clientRequestId\":\"287b7fd9-0d64-4757-8f9f-0b377f119427\"}",
+    "status" : 403,
+    "method" : "POST",
+    "actual" : "{\"code\":\"ACCESS_DENIED\",\"message\":\"请求未获许可\"}",
+    "path" : "/tasks"
+  }, {
+    "input" : "{\"question\":\"需要澄清\",\"clientRequestId\":\"287b7fd9-0d64-4757-8f9f-0b377f119427\"}",
+    "status" : 202,
+    "method" : "POST",
+    "actual" : "{\"taskId\":\"69b54825-f372-41b2-bd95-a0825afd5e03\",\"turnId\":\"d5a3e3b1-73dc-4230-b01f-62813a0a766f\",\"runId\":\"084e0817-d165-4e4f-b8b8-8cd805351269\",\"version\":1,\"duplicate\":false}",
+    "path" : "/tasks"
+  }, {
+    "input" : "{\"question\":\"需要澄清\",\"clientRequestId\":\"287b7fd9-0d64-4757-8f9f-0b377f119427\"}",
+    "status" : 202,
+    "method" : "POST",
+    "actual" : "{\"taskId\":\"69b54825-f372-41b2-bd95-a0825afd5e03\",\"turnId\":\"d5a3e3b1-73dc-4230-b01f-62813a0a766f\",\"runId\":\"084e0817-d165-4e4f-b8b8-8cd805351269\",\"version\":1,\"duplicate\":true}",
+    "path" : "/tasks"
+  }, {
+    "input" : "",
+    "status" : 404,
+    "method" : "GET",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "path" : "/tasks/69b54825-f372-41b2-bd95-a0825afd5e03"
+  }, {
+    "input" : "",
+    "status" : 200,
+    "method" : "GET",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"69b54825-f372-41b2-bd95-a0825afd5e03\",\"turnId\":\"d5a3e3b1-73dc-4230-b01f-62813a0a766f\",\"runId\":\"084e0817-d165-4e4f-b8b8-8cd805351269\",\"version\":2,\"taskStatus\":\"WAITING_USER\",\"runState\":\"INCOMPLETE\",\"terminated\":true,\"result\":{\"publishedVersion\":2,\"originatingRunId\":\"084e0817-d165-4e4f-b8b8-8cd805351269\",\"catalogueVersion\":\"chain-fixture-v1\",\"referenceRevision\":\"2025.9.2\",\"coverage\":\"NONE\",\"items\":[{\"id\":\"q1\",\"coverage\":\"NONE\",\"claims\":[],\"issues\":[{\"id\":\"condition\",\"kind\":\"CLARIFICATION\",\"reasonCode\":\"MISSING_CONDITION\",\"message\":\"请确认课程类别\",\"nextStep\":\"补充必要条件\"}],\"clarification\":[{\"conditionId\":\"courseType\",\"question\":\"课程类别？\",\"allowedValues\":[\"PUBLIC\",\"PROFESSIONAL\"]}]}],\"evidence\":[],\"evidenceRelations\":[]},\"continuationToken\":\"9b028add-f1ba-4ead-87e6-500252ab1590\",\"execution\":{\"mode\":\"ENGINEERING_REPLAY\",\"modelAttemptCount\":0,\"toolStepCount\":0,\"providerResponseReceived\":false,\"answerSource\":\"VERIFIED_RULE_ONLY\",\"replayCoverage\":\"HIT\"}}",
+    "path" : "/tasks/69b54825-f372-41b2-bd95-a0825afd5e03"
+  }, {
+    "input" : "{\"clientRequestId\":\"f5f76dce-605e-4d5e-8999-556b698f3e4f\",\"expectedVersion\":2,\"message\":\"PUBLIC\",\"continuationToken\":\"9b028add-f1ba-4ead-87e6-500252ab1590\"}",
+    "status" : 202,
+    "method" : "POST",
+    "actual" : "{\"taskId\":\"69b54825-f372-41b2-bd95-a0825afd5e03\",\"turnId\":\"bd5c7559-cc0f-41a2-b8d8-a476c7d0fe57\",\"runId\":\"c53f949c-67ec-463b-8a37-ba449b4d0f1f\",\"version\":3,\"duplicate\":false}",
+    "path" : "/tasks/69b54825-f372-41b2-bd95-a0825afd5e03/messages"
+  }, {
+    "input" : "",
+    "status" : 200,
+    "method" : "GET",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"69b54825-f372-41b2-bd95-a0825afd5e03\",\"turnId\":\"bd5c7559-cc0f-41a2-b8d8-a476c7d0fe57\",\"runId\":\"c53f949c-67ec-463b-8a37-ba449b4d0f1f\",\"version\":4,\"taskStatus\":\"RESOLVED\",\"runState\":\"SUCCEEDED\",\"terminated\":true,\"result\":{\"publishedVersion\":4,\"originatingRunId\":\"c53f949c-67ec-463b-8a37-ba449b4d0f1f\",\"catalogueVersion\":\"chain-fixture-v1\",\"referenceRevision\":\"2025.9.2\",\"coverage\":\"COMPLETE\",\"items\":[{\"id\":\"q1\",\"coverage\":\"COMPLETE\",\"claims\":[{\"id\":\"answer\",\"factId\":\"chain-fixture\",\"text\":\"工程模拟确认内容\",\"when\":{},\"conditionSource\":\"USER_DECLARED\"}],\"issues\":[],\"clarification\":[]}],\"evidence\":[{\"id\":\"370f554a-e799-4703-ac38-99f2b5b0bad9:0-36\",\"sourceId\":\"56360246-a9cf-4e23-9905-88d394a06a22\",\"chunkId\":\"b745eec6-01d0-37f0-b76b-e354b7f9a5d1\",\"revision\":\"2025.9.2\",\"checksum\":\"2d1dbdbee0a567fea8c345a62e6568bc93d373d36518c5b62253a11f5f136dd1\",\"startInclusive\":0,\"endExclusive\":36,\"quote\":\"第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\\n课学习。\",\"originalToken\":\"8ce6d13c-d9a3-4198-b9f8-98ac32ff2aa7\"}],\"evidenceRelations\":[{\"evidenceId\":\"370f554a-e799-4703-ac38-99f2b5b0bad9:0-36\",\"subquestionId\":\"q1\",\"role\":\"CLAIM\",\"targetId\":\"answer\"}]},\"continuationToken\":null,\"execution\":{\"mode\":\"ENGINEERING_REPLAY\",\"modelAttemptCount\":0,\"toolStepCount\":2,\"providerResponseReceived\":false,\"answerSource\":\"VERIFIED_RULE_ONLY\",\"replayCoverage\":\"HIT\"}}",
+    "path" : "/tasks/69b54825-f372-41b2-bd95-a0825afd5e03"
+  }, {
+    "input" : "",
+    "status" : 200,
+    "method" : "GET",
+    "actual" : "{\"citationId\":\"370f554a-e799-4703-ac38-99f2b5b0bad9\",\"sourceId\":\"56360246-a9cf-4e23-9905-88d394a06a22\",\"chunkId\":\"b745eec6-01d0-37f0-b76b-e354b7f9a5d1\",\"revision\":\"2025.9.2\",\"title\":\"本科生学生手册（2025版）·选修课程管理办法·查证原文试验\",\"sourceLocator\":\"PDF物理第76页／印刷第64页，第2条\",\"recordedPageNumber\":76,\"pageNumberKind\":\"RECORDED_SOURCE_PAGE\",\"sectionTitle\":\"第2条\",\"safeSourceUrl\":null,\"contextText\":\"第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\\n课学习。\",\"contextStartInclusive\":0,\"quoteStartInclusive\":0,\"quoteEndExclusive\":36,\"unknownItems\":[\"记录页码的物理页与印刷页映射尚未核实\",\"暂无已验证安全的原件地址\"]}",
+    "path" : "/tasks/69b54825-f372-41b2-bd95-a0825afd5e03/originals/8ce6d13c-d9a3-4198-b9f8-98ac32ff2aa7"
+  }, {
+    "input" : "",
+    "status" : 404,
+    "method" : "GET",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "path" : "/tasks/69b54825-f372-41b2-bd95-a0825afd5e03/originals/8ce6d13c-d9a3-4198-b9f8-98ac32ff2aa7"
+  } ],
+  "proxy" : {
+    "backendAddress" : "127.0.0.1",
+    "config" : "agent/frontend/nginx.conf(官方镜像模板机制生成)",
+    "image" : "nginx:1.27-alpine",
+    "publicPort" : 18082,
+    "backendPort" : 18081
+  },
+  "modelAttemptCount" : 0,
+  "resourcesExited" : true
+}
