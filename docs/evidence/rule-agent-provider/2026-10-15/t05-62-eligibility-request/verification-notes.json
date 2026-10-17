@@ -1,0 +1,23 @@
+{
+  "initialHarnessChecks": [
+    {
+      "result": "FAILED",
+      "reason": "Old manifest filename README.md was initially resolved against repository root, causing false mismatch",
+      "correction": "Resolve entries relative to manifest directory; root-prefixed paths explicitly relative to repository",
+      "correctedFullIdentityCheckPassed": true
+    },
+    {
+      "result": "FAILED",
+      "reason": "One ad hoc read used system GBK default for UTF-8 JSON",
+      "correction": "All artifact reads/writes specify UTF-8; no artifact bytes modified by failed read"
+    },
+    {
+      "result": "FAILED",
+      "reason": "Sandbox TEMP differs from elevated user TEMP; public pricing file was not visible under sandbox TEMP",
+      "correction": "Read file in the same elevated context that wrote it; pricing SHA saved"
+    }
+  ],
+  "gitStatusObservation": "Git status reported launcher cmd modified although its raw SHA equals frozen input and HEAD blob, and git diff is empty; do not infer content change or declare all Git status clean",
+  "productionChangesThisTurn": 0,
+  "oldEvidenceModified": false
+}

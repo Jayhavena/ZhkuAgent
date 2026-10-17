@@ -1,0 +1,173 @@
+{
+  "recordMeaning": "All allowed body fields and dynamic sources; future exact bytes depend on actual model/tool results and are not pre-fabricated.",
+  "decision": {
+    "candidateSetId": "null or current per-search12-byte nonce/base64url; not session/citation token",
+    "currentCandidates": [
+      "handle(c1..cN)",
+      "excerpt",
+      "revision",
+      "alreadyRead"
+    ],
+    "executionState": [
+      "allowedActions",
+      "remainingEvidenceFragments",
+      "remainingEvidenceBytes",
+      "runMillisRemaining",
+      "reservedReviewMillis",
+      "reservedPublicationMillis"
+    ],
+    "question": "我这门选修课没过，能不能重修？",
+    "questions": [
+      "id",
+      "text"
+    ],
+    "userConditions": "{} first run; courseType=PUBLIC only after independently verified qualified question",
+    "ruleContexts": [
+      "ruleId",
+      "questionScope",
+      "conditions:{key,question,allowedValues}",
+      "evidenceGaps"
+    ],
+    "actionContract": "exact static contract",
+    "remainingBudget": [
+      "modelAttemptsIncludingThisCall",
+      "toolSteps"
+    ],
+    "facts": [
+      "id",
+      "ruleId",
+      "text",
+      "when",
+      "publicationEligible"
+    ],
+    "rejectedActions": {
+      "maximumRecords": 2,
+      "fields": [
+        "attempt",
+        "action",
+        "reasonCode",
+        "publicationReason(optional)"
+      ],
+      "source": "structured domain events, no free-text model reason"
+    },
+    "availableConditions": {
+      "fields": [
+        "ruleId",
+        "conditionId",
+        "allowedValues"
+      ],
+      "source": "conditions from actually read reviewed rule contexts"
+    },
+    "observations": [
+      "step",
+      "status",
+      "dataLevel",
+      "reasonCode",
+      "candidates(empty)",
+      "factIds",
+      "evidence:{quote,revision}"
+    ],
+    "publicationFactIds": "Sorted distinct already-read facts with registered capability and original full-definition fingerprint match; no raw UUID/checksum"
+  },
+  "review": {
+    "input": {
+      "protocolRevision": "RULE_PUBLICATION_REVIEW_02",
+      "capabilityVersion": "REVIEWED_FACT_CAPABILITY_01",
+      "inputFingerprint": "SHA256 bound to task/version/safe question/facts/capabilities/condition directory; original IDs not sent",
+      "questions": [
+        "id",
+        "text"
+      ],
+      "userConditions": "same verified user-declared conditions as decision",
+      "facts": [
+        "id",
+        "ruleId",
+        "text",
+        "when",
+        "quotes:{revision,quote}"
+      ],
+      "capabilities": [
+        "factId",
+        "dimension",
+        "subject",
+        "allowedRoles",
+        "auxiliaryDimensions",
+        "sourceFingerprint"
+      ],
+      "conditions": [
+        "ruleId",
+        "conditionId",
+        "question",
+        "allowedValues",
+        "factIds"
+      ]
+    },
+    "reviewContract": "exact static review description with conditional-branch instruction",
+    "remainingBudget": [
+      "modelCallsIncludingThisCall"
+    ],
+    "responseConditionIdBoundary": "necessaryConditionIds must use original conditionId from input.conditions; prefixed/unknown keys rejected REVIEW_CONDITION_UNKNOWN"
+  },
+  "dynamicActionSchema": "All current handles, allowed actions and publicationFactIds from the same host state; empty eligible list sets maxItems=0. All read facts/candidates retained; no default c1 or preselected answer.",
+  "notOutbound": [
+    "owner",
+    "sessionNonce",
+    "originalToken",
+    "raw taskId/runId",
+    "raw sourceId/chunkId",
+    "raw checksum",
+    "full Fact definition/independentlyAnswerable/evidenceBindings",
+    "database credentials/URL",
+    "source code",
+    "whole PDF",
+    "whole package/buildIdentity/runtimeAssets",
+    "reference answer/pass criteria",
+    "prior final answer or semantic assessment",
+    "proposer action/reason/self-reported relevance in independent review input"
+  ],
+  "localSnapshotOnly": {
+    "direction": "REVIEW_INPUT_SNAPSHOT",
+    "fields": [
+      "taskId",
+      "taskVersion",
+      "input(safeSemanticInput)",
+      "facts:{id,ruleId,definition:{id,text,independentlyAnswerable,when,evidenceBindings:{sourceId,chunkId,revision,checksum(original case),startInclusive,endExclusive,quote}}}"
+    ],
+    "exchangeMetadata": [
+      "taskId",
+      "runId",
+      "attempt",
+      "purpose",
+      "direction",
+      "bodySha256",
+      "body",
+      "redacted"
+    ],
+    "recordingLimitBytes": 65536,
+    "credentialRedaction": "Decoded JSON names/values and bounded nested Unicode scrub; malformed/unreliable JSON omitted, original SHA preserved; redacted=true is not exact original text",
+    "failurePolicy": "Archive failure stops acceptance with AUDIT_UNAVAILABLE; no extra model quota for snapshot"
+  },
+  "limits": {
+    "maxModelAttemptsPerRun": 5,
+    "maxToolStepsPerRun": 6,
+    "maxModelMillis": 20000,
+    "maxRunMillis": 110000,
+    "maxTaskRuns": 3,
+    "maxModelAttemptsPerTask": 12,
+    "maxClarificationTurns": 2,
+    "maxReadHandles": 3,
+    "maxEvidenceFragments": 8,
+    "maxEvidenceBytes": 32768,
+    "maxRequestBytes": 65536,
+    "maxOutputTokens": 1024,
+    "waitingTtlMillis": 300000,
+    "taskTtlMillis": 900000
+  },
+  "batchLimits": {
+    "maxRuns": 2,
+    "maxCalls": 10,
+    "maxCnyRequested": "12",
+    "ownedProcessMillis": 235000,
+    "authorizedCallsNow": 0
+  }
+}

@@ -1,0 +1,4 @@
+# t05-65 重复Prepare拒绝证据（2026-10-16T00:28:56.786911+00:00，普通Windows PowerShell 5.1 → start-rule-agent-probe.cmd → pwsh7 入口）
+# 命令：-PrepareProbe
+# 结果：退出码1；start-rule-agent-probe.ps1 第24行「请求包已存在，保留原包，不构建或覆盖」抛出后中止；该检查位于构建步骤之前，未执行Maven、未启动Java、未触碰请求包。
+# 备注：同旧SHA拒绝记录，中文异常文本在PS5.1管道中显示为乱码，消息以ps1源文件（UTF-8）第24行为权威。

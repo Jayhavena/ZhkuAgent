@@ -11,12 +11,17 @@ public final class RuleArticle4Overlay {
     private RuleArticle4Overlay(){}
     private static final String BASE="docs/evidence/rule-agent-evidence/2026-10-13/t02-01";
     private static final String DRAFT="274079977305d649883ebd45f20409380806417039bd5ae20b4d7fe8ce7a80ab",RECEIPT="64d67b1f31440f7922c621341f0bc8d44915ad4ab14993cb2e9b5e60afd947c9";
-    public static List<RuleCheckApplicationService.CatalogEntry> apply(Path root,List<RuleCheckApplicationService.CatalogEntry> base){
-        try{
+    /** 与运行装配共用的增量审核准入；不依赖数据库绑定。 */
+    public static com.fasterxml.jackson.databind.JsonNode validateAssets(Path root) throws Exception {
             byte[] draftBytes=Files.readAllBytes(root.resolve(BASE+"/article4-overlay-draft.json")),receiptBytes=Files.readAllBytes(root.resolve(BASE+"/human-confirmation.json"));
             if(!sha(draftBytes).equals(DRAFT)||!sha(receiptBytes).equals(RECEIPT))throw new IllegalArgumentException("审核身份变化");
             var json=new ObjectMapper();var draft=json.readTree(draftBytes);var receipt=json.readTree(receiptBytes);
             if(!receipt.path("authority").asText().equals("DIRECT_USER_MESSAGE")||!receipt.path("decision").asText().equals("CONFIRMED")||!receipt.path("reviewedDraftSha256").asText().equals(DRAFT))throw new IllegalArgumentException("未确认");
+            return draft;
+    }
+    public static List<RuleCheckApplicationService.CatalogEntry> apply(Path root,List<RuleCheckApplicationService.CatalogEntry> base){
+        try{
+            var draft=validateAssets(root);
             // 发布器以大写存储SHA-256；大小写是编码表示差异，仍须逐字跨度和同一摘要匹配。
             var original=base.stream().filter(e->e.template().reviewState()==RuleCheckRuleTemplate.ReviewState.APPROVED).filter(e->e.template().facts().stream().flatMap(f->f.evidenceBindings().stream()).anyMatch(b->b.checksum().equalsIgnoreCase(draft.path("sourceContentChecksum").asText())&&b.startInclusive()==0&&b.endExclusive()==78)).findFirst().orElseThrow();
             var binding=original.template().facts().stream().flatMap(f->f.evidenceBindings().stream()).filter(b->b.checksum().equalsIgnoreCase(draft.path("sourceContentChecksum").asText())&&b.startInclusive()==0&&b.endExclusive()==78).findFirst().orElseThrow();

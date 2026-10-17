@@ -1,0 +1,17 @@
+{
+  "diagnosedUtc": "2026-10-16T00:51:26.268761+00:00",
+  "outcome": "FAILED_SAME_ROOT_CAUSE_AS_T05_63",
+  "rootCause": "Review-side identifier namespace confusion: the model wrote necessaryConditionIds as S10/RETAKE_ONLY:courseType (rule-prefixed) while input.conditions only declares the bare key courseType; RulePublicationProtocol.decode rejects with REVIEW_CONDITION_UNKNOWN (one-vote veto, no silent normalization).",
+  "evidence": [
+    "provider-traces.jsonl attempt 4 FINISHED: validation stage=REVIEW_BINDING code=REVIEW_CONDITION_UNKNOWN",
+    "4-RESPONSE.json content: both requirements carry necessaryConditionIds [\"S10/RETAKE_ONLY:courseType\"]",
+    "4-REQUEST.json input.conditions: only bare courseType under S10/RETAKE_ONLY and S10/DEFERRED_EXAM_ONLY",
+    "RulePublicationProtocol.java:55-58 explicit rejection of prefixed/unknown condition keys"
+  ],
+  "progressVsT05_63": "Decision side improved: the ASK used the bare courseType key and only registered eligible fact IDs (t05-52 style ASK prefix failure did not recur); review side still failed, so the run still died before Gate.",
+  "whyMoreCallsCouldNotHelp": "The failure is a deterministic contract rejection at the reserved review call, not a wandering path; attempts 1-3 succeeded and the 5th per-run attempt was never reached. Extra batch allowance cannot bypass a one-vote veto.",
+  "localReplayConsistency": "t05-64 local replay already proved the host publishes within 4 calls when the review output is well-formed; the remaining gap is model behavior on the review contract, not host engineering.",
+  "eventReadingNote": "The attempt-3 event reason INVALID_MODEL_RESPONSE is the attempt-4 provider Failure propagated onto the decision event by design (RuleAgentRunner: Provider失败越过原领域异常分支；先留下提议和核验失败). The ASK itself passed precheckAsk, requireProposal and input capture; do not misread it as an ASK-side rejection.",
+  "priorBatchPrecedent": "t05-63 (package 1e44705a, authorization CLOSED_FAILED, 4 calls) failed with the same review-side prefixed key.",
+  "conclusion": "P02 online acceptance still NOT passed; T05 remains incomplete. No budget/shape/contract change was made; batch closed with 6 unused calls closed and actual invoice unknown."
+}

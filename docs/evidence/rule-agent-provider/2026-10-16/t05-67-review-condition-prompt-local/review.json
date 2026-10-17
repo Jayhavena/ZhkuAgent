@@ -1,0 +1,41 @@
+{
+  "reviewer": "condition_prompt_review (independent read-only agent)",
+  "baseline": "37e0f4b405c9f72dbeac1479a752611c364401d2",
+  "critical": [],
+  "important": [],
+  "minor": [],
+  "reviewerRanTests": false,
+  "verified": [
+    "Shared compile-time constant; one formatting placeholder; no static initialization cycle observed",
+    "Actual reviewPayload includes conditionIdForm and the system uses identical wording",
+    "No change to permission, decoder rejection, Gate, ReviewedCondition, fingerprint, model or budget",
+    "Actual recorded input and original identity used in tests; no known fake-green path"
+  ],
+  "declinedAndRulings": [
+    {
+      "item": "Execution of regression",
+      "ruling": "Use actual red/regression/recheck reports recorded by implementer",
+      "costIfWrong": "Cannot claim local acceptance if reports are invalid"
+    },
+    {
+      "item": "Actual model compliance and online success",
+      "ruling": "Remain unknown; no external model experiment this turn",
+      "costIfWrong": "A new online batch may still fail"
+    },
+    {
+      "item": "Capacity for every possible input",
+      "ruling": "Only t05-65 sample measured at7706; existing max65536 rejection stays",
+      "costIfWrong": "Larger valid inputs may exhaust request budget"
+    },
+    {
+      "item": "Existing62/65 path assertions",
+      "ruling": "Preserve and disclose as pre-existing; do not mix into passed scope",
+      "costIfWrong": "Subsequent whole-entry acceptance may fail until separately addressed"
+    },
+    {
+      "item": "Evidence directory property",
+      "ruling": "Explicitly provided in every test invocation per existing convention",
+      "costIfWrong": "Tests can fail if run without the required parameter"
+    }
+  ]
+}

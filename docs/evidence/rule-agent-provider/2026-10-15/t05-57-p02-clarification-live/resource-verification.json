@@ -1,0 +1,16 @@
+{
+  "demoFullStatesUnchanged": [
+    "zhkuagent-postgres",
+    "zhku-rulecheck-final-demo-web-1"
+  ],
+  "noProbeContainers": true,
+  "noProbeJava": true,
+  "otherContainerChangesOnlyRollingHealthLogs": [
+    "chicken-redis",
+    "chicken-mysql"
+  ],
+  "otherStableStateFieldsUnchanged": true,
+  "temporaryDatabaseRowsBeforeDeletion": null,
+  "dockerDesktopLeftRunning": true,
+  "note": "Docker Desktop start can restart unrelated containers under their own restart policies; no manual operations on those containers."
+}

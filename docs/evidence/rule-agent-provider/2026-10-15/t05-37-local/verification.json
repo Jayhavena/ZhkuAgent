@@ -1,0 +1,99 @@
+{
+  "scope": "LOCAL_DETERMINISTIC_AND_LOOPBACK_ONLY_NOT_ONLINE_SUCCESS",
+  "baseHead": "9020ba2d5032b6ba8129542b6c374d410d5c5596",
+  "red": {
+    "tests": 5,
+    "failures": 5,
+    "errors": 0
+  },
+  "green": {
+    "tests": 5,
+    "failures": 0,
+    "errors": 0
+  },
+  "regression": {
+    "tests": 160,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": [
+      {
+        "name": "com.zhku.knowledge.ruleagent.RuleAgentContractTest",
+        "tests": "7",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      },
+      {
+        "name": "com.zhku.knowledge.ruleagent.RuleAgentEvidenceToolsTest",
+        "tests": "12",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      },
+      {
+        "name": "com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest",
+        "tests": "35",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      },
+      {
+        "name": "com.zhku.knowledge.ruleagent.RuleAgentProviderTest",
+        "tests": "54",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      },
+      {
+        "name": "com.zhku.knowledge.ruleagent.RuleAgentReviewPayloadBudgetTest",
+        "tests": "1",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      },
+      {
+        "name": "com.zhku.knowledge.ruleagent.RuleAgentRunnerTest",
+        "tests": "22",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      },
+      {
+        "name": "com.zhku.knowledge.ruleagent.RuleAgentTaskStoreTest",
+        "tests": "14",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      },
+      {
+        "name": "com.zhku.knowledge.ruleagent.RulePublicationGateTest",
+        "tests": "15",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      }
+    ]
+  },
+  "realProviderCalls": 0,
+  "databaseOperations": 0,
+  "realCostCny": 0,
+  "sourceSha256": {
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProvider.java": "e25b8ee1d294e93925548df6f7c4280d9f57d9781b8e092332f1b706232773b2",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentRunner.java": "f43e1de377bb5ff940b84b2060310551011cf8cb6ec33c915e410e0b7c3d74d5",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java": "93e42b79fe56f1d21cb51cab80a27b8140e0d300a6363761d823ecb90fab0034",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java": "81343c7266761d9380c2781d01c11af57c9436445153be39863ed1a95d2391a5"
+  },
+  "logSha256": {
+    "red/maven.log": "e20113d48bbec60c37c68573b9ee4c9ec17978876393d15b0de143518fefd9c9",
+    "green/maven.log": "e90fcb0f8a1023172062f4d215c4f9c365685b40ec0d7c850c013c451ec082e9",
+    "regression/maven.log": "367f415bb2dfc94bd63174087622a4f9eff0c7fbfe55488f78f9b4e39aec0e85"
+  },
+  "unverified": [
+    "Online response/schema compatibility and provider latency",
+    "Statistical independence and quality of same-model semantic review",
+    "Arbitrary synchronous blocking is not preempted by logical deadline",
+    "Cleanup-only crossing deadline is not separately covered"
+  ],
+  "restoration": "Revert only this local fix commit; keep byte-preservation commit and all old failure evidence; never restore external allowance."
+}

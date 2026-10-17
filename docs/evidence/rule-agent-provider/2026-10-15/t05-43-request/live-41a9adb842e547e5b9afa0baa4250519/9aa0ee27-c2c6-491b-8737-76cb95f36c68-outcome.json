@@ -1,0 +1,216 @@
+{
+  "snapshot" : {
+    "schemaVersion" : 3,
+    "taskId" : "e8ed86a6-7352-4e44-bad4-f44798416307",
+    "turnId" : "681d2cfa-a7f8-492c-ad22-a7df6c6ae578",
+    "runId" : "9aa0ee27-c2c6-491b-8737-76cb95f36c68",
+    "version" : 2,
+    "taskStatus" : "RESOLVED",
+    "runState" : "SUCCEEDED",
+    "terminated" : true,
+    "result" : {
+      "publishedVersion" : 2,
+      "originatingRunId" : "9aa0ee27-c2c6-491b-8737-76cb95f36c68",
+      "catalogueVersion" : "cat-a5d3cea6f0f4234ed05985b1ff82ee10424594b2ca23ef7aca725b4783905f33",
+      "referenceRevision" : "2025.9.2",
+      "coverage" : "COMPLETE",
+      "items" : [ {
+        "id" : "q1",
+        "coverage" : "COMPLETE",
+        "claims" : [ {
+          "id" : "c0",
+          "factId" : "T02/ARTICLE4:professional-elective-study-arrangement",
+          "text" : "专业选修课列入教学计划，要求在规定学期内修读。",
+          "when" : { },
+          "conditionSource" : "USER_DECLARED"
+        }, {
+          "id" : "c1",
+          "factId" : "T02/ARTICLE4:public-elective-self-selection",
+          "text" : "公共选修课包括校内公选课和网络公选课，学生自行选课修读。",
+          "when" : { },
+          "conditionSource" : "USER_DECLARED"
+        } ],
+        "issues" : [ ],
+        "clarification" : [ ]
+      } ],
+      "evidence" : [ {
+        "id" : "a1f8940a-586e-4005-8dd3-64f7be8587e1:26-48",
+        "sourceId" : "2e4161e7-01f1-40bd-8d02-8bf5f9396925",
+        "chunkId" : "a1edb58f-ce87-3741-84d1-473004dad99b",
+        "revision" : "2025.9.2",
+        "checksum" : "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+        "startInclusive" : 26,
+        "endExclusive" : 48,
+        "quote" : "专业选修课\n列入教学计划要求在规定学期内修读",
+        "originalToken" : "8b02b1a9-cc8c-4554-8fe8-1d8eb2733843"
+      }, {
+        "id" : "a1f8940a-586e-4005-8dd3-64f7be8587e1:49-78",
+        "sourceId" : "2e4161e7-01f1-40bd-8d02-8bf5f9396925",
+        "chunkId" : "a1edb58f-ce87-3741-84d1-473004dad99b",
+        "revision" : "2025.9.2",
+        "checksum" : "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+        "startInclusive" : 49,
+        "endExclusive" : 78,
+        "quote" : "公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+        "originalToken" : "16b5425a-cd07-4fcb-aae2-7f276b0bf422"
+      } ],
+      "evidenceRelations" : [ {
+        "evidenceId" : "a1f8940a-586e-4005-8dd3-64f7be8587e1:26-48",
+        "subquestionId" : "q1",
+        "role" : "CLAIM",
+        "targetId" : "c0"
+      }, {
+        "evidenceId" : "a1f8940a-586e-4005-8dd3-64f7be8587e1:49-78",
+        "subquestionId" : "q1",
+        "role" : "CLAIM",
+        "targetId" : "c1"
+      } ]
+    },
+    "continuationToken" : null,
+    "execution" : {
+      "mode" : "ONLINE",
+      "modelAttemptCount" : 4,
+      "toolStepCount" : 3,
+      "providerResponseReceived" : true,
+      "answerSource" : "LIVE_AGENT",
+      "replayCoverage" : "NOT_APPLICABLE"
+    }
+  },
+  "events" : [ {
+    "attempt" : 1,
+    "action" : "SEARCH_REVIEWED_RULES",
+    "observation" : {
+      "actionId" : "e116d95d-04fd-4595-96b4-6646635c7bc2",
+      "runId" : "9aa0ee27-c2c6-491b-8737-76cb95f36c68",
+      "step" : 1,
+      "status" : "SUCCEEDED",
+      "reasonCode" : null,
+      "dataLevel" : "CANDIDATE",
+      "catalogueVersion" : "cat-a5d3cea6f0f4234ed05985b1ff82ee10424594b2ca23ef7aca725b4783905f33",
+      "candidates" : [ {
+        "handle" : "7545e398-6bb5-42de-8a18-ae4b2508c3fc",
+        "excerpt" : "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+        "revision" : "2025.9.2"
+      }, {
+        "handle" : "6fc8108f-f464-48c1-8111-204715999594",
+        "excerpt" : "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+        "revision" : "2025.9.2"
+      }, {
+        "handle" : "a1e09408-2248-4588-8960-c9a0edc1fdd6",
+        "excerpt" : "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+        "revision" : "2025.9.2"
+      }, {
+        "handle" : "098c1120-8b5a-4179-ba37-c714b77eef1f",
+        "excerpt" : "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+        "revision" : "2025.9.2"
+      }, {
+        "handle" : "733a723b-1461-40c5-8e6b-0ade6fc25a08",
+        "excerpt" : "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+        "revision" : "2025.9.2"
+      }, {
+        "handle" : "1928fb36-3a34-469a-b58a-4ca758a94513",
+        "excerpt" : "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
+        "revision" : "2025.9.2"
+      }, {
+        "handle" : "89756cf4-f287-4d77-910f-992affa47589",
+        "excerpt" : "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+        "revision" : "2025.9.2"
+      }, {
+        "handle" : "36edf44c-5cba-425a-81b0-41015fcacc83",
+        "excerpt" : "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。",
+        "revision" : "2025.9.2"
+      }, {
+        "handle" : "5a803c9a-6253-4a72-a8f2-7e7ebb14c272",
+        "excerpt" : "第十条　每学期选修公共选修课最高不得超过 4 个学分。",
+        "revision" : "2025.9.2"
+      }, {
+        "handle" : "488c6140-30fd-4466-ad34-a2ed6c9a6dcb",
+        "excerpt" : "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+        "revision" : "2025.9.2"
+      } ],
+      "evidence" : [ ],
+      "factIds" : [ ]
+    },
+    "reason" : null,
+    "publicationReason" : null
+  }, {
+    "attempt" : 2,
+    "action" : "READ_VERIFIED_RULE",
+    "observation" : {
+      "actionId" : "cf06e780-77bd-4645-a7e9-0e1845f5058a",
+      "runId" : "9aa0ee27-c2c6-491b-8737-76cb95f36c68",
+      "step" : 2,
+      "status" : "SUCCEEDED",
+      "reasonCode" : null,
+      "dataLevel" : "VERIFIED_FACT",
+      "catalogueVersion" : "cat-a5d3cea6f0f4234ed05985b1ff82ee10424594b2ca23ef7aca725b4783905f33",
+      "candidates" : [ ],
+      "evidence" : [ {
+        "id" : "a1f8940a-586e-4005-8dd3-64f7be8587e1:0-78",
+        "sourceId" : "2e4161e7-01f1-40bd-8d02-8bf5f9396925",
+        "chunkId" : "a1edb58f-ce87-3741-84d1-473004dad99b",
+        "revision" : "2025.9.2",
+        "checksum" : "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+        "startInclusive" : 0,
+        "endExclusive" : 78,
+        "quote" : "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+        "originalToken" : "25108b37-3390-4bf4-aef0-47783339504c"
+      }, {
+        "id" : "f2096a74-5971-44f7-a089-228eff1f6206:0-119",
+        "sourceId" : "2e4161e7-01f1-40bd-8d02-8bf5f9396925",
+        "chunkId" : "f9d2dcfa-0893-33b0-9a21-4729174a53ba",
+        "revision" : "2025.9.2",
+        "checksum" : "056217b8775854fbadb44fff38af48c1ed37e1c3b0c92563e1681186387ffeb2",
+        "startInclusive" : 0,
+        "endExclusive" : 119,
+        "quote" : "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+        "originalToken" : "39d6aafd-7211-41fa-9042-e515bd942440"
+      }, {
+        "id" : "7bf85ea4-5ac7-4563-93b1-4f0dc75637cb:0-48",
+        "sourceId" : "2e4161e7-01f1-40bd-8d02-8bf5f9396925",
+        "chunkId" : "aaf5b91d-5c6d-34ac-a3c2-43bf4dccb618",
+        "revision" : "2025.9.2",
+        "checksum" : "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
+        "startInclusive" : 0,
+        "endExclusive" : 48,
+        "quote" : "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+        "originalToken" : "3b478e1f-e876-4bba-b758-c925eda41522"
+      }, {
+        "id" : "a1f8940a-586e-4005-8dd3-64f7be8587e1:26-48",
+        "sourceId" : "2e4161e7-01f1-40bd-8d02-8bf5f9396925",
+        "chunkId" : "a1edb58f-ce87-3741-84d1-473004dad99b",
+        "revision" : "2025.9.2",
+        "checksum" : "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+        "startInclusive" : 26,
+        "endExclusive" : 48,
+        "quote" : "专业选修课\n列入教学计划要求在规定学期内修读",
+        "originalToken" : "8b02b1a9-cc8c-4554-8fe8-1d8eb2733843"
+      }, {
+        "id" : "a1f8940a-586e-4005-8dd3-64f7be8587e1:49-78",
+        "sourceId" : "2e4161e7-01f1-40bd-8d02-8bf5f9396925",
+        "chunkId" : "a1edb58f-ce87-3741-84d1-473004dad99b",
+        "revision" : "2025.9.2",
+        "checksum" : "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+        "startInclusive" : 49,
+        "endExclusive" : 78,
+        "quote" : "公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+        "originalToken" : "16b5425a-cd07-4fcb-aae2-7f276b0bf422"
+      } ],
+      "factIds" : [ "S02/GENERAL:elective-category-distinction", "S02/GENERAL:public-course-subcategories", "S05/GENERAL:plan-selection-basis", "S05/GENERAL:plan-required-credits", "S05/GENERAL:online-general-half", "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis", "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits", "S05/PERSONAL_CREDIT_DEFICIT:online-general-half", "S10/COMBINED:public-no-deferred-exam", "S10/COMBINED:public-failed-no-retake", "S10/COMBINED:professional-failed-retake-application", "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam", "S10/RETAKE_ONLY:public-failed-no-retake", "S10/RETAKE_ONLY:professional-failed-retake-application", "T02/ARTICLE4:professional-elective-study-arrangement", "T02/ARTICLE4:public-elective-self-selection" ]
+    },
+    "reason" : null,
+    "publicationReason" : null
+  }, {
+    "attempt" : 3,
+    "action" : "FINISH_CHECK",
+    "observation" : null,
+    "reason" : null,
+    "publicationReason" : null
+  }, {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "observation" : null,
+    "reason" : null,
+    "publicationReason" : null
+  } ]
+}

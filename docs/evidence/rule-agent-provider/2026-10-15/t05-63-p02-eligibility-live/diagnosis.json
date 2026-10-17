@@ -1,0 +1,36 @@
+{
+  "directTrigger": "Independent reviewer returned necessaryConditionIds with rule prefix instead of original courseType key",
+  "confirmed": {
+    "allRequestsReceived200": true,
+    "searchSucceeded": true,
+    "readSucceeded": true,
+    "askUsesOriginalConditionId": true,
+    "askSupportingFactsAllPublicationEligible": true,
+    "reviewResponseUnknownKeys": [
+      "S10/RETAKE_ONLY:courseType"
+    ],
+    "reviewInputOriginalKeys": [
+      "courseType"
+    ],
+    "rejectionBeforePublicationGate": true,
+    "noQualifiedClarificationOrContinuation": true,
+    "noNetworkTimeout": true
+  },
+  "candidateCause": "Model did not follow original-key instruction in current reviewContract; duplicated courseType across rule contexts may invite namespacing, but this causal explanation is unproven",
+  "unknowns": [
+    "Why the model chose a prefixed key",
+    "Whether a response with corrected keys would pass the remaining gate checks; no normalization or replay performed",
+    "Whether a second run would complete; it was never started",
+    "Actual supplier invoice",
+    "Temporary DB row counts immediately before container deletion",
+    "Actual failed task-store snapshot was not archived; Runner outcome and host failure are available"
+  ],
+  "priorFixBoundary": "Actual proposal used registered eligible support IDs; prior CAPABILITY_UNAVAILABLE is not the current earliest rejection. This does not prove all capability or semantic gate paths pass.",
+  "sourceLocations": {
+    "originalKeyValidation": "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationProtocol.java:55",
+    "providerReviewRequest": "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProvider.java:187",
+    "stopBeforeContinuation": "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineProbeHost.java:90"
+  },
+  "actualTraceDirectory": "docs/evidence/rule-agent-provider/2026-10-15/t05-62-eligibility-request/live-22bd438b933a48ad9859fef337e4068d",
+  "repairsOrReplaysThisBatch": 0
+}

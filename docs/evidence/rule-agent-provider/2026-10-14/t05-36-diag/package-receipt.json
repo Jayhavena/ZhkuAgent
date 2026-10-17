@@ -1,0 +1,52 @@
+{
+  "batch": "P01_DIAGNOSTIC_01",
+  "checkpointCommit": "72088c9cfd9e560d8e50d7f5d62ec885ece8d417",
+  "parentCheckpoint": "5fc77f31bd44c6d632cd615e472e555e09e26199",
+  "frozenBaseline": "58e1ef751e8a659178afaac04830ae3df86ad579",
+  "branch": "codex/t05-online-evidence",
+  "packagePath": "docs/evidence/rule-agent-provider/2026-10-14/t05-36-diag/request-package.json",
+  "packageSha256": "4da0c6cb069948c5214c4226055918b0f13980e9833f1f1dc72f38e51385f2ee",
+  "jar": "knowledge/target/knowledge-0.1.0-rc.1-controlled.jar",
+  "jarSha256": "94e450f3a0cde1d34cbdf203d15f33c6604fc1d1df5e319f999d9b8e7f57c237",
+  "sourceSha256": {
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProvider.java": "334ad6b6e37549ea2c6616479249e384a01bbbb7416540fb5791f4152ad3963d",
+    "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineProbeHost.java": "9e59e5250ddcd3f0dda714e994209190d41768d14d466f55526334cdb7984515",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java": "49dda41a90895f7bbecb27a892deeb32c8639650b0940fc2632b9aeac00d3915",
+    "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java": "36930d374bf023fedfdeac3f3f6a1d65ce79aab0157f8a35f5d2e3735cafdcbb",
+    "knowledge/scripts/start-rule-agent-probe.ps1": "43bd174891900885aaa0011a996c8c142a48e12b87e9a438e9fc8618d35e936f"
+  },
+  "packageCheck": {
+    "providerCalls": 0,
+    "databaseOperations": 0,
+    "mode": "PACKAGE_CHECK_ONLY",
+    "passed": true,
+    "maximumProviderCalls": 5,
+    "protocolRevision": "RULE_AGENT_ACTION_CONTRACT_05",
+    "packageSha256": "4da0c6cb069948c5214c4226055918b0f13980e9833f1f1dc72f38e51385f2ee"
+  },
+  "environmentCheck": {
+    "mode": "ONLINE",
+    "model": "qwen3.8-flash",
+    "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+    "maximumProviderCalls": 5,
+    "timeoutMillis": 20000,
+    "runTimeoutMillis": 110000,
+    "budgetRevision": "T05_CLOSEOUT_BUDGET_04",
+    "providerCalls": 0,
+    "databaseOperations": 0,
+    "builds": 0
+  },
+  "regression": {
+    "command": "mvnw.cmd -o -pl knowledge -am -Dtest=<8 classes> -Dsurefire.failIfNoSpecifiedTests=false -Dzhku.rulecheck.evidenceDir=<absolute> test",
+    "testsRun": 155,
+    "failures": 0,
+    "errors": 0,
+    "baselineTestsRun": 151,
+    "newTests": 4
+  },
+  "providerCalls": 0,
+  "databaseOperations": 0,
+  "authorizationStatus": "NOT_AUTHORIZED",
+  "monetaryCap": "REQUIRES_USER_DECISION_BEFORE_EXTERNAL_CALL",
+  "recordedAt": "2026-10-14T23:29:00+08:00"
+}

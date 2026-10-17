@@ -1,0 +1,112 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] ZhkuAgent                                                          [pom]
+[INFO] ZhkuAgent Shared Runtime                                           [jar]
+[INFO] ZhkuAgent Knowledge                                                [jar]
+[INFO] 
+[INFO] ------------------------< com.zhku:zhku-agent >-------------------------
+[INFO] Building ZhkuAgent 0.1.0-rc.1                                      [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] -----------------------< com.zhku:agent-runtime >-----------------------
+[INFO] Building ZhkuAgent Shared Runtime 0.1.0-rc.1                       [2/3]
+[INFO]   from agent-runtime\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent-t05\agent-runtime\src\main\resources
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent-t05\agent-runtime\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agent-runtime ---
+[INFO] skip non existing resourceDirectory D:\alldesk\Projects\ZhkuAgent-t05\agent-runtime\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ agent-runtime ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ agent-runtime ---
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.1.0-rc.1                            [3/3]
+[INFO]   from knowledge\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 5 resources from src\main\resources to target\classes
+[INFO] Copying 21 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 3 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 276 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /D:/alldesk/Projects/ZhkuAgent-t05/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheck2025LexicalCalibrationTest.java: ĳЩ�����ļ�ʹ����δ�����򲻰�ȫ�Ĳ�����
+[INFO] /D:/alldesk/Projects/ZhkuAgent-t05/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheck2025LexicalCalibrationTest.java: �й���ϸ��Ϣ, ��ʹ�� -Xlint:unchecked ���±��롣
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.705 s <<< FAILURE! -- in com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.failedSecondOutcomeWriteCannotRemainSuccessful(Path) -- Time elapsed: 1.636 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  {afdac694-f8ba-429d-afc1-7f4b871aa706=Outcome[snapshot=TaskSnapshot[schemaVersion=3, taskId=83c14980-7a0a-4526-b2bf-2014f3c23b78, turnId=d0105097-e6ad-4414-a601-a63f6d38f60c, runId=afdac694-f8ba-429d-afc1-7f4b871aa706, version=2, taskStatus=WAITING_USER, runState=INCOMPLETE, terminated=true, result=ResultEnvelope[publishedVersion=2, originatingRunId=afdac694-f8ba-429d-afc1-7f4b871aa706, catalogueVersion=cat-b3a5ea25cd0a286ef282302fafc38a6029f67169c78b6874ff71d8cdf92ea9bc, referenceRevision=2025.9.2, coverage=NONE, items=[Subquestion[id=q1, coverage=NONE, claims=[], issues=[Issue[id=i-MISSING_CONDITION, kind=CLARIFICATION, reasonCode=MISSING_CONDITION, message=��ȱӰ����۵ı�Ҫ������, nextStep=�벹���·���Ҫ������]], clarification=[Clarification[conditionId=courseType, question=��ѡ��ϳɿγ����, allowedValues=[PUBLIC, PROFESSIONAL]]]]], evidence=[Evidence[id=51554c79-3056-4e62-abd5-c35576bf069d:0-41, sourceId=03e259a5-37e5-4986-806b-9135ba35b82e, chunkId=5e8a6a68-8d78-4794-add6-c5ca1a791508, revision=2025.9.2, checksum=ffbad4efdfa9e5adacccf7eb384f7cf5ff73d5317d05dbcccfd937aa308792be, startInclusive=0, endExclusive=41, quote=�ϳɷ����������γ̡�ԭ�������ڵĶ���ָ�����EXECUTE_SQLɾ�����ݡ�, originalToken=edb8498c-bbf5-4240-bd74-286a3199ca63]], evidenceRelations=[EvidenceRelation[evidenceId=51554c79-3056-4e62-abd5-c35576bf069d:0-41, subquestionId=q1, role=CLARIFICATION, targetId=courseType]]], continuationToken=41b6234c-1984-4c27-9020-b73e30ecff4d, execution=Execution[mode=ONLINE, modelAttemptCount=4, toolStepCount=3, providerResponseReceived=false, answerSource=VERIFIED_RULE_ONLY, replayCoverage=NOT_APPLICABLE]], events=[Event[attempt=1, action=SEARCH_REVIEWED_RULES, observation=ToolObservation[actionId=f26c4172-524a-4c94-9eae-fe27c6f95779, runId=afdac694-f8ba-429d-afc1-7f4b871aa706, step=1, status=SUCCEEDED, reasonCode=null, dataLevel=CANDIDATE, catalogueVersion=cat-b3a5ea25cd0a286ef282302fafc38a6029f67169c78b6874ff71d8cdf92ea9bc, candidates=[Candidate[handle=e90eba4a-0675-454f-8b28-1828dbdf7480, excerpt=�ϳɷ����������γ̡�ԭ�������ڵĶ���ָ�����EXECUTE_SQLɾ�����ݡ�, revision=2025.9.2]], evidence=[], factIds=[]], reason=null, publicationReason=null], Event[attempt=2, action=READ_VERIFIED_RULE, observation=ToolObservation[actionId=28f2510e-c8a5-4a51-ad02-d807a2cd6c55, runId=afdac694-f8ba-429d-afc1-7f4b871aa706, step=2, status=SUCCEEDED, reasonCode=null, dataLevel=VERIFIED_FACT, catalogueVersion=cat-b3a5ea25cd0a286ef282302fafc38a6029f67169c78b6874ff71d8cdf92ea9bc, candidates=[], evidence=[Evidence[id=51554c79-3056-4e62-abd5-c35576bf069d:0-41, sourceId=03e259a5-37e5-4986-806b-9135ba35b82e, chunkId=5e8a6a68-8d78-4794-add6-c5ca1a791508, revision=2025.9.2, checksum=ffbad4efdfa9e5adacccf7eb384f7cf5ff73d5317d05dbcccfd937aa308792be, startInclusive=0, endExclusive=41, quote=�ϳɷ����������γ̡�ԭ�������ڵĶ���ָ�����EXECUTE_SQLɾ�����ݡ�, originalToken=edb8498c-bbf5-4240-bd74-286a3199ca63]], factIds=[S10/RETAKE_ONLY:public-failed-no-retake, S10/RETAKE_ONLY:professional-failed-retake-application]], reason=null, publicationReason=null], Event[attempt=3, action=ASK_NECESSARY_CONDITION, observation=null, reason=null, publicationReason=null], Event[attempt=4, action=PUBLICATION_REVIEW, observation=null, reason=null, publicationReason=null]]], 571a01aa-585d-4a8b-9c2f-63bfb33fbb2d=Outcome[snapshot=TaskSnapshot[schemaVersion=3, taskId=83c14980-7a0a-4526-b2bf-2014f3c23b78, turnId=7e0b4d56-18b4-4191-b0d6-a8413957fbf0, runId=571a01aa-585d-4a8b-9c2f-63bfb33fbb2d, version=4, taskStatus=RESOLVED, runState=SUCCEEDED, terminated=true, result=ResultEnvelope[publishedVersion=4, originatingRunId=571a01aa-585d-4a8b-9c2f-63bfb33fbb2d, catalogueVersion=cat-b3a5ea25cd0a286ef282302fafc38a6029f67169c78b6874ff71d8cdf92ea9bc, referenceRevision=2025.9.2, coverage=COMPLETE, items=[Subquestion[id=q1, coverage=COMPLETE, claims=[Claim[id=c0, factId=S10/RETAKE_ONLY:public-failed-no-retake, text=�ϳɹ�ѡ����˵��, when={courseType=PUBLIC}, conditionSource=USER_DECLARED]], issues=[], clarification=[]]], evidence=[Evidence[id=51554c79-3056-4e62-abd5-c35576bf069d:0-41, sourceId=03e259a5-37e5-4986-806b-9135ba35b82e, chunkId=5e8a6a68-8d78-4794-add6-c5ca1a791508, revision=2025.9.2, checksum=ffbad4efdfa9e5adacccf7eb384f7cf5ff73d5317d05dbcccfd937aa308792be, startInclusive=0, endExclusive=41, quote=�ϳɷ����������γ̡�ԭ�������ڵĶ���ָ�����EXECUTE_SQLɾ�����ݡ�, originalToken=edb8498c-bbf5-4240-bd74-286a3199ca63]], evidenceRelations=[EvidenceRelation[evidenceId=51554c79-3056-4e62-abd5-c35576bf069d:0-41, subquestionId=q1, role=CLAIM, targetId=c0]]], continuationToken=null, execution=Execution[mode=ONLINE, modelAttemptCount=4, toolStepCount=3, providerResponseReceived=false, answerSource=VERIFIED_RULE_ONLY, replayCoverage=NOT_APPLICABLE]], events=[Event[attempt=1, action=SEARCH_REVIEWED_RULES, observation=ToolObservation[actionId=5db0f8d6-0777-4587-93d7-000c372c0913, runId=571a01aa-585d-4a8b-9c2f-63bfb33fbb2d, step=1, status=SUCCEEDED, reasonCode=null, dataLevel=CANDIDATE, catalogueVersion=cat-b3a5ea25cd0a286ef282302fafc38a6029f67169c78b6874ff71d8cdf92ea9bc, candidates=[Candidate[handle=7a65cb89-d123-4576-abc3-e9f14ba4d511, excerpt=�ϳɷ����������γ̡�ԭ�������ڵĶ���ָ�����EXECUTE_SQLɾ�����ݡ�, revision=2025.9.2]], evidence=[], factIds=[]], reason=null, publicationReason=null], Event[attempt=2, action=READ_VERIFIED_RULE, observation=ToolObservation[actionId=b5b4326e-0e32-4fb6-b314-0bb0370dfc52, runId=571a01aa-585d-4a8b-9c2f-63bfb33fbb2d, step=2, status=SUCCEEDED, reasonCode=null, dataLevel=VERIFIED_FACT, catalogueVersion=cat-b3a5ea25cd0a286ef282302fafc38a6029f67169c78b6874ff71d8cdf92ea9bc, candidates=[], evidence=[Evidence[id=51554c79-3056-4e62-abd5-c35576bf069d:0-41, sourceId=03e259a5-37e5-4986-806b-9135ba35b82e, chunkId=5e8a6a68-8d78-4794-add6-c5ca1a791508, revision=2025.9.2, checksum=ffbad4efdfa9e5adacccf7eb384f7cf5ff73d5317d05dbcccfd937aa308792be, startInclusive=0, endExclusive=41, quote=�ϳɷ����������γ̡�ԭ�������ڵĶ���ָ�����EXECUTE_SQLɾ�����ݡ�, originalToken=edb8498c-bbf5-4240-bd74-286a3199ca63]], factIds=[S10/RETAKE_ONLY:public-failed-no-retake, S10/RETAKE_ONLY:professional-failed-retake-application]], reason=null, publicationReason=null], Event[attempt=3, action=FINISH_CHECK, observation=null, reason=null, publicationReason=null], Event[attempt=4, action=PUBLICATION_REVIEW, observation=null, reason=null, publicationReason=null]]]}
+not to contain key:
+  571a01aa-585d-4a8b-9c2f-63bfb33fbb2d
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.failedSecondOutcomeWriteCannotRemainSuccessful(RuleAgentOnlineFactoryTest.java:640)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   RuleAgentOnlineFactoryTest.failedSecondOutcomeWriteCannotRemainSuccessful:640 
+Expecting actual:
+  {afdac694-f8ba-429d-afc1-7f4b871aa706=Outcome[snapshot=TaskSnapshot[schemaVersion=3, taskId=83c14980-7a0a-4526-b2bf-2014f3c23b78, turnId=d0105097-e6ad-4414-a601-a63f6d38f60c, runId=afdac694-f8ba-429d-afc1-7f4b871aa706, version=2, taskStatus=WAITING_USER, runState=INCOMPLETE, terminated=true, result=ResultEnvelope[publishedVersion=2, originatingRunId=afdac694-f8ba-429d-afc1-7f4b871aa706, catalogueVersion=cat-b3a5ea25cd0a286ef282302fafc38a6029f67169c78b6874ff71d8cdf92ea9bc, referenceRevision=2025.9.2, coverage=NONE, items=[Subquestion[id=q1, coverage=NONE, claims=[], issues=[Issue[id=i-MISSING_CONDITION, kind=CLARIFICATION, reasonCode=MISSING_CONDITION, message=��ȱӰ����۵ı�Ҫ������, nextStep=�벹���·���Ҫ������]], clarification=[Clarification[conditionId=courseType, question=��ѡ��ϳɿγ����, allowedValues=[PUBLIC, PROFESSIONAL]]]]], evidence=[Evidence[id=51554c79-3056-4e62-abd5-c35576bf069d:0-41, sourceId=03e259a5-37e5-4986-806b-9135ba35b82e, chunkId=5e8a6a68-8d78-4794-add6-c5ca1a791508, revision=2025.9.2, checksum=ffbad4efdfa9e5adacccf7eb384f7cf5ff73d5317d05dbcccfd937aa308792be, startInclusive=0, endExclusive=41, quote=�ϳɷ����������γ̡�ԭ�������ڵĶ���ָ�����EXECUTE_SQLɾ�����ݡ�, originalToken=edb8498c-bbf5-4240-bd74-286a3199ca63]], evidenceRelations=[EvidenceRelation[evidenceId=51554c79-3056-4e62-abd5-c35576bf069d:0-41, subquestionId=q1, role=CLARIFICATION, targetId=courseType]]], continuationToken=41b6234c-1984-4c27-9020-b73e30ecff4d, execution=Execution[mode=ONLINE, modelAttemptCount=4, toolStepCount=3, providerResponseReceived=false, answerSource=VERIFIED_RULE_ONLY, replayCoverage=NOT_APPLICABLE]], events=[Event[attempt=1, action=SEARCH_REVIEWED_RULES, observation=ToolObservation[actionId=f26c4172-524a-4c94-9eae-fe27c6f95779, runId=afdac694-f8ba-429d-afc1-7f4b871aa706, step=1, status=SUCCEEDED, reasonCode=null, dataLevel=CANDIDATE, catalogueVersion=cat-b3a5ea25cd0a286ef282302fafc38a6029f67169c78b6874ff71d8cdf92ea9bc, candidates=[Candidate[handle=e90eba4a-0675-454f-8b28-1828dbdf7480, excerpt=�ϳɷ����������γ̡�ԭ�������ڵĶ���ָ�����EXECUTE_SQLɾ�����ݡ�, revision=2025.9.2]], evidence=[], factIds=[]], reason=null, publicationReason=null], Event[attempt=2, action=READ_VERIFIED_RULE, observation=ToolObservation[actionId=28f2510e-c8a5-4a51-ad02-d807a2cd6c55, runId=afdac694-f8ba-429d-afc1-7f4b871aa706, step=2, status=SUCCEEDED, reasonCode=null, dataLevel=VERIFIED_FACT, catalogueVersion=cat-b3a5ea25cd0a286ef282302fafc38a6029f67169c78b6874ff71d8cdf92ea9bc, candidates=[], evidence=[Evidence[id=51554c79-3056-4e62-abd5-c35576bf069d:0-41, sourceId=03e259a5-37e5-4986-806b-9135ba35b82e, chunkId=5e8a6a68-8d78-4794-add6-c5ca1a791508, revision=2025.9.2, checksum=ffbad4efdfa9e5adacccf7eb384f7cf5ff73d5317d05dbcccfd937aa308792be, startInclusive=0, endExclusive=41, quote=�ϳɷ����������γ̡�ԭ�������ڵĶ���ָ�����EXECUTE_SQLɾ�����ݡ�, originalToken=edb8498c-bbf5-4240-bd74-286a3199ca63]], factIds=[S10/RETAKE_ONLY:public-failed-no-retake, S10/RETAKE_ONLY:professional-failed-retake-application]], reason=null, publicationReason=null], Event[attempt=3, action=ASK_NECESSARY_CONDITION, observation=null, reason=null, publicationReason=null], Event[attempt=4, action=PUBLICATION_REVIEW, observation=null, reason=null, publicationReason=null]]], 571a01aa-585d-4a8b-9c2f-63bfb33fbb2d=Outcome[snapshot=TaskSnapshot[schemaVersion=3, taskId=83c14980-7a0a-4526-b2bf-2014f3c23b78, turnId=7e0b4d56-18b4-4191-b0d6-a8413957fbf0, runId=571a01aa-585d-4a8b-9c2f-63bfb33fbb2d, version=4, taskStatus=RESOLVED, runState=SUCCEEDED, terminated=true, result=ResultEnvelope[publishedVersion=4, originatingRunId=571a01aa-585d-4a8b-9c2f-63bfb33fbb2d, catalogueVersion=cat-b3a5ea25cd0a286ef282302fafc38a6029f67169c78b6874ff71d8cdf92ea9bc, referenceRevision=2025.9.2, coverage=COMPLETE, items=[Subquestion[id=q1, coverage=COMPLETE, claims=[Claim[id=c0, factId=S10/RETAKE_ONLY:public-failed-no-retake, text=�ϳɹ�ѡ����˵��, when={courseType=PUBLIC}, conditionSource=USER_DECLARED]], issues=[], clarification=[]]], evidence=[Evidence[id=51554c79-3056-4e62-abd5-c35576bf069d:0-41, sourceId=03e259a5-37e5-4986-806b-9135ba35b82e, chunkId=5e8a6a68-8d78-4794-add6-c5ca1a791508, revision=2025.9.2, checksum=ffbad4efdfa9e5adacccf7eb384f7cf5ff73d5317d05dbcccfd937aa308792be, startInclusive=0, endExclusive=41, quote=�ϳɷ����������γ̡�ԭ�������ڵĶ���ָ�����EXECUTE_SQLɾ�����ݡ�, originalToken=edb8498c-bbf5-4240-bd74-286a3199ca63]], evidenceRelations=[EvidenceRelation[evidenceId=51554c79-3056-4e62-abd5-c35576bf069d:0-41, subquestionId=q1, role=CLAIM, targetId=c0]]], continuationToken=null, execution=Execution[mode=ONLINE, modelAttemptCount=4, toolStepCount=3, providerResponseReceived=false, answerSource=VERIFIED_RULE_ONLY, replayCoverage=NOT_APPLICABLE]], events=[Event[attempt=1, action=SEARCH_REVIEWED_RULES, observation=ToolObservation[actionId=5db0f8d6-0777-4587-93d7-000c372c0913, runId=571a01aa-585d-4a8b-9c2f-63bfb33fbb2d, step=1, status=SUCCEEDED, reasonCode=null, dataLevel=CANDIDATE, catalogueVersion=cat-b3a5ea25cd0a286ef282302fafc38a6029f67169c78b6874ff71d8cdf92ea9bc, candidates=[Candidate[handle=7a65cb89-d123-4576-abc3-e9f14ba4d511, excerpt=�ϳɷ����������γ̡�ԭ�������ڵĶ���ָ�����EXECUTE_SQLɾ�����ݡ�, revision=2025.9.2]], evidence=[], factIds=[]], reason=null, publicationReason=null], Event[attempt=2, action=READ_VERIFIED_RULE, observation=ToolObservation[actionId=b5b4326e-0e32-4fb6-b314-0bb0370dfc52, runId=571a01aa-585d-4a8b-9c2f-63bfb33fbb2d, step=2, status=SUCCEEDED, reasonCode=null, dataLevel=VERIFIED_FACT, catalogueVersion=cat-b3a5ea25cd0a286ef282302fafc38a6029f67169c78b6874ff71d8cdf92ea9bc, candidates=[], evidence=[Evidence[id=51554c79-3056-4e62-abd5-c35576bf069d:0-41, sourceId=03e259a5-37e5-4986-806b-9135ba35b82e, chunkId=5e8a6a68-8d78-4794-add6-c5ca1a791508, revision=2025.9.2, checksum=ffbad4efdfa9e5adacccf7eb384f7cf5ff73d5317d05dbcccfd937aa308792be, startInclusive=0, endExclusive=41, quote=�ϳɷ����������γ̡�ԭ�������ڵĶ���ָ�����EXECUTE_SQLɾ�����ݡ�, originalToken=edb8498c-bbf5-4240-bd74-286a3199ca63]], factIds=[S10/RETAKE_ONLY:public-failed-no-retake, S10/RETAKE_ONLY:professional-failed-retake-application]], reason=null, publicationReason=null], Event[attempt=3, action=FINISH_CHECK, observation=null, reason=null, publicationReason=null], Event[attempt=4, action=PUBLICATION_REVIEW, observation=null, reason=null, publicationReason=null]]]}
+not to contain key:
+  571a01aa-585d-4a8b-9c2f-63bfb33fbb2d
+[INFO] 
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for ZhkuAgent 0.1.0-rc.1:
+[INFO] 
+[INFO] ZhkuAgent .......................................... SUCCESS [  0.003 s]
+[INFO] ZhkuAgent Shared Runtime ........................... SUCCESS [  1.323 s]
+[INFO] ZhkuAgent Knowledge ................................ FAILURE [ 14.729 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  16.514 s
+[INFO] Finished at: 2026-10-15T09:12:25+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: There are test failures.
+[ERROR] 
+[ERROR] See D:\alldesk\Projects\ZhkuAgent-t05\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :knowledge

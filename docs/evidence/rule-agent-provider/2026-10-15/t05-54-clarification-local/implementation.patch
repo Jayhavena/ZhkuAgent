@@ -1,0 +1,367 @@
+diff --git a/knowledge/scripts/start-rule-agent-probe.ps1 b/knowledge/scripts/start-rule-agent-probe.ps1
+index f49fd19..dd76d39 100644
+--- a/knowledge/scripts/start-rule-agent-probe.ps1
++++ b/knowledge/scripts/start-rule-agent-probe.ps1
+@@ -11,7 +11,7 @@ $importer=Join-Path $root 'scripts/Import-ZhkuCredentials.ps1'
+ $java=Get-Command java.exe -ErrorAction SilentlyContinue
+ $docker=Get-Command docker.exe -ErrorAction SilentlyContinue
+ $jar=Join-Path $root 'knowledge/target/knowledge-0.1.0-rc.1-controlled.jar'
+-$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-15/t05-51-p02-diagnostic-request/request-package.json'
++$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-15/t05-55-clarification-request/request-package.json'
+ if($CheckEnvironment){
+  & $importer -UseDashScope
+  @{javaAvailable=($null-ne $java);dockerAvailable=($null-ne $docker);keyAvailable=![string]::IsNullOrWhiteSpace($env:DASHSCOPE_API_KEY);mode='P02_DIAGNOSTIC_PREFLIGHT';maximumProviderCalls=10;providerCalls=0;databaseOperations=0;builds=0;encodingSample='规则查证：在线探针、等待授权';encoding=[Console]::OutputEncoding.CodePage;requiresRipgrep=$false}|ConvertTo-Json
+@@ -62,7 +62,7 @@ try{
+  $env:ZHKU_RULE_AGENT_PROBE_CASE='P02_CONTINUATION_01'
+  # 当前.NET/PowerShell可能将null转换为空值而保留键；ONLINE拒绝任何回放键，必须真正删除。
+  foreach($name in @('ZHKU_RULECHECK_TASK_BATCH_DIRECTORY','ZHKU_RULECHECK_TASK_PACKAGE_SHA256','ZHKU_RULECHECK_TASK_SUMMARY_SHA256')){Remove-Item -LiteralPath "Env:\$name" -ErrorAction SilentlyContinue}
+- $env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-15/t05-51-p02-diagnostic-request/live-'+[guid]::NewGuid().ToString('N')
++ $env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-15/t05-55-clarification-request/live-'+[guid]::NewGuid().ToString('N')
+  $container='zhku-rule-agent-probe-'+[guid]::NewGuid().ToString('N')
+  function Docker([string[]]$argsForDocker){
+   & $importer -RequireDatabase
+@@ -78,7 +78,7 @@ try{
+   & $importer -RequireDatabase -RequireDashScope
+   $result=Invoke-ZhkuOwnedProcess -Executable $java.Source -Arguments ($arguments+@('--Probe')) -TimeoutSeconds 235 -Secrets $secrets
+   # 宿主可能在创建业务证据目录前失败，也必须保留已脱敏的启动诊断，不能丢失失败位置。
+-  $launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-15/t05-51-p02-diagnostic-request/launcher-'+[guid]::NewGuid().ToString('N')+'.log')
++  $launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-15/t05-55-clarification-request/launcher-'+[guid]::NewGuid().ToString('N')+'.log')
+   New-Item -ItemType Directory -Force (Split-Path $launcherLog -Parent)|Out-Null
+   [IO.File]::WriteAllText($launcherLog,$result.output+"`n"+$result.errorOutput,$utf8)
+   $directory=Join-Path $root $env:ZHKU_RULE_AGENT_EVIDENCE
+diff --git a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineProbeHost.java b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineProbeHost.java
+index 13fad1a..8f0c8b4 100644
+--- a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineProbeHost.java
++++ b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineProbeHost.java
+@@ -15,8 +15,8 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
+ /** 独立工程探针宿主；学生HTTP入口由T06另行接入。 */
+ public final class RuleAgentOnlineProbeHost {
+     private static final ObjectMapper JSON=new ObjectMapper().findAndRegisterModules();
+-    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-15/t05-51-p02-diagnostic-request/request-package.json";
+-    private static final String LOCAL_EXCHANGE_RECORDING="OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION; NO_HTTP_HEADERS; API_KEY_REDACTED; MALFORMED_JSON_OMITTED; ORIGINAL_SHA_AND_REDACTION_FLAG";
++    private static final String PACKAGE="docs/evidence/rule-agent-provider/2026-10-15/t05-55-clarification-request/request-package.json";
++    private static final String LOCAL_EXCHANGE_RECORDING="OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION_REVIEW_INPUT_SNAPSHOT; NO_HTTP_HEADERS; API_KEY_REDACTED; MALFORMED_JSON_OMITTED; ORIGINAL_SHA_AND_REDACTION_FLAG";
+     private static final String P01_QUESTION="专业选修课和公共选修课在修读安排上有什么不同？";
+     private static final int MAXIMUM=2*DEFAULT_BUDGET.maxModelAttemptsPerRun();
+     private static final String P02_QUESTION="我这门选修课没过，能不能重修？";
+diff --git a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProvider.java b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProvider.java
+index e7aa47d..c7ad18c 100644
+--- a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProvider.java
++++ b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProvider.java
+@@ -45,7 +45,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
+         BEGIN, RECEIVED, FINISHED
+     }
+     public enum Purpose { DECISION, PUBLICATION_REVIEW }
+-    public enum Direction { REQUEST, RESPONSE, PROPOSED_ACTION }
++    public enum Direction { REQUEST, RESPONSE, PROPOSED_ACTION, REVIEW_INPUT_SNAPSHOT }
+     /** 仅显式装配的本机受控探针保存正文；无HTTP头，原字节摘要与脱敏正文分开标记。 */
+     public record Exchange(UUID taskId,UUID runId,int attempt,Purpose purpose,Direction direction,String bodySha256,String body,boolean redacted) {}
+     public record Trace(UUID taskId,UUID runId,int attempt,String requestSha256,String responseSha256,Integer status,ReasonCode reason,boolean responseReceived,Long inputTokens,Long outputTokens,Diagnostics diagnostics,Phase phase,RuleAgentProtocol.Validation validation,Purpose purpose){
+@@ -142,6 +142,14 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
+             item.put("text",fact.definition().text());
+             item.set("when",JSON.valueToTree(fact.definition().when()));
+         }
++        var rejected=data.putArray("rejectedActions");
++        // 只反馈有界结构化失败；不把历史自由文本或模型理由重新注入提示词。
++        var failures=view.events().stream().filter(e->e.reason()!=null).toList();
++        for(var e:failures.subList(Math.max(0,failures.size()-2),failures.size())) {
++            var item=rejected.addObject();item.put("attempt",e.attempt());item.put("action",e.action());item.put("reasonCode",e.reason().name());
++        }
++        var declared=data.putArray("availableConditions");
++        view.ruleContexts().forEach(c->c.conditions().forEach(condition->{var item=declared.addObject();item.put("ruleId",c.ruleId());item.put("conditionId",condition.key());item.set("allowedValues",JSON.valueToTree(condition.allowedValues()));}));
+         var observations=data.putArray("observations");
+         for(var observation:view.observations()){
+             var item=observations.addObject();
+@@ -162,6 +170,15 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
+         // 不发送主体/Session、原文token、数据库身份、历史结果或自由工具事件。
+         return envelope(SYSTEM,data,actionSchema);
+     }
++    @Override public void captureInput(RuleAgentRunner.Input input,List<RuleAgentEvidenceTools.VerifiedFact> facts,RuleFactCapabilityCatalogue catalogue) {
++        if(exchangeAudit==null)return;
++        try {
++            // 完整Fact保留原始checksum大小写；展示层会归一化，不能据展示层重建身份。
++            byte[] bytes=JSON.writeValueAsBytes(Map.of("taskId",input.taskId(),"taskVersion",input.version(),"input",RulePublicationContract.input(input,facts,catalogue),"facts",facts));
++            if(bytes.length>DEFAULT_BUDGET.maxRequestBytes())throw new Failure(ReasonCode.AUDIT_UNAVAILABLE,false);
++            exchangeRecord(attempts+1,Purpose.PUBLICATION_REVIEW,Direction.REVIEW_INPUT_SNAPSHOT,bytes,key.get(),false);
++        } catch(Failure failure){throw failure;}catch(Exception failure){throw new Failure(ReasonCode.AUDIT_UNAVAILABLE,false);}
++    }
+     String reviewPayload(RulePublicationContract.SemanticInput input){
+         var data=JSON.createObjectNode();
+         data.set("input",JSON.valueToTree(input));
+diff --git a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentRunner.java b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentRunner.java
+index 0dffc3f..a4b8027 100644
+--- a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentRunner.java
++++ b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentRunner.java
+@@ -106,6 +106,7 @@ public final class RuleAgentRunner {
+                                 attempts++;context.advanceStep();
+                                 Instant reviewStarted=clock.instant();
+                                 try{
++                                    publicationReview.captureInput(input,broker.facts(),capabilities);
+                                     var assessed=publicationReview.assess(safe,Duration.ofMillis(Math.min(DEFAULT_BUDGET.maxModelMillis(),Math.max(1,Duration.between(reviewStarted,deadline).toMillis()-5000))));
+                                     if(context.isStopRequested())throw new Rejected(ReasonCode.CANCELLED);
+                                     if(Duration.between(reviewStarted,clock.instant()).toMillis()>DEFAULT_BUDGET.maxModelMillis())throw new Rejected(ReasonCode.MODEL_TIMEOUT);
+diff --git a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleFactCapabilityCatalogue.java b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleFactCapabilityCatalogue.java
+index a34aeb6..022222d 100644
+--- a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleFactCapabilityCatalogue.java
++++ b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleFactCapabilityCatalogue.java
+@@ -8,14 +8,33 @@ import static com.zhku.knowledge.ruleagent.RulePublicationContract.*;
+ public final class RuleFactCapabilityCatalogue {
+     public static final String VERSION="REVIEWED_FACT_CAPABILITY_01";
+     private final Map<String,FactCapability> capabilities;
+-    private RuleFactCapabilityCatalogue(Map<String,FactCapability> capabilities) {
++    private final List<RulePublicationContract.ReviewedCondition> conditions;
++    private final Map<String,Map<String,String>> reviewedWhen;
++    private RuleFactCapabilityCatalogue(Map<String,FactCapability> capabilities,List<RulePublicationContract.ReviewedCondition> conditions,Map<String,Map<String,String>> reviewedWhen) {
++        this.reviewedWhen=Map.copyOf(reviewedWhen);
++        this.conditions=List.copyOf(conditions);
+         this.capabilities=Map.copyOf(capabilities);
+     }
++    public List<RulePublicationContract.ReviewedCondition> conditions(List<RuleAgentEvidenceTools.VerifiedFact> facts) {
++        var read=facts.stream().map(RuleAgentEvidenceTools.VerifiedFact::id).collect(java.util.stream.Collectors.toSet());
++        return conditions.stream().map(c->new RulePublicationContract.ReviewedCondition(c.ruleId(),c.conditionId(),c.question(),c.allowedValues(),c.factIds().stream().filter(read::contains).toList())).filter(c->!c.factIds().isEmpty()).toList();
++    }
++    /** 缺少某值的事实不等于该值不可行；只用已读并进入核验身份的事实排除被其他用户已知条件明确否定的分支。 */
++    public Set<String> feasibleValues(RulePublicationContract.ReviewedCondition condition,Dimension dimension,Map<String,String> known) {
++        var result=new LinkedHashSet<String>();
++        for(String value:condition.allowedValues()) {
++            var candidates=reviewedWhen.entrySet().stream().filter(e->condition.factIds().contains(e.getKey())&&e.getKey().startsWith(condition.ruleId()+":")&&capabilities.get(e.getKey()).dimension()==dimension&&value.equals(e.getValue().get(condition.conditionId()))).toList();
++            if(candidates.isEmpty()||candidates.stream().anyMatch(e->e.getValue().entrySet().stream().allMatch(w->w.getKey().equals(condition.conditionId())||!known.containsKey(w.getKey())||known.get(w.getKey()).equals(w.getValue()))))result.add(value);
++        }
++        return Set.copyOf(result);
++    }
+     public String version() {return VERSION;}
+     public Optional<FactCapability> find(String id) {return Optional.ofNullable(capabilities.get(id));}
+ 
+     public static RuleFactCapabilityCatalogue fromReviewed(List<RuleCheckApplicationService.CatalogEntry> entries) {
+         var capabilities=new LinkedHashMap<String,FactCapability>();
++        var conditions=new ArrayList<RulePublicationContract.ReviewedCondition>();
++        var reviewedWhen=new LinkedHashMap<String,Map<String,String>>();
+         for(var entry:entries) {
+             var rule=entry.template();
+             if(rule.reviewState()!=RuleCheckRuleTemplate.ReviewState.APPROVED||!rule.referenceRevision().equals("2025.9.2"))continue;
+@@ -23,11 +42,20 @@ public final class RuleFactCapabilityCatalogue {
+                 String id=rule.ruleId()+":"+fact.id();
+                 var capability=capability(id,fact);
+                 if(capability==null)continue;
++                reviewedWhen.put(id,fact.when());
+                 var previous=capabilities.putIfAbsent(id,capability);
+                 if(previous!=null&&!previous.equals(capability))throw new Rejected(Code.CAPABILITY_UNAVAILABLE);
+             }
+         }
+-        return new RuleFactCapabilityCatalogue(capabilities);
++        for(var entry:entries) {
++            var rule=entry.template();
++            if(rule.reviewState()!=RuleCheckRuleTemplate.ReviewState.APPROVED||!rule.referenceRevision().equals("2025.9.2"))continue;
++            for(var c:rule.conditions()) {
++                var ids=rule.facts().stream().filter(f->f.when().containsKey(c.key())&&capabilities.containsKey(rule.ruleId()+":"+f.id())).map(f->rule.ruleId()+":"+f.id()).toList();
++                if(!ids.isEmpty())conditions.add(new RulePublicationContract.ReviewedCondition(rule.ruleId(),c.key(),c.question(),c.allowedValues(),ids));
++            }
++        }
++        return new RuleFactCapabilityCatalogue(capabilities,conditions.stream().distinct().sorted(Comparator.comparing(RulePublicationContract.ReviewedCondition::ruleId).thenComparing(RulePublicationContract.ReviewedCondition::conditionId)).toList(),reviewedWhen);
+     }
+ 
+     private static FactCapability capability(String id,RuleCheckRuleTemplate.Fact fact) {
+diff --git a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationContract.java b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationContract.java
+index 87fd56d..b520a2c 100644
+--- a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationContract.java
++++ b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationContract.java
+@@ -8,7 +8,7 @@ import java.util.*;
+ /** 内部发布合同：模型描述需求和对应关系，完整性由宿主聚合，不能由模型自报。 */
+ public final class RulePublicationContract {
+     private RulePublicationContract() {}
+-    public static final String REVISION="RULE_PUBLICATION_REVIEW_01";
++    public static final String REVISION="RULE_PUBLICATION_REVIEW_02";
+     public static final int RESERVED_REVIEW_CALLS=1;
+     public static final int MAX_DECISION_CALLS=RuleAgentContract.DEFAULT_BUDGET.maxModelAttemptsPerRun()-RESERVED_REVIEW_CALLS;
+     public static final int MAX_REQUIREMENTS=8;
+@@ -95,16 +95,23 @@ public final class RulePublicationContract {
+             quotes=List.copyOf(quotes);
+         }
+     }
++    /** 原条件键和允许值来自审核模板；完整事实身份仅本地保存，不随核验输入外发。 */
++    public record ReviewedCondition(String ruleId,String conditionId,String question,List<String> allowedValues,List<String> factIds) {
++        public ReviewedCondition {allowedValues=List.copyOf(allowedValues);factIds=List.copyOf(factIds);}
++    }
+     public record SemanticInput(String protocolRevision,String capabilityVersion,String inputFingerprint,
+                                 List<RuleAgentRunner.Question> questions,Map<String,String> userConditions,
+-                                List<SemanticFact> facts,Map<String,FactCapability> capabilities) {
++                                List<SemanticFact> facts,Map<String,FactCapability> capabilities,List<ReviewedCondition> conditions) {
++        public SemanticInput(String protocolRevision,String capabilityVersion,String inputFingerprint,List<RuleAgentRunner.Question> questions,Map<String,String> userConditions,List<SemanticFact> facts,Map<String,FactCapability> capabilities) {
++            this(protocolRevision,capabilityVersion,inputFingerprint,questions,userConditions,facts,capabilities,List.of());
++        }
+         public SemanticInput {
+             require(REVISION.equals(protocolRevision));
+             digest(inputFingerprint);
+             questions=List.copyOf(questions);
+             userConditions=Map.copyOf(userConditions);
+             facts=List.copyOf(facts);
+-            capabilities=Map.copyOf(capabilities);
++            capabilities=Map.copyOf(capabilities);conditions=List.copyOf(conditions);
+         }
+     }
+     public record QuestionAssessment(Set<String> coveredRequirementIds,Set<String> uncoveredRequirementIds,
+@@ -128,11 +135,12 @@ public final class RulePublicationContract {
+             f.definition().evidenceBindings().stream().map(b->new ReviewQuote(b.revision(),b.quote())).toList())).toList();
+         var capabilities=new TreeMap<String,FactCapability>();
+         for(var fact:facts) catalogue.find(fact.id()).ifPresent(c->capabilities.put(fact.id(),c));
+-        var safe=Map.of("questions",input.questions(),"conditions",input.userConditions(),"facts",safeFacts,
++        var conditions=catalogue.conditions(facts);
++        var safe=Map.of("reviewedConditions",conditions,"questions",input.questions(),"conditions",input.userConditions(),"facts",safeFacts,
+             "capabilities",capabilities,"version",catalogue.version(),"protocol",REVISION);
+         // 任务绑定仅进入摘要，原始主体/任务/原文令牌不出现在核验输入中。
+         String hash=fingerprint(Map.of("taskBinding",input.taskId(),"taskVersion",input.version(),"safeInput",safe));
+-        return new SemanticInput(REVISION,catalogue.version(),hash,input.questions(),input.userConditions(),safeFacts,capabilities);
++        return new SemanticInput(REVISION,catalogue.version(),hash,input.questions(),input.userConditions(),safeFacts,capabilities,conditions);
+     }
+ 
+     static String fingerprint(Object value) {
+diff --git a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationGate.java b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationGate.java
+index ec2afab..b605142 100644
+--- a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationGate.java
++++ b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationGate.java
+@@ -99,6 +99,7 @@ public final class RulePublicationGate {
+             accepted.addAll(matching);
+             matching.forEach(b->pending.add(b.requirementId()));
+         }
++        requireCompleteBranches(input,ask,review,read,requirements,accepted);
+         var assessments=new LinkedHashMap<String,QuestionAssessment>();
+         boolean hasKnown=false;
+         for(String q:questions.keySet()) {
+@@ -129,6 +130,27 @@ public final class RulePublicationGate {
+         return new PublicationAssessment(hasKnown?Verdict.PARTIAL:Verdict.UNRESOLVED,accepted,assessments);
+     }
+ 
++    /** 同一原始需求的条件分支必须覆盖审核允许值；不能由模型漏报一侧缩小验收集合。 */
++    private void requireCompleteBranches(RuleAgentRunner.Input input,RuleAgentContract.Ask ask,SemanticAssessment review,
++        Map<String,RuleAgentEvidenceTools.VerifiedFact> read,Map<String,Requirement> requirements,List<SemanticBinding> accepted) {
++        var declarations=catalogue.conditions(List.copyOf(read.values()));
++        var groups=accepted.stream().map(b->requirements.get(b.requirementId())).collect(java.util.stream.Collectors.groupingBy(r->List.of(r.span(),r.dimension())));
++        for(var group:groups.values()) {
++            var first=group.getFirst();var expected=new LinkedHashSet<String>();var represented=new LinkedHashSet<String>();
++            for(var declaration:declarations) {
++                if(!declaration.conditionId().equals(ask.conditionId()))continue;
++                boolean relevant=declaration.factIds().stream().map(read::get).filter(Objects::nonNull).anyMatch(f->catalogue.find(f.id()).orElseThrow().dimension()==first.dimension());
++                if(relevant)expected.addAll(catalogue.feasibleValues(declaration,first.dimension(),input.userConditions()));
++            }
++            for(var binding:accepted) {
++                var requirement=requirements.get(binding.requirementId());
++                if(!requirement.span().equals(first.span())||requirement.dimension()!=first.dimension())continue;
++                var fact=read.get(binding.factId());String value=fact.definition().when().get(ask.conditionId());
++                if(value!=null)represented.add(value);
++            }
++            if(expected.isEmpty()||!expected.equals(represented))throw new Rejected(Code.CONDITION_NOT_NECESSARY);
++        }
++    }
+     private FactCapability capability(RuleAgentEvidenceTools.VerifiedFact fact) {
+         var capability=catalogue.find(fact.id()).orElseThrow(()->new Rejected(Code.CAPABILITY_UNAVAILABLE));
+         if(!capability.sourceFingerprint().equals(fingerprint(fact.definition())))throw new Rejected(Code.CAPABILITY_UNAVAILABLE);
+diff --git a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationProtocol.java b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationProtocol.java
+index 24349a7..d7d261d 100644
+--- a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationProtocol.java
++++ b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationProtocol.java
+@@ -17,6 +17,7 @@ public final class RulePublicationProtocol {
+         root.put("maxUnresolvedDemands",MAX_REQUIREMENTS);
+         root.put("additionalFieldsAllowed",false);
+         root.put("spanCoordinates","原questions.text的UTF-16字符坐标，左闭右开；不得从工具原文截取需求");
++        root.put("conditionalBranches","已识别意图但缺少一个审核条件时，按conditions的每个可行值分别声明IDENTIFIED需求，可共用原始跨度；具体subject/CORE绑定须匹配能力，necessaryConditionIds使用原键。分支不是用户已声明条件。真正未知保留unresolvedDemands，不截断分支以满足容量。");
+         var records=root.putObject("records");
+         for(Class<?> type:List.of(SemanticAssessment.class,Requirement.class,DemandSpan.class,SemanticBinding.class,UnresolvedDemand.class)) {
+             var fields=records.putArray(type.getSimpleName());
+diff --git a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleSemanticReviewPort.java b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleSemanticReviewPort.java
+index 1676177..d6a75e3 100644
+--- a/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleSemanticReviewPort.java
++++ b/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleSemanticReviewPort.java
+@@ -5,5 +5,6 @@ import java.time.Duration;
+ /** 独立核验只有数据判断能力；在线工厂须显式装配，不能用默认放行实现兜底。 */
+ public interface RuleSemanticReviewPort extends AutoCloseable {
+     RulePublicationContract.SemanticAssessment assess(RulePublicationContract.SemanticInput input,Duration timeout);
++    default void captureInput(RuleAgentRunner.Input input,java.util.List<RuleAgentEvidenceTools.VerifiedFact> facts,RuleFactCapabilityCatalogue catalogue) {}
+     default void close() {}
+ }
+diff --git a/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java b/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java
+index 4e92c46..11ac4b2 100644
+--- a/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java
++++ b/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java
+@@ -172,7 +172,8 @@ class RuleAgentOnlineFactoryTest {
+         assertThat(traces.getLast().validation().code().name()).isEqualTo("REVIEW_INPUT_MISMATCH");
+         assertThat(result.events()).anySatisfy(e->{assertThat(e.action()).isEqualTo("ASK_NECESSARY_CONDITION");assertThat(e.reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);});
+         assertThat(result.events()).anySatisfy(e->{assertThat(e.action()).isEqualTo("PUBLICATION_REVIEW");assertThat(e.reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);});
+-        assertThat(exchanges).hasSize(11);
++        assertThat(exchanges).hasSize(12);
++        assertThat(exchanges).filteredOn(e->e.direction()==RuleAgentProvider.Direction.REVIEW_INPUT_SNAPSHOT).hasSize(1);
+         var proposal=exchanges.stream().filter(e->e.attempt()==3&&e.direction()==RuleAgentProvider.Direction.PROPOSED_ACTION).findFirst().orElseThrow();
+         assertThat(new ObjectMapper().readTree(proposal.body()).path("type").asText()).isEqualTo("ASK_NECESSARY_CONDITION");
+         var json=new ObjectMapper();assertThat(json.writeValueAsString(exchanges)).doesNotContain("local-test-placeholder","Bearer ");
+@@ -439,7 +440,7 @@ class RuleAgentOnlineFactoryTest {
+     }
+     @Test void diagnosticRequestUsesFreshPackageLocation()throws Exception{
+         var field=RuleAgentOnlineProbeHost.class.getDeclaredField("PACKAGE");field.setAccessible(true);
+-        assertThat(field.get(null)).isEqualTo("docs/evidence/rule-agent-provider/2026-10-15/t05-51-p02-diagnostic-request/request-package.json");
++        assertThat(field.get(null)).isEqualTo("docs/evidence/rule-agent-provider/2026-10-15/t05-55-clarification-request/request-package.json");
+     }
+     @Test void diagnosticPacketRejectsMissingOrDisabledControlledExchangePolicy()throws Throwable{
+         var valid=packet();validate(valid);
+@@ -466,7 +467,7 @@ class RuleAgentOnlineFactoryTest {
+         p.put("model",RuleAgentProvider.MODEL);
+         p.put("budgetRevision",BUDGET_REVISION);
+         p.put("executionPolicyRevision","STATE_AWARE_P02_CONTINUATION_01");
+-        p.put("localExchangeRecording","OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION; NO_HTTP_HEADERS; API_KEY_REDACTED; MALFORMED_JSON_OMITTED; ORIGINAL_SHA_AND_REDACTION_FLAG");
++        p.put("localExchangeRecording","OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION_REVIEW_INPUT_SNAPSHOT; NO_HTTP_HEADERS; API_KEY_REDACTED; MALFORMED_JSON_OMITTED; ORIGINAL_SHA_AND_REDACTION_FLAG");
+         p.put("maximumProviderCalls",2*DEFAULT_BUDGET.maxModelAttemptsPerRun());
+         p.put("maximumTaskRunsThisBatch",2);p.put("ownedProcessMillis",235000);
+         p.put("perRunCalls",DEFAULT_BUDGET.maxModelAttemptsPerRun());
+diff --git a/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java b/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java
+index a237d6a..9ca37b8 100644
+--- a/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java
++++ b/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java
+@@ -281,7 +281,7 @@ class RuleAgentProviderTest {
+      * 本地重建P01首决策，核对字节数和所列字段；不证明历史逐字节身份或供应商接受该schema。
+      * 运行时剩余时间会变化，超时原因仍须真实交换证据判断。
+      */
+-    @Test void firstDecisionPayloadReproducesRecordedShape()throws Exception{
++    @Test void firstDecisionPayloadIncludesBoundedFeedbackShape()throws Exception{
+         start(200,good(),0);
+         String question="专业选修课和公共选修课在修读安排上有什么不同？";
+         var state=new RuleAgentRunner.ActionState(List.of("SEARCH_REVIEWED_RULES"),List.of(),
+@@ -289,7 +289,7 @@ class RuleAgentProviderTest {
+         var view=new RuleAgentRunner.View(question,List.of(new RuleAgentRunner.Question("q1",question)),Map.of(),List.of(),List.of(),List.of(),List.of(),
+             RulePublicationContract.MAX_DECISION_CALLS,DEFAULT_BUDGET.maxToolStepsPerRun(),state);
+         String payload=port.payload(view);
+-        assertThat(payload.getBytes(StandardCharsets.UTF_8).length).isEqualTo(4557);
++        assertThat(payload.getBytes(StandardCharsets.UTF_8).length).isEqualTo(4607); // 原4557属于旧冻结合同；新增两个空反馈数组增加50字节，不是供应商兼容性证明。
+         var wire=new ObjectMapper().readTree(payload);
+         var format=wire.path("response_format").path("json_schema");
+         assertThat(format.path("name").asText()).isEqualTo("zhku_rule_agent_action");
+diff --git a/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RulePublicationGateTest.java b/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RulePublicationGateTest.java
+index cf176f0..59fe2d8 100644
+--- a/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RulePublicationGateTest.java
++++ b/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RulePublicationGateTest.java
+@@ -242,20 +242,22 @@ class RulePublicationGateTest {
+ 
+     @Test void askingMissingCourseTypeRequiresIndependentNeedAndConditionalFact() {
+         var retake=fact("S10/RETAKE_ONLY","public-failed-no-retake",Map.of("courseType","PUBLIC"));
+-        var facts=List.of(retake);
++        var other=fact("S10/RETAKE_ONLY","professional-failed-retake-application",Map.of("courseType","PROFESSIONAL"));
++        var facts=List.of(retake,other);
+         var caps=catalogue(facts);
+         var original=input("这门选修没过，能再修吗？");
+         var safe=RulePublicationContract.input(original,facts,caps);
+         var needed=new Requirement("r1",new DemandSpan("q1",0,original.question().length()),Dimension.RETAKE,
+             Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED,List.of("courseType"));
+-        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(needed),
+-            List.of(new SemanticBinding("r1",retake.id(),BindingRole.CORE)),List.of());
+-        var ask=new Ask("q1","courseType","提议理由不能充当必要性证据",List.of(retake.id()));
++        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(needed,new Requirement("r2",needed.span(),Dimension.RETAKE,Subject.PROFESSIONAL_ELECTIVE,Recognition.IDENTIFIED,List.of("courseType"))),
++            List.of(new SemanticBinding("r1",retake.id(),BindingRole.CORE),new SemanticBinding("r2",other.id(),BindingRole.CORE)),List.of());
++        var ask=new Ask("q1","courseType","提议理由不能充当必要性证据",List.of(retake.id(),other.id()));
+         var result=new RulePublicationGate(caps).assess(original,ask,review,facts);
+-        assertThat(result.questions().get("q1").uncoveredRequirementIds()).containsExactly("r1");
++        assertThat(result.questions().get("q1").uncoveredRequirementIds()).containsExactlyInAnyOrder("r1","r2");
+         assertThat(result.questions().get("q1").coveredRequirementIds()).isEmpty();
+         var unnecessary=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(
+-            requirement("r1",original.question(),Dimension.RETAKE,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED)),review.bindings(),List.of());
++            requirement("r1",original.question(),Dimension.RETAKE,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED),
++            requirement("r2",original.question(),Dimension.RETAKE,Subject.PROFESSIONAL_ELECTIVE,Recognition.IDENTIFIED)),review.bindings(),List.of());
+         assertThatThrownBy(()->new RulePublicationGate(caps).assess(original,ask,unnecessary,facts))
+             .hasMessage("CONDITION_NOT_NECESSARY");
+         var known=new RuleAgentRunner.Input(original.owner(),original.taskId(),2,original.question(),original.questions(),Map.of("courseType","PUBLIC"));

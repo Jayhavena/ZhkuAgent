@@ -1,0 +1,29 @@
+{
+  "batch": "P01_DIAGNOSTIC_01",
+  "hostCheckEnvironment": {
+    "mode": "ONLINE",
+    "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+    "model": "qwen3.8-flash",
+    "maximumProviderCalls": 5,
+    "timeoutMillis": 20000,
+    "runTimeoutMillis": 110000,
+    "budgetRevision": "T05_CLOSEOUT_BUDGET_04",
+    "providerCalls": 0,
+    "databaseOperations": 0,
+    "builds": 0
+  },
+  "localAvailability": {
+    "javaAvailable": true,
+    "dockerAvailable": true,
+    "dashscopeKeyAvailable": true,
+    "powerShell7Available": false
+  },
+  "invocation": {
+    "method": "DIRECT_JAVA_PROBE_HOST",
+    "reason": "本会话 PowerShell 为 5.1 Desktop，本机无 pwsh 7；启动器 start-rule-agent-probe.ps1 含 #requires -Version 7.0 无法运行",
+    "commandLine": "java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -Dloader.main=com.zhku.knowledge.ruleagent.RuleAgentOnlineProbeHost -cp <jar> org.springframework.boot.loader.launch.PropertiesLauncher --CheckEnvironment",
+    "note": "与启动器使用的 java 命令行相同；宿主内全部守卫仍生效。真实外发须在具备 pwsh 7 的终端运行启动器。",
+    "pathTrap": "以相对 jar 路径调用时，PowerShell 工具工作目录为主工作区 D:/alldesk/Projects/ZhkuAgent，会静默使用旧 jar；必须使用绝对 jar 路径。"
+  },
+  "recordedAt": "2026-10-14T23:27:38+08:00"
+}

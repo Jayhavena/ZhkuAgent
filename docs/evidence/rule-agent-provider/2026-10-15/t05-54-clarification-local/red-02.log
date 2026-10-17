@@ -1,0 +1,50 @@
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.629 s <<< FAILURE! -- in com.zhku.knowledge.ruleagent.RuleClarificationContractTest
+[ERROR] com.zhku.knowledge.ruleagent.RuleClarificationContractTest.oneSideCannotAuthorizeClarificationWhenDeclaredConditionHasTwoValues -- Time elapsed: 0.292 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.zhku.knowledge.ruleagent.RuleClarificationContractTest.oneSideCannotAuthorizeClarificationWhenDeclaredConditionHasTwoValues(RuleClarificationContractTest.java:17)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.ruleagent.RuleClarificationContractTest.deterministicRejectionFeedbackContainsNoFreeTextReason -- Time elapsed: 0.259 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.zhku.knowledge.ruleagent.RuleClarificationContractTest.deterministicRejectionFeedbackContainsNoFreeTextReason(RuleClarificationContractTest.java:27)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.ruleagent.RuleClarificationContractTest.reviewIncludesAuditedConditionDirectoryAndFingerprintChangesWithIt -- Time elapsed: 0.015 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.zhku.knowledge.ruleagent.RuleClarificationContractTest.reviewIncludesAuditedConditionDirectoryAndFingerprintChangesWithIt(RuleClarificationContractTest.java:21)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   RuleClarificationContractTest.deterministicRejectionFeedbackContainsNoFreeTextReason:27 
+Expecting value to be true but was false
+[ERROR]   RuleClarificationContractTest.oneSideCannotAuthorizeClarificationWhenDeclaredConditionHasTwoValues:17 
+Expecting code to raise a throwable.
+[ERROR]   RuleClarificationContractTest.reviewIncludesAuditedConditionDirectoryAndFingerprintChangesWithIt:21 
+Expecting value to be true but was false
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: There are test failures.
+[ERROR] 
+[ERROR] See D:\alldesk\Projects\ZhkuAgent-t05\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :knowledge

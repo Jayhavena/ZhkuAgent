@@ -1,0 +1,4 @@
+# t05-65 旧包SHA拒绝证据（2026-10-16T00:28:56.786911+00:00，普通Windows PowerShell 5.1 → start-rule-agent-probe.cmd → pwsh7 入口）
+# 命令：-CheckPackage -OnlyP02 -ApprovedPackageSha256 1e44705ae88a7fea23852862bc365da1c764357ef3664ed5139b96ace9cf2fd0（t05-62/t05-63 已执行并关闭的旧包）
+# 结果：退出码1；start-rule-agent-probe.ps1 第38行「待核对请求包指纹不同」抛出后中止，未启动Java、未构建、无模型/数据库/Docker操作。
+# 备注：PS5.1 管道将 pwsh 中文异常文本按GBK显示为乱码，故消息文本以ps1源文件（UTF-8）第38行为权威；拒绝位置与退出码以实测为准。

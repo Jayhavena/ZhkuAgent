@@ -36,12 +36,18 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     public static final String MODEL="qwen3.8-flash";
     /** 结构化输出的Schema名只标识本动作合同，不含任务或用户数据。 */
     static final String ACTION_SCHEMA_NAME="zhku_rule_agent_action";
-    public record Diagnostics(int requestBytes,long elapsedMillis,Long dispatchedMillis,Long headersMillis,Long firstBodyMillis,Long bodyCompletedMillis,int responseBytes,String requestId,String responseModel){
+    /** connectedMillis保留字段兼容旧轨迹，但实际HTTP连接时刻不可观测，始终为null。 */
+    public record Diagnostics(int requestBytes,long elapsedMillis,Long dispatchedMillis,Long connectedMillis,Long headersMillis,Long firstBodyMillis,Long bodyCompletedMillis,int responseBytes,String requestId,String responseModel,TransportFailure transportFailure){
     }
+    /** 只记录实际交换的白名单类别，不保存异常正文；null表示没有可归类的传输异常。 */
+    public enum TransportFailure { DEADLINE_EXCEEDED, CONNECTION_TIMEOUT, TLS_FAILURE, REQUEST_TIMEOUT, CONNECTION_FAILURE, CANCELLED }
     public enum Phase {
         BEGIN, RECEIVED, FINISHED
     }
     public enum Purpose { DECISION, PUBLICATION_REVIEW }
+    public enum Direction { REQUEST, RESPONSE, PROPOSED_ACTION, REVIEW_INPUT_SNAPSHOT }
+    /** 仅显式装配的本机受控探针保存正文；无HTTP头，原字节摘要与脱敏正文分开标记。 */
+    public record Exchange(UUID taskId,UUID runId,int attempt,Purpose purpose,Direction direction,String bodySha256,String body,boolean redacted) {}
     public record Trace(UUID taskId,UUID runId,int attempt,String requestSha256,String responseSha256,Integer status,ReasonCode reason,boolean responseReceived,Long inputTokens,Long outputTokens,Diagnostics diagnostics,Phase phase,RuleAgentProtocol.Validation validation,Purpose purpose){
     }
     public static final class Failure extends RuntimeException {
@@ -77,14 +83,16 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         独立识别每个原子问题的完整需求，比较两侧分别列需求；不得省略未支持或未理解的部分。
         需求跨度来自原questions.text；inputFingerprint原样回传，必要字段及枚举只用合同允许值。
         只将input中实际已读且能力匹配的事实绑定到需求；辅助例外不能充当主需求的CORE依据。
-        必要条件只列当前需求确实依赖的审核事实when条件，已知条件不能重复追问。
+        必要条件只列当前需求确实依赖的 when 键，已知条件不能重复追问。
+        %s
         无法确定理解时保留unresolvedDemands或未识别需求，不凭常识补规则或自称完整回答。
         仅解释审核版本的规则含义，不推定个人资格或现行适用性。不接收提议者自报相关性/完整性。
-        """;
+        """.formatted(RulePublicationProtocol.CONDITION_ID_FORM);
     private final Settings settings;
     private final UUID task,run;
     private final Supplier<String> key;
     private final Consumer<Trace> audit;
+    private final Consumer<Exchange> exchangeAudit;
     private final AtomicInteger allowance;
     private final ExecutorService io;
     private final HttpClient client;
@@ -93,6 +101,10 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     private int attempts;
     private final RuleCandidateReferences references=new RuleCandidateReferences();
     public RuleAgentProvider(Settings settings,UUID task,UUID run,Supplier<String> key,Consumer<Trace> audit,AtomicInteger allowance){
+        this(settings,task,run,key,audit,null,allowance);
+    }
+    public RuleAgentProvider(Settings settings,UUID task,UUID run,Supplier<String> key,Consumer<Trace> audit,Consumer<Exchange> exchangeAudit,AtomicInteger allowance){
+        this.exchangeAudit=exchangeAudit;
         this.settings=Objects.requireNonNull(settings);
         this.task=Objects.requireNonNull(task);
         this.run=Objects.requireNonNull(run);
@@ -110,7 +122,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             references.refresh(view);
             references.project(data);
             // 候选枚举与消息里的currentCandidates必须来自同一次刷新，否则响应Schema与宿主表会错位。
-            actionSchema=RuleAgentProtocol.decisionSchema(references.references(),view.state()==null?null:view.state().allowedActions());
+            actionSchema=RuleAgentProtocol.decisionSchema(references.references(),view.state()==null?null:view.state().allowedActions(),view.publicationFactIds());
         }
         if(view.state()!=null){
             var state=JSON.valueToTree(view.state());((ObjectNode)state).remove("candidates");data.set("executionState",state);
@@ -123,14 +135,25 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         data.set("ruleContexts",JSON.valueToTree(view.ruleContexts()));
         data.set("actionContract",RuleAgentProtocol.description());
         data.set("remainingBudget",RuleAgentProtocol.remainingBudget(view.attemptsRemaining(),view.stepsRemaining()));
+        if(view.publicationFactIds()!=null)data.set("publicationFactIds",JSON.valueToTree(view.publicationFactIds()));
         var facts=data.putArray("facts");
         for(var fact:view.facts()){
             var item=facts.addObject();
             item.put("id",fact.id());
+            if(view.publicationFactIds()!=null)item.put("publicationEligible",view.publicationFactIds().contains(fact.id()));
             item.put("ruleId",fact.ruleId());
             item.put("text",fact.definition().text());
             item.set("when",JSON.valueToTree(fact.definition().when()));
         }
+        var rejected=data.putArray("rejectedActions");
+        // 只反馈有界结构化失败；不把历史自由文本或模型理由重新注入提示词。
+        var failures=view.events().stream().filter(e->e.reason()!=null).toList();
+        for(var e:failures.subList(Math.max(0,failures.size()-2),failures.size())) {
+            var item=rejected.addObject();item.put("attempt",e.attempt());item.put("action",e.action());item.put("reasonCode",e.reason().name());
+            if(e.publicationReason()!=null)item.put("publicationReason",e.publicationReason().name());
+        }
+        var declared=data.putArray("availableConditions");
+        view.ruleContexts().forEach(c->c.conditions().forEach(condition->{var item=declared.addObject();item.put("ruleId",c.ruleId());item.put("conditionId",condition.key());item.set("allowedValues",JSON.valueToTree(condition.allowedValues()));}));
         var observations=data.putArray("observations");
         for(var observation:view.observations()){
             var item=observations.addObject();
@@ -150,6 +173,15 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         }
         // 不发送主体/Session、原文token、数据库身份、历史结果或自由工具事件。
         return envelope(SYSTEM,data,actionSchema);
+    }
+    @Override public void captureInput(RuleAgentRunner.Input input,List<RuleAgentEvidenceTools.VerifiedFact> facts,RuleFactCapabilityCatalogue catalogue) {
+        if(exchangeAudit==null)return;
+        try {
+            // 完整Fact保留原始checksum大小写；展示层会归一化，不能据展示层重建身份。
+            byte[] bytes=JSON.writeValueAsBytes(Map.of("taskId",input.taskId(),"taskVersion",input.version(),"input",RulePublicationContract.input(input,facts,catalogue),"facts",facts));
+            if(bytes.length>DEFAULT_BUDGET.maxRequestBytes())throw new Failure(ReasonCode.AUDIT_UNAVAILABLE,false);
+            exchangeRecord(attempts+1,Purpose.PUBLICATION_REVIEW,Direction.REVIEW_INPUT_SNAPSHOT,bytes,key.get(),false);
+        } catch(Failure failure){throw failure;}catch(Exception failure){throw new Failure(ReasonCode.AUDIT_UNAVAILABLE,false);}
     }
     String reviewPayload(RulePublicationContract.SemanticInput input){
         var data=JSON.createObjectNode();
@@ -187,23 +219,27 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
     }
     @Override public RuleAgentRunner.Reply decide(RuleAgentRunner.View view,Duration timeout) {
         if(view.attemptsRemaining()<1||view.stepsRemaining()<1)throw new Failure(ReasonCode.BUDGET_EXCEEDED,false);
+        long started=System.nanoTime();
         return exchange(payload(view),timeout,Purpose.DECISION,content->{
             var decoded=references.decode(content);
             RuleAgentProtocol.preflight(decoded,view);
             // runner仍只接收原内部动作；模型无权覆盖实际UUID。
             return new RuleAgentRunner.Reply(JSON.valueToTree(decoded).toString(),!"LOCAL_TEST_ONLY".equals(settings.authorizationId()));
-        });
+        },started);
     }
     @Override public RulePublicationContract.SemanticAssessment assess(RulePublicationContract.SemanticInput input,Duration timeout){
-        return exchange(reviewPayload(input),timeout,Purpose.PUBLICATION_REVIEW,content->RulePublicationProtocol.decode(content,input));
+        long started=System.nanoTime();
+        return exchange(reviewPayload(input),timeout,Purpose.PUBLICATION_REVIEW,content->RulePublicationProtocol.decode(content,input),started);
     }
     /** 两种用途只有载荷及解码不同；额度、调用序号、usage、取消和资源都归同一run端口。 */
-    private synchronized <T> T exchange(String payload,Duration timeout,Purpose purpose,Function<String,T> decode) {
+    private synchronized <T> T exchange(String payload,Duration timeout,Purpose purpose,Function<String,T> decode,long started) {
         if(closed||timeout.isNegative()||timeout.isZero()) {
             throw new Failure(ReasonCode.TASK_EXECUTION_UNAVAILABLE,false);
         }
         String requestHash=sha(payload.getBytes(StandardCharsets.UTF_8));
-        var measured=new Measurement(payload.getBytes(StandardCharsets.UTF_8).length);
+        var maximum=Duration.ofMillis(DEFAULT_BUDGET.maxModelMillis());
+        var duration=timeout.compareTo(maximum)>0?maximum:timeout;
+        var measured=new Measurement(payload.getBytes(StandardCharsets.UTF_8).length,started,duration.toNanos());
         int current=attempts<DEFAULT_BUDGET.maxModelAttemptsPerRun()?allowance.get():0;
         while(current>0&&!allowance.compareAndSet(current,current-1)) {
             current=allowance.get();
@@ -228,21 +264,22 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             if(secret==null||secret.isBlank()) {
                 throw new Failure(ReasonCode.MODEL_AUTH_FAILURE,false);
             }
-            var maximum=Duration.ofMillis(DEFAULT_BUDGET.maxModelMillis());
-            var duration=timeout.compareTo(maximum)>0?maximum:timeout;
+            // 只观察本次HTTP交换；独立socket既不能代表它，也会挤占核验预算。准备/等待/解码共用单调截止时间。
             var request=HttpRequest.newBuilder(settings.endpoint())
-            .timeout(duration)
+            .timeout(Duration.ofNanos(measured.remainingNanos()))
             .header("Authorization","Bearer "+secret)
             .header("Content-Type","application/json")
             .POST(HttpRequest.BodyPublishers.ofString(payload,StandardCharsets.UTF_8))
             .build();
+            exchangeRecord(attempt,purpose,Direction.REQUEST,payload.getBytes(StandardCharsets.UTF_8),secret,false);
+            measured.remainingNanos();
             measured.dispatch();
             var future=client.sendAsync(request,info->{
                 measured.headers(info,secret);
                 return new LimitedBody(measured);
             });
             inFlight=future;
-            var response=future.get(duration.toNanos(),TimeUnit.NANOSECONDS);
+            var response=future.get(measured.remainingNanos(),TimeUnit.NANOSECONDS);
             status=response.statusCode();
             received=true;
             byte[] body=response.body();
@@ -253,6 +290,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             }
             catch(IllegalArgumentException invalid) {
                 if(status>=200&&status<300) {
+                    exchangeRecord(attempt,purpose,Direction.RESPONSE,body,secret,true);
                     throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.SUPPLIER_RESPONSE,RuleAgentProtocol.Code.RESPONSE_JSON_INVALID);
                 }
             }
@@ -263,6 +301,8 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             }
             // 完整可解析响应的usage先独立落审计；动作非法也不能丢失已知成本。
             record(new Trace(task,run,attempt,requestHash,responseHash,status,null,true,input,output,measured.snapshot(),Phase.RECEIVED,validation,purpose));
+            // 已知usage先入白名单审计；正文落盘失败也不能把已花费用降为未知。
+            exchangeRecord(attempt,purpose,Direction.RESPONSE,body,secret,true);
             if(status==401||status==403) {
                 throw new Failure(ReasonCode.MODEL_AUTH_FAILURE,true);
             }
@@ -279,7 +319,9 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             // 决策与核验属于两种响应合同，分别提取；都不回退到对方的解析路径。
             String content=purpose==Purpose.DECISION?decisionAction(choice):reviewContent(choice);
             var result=decode.apply(content);
+            if(result instanceof RuleAgentRunner.Reply reply)exchangeRecord(attempt,purpose,Direction.PROPOSED_ACTION,reply.actionJson().getBytes(StandardCharsets.UTF_8),secret,true);
             if(closed)throw new Failure(ReasonCode.CANCELLED,true);
+            measured.remainingNanos();
             record(new Trace(task,run,attempt,requestHash,responseHash,status,null,true,input,output,measured.snapshot(),Phase.FINISHED,validation,purpose));
             return result;
         }
@@ -294,17 +336,22 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             rejected.reason==ReasonCode.AUDIT_UNAVAILABLE?RuleAgentProtocol.Code.AUDIT_FAILURE:RuleAgentProtocol.Code.TRANSPORT_FAILURE);
         }
         catch(TimeoutException e) {
+            measured.failed(TransportFailure.REQUEST_TIMEOUT);
             failure=ReasonCode.MODEL_TIMEOUT;
         }
         catch(InterruptedException e) {
             Thread.currentThread().interrupt();
+            measured.failed(TransportFailure.CANCELLED);
             failure=ReasonCode.CANCELLED;
         }
         catch(CancellationException e) {
+            measured.failed(closed?TransportFailure.CANCELLED:TransportFailure.CONNECTION_FAILURE);
             failure=closed?ReasonCode.CANCELLED:ReasonCode.MODEL_CONNECTION_FAILURE;
         }
         catch(ExecutionException e) {
             // 关闭客户端可能把取消包装为ExecutionException；宿主已关闭时不能误报网络故障。
+            if(closed)measured.failed(TransportFailure.CANCELLED);
+            else if(!(e.getCause() instanceof ResponseTooLarge))measured.failed(transportFailure(e.getCause()));
             failure=closed?ReasonCode.CANCELLED:e.getCause() instanceof HttpTimeoutException?ReasonCode.MODEL_TIMEOUT:e.getCause() instanceof ResponseTooLarge?ReasonCode.INVALID_MODEL_RESPONSE:ReasonCode.MODEL_CONNECTION_FAILURE;
         }
         catch(Exception e) {
@@ -360,6 +407,44 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         }
         return content.textValue();
     }
+    private void exchangeRecord(int attempt,Purpose purpose,Direction direction,byte[] bytes,String secret,boolean received) {
+        if(exchangeAudit==null)return;
+        String original=new String(bytes,StandardCharsets.UTF_8),safe=original;
+        try {
+            try {
+                var parsed=RuleAgentJson.readTreeStrict(original);var scrubbed=scrubDiagnostic(parsed,secret);
+                if(!parsed.equals(scrubbed))safe=JSON.writeValueAsString(scrubbed);
+            }catch(IllegalArgumentException malformed){
+                // 非法JSON无法可靠解释转义，正文保守省略；原字节SHA仍供关联，绝不伪装为完整原文。
+                safe="[UNPARSEABLE_JSON_OMITTED]";
+            }
+            exchangeAudit.accept(new Exchange(task,run,attempt,purpose,direction,sha(bytes),safe,!safe.equals(original)));
+        } catch(Exception failure) {
+            // 记录器异常不携带正文或异常cause；诊断写入失败不能被当作正常可发布响应。
+            throw new Failure(ReasonCode.AUDIT_UNAVAILABLE,received);
+        }
+    }
+    private JsonNode scrubDiagnostic(JsonNode value,String secret) {
+        if(value.isTextual())return JSON.getNodeFactory().textNode(scrubText(value.textValue(),secret));
+        if(value.isObject()){
+            var result=JSON.createObjectNode();value.fields().forEachRemaining(e->result.set(scrubText(e.getKey(),secret),scrubDiagnostic(e.getValue(),secret)));return result;
+        }
+        if(value.isArray()){
+            var result=JSON.createArrayNode();value.forEach(e->result.add(scrubDiagnostic(e,secret)));return result;
+        }
+        return value;
+    }
+    private String scrubText(String text,String secret) {
+        String decoded=text;
+        var escaped=java.util.regex.Pattern.compile(java.util.regex.Pattern.quote(String.valueOf((char)92)+"u")+"([0-9a-fA-F]{4})");
+        // 嵌套文本也可能含Unicode转义；限定展开深度，超限正文省略，避免诊断反过来耗尽预算。
+        for(int depth=0;depth<8;depth++){
+            if(secret!=null&&!secret.isBlank()&&decoded.contains(secret))return "[REDACTED]";
+            var matcher=escaped.matcher(decoded);if(!matcher.find())return text;
+            decoded=matcher.replaceAll(m->java.util.regex.Matcher.quoteReplacement(String.valueOf((char)Integer.parseInt(m.group(1),16))));
+        }
+        return "[ESCAPED_TEXT_OMITTED]";
+    }
     private void record(Trace trace) {
         try {
             audit.accept(trace);
@@ -379,25 +464,36 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
             throw new IllegalStateException("指纹计算失败");
         }
     }
+    private static TransportFailure transportFailure(Throwable failure){
+        for(int depth=0;failure!=null&&depth<8;depth++,failure=failure.getCause()){
+            if(failure instanceof HttpConnectTimeoutException)return TransportFailure.CONNECTION_TIMEOUT;
+            if(failure instanceof javax.net.ssl.SSLException)return TransportFailure.TLS_FAILURE;
+            if(failure instanceof HttpTimeoutException)return TransportFailure.REQUEST_TIMEOUT;
+        }
+        return TransportFailure.CONNECTION_FAILURE;
+    }
     private static final class ResponseTooLarge extends RuntimeException{
     }
     /** 单调时钟度量客户端边界；dispatch不代表网络发出，响应头也不能拆分服务排队与生成耗时。 */
     private static final class Measurement {
-        private final long started=System.nanoTime();
+        private final long started,deadline;
         private final int requestBytes;
         private Long dispatched,headers,firstBody,completed;
+        private TransportFailure transportFailure;
         private int responseBytes;
         private String requestId,responseModel;
         private volatile Integer status;
-        Measurement(int requestBytes){
-            this.requestBytes=requestBytes;
+        Measurement(int requestBytes,long started,long timeoutNanos){
+            this.requestBytes=requestBytes;this.started=started;this.deadline=started+timeoutNanos;
         }
-        private long millis(){
-            return TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-started);
+        private long millis(){return TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-started);}
+        long remainingNanos()throws TimeoutException{
+            long remaining=deadline-System.nanoTime();
+            if(remaining<=0){failed(TransportFailure.DEADLINE_EXCEEDED);throw new TimeoutException();}
+            return remaining;
         }
-        synchronized void dispatch(){
-            dispatched=millis();
-        }
+        synchronized void failed(TransportFailure failure){if(transportFailure==null)transportFailure=failure;}
+        synchronized void dispatch(){dispatched=millis();}
         synchronized void headers(HttpResponse.ResponseInfo info,String secret){
             headers=millis();
             status=info.statusCode();
@@ -413,10 +509,10 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         }
         synchronized void model(JsonNode model,String secret){
             String value=model.isTextual()?model.textValue():null;
-            responseModel=value!=null&&!value.contains(secret)&&value.matches("qwen-[A-Za-z0-9._-]{1,96}")?value:null;
+            responseModel=value!=null&&!value.contains(secret)&&value.matches("qwen[A-Za-z0-9._-]{1,96}")?value:null;
         }
         synchronized Diagnostics snapshot(){
-            return new Diagnostics(requestBytes,millis(),dispatched,headers,firstBody,completed,responseBytes,requestId,responseModel);
+            return new Diagnostics(requestBytes,millis(),dispatched,null,headers,firstBody,completed,responseBytes,requestId,responseModel,transportFailure);
         }
         // 只保留有界的追踪标识；不记录任意响应头、错误正文、密钥或请求内容。
         private static String safeId(String value){

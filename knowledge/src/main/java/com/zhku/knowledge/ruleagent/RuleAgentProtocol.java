@@ -10,7 +10,7 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 
 /** 模型约束投影与解码使用同一动作类型/record字段及领域预算，不另建宽松协议。 */
 public final class RuleAgentProtocol {
-    public static final String REVISION="RULE_AGENT_ACTION_CONTRACT_05";
+    public static final String REVISION="RULE_AGENT_ACTION_CONTRACT_06";
     public static final String READ_REFERENCE_PATTERN="c[1-9][0-9]*";
     static Set<String> modelReadFields() {
         var fields=new HashSet<String>();
@@ -27,7 +27,9 @@ public final class RuleAgentProtocol {
         READ_HANDLE_COUNT, READ_HANDLE_DUPLICATE, READ_HANDLE_UUID, READ_HANDLE_NOT_CURRENT,
         READ_HANDLE_ARRAY_REQUIRED, READ_HANDLE_COUNT_BELOW_MIN, READ_HANDLE_COUNT_ABOVE_MAX,
         READ_REFERENCE_FORMAT, READ_REFERENCE_SET,
-        SUBQUESTION_NOT_CURRENT, OPERATION_NOT_ALLOWED, REVIEW_JSON_INVALID, REVIEW_BINDING_INVALID, BUDGET_UNAVAILABLE, TRANSPORT_FAILURE, AUDIT_FAILURE
+        SUBQUESTION_NOT_CURRENT, OPERATION_NOT_ALLOWED, REVIEW_JSON_INVALID, REVIEW_BINDING_INVALID,
+        REVIEW_QUESTION_UNKNOWN, REVIEW_SPAN_OUT_OF_RANGE, REVIEW_INPUT_MISMATCH, REVIEW_QUESTION_UNCOVERED, REVIEW_REQUIREMENT_UNKNOWN, REVIEW_FACT_NOT_IN_INPUT, REVIEW_CONDITION_UNKNOWN,
+        BUDGET_UNAVAILABLE, TRANSPORT_FAILURE, AUDIT_FAILURE
     }
     public record ReadSelection(Integer elementIndex,String jsonType,Integer stringLength,Code failureCategory,Boolean currentCandidate) {}
     public record Validation(Stage stage, Code code,ReadSelection readSelection) {
@@ -94,7 +96,7 @@ public final class RuleAgentProtocol {
         return switch(name) {
             case "SEARCH_REVIEWED_RULES" -> "按自然语言query检索已审核规则；检索成功后宿主签发新的候选集合，重新检索会使旧c编号失效。";
             case "READ_VERIFIED_RULE" -> "读取当前候选集合中的1—3个唯一c编号，并原样回传当次candidateSetId；只能使用currentCandidates给出的编号，实际UUID由宿主映射，禁止提交UUID或自造编号。";
-            case "ASK_NECESSARY_CONDITION" -> "就影响结论且学生能补充的必要条件追问；使用审核conditionId、reason与supportingFactIds，不重复已知条件。";
+            case "ASK_NECESSARY_CONDITION" -> "就影响结论且学生能补充的必要条件追问；使用审核conditionId、reason与supportingFactIds；支持ID只取publicationFactIds，不重复已知条件。";
             default -> "提交最终结论提议；items须覆盖所有子问题，每项给出subquestionId、factIds、issues与operation，operation本批必须为null。";
         };
     }
@@ -111,6 +113,21 @@ public final class RuleAgentProtocol {
         var branches=schema.putArray("oneOf");
         actions().forEach((name,type)->{if(allowedActions==null||allowedActions.contains(name))branches.add(actionSchema(name,type,readReferences));});
         return schema;
+    }
+    public static ObjectNode decisionSchema(List<String> readReferences,List<String> allowedActions,List<String> publicationFactIds) {
+        var schema=decisionSchema(readReferences,allowedActions);
+        if(publicationFactIds==null)return schema; // 旧无独立核验的工程路径保持原合同。
+        for(var branch:schema.path("oneOf")) {
+            var properties=branch.path("properties");
+            constrainFacts(properties.path("supportingFactIds"),publicationFactIds);
+            constrainFacts(properties.path("items").path("items").path("properties").path("factIds"),publicationFactIds);
+        }
+        return schema;
+    }
+    private static void constrainFacts(JsonNode node,List<String> ids) {
+        if(!(node instanceof ObjectNode array))return;
+        if(ids.isEmpty()){array.put("maxItems",0);return;}
+        var values=((ObjectNode)array.path("items")).putArray("enum");ids.forEach(values::add);
     }
     private static ObjectNode actionSchema(String name,Class<?> action,List<String> readReferences) {
         var schema=JSON.createObjectNode();

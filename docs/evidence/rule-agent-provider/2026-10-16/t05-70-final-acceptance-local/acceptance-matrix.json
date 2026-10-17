@@ -1,0 +1,384 @@
+{
+  "verifiedUtc": "2026-10-16T10:06:39.965732+00:00",
+  "criterionSource": "docs/superpowers/plans/2026-10-13-rule-check-agent-plan-review.md",
+  "criterionSourceSha256": "9d5c092cbf0cde23091499f805c1c73ae4cba74a2a3f276ad7c6bbe7d63637ec",
+  "criterionSourceLines": {
+    "T05": 184,
+    "acceptance": 196,
+    "T06": 200
+  },
+  "originalCriterionChanged": false,
+  "decision": "T05_ENGINEERING_ACCEPTED",
+  "mandatoryCriteria": 9,
+  "allMandatoryPassed": true,
+  "currentCandidateSource": "bc5cdf4e3072689a7f54d09941745b11176887ed",
+  "jarSha256": "73500a441c7c8e936042f6a4119d0349a29bb50d32d1ababca864c06e9f61842",
+  "onlineEvidenceCommit": "26a412e21d08aaaa4800da6568908b24935993db",
+  "onlinePackageSha256": "3d6a515c2eeae15732540bf8fb96d87f52a6691b94a5e6131d67d8b7445999e5",
+  "onlineEvidence": "t05-69 only; same-task/two-run complete current-build evidence",
+  "historicalP01": "t05-44 passed under its own older packet; not current-build P01 retest and not used to stitch current chain",
+  "fixedP01RetestRequiredByOriginalPlan": false,
+  "currentPacketFixedP01Retested": false,
+  "localFreshRegression": {
+    "classes": 13,
+    "tests": 213,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "rows": [
+    {
+      "id": "A1",
+      "mandatory": true,
+      "criterion": "本地fake服务覆盖超时、坏JSON、401/429/5xx、断连并分类",
+      "status": "PASS",
+      "proof": "Fresh scoped loopback tests; application dispatch has no automatic retry path.",
+      "localTests": [
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "timeoutIncludesWholeResponseAndConsumesAllowance",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 178,
+          "passedXmlTestcases": [
+            "timeoutIncludesWholeResponseAndConsumesAllowance"
+          ]
+        },
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "badJsonIsProcessingFailureWithoutRetry",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 150,
+          "passedXmlTestcases": [
+            "badJsonIsProcessingFailureWithoutRetry"
+          ]
+        },
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "authorizationAndServerErrorsDoNotBecomeMissingEvidence",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 167,
+          "passedXmlTestcases": [
+            "authorizationAndServerErrorsDoNotBecomeMissingEvidence"
+          ]
+        },
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "rateLimitIsClassifiedWithoutRetry",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 161,
+          "passedXmlTestcases": [
+            "rateLimitIsClassifiedWithoutRetry"
+          ]
+        },
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "serverFailureIsClassified",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 173,
+          "passedXmlTestcases": [
+            "serverFailureIsClassified"
+          ]
+        },
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "disconnectedEndpointIsFailureWithoutRetry",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 233,
+          "passedXmlTestcases": [
+            "disconnectedEndpointIsFailureWithoutRetry"
+          ]
+        },
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "reviewHttpFailuresKeepPurposeAndDoNotRetry",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 561,
+          "passedXmlTestcases": [
+            "reviewHttpFailuresKeepPurposeAndDoNotRetry(String, String)[1]",
+            "reviewHttpFailuresKeepPurposeAndDoNotRetry(String, String)[2]",
+            "reviewHttpFailuresKeepPurposeAndDoNotRetry(String, String)[3]"
+          ]
+        }
+      ],
+      "limits": [
+        "5xx代表输入为503；断连夹具具体为停止本地端点后连接失败，不宣称覆盖TLS或半包EOF的所有变体。"
+      ]
+    },
+    {
+      "id": "A2",
+      "mandatory": true,
+      "criterion": "合法动作可执行、非法动作不执行；独立发布核验不绕过",
+      "status": "PASS",
+      "proof": "Provider preflight and factory/gate negative tests are separate from online success.",
+      "localTests": [
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "unknownActionCannotBecomeATool",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 156,
+          "passedXmlTestcases": [
+            "unknownActionCannotBecomeATool"
+          ]
+        },
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "failuresAreSafeClassifiedAndDoNotExecuteTools",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 401,
+          "passedXmlTestcases": [
+            "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[1]",
+            "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[2]",
+            "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[3]",
+            "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[4]",
+            "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[5]",
+            "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[6]",
+            "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[7]",
+            "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[8]",
+            "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[9]",
+            "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[10]",
+            "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[11]",
+            "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[12]"
+          ]
+        },
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "wrongFingerprintUnknownFieldsAndInvalidEnumAreRejected",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 523,
+          "passedXmlTestcases": [
+            "wrongFingerprintUnknownFieldsAndInvalidEnumAreRejected"
+          ]
+        },
+        {
+          "className": "RuleAgentOnlineFactoryTest",
+          "method": "p02SameTaskResumeIsIdempotentAndRequiresBothLiveReviews",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java",
+          "line": 621,
+          "passedXmlTestcases": [
+            "p02SameTaskResumeIsIdempotentAndRequiresBothLiveReviews"
+          ]
+        }
+      ],
+      "limits": []
+    },
+    {
+      "id": "A3",
+      "mandatory": true,
+      "criterion": "ONLINE拒绝缺许可/缺密钥及旧回放，固定目的地/模型",
+      "status": "PASS",
+      "proof": "Settings.environment and explicit startup package guard; no fallback.",
+      "localTests": [
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "onlineEnvironmentRejectsReplayAndMissingAuthorization",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 205,
+          "passedXmlTestcases": [
+            "onlineEnvironmentRejectsReplayAndMissingAuthorization"
+          ]
+        },
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "onlineEnvironmentPinsDestinationAndModel",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 214,
+          "passedXmlTestcases": [
+            "onlineEnvironmentPinsDestinationAndModel"
+          ]
+        },
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "missingKeyMakesNoHttpCall",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 225,
+          "passedXmlTestcases": [
+            "missingKeyMakesNoHttpCall"
+          ]
+        },
+        {
+          "className": "RuleAgentOnlineFactoryTest",
+          "method": "probeStartupRequiresSpecificPackageApproval",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java",
+          "line": 421,
+          "passedXmlTestcases": [
+            "probeStartupRequiresSpecificPackageApproval"
+          ]
+        }
+      ],
+      "limits": []
+    },
+    {
+      "id": "A4",
+      "mandatory": true,
+      "criterion": "预算和调用次数不因故障/续答重置；无自动重试",
+      "status": "PASS",
+      "proof": "Local one-call failure counts and shared batch allowance; actual69 allowance8/10 then close2.",
+      "localTests": [
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "exhaustedAllowanceMakesNoHttpCall",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 184,
+          "passedXmlTestcases": [
+            "exhaustedAllowanceMakesNoHttpCall"
+          ]
+        },
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "reviewHttpFailuresKeepPurposeAndDoNotRetry",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 561,
+          "passedXmlTestcases": [
+            "reviewHttpFailuresKeepPurposeAndDoNotRetry(String, String)[1]",
+            "reviewHttpFailuresKeepPurposeAndDoNotRetry(String, String)[2]",
+            "reviewHttpFailuresKeepPurposeAndDoNotRetry(String, String)[3]"
+          ]
+        },
+        {
+          "className": "RuleAgentOnlineFactoryTest",
+          "method": "quotaIsSharedAcrossNewRunsAndNeverReset",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java",
+          "line": 410,
+          "passedXmlTestcases": [
+            "quotaIsSharedAcrossNewRunsAndNeverReset"
+          ]
+        }
+      ],
+      "limits": []
+    },
+    {
+      "id": "A5",
+      "mandatory": true,
+      "criterion": "最小化请求说明、准确外发范围、独立可执行装配和启动检查",
+      "status": "PASS",
+      "proof": "69 packet/static/dynamic disclosure and ordinary-terminal prepare/check/rejection records;68 real jar runtime identity; current raw hashes match.",
+      "localTests": [
+        {
+          "className": "RuleAgentRequestPathTest",
+          "method": "launcherUsesTheSameFreshDirectoryForPackageLiveAndLogs",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentRequestPathTest.java",
+          "line": 14,
+          "passedXmlTestcases": [
+            "launcherUsesTheSameFreshDirectoryForPackageLiveAndLogs"
+          ]
+        },
+        {
+          "className": "RuleAgentRequestPathTest",
+          "method": "hostRejectsExistingTargetBeforeReadingAnyAssets",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentRequestPathTest.java",
+          "line": 18,
+          "passedXmlTestcases": [
+            "hostRejectsExistingTargetBeforeReadingAnyAssets"
+          ]
+        },
+        {
+          "className": "RuleAgentRequestPathTest",
+          "method": "launcherRejectsExistingNewTargetBeforeInvokingBuilder",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentRequestPathTest.java",
+          "line": 23,
+          "passedXmlTestcases": [
+            "launcherRejectsExistingNewTargetBeforeInvokingBuilder"
+          ]
+        },
+        {
+          "className": "RuleAgentOnlineFactoryTest",
+          "method": "buildIdentityPinsArtifactAndSourceAndRejectsMissingJar",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java",
+          "line": 579,
+          "passedXmlTestcases": [
+            "buildIdentityPinsArtifactAndSourceAndRejectsMissingJar(Path)"
+          ]
+        }
+      ],
+      "limits": [
+        "Jar无内嵌Git SHA；身份由源码/Git blob、class、冻结SHA与实际加载共同证明。"
+      ]
+    },
+    {
+      "id": "A6",
+      "mandatory": true,
+      "criterion": "获准真实决策包含读取观察后的继续和结束",
+      "status": "PASS",
+      "proof": "69同task首run SEARCH/READ/ASK/REVIEW发布WAITING_USER，续答run重新SEARCH/READ/FINISH/REVIEW发布RESOLVED COMPLETE；8次HTTP200且全部request/response SHA校验。",
+      "localTests": [],
+      "limits": [
+        "不依赖跨批次P01/P02阶段拼接；当前包未另跑固定P01题。"
+      ]
+    },
+    {
+      "id": "A7",
+      "mandatory": true,
+      "criterion": "一次有用澄清续答，归属/版本及原文依据完整",
+      "status": "PASS",
+      "proof": "同task版本2→4，首轮courseType PUBLIC/PROFESSIONAL且无答案主张；预登记PUBLIC后发布唯一审核事实及CLAIM关系；原始任务仓快照与outcome除turnId一致。",
+      "localTests": [],
+      "limits": [
+        "固定工程输入，非未预置问题或产品质量评分。"
+      ]
+    },
+    {
+      "id": "A8",
+      "mandatory": true,
+      "criterion": "记录task/run、请求指纹、响应、实际次数，失败成本不伪造",
+      "status": "PASS",
+      "proof": "69全部8个BEGIN/RECEIVED/FINISHED按task/run/attempt去重、原始请求响应、完整Fact快照、usage/账单未知、旧失败保留；本地坏响应保留已知usage。",
+      "localTests": [
+        {
+          "className": "RuleAgentProviderTest",
+          "method": "invalidEnvelopeKeepsKnownUsageAndMissingUsageStaysUnknown",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+          "line": 465,
+          "passedXmlTestcases": [
+            "invalidEnvelopeKeepsKnownUsageAndMissingUsageStaysUnknown"
+          ]
+        },
+        {
+          "className": "RuleAgentReviewDiagnosticsTest",
+          "method": "responseArchiveFailurePreventsAcceptedReply",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentReviewDiagnosticsTest.java",
+          "line": 76,
+          "passedXmlTestcases": [
+            "responseArchiveFailurePreventsAcceptedReply"
+          ]
+        },
+        {
+          "className": "RuleAgentReviewDiagnosticsTest",
+          "method": "requestArchiveFailurePreventsDispatch",
+          "source": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentReviewDiagnosticsTest.java",
+          "line": 71,
+          "passedXmlTestcases": [
+            "requestArchiveFailurePreventsDispatch"
+          ]
+        }
+      ],
+      "limits": [
+        "实际账单未知，临时库删除前表清理行数未测，不将未知改为0。"
+      ]
+    },
+    {
+      "id": "A9",
+      "mandatory": true,
+      "criterion": "原文/用途/权限/适用范围保留，旧授权关闭、资源退出",
+      "status": "PASS",
+      "proof": "15项运行资产/完整69披露未变；2025.9.2历史范围未扩展；69资源退出证据保持，余2次关闭；本轮无真实模型/DB/Docker操作。",
+      "localTests": [],
+      "limits": [
+        "同模型上下文/职责分离，不是跨模型独立性；学生HTTP/代理/UI属于T06/T07。"
+      ]
+    }
+  ],
+  "notT05ExitRequirements": [
+    "T06 actual student HTTP/proxy chain",
+    "T07 student interface",
+    "T08 unseen capability/reliability assessment",
+    "T09 student benefit assessment",
+    "T10 final frozen product delivery"
+  ],
+  "residualUnknowns": [
+    "Actual supplier invoice",
+    "Underlying cause of historical online timeout",
+    "Prompt clarification causal effect and repeated reliability",
+    "Temporary DB row cleanup count before removal"
+  ],
+  "noNewRealCallsOrDatabaseDockerOperations": true
+}

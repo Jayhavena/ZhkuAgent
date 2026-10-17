@@ -8,7 +8,7 @@ import java.util.*;
 /** 内部发布合同：模型描述需求和对应关系，完整性由宿主聚合，不能由模型自报。 */
 public final class RulePublicationContract {
     private RulePublicationContract() {}
-    public static final String REVISION="RULE_PUBLICATION_REVIEW_01";
+    public static final String REVISION="RULE_PUBLICATION_REVIEW_02";
     public static final int RESERVED_REVIEW_CALLS=1;
     public static final int MAX_DECISION_CALLS=RuleAgentContract.DEFAULT_BUDGET.maxModelAttemptsPerRun()-RESERVED_REVIEW_CALLS;
     public static final int MAX_REQUIREMENTS=8;
@@ -95,16 +95,23 @@ public final class RulePublicationContract {
             quotes=List.copyOf(quotes);
         }
     }
+    /** 原条件键和允许值来自审核模板；完整事实身份仅本地保存，不随核验输入外发。 */
+    public record ReviewedCondition(String ruleId,String conditionId,String question,List<String> allowedValues,List<String> factIds) {
+        public ReviewedCondition {allowedValues=List.copyOf(allowedValues);factIds=List.copyOf(factIds);}
+    }
     public record SemanticInput(String protocolRevision,String capabilityVersion,String inputFingerprint,
                                 List<RuleAgentRunner.Question> questions,Map<String,String> userConditions,
-                                List<SemanticFact> facts,Map<String,FactCapability> capabilities) {
+                                List<SemanticFact> facts,Map<String,FactCapability> capabilities,List<ReviewedCondition> conditions) {
+        public SemanticInput(String protocolRevision,String capabilityVersion,String inputFingerprint,List<RuleAgentRunner.Question> questions,Map<String,String> userConditions,List<SemanticFact> facts,Map<String,FactCapability> capabilities) {
+            this(protocolRevision,capabilityVersion,inputFingerprint,questions,userConditions,facts,capabilities,List.of());
+        }
         public SemanticInput {
             require(REVISION.equals(protocolRevision));
             digest(inputFingerprint);
             questions=List.copyOf(questions);
             userConditions=Map.copyOf(userConditions);
             facts=List.copyOf(facts);
-            capabilities=Map.copyOf(capabilities);
+            capabilities=Map.copyOf(capabilities);conditions=List.copyOf(conditions);
         }
     }
     public record QuestionAssessment(Set<String> coveredRequirementIds,Set<String> uncoveredRequirementIds,
@@ -128,11 +135,12 @@ public final class RulePublicationContract {
             f.definition().evidenceBindings().stream().map(b->new ReviewQuote(b.revision(),b.quote())).toList())).toList();
         var capabilities=new TreeMap<String,FactCapability>();
         for(var fact:facts) catalogue.find(fact.id()).ifPresent(c->capabilities.put(fact.id(),c));
-        var safe=Map.of("questions",input.questions(),"conditions",input.userConditions(),"facts",safeFacts,
+        var conditions=catalogue.conditions(facts);
+        var safe=Map.of("reviewedConditions",conditions,"questions",input.questions(),"conditions",input.userConditions(),"facts",safeFacts,
             "capabilities",capabilities,"version",catalogue.version(),"protocol",REVISION);
         // 任务绑定仅进入摘要，原始主体/任务/原文令牌不出现在核验输入中。
         String hash=fingerprint(Map.of("taskBinding",input.taskId(),"taskVersion",input.version(),"safeInput",safe));
-        return new SemanticInput(REVISION,catalogue.version(),hash,input.questions(),input.userConditions(),safeFacts,capabilities);
+        return new SemanticInput(REVISION,catalogue.version(),hash,input.questions(),input.userConditions(),safeFacts,capabilities,conditions);
     }
 
     static String fingerprint(Object value) {

@@ -22,7 +22,10 @@ class RuleAgentOnlineFactoryTest {
     final RuleAgentRunnerTest fixture=new RuleAgentRunnerTest();
     final UUID staleReplacementChunk=UUID.randomUUID();
     boolean conditional;
+    boolean invalidReviewFingerprint;
+    final List<RuleAgentProvider.Exchange> exchanges=new CopyOnWriteArrayList<>();
     boolean studyArrangement;
+    Runnable onOriginalRead=()->{};
     int selectedCount=1;
     String readSelection="valid";
     String savedSet;
@@ -69,7 +72,7 @@ class RuleAgentOnlineFactoryTest {
         var entries=RuleArticle4Overlay.apply(root,List.of(entry));
         var candidate=new RetrievedChunk(fixture.chunk,text,"local-reviewed-article4","local-reviewed-article4",1,"2025.9.2",checksum,fixture.source);
         var current=new RuleCheckEvidenceSnapshot("current",fixture.source,fixture.chunk,"2025.9.2",checksum,text,true);
-        return new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->entries,(q,n)->Collections.nCopies(candidateCopies,candidate),(s,c)->Optional.of(current),r->{},Clock.systemUTC());
+        return new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->entries,(q,n)->Collections.nCopies(candidateCopies,candidate),(s,c)->{onOriginalRead.run();return Optional.of(current);},r->{},Clock.systemUTC());
     }
     Object review(JsonNode safe){
         var requirements=new ArrayList<RulePublicationContract.Requirement>();
@@ -86,7 +89,7 @@ class RuleAgentOnlineFactoryTest {
                 when.has("courseType")&&!safe.path("userConditions").has("courseType")?List.of("courseType"):List.of()));
             bindings.add(new RulePublicationContract.SemanticBinding(id,fact.path("id").asText(),RulePublicationContract.BindingRole.CORE));
         }
-        return new RulePublicationContract.SemanticAssessment(RulePublicationContract.REVISION,safe.path("inputFingerprint").asText(),requirements,bindings,List.of());
+        return new RulePublicationContract.SemanticAssessment(RulePublicationContract.REVISION,invalidReviewFingerprint?"b".repeat(64):safe.path("inputFingerprint").asText(),requirements,bindings,List.of());
     }
     void start(int quota)throws Exception{
         workers=Executors.newFixedThreadPool(2);
@@ -158,7 +161,24 @@ class RuleAgentOnlineFactoryTest {
             }
         });
         server.start();
-        factory=new RuleAgentOnlineFactory(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),RuleAgentProvider.MODEL,"LOCAL_TEST_ONLY"),()->"local-test-placeholder",(owner,task)->{try{return mappedTools(owner,task);}catch(Exception invalid){throw new IllegalStateException("合成资料初始化失败");}},traces::add,quota,Clock.systemUTC());
+        factory=new RuleAgentOnlineFactory(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),RuleAgentProvider.MODEL,"LOCAL_TEST_ONLY"),()->"local-test-placeholder",(owner,task)->{try{return mappedTools(owner,task);}catch(Exception invalid){throw new IllegalStateException("合成资料初始化失败");}},traces::add,exchanges::add,quota,Clock.systemUTC());
+    }
+    @Test void failedReviewKeepsActualFactoryExchangeAndAskProposal()throws Exception{
+        conditional=true;invalidReviewFingerprint=true;start(10);
+        var input=RuleAgentRunner.Input.single(fixture.owner,fixture.task,"我这门选修课没过，能不能重修？");
+        var result=factory.open(fixture.owner,fixture.task).run(AgentRunContext.create(input.question()),input);
+        assertThat(result.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);assertThat(calls).hasValue(4);
+        assertThat(factory.remainingCalls()).isEqualTo(6);assertThat(factory.resourcesClosed()).isTrue();
+        assertThat(traces.getLast().validation().code().name()).isEqualTo("REVIEW_INPUT_MISMATCH");
+        assertThat(result.events()).anySatisfy(e->{assertThat(e.action()).isEqualTo("ASK_NECESSARY_CONDITION");assertThat(e.reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);});
+        assertThat(result.events()).anySatisfy(e->{assertThat(e.action()).isEqualTo("PUBLICATION_REVIEW");assertThat(e.reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);});
+        assertThat(exchanges).hasSize(12);
+        assertThat(exchanges).filteredOn(e->e.direction()==RuleAgentProvider.Direction.REVIEW_INPUT_SNAPSHOT).hasSize(1);
+        var proposal=exchanges.stream().filter(e->e.attempt()==3&&e.direction()==RuleAgentProvider.Direction.PROPOSED_ACTION).findFirst().orElseThrow();
+        assertThat(new ObjectMapper().readTree(proposal.body()).path("type").asText()).isEqualTo("ASK_NECESSARY_CONDITION");
+        var json=new ObjectMapper();assertThat(json.writeValueAsString(exchanges)).doesNotContain("local-test-placeholder","Bearer ");
+        String output=System.getProperty("zhku.ruleagent.diagnostics.output");
+        if(output!=null){var dir=java.nio.file.Path.of(output);java.nio.file.Files.createDirectories(dir);java.nio.file.Files.write(dir.resolve("factory-failed-review.json"),json.writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("synthetic",true,"exchanges",exchanges,"outcome",result,"traces",traces)));}
     }
     @AfterEach void cleanup()throws Exception{
         releaseReview.countDown();
@@ -188,6 +208,21 @@ class RuleAgentOnlineFactoryTest {
         assertThat(work.revalidate(result.snapshot().result())).isTrue();
         assertThat(traces.getLast().inputTokens()).isEqualTo(25);
         assertThat(traces.getLast().outputTokens()).isEqualTo(12);
+    }
+    @Test void finalFreshReadCrossingRunDeadlineCannotPublishSuccess()throws Exception{
+        studyArrangement=true;start(5);factory.close();
+        var now=new java.util.concurrent.atomic.AtomicReference<>(Instant.parse("2026-10-15T00:00:00Z"));var began=now.get();
+        Clock fake=new Clock(){public ZoneId getZone(){return ZoneOffset.UTC;}public Clock withZone(ZoneId zone){return this;}public Instant instant(){return now.get();}};
+        onOriginalRead=()->{if(reviewStarted.getCount()==0)now.set(began.plusMillis(110001));};
+        factory=new RuleAgentOnlineFactory(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),RuleAgentProvider.MODEL,"LOCAL_TEST_ONLY"),()->"local-test-placeholder",(owner,task)->{
+            try{return mappedTools(owner,task);}catch(Exception invalid){throw new IllegalStateException(invalid);}
+        },traces::add,5,fake);
+        var input=RuleAgentRunner.Input.single(fixture.owner,fixture.task,"专业选修课和公共选修课在修读安排上有什么不同？");
+        var result=factory.open(fixture.owner,fixture.task).run(AgentRunContext.create(input.question()),input);
+        assertThat(result.snapshot().taskStatus()).isEqualTo(TaskStatus.STOPPED);
+        assertThat(result.snapshot().result().items().getFirst().claims()).isEmpty();
+        assertThat(result.snapshot().result().items().getFirst().issues()).extracting(Issue::reasonCode).contains(ReasonCode.BUDGET_EXCEEDED);
+        assertThat(factory.resourcesClosed()).isTrue();assertThat(calls).hasValue(4);
     }
     @Test void actualDecisionViewCarriesReadStateCapacityAndReviewReserve()throws Exception{
         start(5);
@@ -322,7 +357,7 @@ class RuleAgentOnlineFactoryTest {
         pack.put("remainingBudgetRule","每run3次决策加1次独立核验，共4次/45秒；单次10秒/1024输出token，无自动重试。新检索使旧编号失效。");
         pack.put("dynamicFeedback","完整当前候选摘要、c编号及宿主集合代号；实际UUID映射仅留宿主。已读取的审核原文、事实、条件及独立核验能力/来源指纹不变。不发送owner/session/token/凭证/参考答案/整本PDF。");
         pack.put("executionReadiness","PACKAGE_ONLY; current old-batch launcher must reject this packet; require P01-only preflight and new explicit authorization before any call");
-        assertThat(pack.path("protocolRevision").asText()).isEqualTo("RULE_AGENT_ACTION_CONTRACT_05");
+        assertThat(pack.path("protocolRevision").asText()).isEqualTo("RULE_AGENT_ACTION_CONTRACT_06");
         assertThat(pack.path("automaticRetries").asInt()).isZero();
         assertThat(factory).isNull();
         assertThat(calls).hasValue(0);
@@ -388,28 +423,53 @@ class RuleAgentOnlineFactoryTest {
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
         env.put("ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64));
         env.put("ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64));
-        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_CLOSEOUT_07");
+        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P02_CONTINUATION_01");
         var result=RuleAgentOnlineProbeHost.environmentCheck(env);
-        assertThat(result.get("maximumProviderCalls")).isEqualTo(DEFAULT_BUDGET.maxModelAttemptsPerRun());
+        assertThat(result.get("maximumProviderCalls")).isEqualTo(2*DEFAULT_BUDGET.maxModelAttemptsPerRun());
         assertThat(result.get("providerCalls")).isEqualTo(0);
         assertThat(new ObjectMapper().valueToTree(result).toString()).doesNotContain("local-test-placeholder");
     }
     @Test void selectiveManualProbeCannotRepeatSuccessfulCaseOrResetFullQuota(){
-        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_CLOSEOUT_07"));
-        assertThat(RuleAgentOnlineProbeHost.environmentCheck(env).get("maximumProviderCalls")).isEqualTo(DEFAULT_BUDGET.maxModelAttemptsPerRun());
+        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P02_CONTINUATION_01"));
+        assertThat(RuleAgentOnlineProbeHost.environmentCheck(env).get("maximumProviderCalls")).isEqualTo(2*DEFAULT_BUDGET.maxModelAttemptsPerRun());
+        // 旧批次身份不能在新候选下重放：含已失败关闭的 P01_CLOSEOUT_07，授权与批次号同批作废。
+        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_CLOSEOUT_07");
+        assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
         env.put("ZHKU_RULE_AGENT_PROBE_CASE","P02");
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test void diagnosticRequestUsesFreshPackageLocation()throws Exception{
+        var field=RuleAgentOnlineProbeHost.class.getDeclaredField("PACKAGE");field.setAccessible(true);
+        assertThat(field.get(null)).isEqualTo("docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json");
+    }
+    @Test void diagnosticPacketRejectsMissingOrDisabledControlledExchangePolicy()throws Throwable{
+        var valid=packet();validate(valid);
+        var missing=valid.deepCopy();missing.remove("localExchangeRecording");
+        assertThatThrownBy(()->validate(missing)).isInstanceOf(IllegalArgumentException.class);
+        var disabled=valid.deepCopy();disabled.put("localExchangeRecording","DISABLED");
+        assertThatThrownBy(()->validate(disabled)).isInstanceOf(IllegalArgumentException.class);
     }
     @Test void revisedProbeCannotSilentlyUseOldAllCaseAuthorization(){
         var env=Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64));
         assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test void retiredDiagnosticBatchCannotReuseAnApproval(){
+        var env=Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P01_DIAGNOSTIC_01");
+        assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test void retiredDiagnosticPolicyCannotPassPackageValidation()throws Throwable{
+        var old=packet();old.put("executionPolicyRevision","STATE_AWARE_DIAGNOSTIC_01");
+        assertThatThrownBy(()->validate(old)).isInstanceOf(IllegalArgumentException.class);
     }
     com.fasterxml.jackson.databind.node.ObjectNode packet(){
         var p=new ObjectMapper().createObjectNode();
         p.put("endpoint",RuleAgentProvider.BEIJING.toString());
         p.put("model",RuleAgentProvider.MODEL);
         p.put("budgetRevision",BUDGET_REVISION);
-        p.put("maximumProviderCalls",DEFAULT_BUDGET.maxModelAttemptsPerRun());
+        p.put("executionPolicyRevision","STATE_AWARE_P02_CONTINUATION_01");
+        p.put("localExchangeRecording","OPT_IN_PROBE_JSON_REQUEST_RESPONSE_PROPOSED_ACTION_REVIEW_INPUT_SNAPSHOT; NO_HTTP_HEADERS; API_KEY_REDACTED; MALFORMED_JSON_OMITTED; ORIGINAL_SHA_AND_REDACTION_FLAG");
+        p.put("maximumProviderCalls",2*DEFAULT_BUDGET.maxModelAttemptsPerRun());
+        p.put("maximumTaskRunsThisBatch",2);p.put("ownedProcessMillis",235000);
         p.put("perRunCalls",DEFAULT_BUDGET.maxModelAttemptsPerRun());
         p.put("timeoutMillis",DEFAULT_BUDGET.maxModelMillis());
         p.put("runTimeoutMillis",DEFAULT_BUDGET.maxRunMillis());
@@ -426,7 +486,7 @@ class RuleAgentOnlineFactoryTest {
         try{var field=RuleAgentProvider.class.getDeclaredField("REVIEW_SYSTEM");field.setAccessible(true);p.put("reviewSystemPrompt",(String)field.get(null));}catch(Exception invalid){throw new IllegalStateException("核验提示读取失败");}
         p.set("budget",new ObjectMapper().valueToTree(DEFAULT_BUDGET));
         var cases=p.putArray("cases");
-        cases.addObject().put("id","P01").put("question","专业选修课和公共选修课在修读安排上有什么不同？");
+        cases.addObject().put("id","P02").put("question","我这门选修课没过，能不能重修？").put("reply","PUBLIC");
         return p;
     }
     void validate(JsonNode p)throws Throwable{
@@ -490,7 +550,7 @@ class RuleAgentOnlineFactoryTest {
         var current=(JsonNode)method.invoke(null,root);
         RuleAgentOnlineProbeHost.validatePackage(current);
         assertThat(current.path("remainingBudgetRule").asText()).contains("110秒","20秒").doesNotContain("45秒","单次10秒");
-        assertThat(current.path("executionPolicyRevision").asText()).isEqualTo("STATE_AWARE_CLOSEOUT_01");
+        assertThat(current.path("executionPolicyRevision").asText()).isEqualTo("STATE_AWARE_P02_CONTINUATION_01");
         assertThat(calls).hasValue(0);
         assertThat(factory).isNull();
     }
@@ -506,5 +566,111 @@ class RuleAgentOnlineFactoryTest {
         assertThat(RuleAgentOnlineProbeHost.p01Passed(new RuleAgentRunner.Outcome(snapshot,actual.events()))).isTrue();
         var withoutReview=actual.events().stream().filter(e->!e.action().equals("PUBLICATION_REVIEW")).toList();
         assertThat(RuleAgentOnlineProbeHost.p01Passed(new RuleAgentRunner.Outcome(snapshot,withoutReview))).isFalse();
+    }
+    @Test void runtimeReadyBatchRejectsClosedTransportAuthorization() throws Throwable {
+        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P02_CONTINUATION_01"));
+        assertThat(RuleAgentOnlineProbeHost.environmentCheck(env).get("providerCalls")).isEqualTo(0);
+        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_TRANSPORT_CLOSEOUT_01");
+        assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
+        var old=packet();old.put("executionPolicyRevision","STATE_AWARE_TRANSPORT_CLOSEOUT_01");
+        assertThatThrownBy(()->validate(old)).isInstanceOf(IllegalArgumentException.class);
+        assertThat(calls).hasValue(0);assertThat(factory).isNull();
+    }
+    @Test void buildIdentityPinsArtifactAndSourceAndRejectsMissingJar(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        String source="knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProvider.java";
+        for(String file:List.of("knowledge/target/knowledge-0.1.0-rc.1-controlled.jar",source,".gitattributes","knowledge/scripts/start-rule-agent-probe.cmd","knowledge/scripts/start-rule-agent-probe.ps1","scripts/Invoke-ZhkuOwnedProcess.ps1")) {
+            java.nio.file.Files.createDirectories(root.resolve(file).getParent());
+            java.nio.file.Files.writeString(root.resolve(file),"SYNTHETIC_LOCAL_IDENTITY_TEST");
+        }
+        var method=RuleAgentOnlineProbeHost.class.getDeclaredMethod("buildIdentity",java.nio.file.Path.class);method.setAccessible(true);
+        var first=(JsonNode)method.invoke(null,root);
+        var hash=java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(java.nio.file.Files.readAllBytes(root.resolve("knowledge/target/knowledge-0.1.0-rc.1-controlled.jar"))));
+        assertThat(first.path("jarSha256").asText()).isEqualTo(hash);
+        java.nio.file.Files.writeString(root.resolve(source),"SYNTHETIC_CHANGED_SOURCE");
+        var changed=(JsonNode)method.invoke(null,root);
+        assertThat(changed.path("sourceSha256").path(source)).isNotEqualTo(first.path("sourceSha256").path(source));
+        java.nio.file.Files.delete(root.resolve("knowledge/target/knowledge-0.1.0-rc.1-controlled.jar"));
+        assertThatThrownBy(()->method.invoke(null,root)).isInstanceOf(java.lang.reflect.InvocationTargetException.class).hasCauseInstanceOf(java.nio.file.NoSuchFileException.class);
+        assertThat(calls).hasValue(0);assertThat(factory).isNull();
+    }
+    boolean p02Check(String method,RuleAgentRunner.Outcome... values) throws Exception {
+        var types=java.util.Collections.nCopies(values.length,RuleAgentRunner.Outcome.class).toArray(Class<?>[]::new);
+        var m=RuleAgentOnlineProbeHost.class.getDeclaredMethod(method,types);m.setAccessible(true);return (Boolean)m.invoke(null,(Object[])values);
+    }
+    RuleAgentRunner.Outcome markedLive(RuleAgentRunner.Outcome o) throws Exception {
+        var json=new ObjectMapper();var node=(com.fasterxml.jackson.databind.node.ObjectNode)json.valueToTree(o.snapshot());
+        ((com.fasterxml.jackson.databind.node.ObjectNode)node.path("execution")).put("providerResponseReceived",true).put("answerSource","LIVE_AGENT");
+        return new RuleAgentRunner.Outcome(RuleAgentJson.readSnapshot(node.toString()),o.events());
+    }
+    @Test void p02BatchHasSharedTenCallQuotaAndRejectsP01() {
+        var env=new HashMap<>(Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_SHA256","a".repeat(64),"ZHKU_RULE_AGENT_PROBE_CASE","P02_CONTINUATION_01"));
+        assertThat(RuleAgentOnlineProbeHost.environmentCheck(env).get("maximumProviderCalls")).isEqualTo(10);
+        env.put("ZHKU_RULE_AGENT_PROBE_CASE","P01_RUNTIME_READY_01");
+        assertThatThrownBy(()->RuleAgentOnlineProbeHost.environmentCheck(env)).isInstanceOf(IllegalArgumentException.class);
+        assertThat(calls).hasValue(0);
+    }
+    @Test void p02PacketContainsTwoRunInteractionAndKeepsPerRunBudget() throws Exception {
+        var m=RuleAgentOnlineProbeHost.class.getDeclaredMethod("packageNode",java.nio.file.Path.class);m.setAccessible(true);
+        var p=(JsonNode)m.invoke(null,java.nio.file.Path.of("..").toAbsolutePath().normalize());
+        assertThat(p.path("maximumProviderCalls").asInt()).isEqualTo(10);
+        assertThat(p.path("perRunCalls").asInt()).isEqualTo(5);
+        assertThat(p.path("cases").size()).isEqualTo(1);
+        assertThat(p.path("cases").get(0).path("id").asText()).isEqualTo("P02");
+        assertThat(p.path("cases").get(0).path("reply").asText()).isEqualTo("PUBLIC");
+    }
+    @Test void p02SameTaskResumeIsIdempotentAndRequiresBothLiveReviews() throws Exception {
+        conditional=true;start(10);var queue=new ArrayDeque<Runnable>();var seen=new HashMap<UUID,RuleAgentRunner.Outcome>();
+        RuleAgentTaskStore.Factory recording=(owner,task)->{var work=factory.open(owner,task);return new RuleAgentTaskStore.Work(){
+            public RuleAgentRunner.Outcome run(AgentRunContext c,RuleAgentRunner.Input i){var o=work.run(c,i);seen.put(c.runId(),o);return o;}
+            public boolean revalidate(ResultEnvelope r){return work.revalidate(r);}
+        };};
+        try(var store=new RuleAgentTaskStore(queue::add,recording,Clock.systemUTC(),RuleAgentTaskStore.DEFAULT_LIMITS)) {
+            var first=store.create(fixture.owner,new CreateTask("我这门选修课没过，能不能重修？",UUID.randomUUID()));queue.remove().run();
+            var waiting=store.snapshot(fixture.owner,first.taskId());
+            assertThat(waiting.taskStatus()).isEqualTo(TaskStatus.WAITING_USER);
+            assertThat(waiting.result().items().getFirst().claims()).isEmpty();assertThat(calls).hasValue(4);
+            var wrong=new Message("PUBLIC",UUID.randomUUID(),waiting.version(),UUID.randomUUID());
+            assertThatThrownBy(()->store.message(fixture.owner,first.taskId(),wrong)).isInstanceOf(RuleAgentTaskStore.Failure.class);
+            assertThat(queue).isEmpty();assertThat(calls).hasValue(4);
+            var message=new Message("PUBLIC",waiting.continuationToken(),waiting.version(),UUID.randomUUID());
+            var next=store.message(fixture.owner,first.taskId(),message);
+            assertThat(store.message(fixture.owner,first.taskId(),message).runId()).isEqualTo(next.runId());assertThat(queue).hasSize(1);queue.remove().run();
+            var resolved=store.snapshot(fixture.owner,first.taskId());
+            assertThat(resolved.taskStatus()).isEqualTo(TaskStatus.RESOLVED);
+            assertThat(resolved.taskId()).isEqualTo(waiting.taskId());assertThat(resolved.runId()).isNotEqualTo(waiting.runId());
+            assertThat(store.message(fixture.owner,first.taskId(),message).runId()).isEqualTo(next.runId());assertThat(queue).isEmpty();assertThat(calls).hasValue(8);
+            assertThatThrownBy(()->store.message(fixture.owner,first.taskId(),new Message("PUBLIC",waiting.continuationToken(),waiting.version(),UUID.randomUUID()))).isInstanceOf(RuleAgentTaskStore.Failure.class);
+            assertThat(calls).hasValue(8);assertThat(factory.remainingCalls()).isEqualTo(2);
+            var before=seen.get(waiting.runId());var after=seen.get(resolved.runId());
+            assertThat(RuleAgentOnlineProbeHost.publishedMatches(before,waiting)).isTrue();assertThat(RuleAgentOnlineProbeHost.publishedMatches(after,resolved)).isTrue();
+            assertThat(p02Check("p02Passed",before,after)).isFalse();
+            var onlineBefore=markedLive(before);var onlineAfter=markedLive(after);
+            assertThat(p02Check("p02WaitingPassed",onlineBefore)).isTrue();assertThat(p02Check("p02Passed",onlineBefore,onlineAfter)).isTrue();
+            var noReview=new RuleAgentRunner.Outcome(onlineAfter.snapshot(),onlineAfter.events().stream().filter(v->!v.action().equals("PUBLICATION_REVIEW")).toList());
+            assertThat(p02Check("p02Passed",onlineBefore,noReview)).isFalse();
+            var json=new ObjectMapper();var changed=(com.fasterxml.jackson.databind.node.ObjectNode)json.valueToTree(onlineAfter.snapshot());changed.put("taskId",UUID.randomUUID().toString());
+            assertThat(p02Check("p02Passed",onlineBefore,new RuleAgentRunner.Outcome(RuleAgentJson.readSnapshot(changed.toString()),onlineAfter.events()))).isFalse();
+            json.writerWithDefaultPrettyPrinter().writeValue(java.nio.file.Path.of(System.getProperty("zhku.rulecheck.evidenceDir"),"p02-local-continuation.json").toFile(),Map.of("waiting",waiting,"resolved",resolved,"outcomes",List.of(before,after),"localHttpCalls",calls.get(),"realProviderCalls",0,"remainingSharedQuota",factory.remainingCalls(),"duplicateSubmissionExtraCalls",0,"staleTokenExtraCalls",0,"gateLiveFlagsOnlySyntheticUnitFixture",true));
+        }
+    }
+    @Test void failedSecondOutcomeWriteCannotRemainSuccessful(@org.junit.jupiter.api.io.TempDir java.nio.file.Path evidence) throws Exception {
+        conditional=true;start(10);var queue=new ArrayDeque<Runnable>();var saved=new HashMap<UUID,RuleAgentRunner.Outcome>();var original=new HashMap<UUID,RuleAgentRunner.Outcome>();
+        RuleAgentTaskStore.Factory recording=(owner,task)->{var work=factory.open(owner,task);return new RuleAgentTaskStore.Work(){
+            public RuleAgentRunner.Outcome run(AgentRunContext c,RuleAgentRunner.Input i){
+                var o=work.run(c,i);original.put(c.runId(),o);
+                if(!saved.isEmpty())try{java.nio.file.Files.createDirectory(evidence.resolve(c.runId()+"-outcome.json"));}catch(Exception failure){throw new IllegalStateException(failure);}
+                RuleAgentOnlineProbeHost.recordOutcome(evidence,saved,o);return o;
+            }
+            public boolean revalidate(ResultEnvelope result){return work.revalidate(result);}
+        };};
+        try(var store=new RuleAgentTaskStore(queue::add,recording,Clock.systemUTC(),RuleAgentTaskStore.DEFAULT_LIMITS)) {
+            var first=store.create(fixture.owner,new CreateTask("我这门选修课没过，能不能重修？",UUID.randomUUID()));queue.remove().run();
+            var waiting=store.snapshot(fixture.owner,first.taskId());assertThat(waiting.taskStatus()).isEqualTo(TaskStatus.WAITING_USER);
+            var next=store.message(fixture.owner,first.taskId(),new Message("PUBLIC",waiting.continuationToken(),waiting.version(),UUID.randomUUID()));queue.remove().run();
+            var published=store.snapshot(fixture.owner,first.taskId());assertThat(published.taskStatus()).isEqualTo(TaskStatus.ACTIVE);
+            assertThat(original.get(next.runId()).snapshot().taskStatus()).isEqualTo(TaskStatus.RESOLVED);
+            assertThat(saved).doesNotContainKey(next.runId());assertThat(calls).hasValue(8);
+            var m=RuleAgentOnlineProbeHost.class.getDeclaredMethod("publishedMatches",RuleAgentRunner.Outcome.class,TaskSnapshot.class);m.setAccessible(true);assertThat((Boolean)m.invoke(null,original.get(next.runId()),published)).isFalse();
+        }
     }
 }

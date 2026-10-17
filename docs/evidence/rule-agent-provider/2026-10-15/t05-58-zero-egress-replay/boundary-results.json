@@ -1,0 +1,128 @@
+{
+  "checks" : [ {
+    "actual" : "DECODED",
+    "id" : "B01_original_review_decode",
+    "expected" : "DECODED",
+    "changedOnly" : "NONE",
+    "matched" : true
+  }, {
+    "actual" : "CAPABILITY_UNAVAILABLE",
+    "id" : "B02_original_gate",
+    "expected" : "CAPABILITY_UNAVAILABLE",
+    "changedOnly" : "NONE",
+    "matched" : true
+  }, {
+    "actual" : "CAPABILITY_UNAVAILABLE",
+    "id" : "B03_only_condition_keys",
+    "expected" : "CAPABILITY_UNAVAILABLE",
+    "changedOnly" : "review necessaryConditionIds -> raw courseType",
+    "matched" : true
+  }, {
+    "actual" : "CONDITION_NOT_NECESSARY",
+    "id" : "B04_only_ask_support_ids",
+    "expected" : "CONDITION_NOT_NECESSARY",
+    "changedOnly" : "ASK supportingFactIds -> recorded RETAKE_ONLY pair",
+    "matched" : true
+  }, {
+    "actual" : "UNRESOLVED",
+    "id" : "B05_both_isolated_changes",
+    "expected" : "UNRESOLVED",
+    "changedOnly" : "B03+B04 (synthetic positive control)",
+    "matched" : true
+  }, {
+    "actual" : "REVIEW_BINDING:REVIEW_INPUT_MISMATCH",
+    "id" : "B06_foreign_input",
+    "expected" : "REVIEW_BINDING:REVIEW_INPUT_MISMATCH",
+    "changedOnly" : "review fingerprint -> zeros",
+    "matched" : true
+  }, {
+    "actual" : "CONDITION_NOT_NECESSARY",
+    "id" : "B07_one_branch_omitted",
+    "expected" : "CONDITION_NOT_NECESSARY",
+    "changedOnly" : "B05 ASK supports only PUBLIC",
+    "matched" : true
+  }, {
+    "actual" : "CAPABILITY_UNAVAILABLE",
+    "id" : "B08_original_after_controls",
+    "expected" : "CAPABILITY_UNAVAILABLE",
+    "changedOnly" : "NONE; original objects unchanged",
+    "matched" : true
+  } ],
+  "allMatched" : true,
+  "exactOriginalSemanticInputReconstructed" : true,
+  "originalInputFingerprint" : "24fcd23de214e8e72d7b3750d901b21032cb751bedffa8cc4c11548dd0316740",
+  "capabilityProof" : [ {
+    "matched" : true,
+    "factId" : "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam",
+    "sourceFingerprint" : "b76290e5c004814bd81329aafebf3793ccd8b3ae5803b32dfbea58376a369243"
+  }, {
+    "matched" : true,
+    "factId" : "S10/RETAKE_ONLY:public-failed-no-retake",
+    "sourceFingerprint" : "72f9618e079997ad20891b55196338b63ea96abf6e2073d95c33092bd35c5e39"
+  }, {
+    "matched" : true,
+    "factId" : "S10/RETAKE_ONLY:professional-failed-retake-application",
+    "sourceFingerprint" : "c3628eca44163273382a77d2914ae41a99ed938aa9679bb6ae200e23044d9424"
+  } ],
+  "readFactIds" : [ "S10/COMBINED:public-no-deferred-exam", "S10/COMBINED:public-failed-no-retake", "S10/COMBINED:professional-failed-retake-application", "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam", "S10/RETAKE_ONLY:public-failed-no-retake", "S10/RETAKE_ONLY:professional-failed-retake-application" ],
+  "originalAsk" : {
+    "subquestionId" : "q1",
+    "conditionId" : "courseType",
+    "reason" : "规则对公共选修课和专业选修课的重修规定不同（公共选修不安排重修，专业选修可申请重修），需明确课程类别。",
+    "supportingFactIds" : [ "S10/COMBINED:public-failed-no-retake", "S10/COMBINED:professional-failed-retake-application" ]
+  },
+  "counterfactualAsk" : {
+    "subquestionId" : "q1",
+    "conditionId" : "courseType",
+    "reason" : "规则对公共选修课和专业选修课的重修规定不同（公共选修不安排重修，专业选修可申请重修），需明确课程类别。",
+    "supportingFactIds" : [ "S10/RETAKE_ONLY:public-failed-no-retake", "S10/RETAKE_ONLY:professional-failed-retake-application" ]
+  },
+  "counterfactualReview" : {
+    "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+    "inputFingerprint" : "24fcd23de214e8e72d7b3750d901b21032cb751bedffa8cc4c11548dd0316740",
+    "requirements" : [ {
+      "id" : "req_q1_public_retake",
+      "span" : {
+        "subquestionId" : "q1",
+        "startInclusive" : 0,
+        "endExclusive" : 13
+      },
+      "dimension" : "RETAKE",
+      "subject" : "PUBLIC_ELECTIVE",
+      "recognition" : "IDENTIFIED",
+      "necessaryConditionIds" : [ "courseType" ]
+    }, {
+      "id" : "req_q1_professional_retake",
+      "span" : {
+        "subquestionId" : "q1",
+        "startInclusive" : 0,
+        "endExclusive" : 13
+      },
+      "dimension" : "RETAKE",
+      "subject" : "PROFESSIONAL_ELECTIVE",
+      "recognition" : "IDENTIFIED",
+      "necessaryConditionIds" : [ "courseType" ]
+    } ],
+    "bindings" : [ {
+      "requirementId" : "req_q1_public_retake",
+      "factId" : "S10/RETAKE_ONLY:public-failed-no-retake",
+      "role" : "CORE"
+    }, {
+      "requirementId" : "req_q1_professional_retake",
+      "factId" : "S10/RETAKE_ONLY:professional-failed-retake-application",
+      "role" : "CORE"
+    } ],
+    "unresolvedDemands" : [ ]
+  },
+  "fullFactsUnchangedAcrossVariants" : true,
+  "sameFrozenGateForEveryVariant" : true,
+  "gateCodeSource" : "file:/C:/Users/nangua/AppData/Local/Temp/zhku-t05-58-5gg2uvns/frozen-app/",
+  "protocolCodeSource" : "file:/C:/Users/nangua/AppData/Local/Temp/zhku-t05-58-5gg2uvns/frozen-app/",
+  "networkDeniedBySecurityManager" : true,
+  "guardSelfTestOnlyNoSocketOpened" : true,
+  "realProviderCalls" : 0,
+  "databaseOperations" : 0,
+  "freshReadOrPublicationExecuted" : false,
+  "waitingUserOrAnswerPublished" : false,
+  "allVariantReviewsAreControlledInputsNotNewModelOutputs" : true
+}

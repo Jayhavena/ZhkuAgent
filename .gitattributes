@@ -2,3 +2,20 @@
 docs/evidence/** -text
 docs/releases/** -text
 docs/product/** -text
+# 探针零调用核对与源码指纹同样按原始字节校验：审核输入知识片段与 ruleagent 源码
+# 一旦被 autocrlf 转换，全新 Windows worktree 会直接卡在审核目录构造/包校验，
+# 而主工作区（历史检出、未转换）却能通过——同一提交两种字节，必须在这里一并保护。
+knowledge/data/** -text
+knowledge/src/** -text
+
+# Keep fingerprinted attributes and local runtime launchers byte-identical.
+.gitattributes -text
+knowledge/scripts/start-rule-agent-runtime-check.cmd -text
+knowledge/scripts/start-rule-agent-runtime-check.ps1 -text
+
+# 在线启动器也是包身份输入；恢复时不得被换行转换改变指纹。
+knowledge/scripts/start-rule-agent-probe.cmd -text
+knowledge/scripts/start-rule-agent-probe.ps1 -text
+
+scripts/Invoke-ZhkuOwnedProcess.ps1 -text
+knowledge/scripts/test-rule-agent-p02-owned-process.ps1 -text

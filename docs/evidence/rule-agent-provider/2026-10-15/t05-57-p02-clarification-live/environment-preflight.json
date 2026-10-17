@@ -1,0 +1,518 @@
+{
+  "checkedUtc": "2026-10-15T11:42:28.9865105Z",
+  "imageId": "sha256:ccc6e83d6e35e931dc7c5def2022729d5a6c370318d099181995567ff1fb4d6b",
+  "databaseConnections": 0,
+  "existingContainerStates": [
+    {
+      "name": "zhku-rulecheck-final-demo-web-1",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-12T03:05:01.308073136Z",
+        "FinishedAt": "2026-10-12T13:33:23.155009369Z"
+      },
+      "id": "3ed12cf7bd20"
+    },
+    {
+      "name": "zhkuagent-postgres",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-08T14:16:55.843361949Z",
+        "FinishedAt": "2026-10-08T14:16:57.333736996Z",
+        "Health": {
+          "Status": "unhealthy",
+          "FailingStreak": 0,
+          "Log": [
+            {
+              "Start": "2026-09-27T13:28:26.444058013Z",
+              "End": "2026-09-27T13:28:26.495935985Z",
+              "ExitCode": 0,
+              "Output": "/var/run/postgresql:5432 - accepting connections\n"
+            },
+            {
+              "Start": "2026-09-27T13:28:31.497174831Z",
+              "End": "2026-09-27T13:28:31.546877644Z",
+              "ExitCode": 0,
+              "Output": "/var/run/postgresql:5432 - accepting connections\n"
+            },
+            {
+              "Start": "2026-09-27T13:28:36.547950463Z",
+              "End": "2026-09-27T13:28:36.600883997Z",
+              "ExitCode": 0,
+              "Output": "/var/run/postgresql:5432 - accepting connections\n"
+            },
+            {
+              "Start": "2026-09-27T13:28:41.601756307Z",
+              "End": "2026-09-27T13:28:41.658210016Z",
+              "ExitCode": 0,
+              "Output": "/var/run/postgresql:5432 - accepting connections\n"
+            },
+            {
+              "Start": "2026-09-27T13:28:46.658993098Z",
+              "End": "2026-09-27T13:28:46.722419741Z",
+              "ExitCode": 0,
+              "Output": "/var/run/postgresql:5432 - accepting connections\n"
+            }
+          ]
+        }
+      },
+      "id": "cf8a3aac44e0"
+    },
+    {
+      "name": "chicken-redis",
+      "state": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 657,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-15T11:40:51.80392073Z",
+        "FinishedAt": "2026-10-15T10:13:47.684707129Z",
+        "Health": {
+          "Status": "healthy",
+          "FailingStreak": 0,
+          "Log": [
+            {
+              "Start": "2026-10-15T11:41:42.611773238Z",
+              "End": "2026-10-15T11:41:42.651255573Z",
+              "ExitCode": 0,
+              "Output": "PONG\n"
+            },
+            {
+              "Start": "2026-10-15T11:41:52.650244517Z",
+              "End": "2026-10-15T11:41:52.692207203Z",
+              "ExitCode": 0,
+              "Output": "PONG\n"
+            },
+            {
+              "Start": "2026-10-15T11:42:02.693659187Z",
+              "End": "2026-10-15T11:42:02.726907877Z",
+              "ExitCode": 0,
+              "Output": "PONG\n"
+            },
+            {
+              "Start": "2026-10-15T11:42:12.727391026Z",
+              "End": "2026-10-15T11:42:12.759022736Z",
+              "ExitCode": 0,
+              "Output": "PONG\n"
+            },
+            {
+              "Start": "2026-10-15T11:42:22.757563897Z",
+              "End": "2026-10-15T11:42:22.791669271Z",
+              "ExitCode": 0,
+              "Output": "PONG\n"
+            }
+          ]
+        }
+      },
+      "id": "766fe514e8c5"
+    },
+    {
+      "name": "chicken-mysql",
+      "state": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 664,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-15T11:40:51.842988316Z",
+        "FinishedAt": "2026-10-15T10:13:49.293385097Z",
+        "Health": {
+          "Status": "healthy",
+          "FailingStreak": 0,
+          "Log": [
+            {
+              "Start": "2026-10-15T11:41:42.670458006Z",
+              "End": "2026-10-15T11:41:42.704053343Z",
+              "ExitCode": 0,
+              "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+            },
+            {
+              "Start": "2026-10-15T11:41:52.702266141Z",
+              "End": "2026-10-15T11:41:52.737961388Z",
+              "ExitCode": 0,
+              "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+            },
+            {
+              "Start": "2026-10-15T11:42:02.738908692Z",
+              "End": "2026-10-15T11:42:02.774155885Z",
+              "ExitCode": 0,
+              "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+            },
+            {
+              "Start": "2026-10-15T11:42:12.774910311Z",
+              "End": "2026-10-15T11:42:12.809376977Z",
+              "ExitCode": 0,
+              "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+            },
+            {
+              "Start": "2026-10-15T11:42:22.808026835Z",
+              "End": "2026-10-15T11:42:22.840955929Z",
+              "ExitCode": 0,
+              "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+            }
+          ]
+        }
+      },
+      "id": "721dfc1a1e00"
+    },
+    {
+      "name": "dovideo-ai-rmqtopics-1",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-08-12T08:36:43.177304827Z",
+        "FinishedAt": "2026-08-12T08:37:20.208439392Z"
+      },
+      "id": "49d619d10d3f"
+    },
+    {
+      "name": "dovideo-ai-rmqbroker-1",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "Error": "",
+        "StartedAt": "2026-08-12T08:36:42.810862996Z",
+        "FinishedAt": "2026-08-12T15:37:34.578264371Z"
+      },
+      "id": "a91bd9289fa0"
+    },
+    {
+      "name": "dovideo-ai-rmqinit-1",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-08-12T08:36:41.650630523Z",
+        "FinishedAt": "2026-08-12T08:36:41.862759622Z"
+      },
+      "id": "6ff6a22a659d"
+    },
+    {
+      "name": "dovideo-ai-redis-1",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-08-12T07:16:07.689649552Z",
+        "FinishedAt": "2026-08-12T15:37:33.480930292Z",
+        "Health": {
+          "Status": "unhealthy",
+          "FailingStreak": 0,
+          "Log": [
+            {
+              "Start": "2026-08-12T15:37:08.646765115Z",
+              "End": "2026-08-12T15:37:08.696179822Z",
+              "ExitCode": 0,
+              "Output": "Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.\n"
+            },
+            {
+              "Start": "2026-08-12T15:37:13.700011117Z",
+              "End": "2026-08-12T15:37:13.758253396Z",
+              "ExitCode": 0,
+              "Output": "Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.\n"
+            },
+            {
+              "Start": "2026-08-12T15:37:18.759091423Z",
+              "End": "2026-08-12T15:37:18.831984394Z",
+              "ExitCode": 0,
+              "Output": "Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.\n"
+            },
+            {
+              "Start": "2026-08-12T15:37:23.832922467Z",
+              "End": "2026-08-12T15:37:23.900398957Z",
+              "ExitCode": 0,
+              "Output": "Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.\n"
+            },
+            {
+              "Start": "2026-08-12T15:37:28.901842299Z",
+              "End": "2026-08-12T15:37:28.954225755Z",
+              "ExitCode": 0,
+              "Output": "Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.\n"
+            }
+          ]
+        }
+      },
+      "id": "c30aebada628"
+    },
+    {
+      "name": "dovideo-ai-mysql-1",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "Error": "",
+        "StartedAt": "2026-08-12T07:16:07.704900084Z",
+        "FinishedAt": "2026-08-12T15:37:34.503431085Z",
+        "Health": {
+          "Status": "unhealthy",
+          "FailingStreak": 1,
+          "Log": [
+            {
+              "Start": "2026-08-12T15:37:14.158543451Z",
+              "End": "2026-08-12T15:37:14.213967985Z",
+              "ExitCode": 0,
+              "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+            },
+            {
+              "Start": "2026-08-12T15:37:19.215037391Z",
+              "End": "2026-08-12T15:37:19.2933157Z",
+              "ExitCode": 0,
+              "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+            },
+            {
+              "Start": "2026-08-12T15:37:24.29447094Z",
+              "End": "2026-08-12T15:37:24.354775226Z",
+              "ExitCode": 0,
+              "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+            },
+            {
+              "Start": "2026-08-12T15:37:29.3560109Z",
+              "End": "2026-08-12T15:37:29.40660718Z",
+              "ExitCode": 0,
+              "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+            },
+            {
+              "Start": "2026-08-12T15:37:34.407894726Z",
+              "End": "2026-08-12T15:37:34.496990595Z",
+              "ExitCode": -1,
+              "Output": "OCI runtime exec failed: exec failed: cannot exec in a stopped container"
+            }
+          ]
+        }
+      },
+      "id": "34a39bf8eb40"
+    },
+    {
+      "name": "dovideo-ai-qdrant-1",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 143,
+        "Error": "",
+        "StartedAt": "2026-08-12T07:11:55.258391873Z",
+        "FinishedAt": "2026-08-12T15:37:33.443554537Z"
+      },
+      "id": "f4944f8c4235"
+    },
+    {
+      "name": "dovideo-ai-rmqnamesrv-1",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "Error": "",
+        "StartedAt": "2026-08-12T07:11:55.279263668Z",
+        "FinishedAt": "2026-08-12T15:37:34.492316053Z"
+      },
+      "id": "b7096e1aad10"
+    },
+    {
+      "name": "dovideo-ai-minio-1",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-08-12T07:11:55.286203121Z",
+        "FinishedAt": "2026-08-12T15:37:33.445592912Z"
+      },
+      "id": "5035189ca5f3"
+    },
+    {
+      "name": "auragate-rabbitmq",
+      "state": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 681,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-15T11:40:51.859779151Z",
+        "FinishedAt": "2026-10-15T10:13:48.675089399Z"
+      },
+      "id": "416138137aca"
+    },
+    {
+      "name": "auragate-redis",
+      "state": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 659,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-15T11:40:51.769370864Z",
+        "FinishedAt": "2026-10-15T10:13:47.803538063Z"
+      },
+      "id": "e3b0e86620b0"
+    },
+    {
+      "name": "auragate-postgres",
+      "state": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 656,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-15T11:40:51.825283863Z",
+        "FinishedAt": "2026-10-15T10:13:47.914247942Z"
+      },
+      "id": "cabe2b77292d"
+    },
+    {
+      "name": "auragate-es",
+      "state": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 658,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-15T11:40:51.851603464Z",
+        "FinishedAt": "2026-10-15T10:13:48.814547587Z"
+      },
+      "id": "b893dd83a398"
+    }
+  ],
+  "modelCalls": 0,
+  "dockerServer": {
+    "Platform": {
+      "Name": "Docker Desktop 4.94.0 (241994)"
+    },
+    "Version": "29.8.2",
+    "ApiVersion": "1.56",
+    "MinAPIVersion": "1.40",
+    "Os": "linux",
+    "Arch": "amd64",
+    "Components": [
+      {
+        "Name": "Engine",
+        "Version": "29.8.2",
+        "Details": {
+          "ApiVersion": "1.56",
+          "Arch": "amd64",
+          "BuildTime": "Wed Sep 30 19:32:25 2026",
+          "Experimental": "false",
+          "GitCommit": "8af9fe3",
+          "GoVersion": "go1.26.8",
+          "KernelVersion": "6.6.87.2-microsoft-standard-WSL2",
+          "MinAPIVersion": "1.40",
+          "Module": "github.com/moby/moby/v2",
+          "ModuleVersion": "v2.0.0+unknown",
+          "Os": "linux"
+        }
+      },
+      {
+        "Name": "containerd",
+        "Version": "v2.3.6",
+        "Details": {
+          "GitCommit": "ee2735368117d2eb259779949d5e75cdafec9761"
+        }
+      },
+      {
+        "Name": "runc",
+        "Version": "1.5.1",
+        "Details": {
+          "GitCommit": "v1.5.1-0-g8f2685a4"
+        }
+      },
+      {
+        "Name": "docker-init",
+        "Version": "0.19.0",
+        "Details": {
+          "GitCommit": "de40ad0"
+        }
+      }
+    ],
+    "GitCommit": "8af9fe3",
+    "GoVersion": "go1.26.8",
+    "KernelVersion": "6.6.87.2-microsoft-standard-WSL2",
+    "BuildTime": "2026-09-30T19:32:25.000000000+00:00"
+  },
+  "databaseName": "zhkuagent_rulecheck_e2e",
+  "databasePort": 10050,
+  "databaseCredentialAvailable": true,
+  "dashScopeCredentialAvailable": true
+}

@@ -1,0 +1,357 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.1.0-rc.1
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 5 resources from src\main\resources to target\classes
+[INFO] Copying 21 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 3 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 281 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /D:/alldesk/Projects/ZhkuAgent-t05/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentReviewDiagnosticsTest.java: D:\alldesk\Projects\ZhkuAgent-t05\knowledge\src\test\java\com\zhku\knowledge\ruleagent\RuleAgentReviewDiagnosticsTest.javaʹ�û򸲸����ѹ�ʱ�� API��
+[INFO] /D:/alldesk/Projects/ZhkuAgent-t05/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentReviewDiagnosticsTest.java: �й���ϸ��Ϣ, ��ʹ�� -Xlint:deprecation ���±��롣
+[INFO] /D:/alldesk/Projects/ZhkuAgent-t05/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheck2025LexicalCalibrationTest.java: ĳЩ�����ļ�ʹ����δ�����򲻰�ȫ�Ĳ�����
+[INFO] /D:/alldesk/Projects/ZhkuAgent-t05/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheck2025LexicalCalibrationTest.java: �й���ϸ��Ϣ, ��ʹ�� -Xlint:unchecked ���±��롣
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[WARNING] file.encoding cannot be set as system property, use <argLine>-Dfile.encoding=...</argLine> instead
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.268 s <<< FAILURE! -- in com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.diagnosticRequestUsesFreshPackageLocation -- Time elapsed: 0.203 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json"
+ but was: "docs/evidence/rule-agent-provider/2026-10-15/t05-65-p02-eligibility-request/request-package.json"
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.diagnosticRequestUsesFreshPackageLocation(RuleAgentOnlineFactoryTest.java:443)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest
+[ERROR] Tests run: 4, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 1.285 s <<< FAILURE! -- in com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest.hostRejectsExistingTargetBeforeReadingAnyAssets -- Time elapsed: 0.041 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  java.nio.file.FileAlreadyExistsException
+but was:
+  java.nio.file.NoSuchFileException: C:\Users\nangua\AppData\Local\Temp\junit-10392319182985554437\docs\product\rule-check-2025-verbatim-import-draft.json
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108)
+	...(87 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest.lambda$hostRejectsExistingTargetBeforeReadingAnyAssets$1(RuleAgentRequestPathTest.java:21)
+	at com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest.hostRejectsExistingTargetBeforeReadingAnyAssets(RuleAgentRequestPathTest.java:21)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest.launcherUsesTheSameFreshDirectoryForPackageLiveAndLogs -- Time elapsed: 0.022 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "#requires -Version 7.0
+param([switch]$CheckEnvironment,[switch]$PrepareProbe,[switch]$Probe,[switch]$BuildOnly,[switch]$OnlyP01,[switch]$OnlyP02,[switch]$IncludeClarification,[switch]$CheckPackage,
+ [ValidatePattern('^[a-f0-9]{64}$')][string]$ApprovedPackageSha256,
+ [ValidateRange(1024,65535)][int]$DatabasePort=55518)
+$ErrorActionPreference='Stop'
+$utf8=[Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding=$utf8;[Console]::OutputEncoding=$utf8;$OutputEncoding=$utf8
+$root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+. (Join-Path $root 'scripts/Invoke-ZhkuOwnedProcess.ps1')
+$importer=Join-Path $root 'scripts/Import-ZhkuCredentials.ps1'
+$java=Get-Command java.exe -ErrorAction SilentlyContinue
+$docker=Get-Command docker.exe -ErrorAction SilentlyContinue
+$jar=Join-Path $root 'knowledge/target/knowledge-0.1.0-rc.1-controlled.jar'
+$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-15/t05-65-p02-eligibility-request/request-package.json'
+if($CheckEnvironment){
+ & $importer -UseDashScope
+ @{javaAvailable=($null-ne $java);dockerAvailable=($null-ne $docker);keyAvailable=![string]::IsNullOrWhiteSpace($env:DASHSCOPE_API_KEY);mode='P02_DIAGNOSTIC_PREFLIGHT';maximumProviderCalls=10;providerCalls=0;databaseOperations=0;builds=0;encodingSample='�����֤������̽�롢�ȴ���Ȩ';encoding=[Console]::OutputEncoding.CodePage;requiresRipgrep=$false}|ConvertTo-Json
+ exit 0
+}
+if(@($PrepareProbe,$Probe,$BuildOnly,$CheckPackage|Where-Object {$_}).Count-ne 1){throw '��ѡ��PrepareProbe��Probe��BuildOnly��CheckPackage֮һ'}
+if($IncludeClarification-or $OnlyP01){throw '��P01/�������ѹرգ�������OnlyP02'}
+if(($Probe-or $CheckPackage)-and !$OnlyP02){throw '������ȷOnlyP02������������Ȩ'}
+# �Ѵ��ڵĶ�����������ڹ���ǰ�ܾ��������ظ�Prepare���ȸ�дĬ��jar���ݡ�
+if($PrepareProbe-and (Test-Path -LiteralPath $package)){throw '������Ѵ��ڣ�����ԭ�����������򸲸�'}
+if(!$java){throw '��ͨ�ն�δ�ҵ�Java����ִ��CheckEnvironment'}
+Push-Location $root
+try{
+ if($BuildOnly-or $PrepareProbe){
+  foreach($name in @('DASHSCOPE_API_KEY','ZHKU_DB_PASSWORD','POSTGRES_PASSWORD')){[Environment]::SetEnvironmentVariable($name,$null,'Process')}
+  $built=Invoke-ZhkuOwnedProcess -Executable $env:ComSpec -Arguments @('/d','/c','mvnw.cmd','-o',"-Dmaven.repo.local=$env:USERPROFILE/.m2/repository",'-Dfile.encoding=UTF-8','-pl','knowledge','-am','-DskipTests','package') -TimeoutSeconds 150
+  if($built.exitCode-ne 0-or $built.timedOut-or !$built.resourcesClosed){throw '̽�빹��ʧ�ܻ�ʱ����������jar'}
+  if($BuildOnly){exit 0}
+ }
+ $env:ZHKU_RULE_AGENT_ROOT=$root
+ $arguments=@('-Dfile.encoding=UTF-8','-Dstdout.encoding=UTF-8','-Dstderr.encoding=UTF-8','-Dloader.main=com.zhku.knowledge.ruleagent.RuleAgentOnlineProbeHost','-cp',$jar,'org.springframework.boot.loader.launch.PropertiesLauncher')
+ if($CheckPackage){
+  # ����ð�У�鲻������ʵƾ֤��Ҳ������ģ�ͻ����ݿ�ͻ��ˡ�
+  if(!$ApprovedPackageSha256-or !(Test-Path -LiteralPath $package)-or (Get-FileHash -LiteralPath $package).Hash.ToLowerInvariant()-ne $ApprovedPackageSha256){throw '���˶������ָ�Ʋ�ͬ'}
+  $env:ZHKU_RULE_AGENT_PROBE_SHA256=$ApprovedPackageSha256
+  $result=Invoke-ZhkuOwnedProcess -Executable $java.Source -Arguments ($arguments+@('--CheckPackage')) -TimeoutSeconds 15
+  if($result.exitCode-ne 0-or !$result.resourcesClosed-or $result.timedOut){throw '����ð�У��ʧ�ܣ���ִ��ģ��'}
+  $result.output
+  exit 0
+ }
+ if($PrepareProbe){
+  if(Test-Path -LiteralPath $package){throw '������Ѵ��ڣ�����ԭ����������'}
+  $result=Invoke-ZhkuOwnedProcess -Executable $java.Source -Arguments ($arguments+@('--PrepareProbe')) -TimeoutSeconds 15
+  if($result.exitCode-ne 0-or !$result.resourcesClosed-or $result.timedOut){throw '�����׼��δ��ɣ���ִ��ģ��'}
+  $result.output
+  exit 0
+ }
+ # ��ϣֻ��������������������ڻ�����ɣ����ñ���֧�����û���ȷ��׼�����ⷢ��
+ if(!$ApprovedPackageSha256-or !(Test-Path -LiteralPath $package)-or (Get-FileHash -LiteralPath $package).Hash.ToLowerInvariant()-ne $ApprovedPackageSha256){throw 'ȱ������׼�ľ��������ָ��'}
+ # �ڵ���ƾ֤����������ǰ�˶�ʵ�ʹ�����ȫ�������ʲ��������þ�jar���������Ρ�
+ $env:ZHKU_RULE_AGENT_PROBE_SHA256=$ApprovedPackageSha256
+ $checked=Invoke-ZhkuOwnedProcess -Executable $java.Source -Arguments ($arguments+@('--CheckPackage')) -TimeoutSeconds 15
+ if($checked.exitCode-ne 0-or !$checked.resourcesClosed-or $checked.timedOut){throw '����Դ�롢�����������ʲ��仯����������ʱ�⡢������ģ��'}
+ if(!$docker-or $DatabasePort-eq 54329){throw '��ҪDocker��ר����ʱ��˿ڣ��ܾ�ԭ��'}
+ & $importer -RequireDatabase -RequireDashScope
+ $secrets=@($env:ZHKU_DB_PASSWORD,$env:DASHSCOPE_API_KEY)
+ $env:POSTGRES_PASSWORD=$env:ZHKU_DB_PASSWORD
+ $env:ZHKU_DB_URL="jdbc:postgresql://127.0.0.1:$DatabasePort/zhkuagent_rulecheck_e2e"
+ $env:ZHKU_RULE_AGENT_MODE='ONLINE';$env:ZHKU_RULE_AGENT_AUTHORIZATION_ID=$ApprovedPackageSha256;$env:ZHKU_RULE_AGENT_PROBE_SHA256=$ApprovedPackageSha256
+ $env:ZHKU_RULE_AGENT_PROBE_CASE='P02_CONTINUATION_01'
+ # ��ǰ.NET/PowerShell���ܽ�nullת��Ϊ��ֵ����������ONLINE�ܾ��κλطż�����������ɾ����
+ foreach($name in @('ZHKU_RULECHECK_TASK_BATCH_DIRECTORY','ZHKU_RULECHECK_TASK_PACKAGE_SHA256','ZHKU_RULECHECK_TASK_SUMMARY_SHA256')){Remove-Item -LiteralPath "Env:\$name" -ErrorAction SilentlyContinue}
+ $env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-15/t05-65-p02-eligibility-request/live-'+[guid]::NewGuid().ToString('N')
+ $container='zhku-rule-agent-probe-'+[guid]::NewGuid().ToString('N')
+ function Docker([string[]]$argsForDocker){
+  & $importer -RequireDatabase
+  $r=Invoke-ZhkuOwnedProcess -Executable $docker.Source -Arguments $argsForDocker -TimeoutSeconds 10 -Secrets $secrets
+  if($r.exitCode-ne 0-or !$r.resourcesClosed-or $r.timedOut){throw '����Docker����ʧ�ܣ�����ʧ�ܽ����������̽��'}
+  return $r
+ }
+ try{
+  $null=Docker @('run','--rm','-d','--pull','never','--name',$container,'--publish',"127.0.0.1:${DatabasePort}:5432",'--env','POSTGRES_PASSWORD','--env','POSTGRES_USER=zhkuagent','--env','POSTGRES_DB=zhkuagent_rulecheck_e2e','pgvector/pgvector:0.8.6-pg16-bookworm')
+  $ready=$false;$deadline=[DateTime]::UtcNow.AddSeconds(30)
+  while([DateTime]::UtcNow-lt $deadline){try{$null=Docker @('exec',$container,'pg_isready','-U','zhkuagent','-d','zhkuagent_rulecheck_e2e');$ready=$true;break}catch{Start-Sleep -Milliseconds 200}}
+  if(!$ready){throw '��ʱ��δ������������ģ��'}
+  & $importer -RequireDatabase -RequireDashScope
+  $result=Invoke-ZhkuOwnedProcess -Executable $java.Source -Arguments ($arguments+@('--Probe')) -TimeoutSeconds 235 -Secrets $secrets
+  # ���������ڴ���ҵ��֤��Ŀ¼ǰʧ�ܣ�Ҳ���뱣����������������ϣ����ܶ�ʧʧ��λ�á�
+  $launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-15/t05-65-p02-eligibility-request/launcher-'+[guid]::NewGuid().ToString('N')+'.log')
+  New-Item -ItemType Directory -Force (Split-Path $launcherLog -Parent)|Out-Null
+  [IO.File]::WriteAllText($launcherLog,$result.output+"`n"+$result.errorOutput,$utf8)
+  $directory=Join-Path $root $env:ZHKU_RULE_AGENT_EVIDENCE
+  if(Test-Path -LiteralPath $directory){[IO.File]::WriteAllText((Join-Path $directory 'host.log'),$result.output+"`n"+$result.errorOutput,$utf8)}
+  if($result.exitCode-ne 0-or !$result.resourcesClosed-or $result.timedOut){throw '��ʵ̽��δͨ�����˳�δȷ�ϣ������ӵ��û��Զ�����'}
+ }finally{
+  # ֻ���ձ��������������ʱ���������ܰ������������û��ͻ��˻��������
+  $null=Docker @('rm','-f',$container)
+ }
+}finally{Pop-Location}
+"
+to contain:
+  ["$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json'",
+    "$env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-'",
+    "$launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/launcher-'"]
+but could not find:
+  ["$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json'",
+    "$env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-'",
+    "$launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/launcher-'"]
+ 
+	at com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest.launcherUsesTheSameFreshDirectoryForPackageLiveAndLogs(RuleAgentRequestPathTest.java:16)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest.hostBindsNewDirectoryWithoutReusingClosed55 -- Time elapsed: 0.006 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json"
+ but was: "docs/evidence/rule-agent-provider/2026-10-15/t05-65-p02-eligibility-request/request-package.json"
+	at com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest.hostBindsNewDirectoryWithoutReusingClosed55(RuleAgentRequestPathTest.java:13)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest.launcherRejectsExistingNewTargetBeforeInvokingBuilder -- Time elapsed: 1.212 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "Exception: C:\Users\nangua\AppData\Local\Temp\junit-8269863721185016846\knowledge\scripts\start-rule-agent-probe.ps1:31
+Line |
+  31 |  �� built.timedOut-or !$built.resourcesClosed){throw '̽�빹��ʧ�ܻ�ʱ����������jar'}
+     |                                               ~~~~~~~~~~~~~~~~~~~~~~~~~
+     | ̽�빹��ʧ�ܻ�ʱ����������jar
+"
+to contain:
+  "������Ѵ��ڣ�����ԭ�����������򸲸�" 
+	at com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest.launcherRejectsExistingNewTargetBeforeInvokingBuilder(RuleAgentRequestPathTest.java:35)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   RuleAgentOnlineFactoryTest.diagnosticRequestUsesFreshPackageLocation:443 
+expected: "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json"
+ but was: "docs/evidence/rule-agent-provider/2026-10-15/t05-65-p02-eligibility-request/request-package.json"
+[ERROR]   RuleAgentRequestPathTest.hostBindsNewDirectoryWithoutReusingClosed55:13 
+expected: "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json"
+ but was: "docs/evidence/rule-agent-provider/2026-10-15/t05-65-p02-eligibility-request/request-package.json"
+[ERROR]   RuleAgentRequestPathTest.hostRejectsExistingTargetBeforeReadingAnyAssets:21->lambda$hostRejectsExistingTargetBeforeReadingAnyAssets$1:21 
+Expecting actual throwable to be an instance of:
+  java.nio.file.FileAlreadyExistsException
+but was:
+  java.nio.file.NoSuchFileException: C:\Users\nangua\AppData\Local\Temp\junit-10392319182985554437\docs\product\rule-check-2025-verbatim-import-draft.json
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108)
+	...(87 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+[ERROR]   RuleAgentRequestPathTest.launcherRejectsExistingNewTargetBeforeInvokingBuilder:35 
+Expecting actual:
+  "Exception: C:\Users\nangua\AppData\Local\Temp\junit-8269863721185016846\knowledge\scripts\start-rule-agent-probe.ps1:31
+Line |
+  31 |  �� built.timedOut-or !$built.resourcesClosed){throw '̽�빹��ʧ�ܻ�ʱ����������jar'}
+     |                                               ~~~~~~~~~~~~~~~~~~~~~~~~~
+     | ̽�빹��ʧ�ܻ�ʱ����������jar
+"
+to contain:
+  "������Ѵ��ڣ�����ԭ�����������򸲸�" 
+[ERROR]   RuleAgentRequestPathTest.launcherUsesTheSameFreshDirectoryForPackageLiveAndLogs:16 
+Expecting actual:
+  "#requires -Version 7.0
+param([switch]$CheckEnvironment,[switch]$PrepareProbe,[switch]$Probe,[switch]$BuildOnly,[switch]$OnlyP01,[switch]$OnlyP02,[switch]$IncludeClarification,[switch]$CheckPackage,
+ [ValidatePattern('^[a-f0-9]{64}$')][string]$ApprovedPackageSha256,
+ [ValidateRange(1024,65535)][int]$DatabasePort=55518)
+$ErrorActionPreference='Stop'
+$utf8=[Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding=$utf8;[Console]::OutputEncoding=$utf8;$OutputEncoding=$utf8
+$root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+. (Join-Path $root 'scripts/Invoke-ZhkuOwnedProcess.ps1')
+$importer=Join-Path $root 'scripts/Import-ZhkuCredentials.ps1'
+$java=Get-Command java.exe -ErrorAction SilentlyContinue
+$docker=Get-Command docker.exe -ErrorAction SilentlyContinue
+$jar=Join-Path $root 'knowledge/target/knowledge-0.1.0-rc.1-controlled.jar'
+$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-15/t05-65-p02-eligibility-request/request-package.json'
+if($CheckEnvironment){
+ & $importer -UseDashScope
+ @{javaAvailable=($null-ne $java);dockerAvailable=($null-ne $docker);keyAvailable=![string]::IsNullOrWhiteSpace($env:DASHSCOPE_API_KEY);mode='P02_DIAGNOSTIC_PREFLIGHT';maximumProviderCalls=10;providerCalls=0;databaseOperations=0;builds=0;encodingSample='�����֤������̽�롢�ȴ���Ȩ';encoding=[Console]::OutputEncoding.CodePage;requiresRipgrep=$false}|ConvertTo-Json
+ exit 0
+}
+if(@($PrepareProbe,$Probe,$BuildOnly,$CheckPackage|Where-Object {$_}).Count-ne 1){throw '��ѡ��PrepareProbe��Probe��BuildOnly��CheckPackage֮һ'}
+if($IncludeClarification-or $OnlyP01){throw '��P01/�������ѹرգ�������OnlyP02'}
+if(($Probe-or $CheckPackage)-and !$OnlyP02){throw '������ȷOnlyP02������������Ȩ'}
+# �Ѵ��ڵĶ�����������ڹ���ǰ�ܾ��������ظ�Prepare���ȸ�дĬ��jar���ݡ�
+if($PrepareProbe-and (Test-Path -LiteralPath $package)){throw '������Ѵ��ڣ�����ԭ�����������򸲸�'}
+if(!$java){throw '��ͨ�ն�δ�ҵ�Java����ִ��CheckEnvironment'}
+Push-Location $root
+try{
+ if($BuildOnly-or $PrepareProbe){
+  foreach($name in @('DASHSCOPE_API_KEY','ZHKU_DB_PASSWORD','POSTGRES_PASSWORD')){[Environment]::SetEnvironmentVariable($name,$null,'Process')}
+  $built=Invoke-ZhkuOwnedProcess -Executable $env:ComSpec -Arguments @('/d','/c','mvnw.cmd','-o',"-Dmaven.repo.local=$env:USERPROFILE/.m2/repository",'-Dfile.encoding=UTF-8','-pl','knowledge','-am','-DskipTests','package') -TimeoutSeconds 150
+  if($built.exitCode-ne 0-or $built.timedOut-or !$built.resourcesClosed){throw '̽�빹��ʧ�ܻ�ʱ����������jar'}
+  if($BuildOnly){exit 0}
+ }
+ $env:ZHKU_RULE_AGENT_ROOT=$root
+ $arguments=@('-Dfile.encoding=UTF-8','-Dstdout.encoding=UTF-8','-Dstderr.encoding=UTF-8','-Dloader.main=com.zhku.knowledge.ruleagent.RuleAgentOnlineProbeHost','-cp',$jar,'org.springframework.boot.loader.launch.PropertiesLauncher')
+ if($CheckPackage){
+  # ����ð�У�鲻������ʵƾ֤��Ҳ������ģ�ͻ����ݿ�ͻ��ˡ�
+  if(!$ApprovedPackageSha256-or !(Test-Path -LiteralPath $package)-or (Get-FileHash -LiteralPath $package).Hash.ToLowerInvariant()-ne $ApprovedPackageSha256){throw '���˶������ָ�Ʋ�ͬ'}
+  $env:ZHKU_RULE_AGENT_PROBE_SHA256=$ApprovedPackageSha256
+  $result=Invoke-ZhkuOwnedProcess -Executable $java.Source -Arguments ($arguments+@('--CheckPackage')) -TimeoutSeconds 15
+  if($result.exitCode-ne 0-or !$result.resourcesClosed-or $result.timedOut){throw '����ð�У��ʧ�ܣ���ִ��ģ��'}
+  $result.output
+  exit 0
+ }
+ if($PrepareProbe){
+  if(Test-Path -LiteralPath $package){throw '������Ѵ��ڣ�����ԭ����������'}
+  $result=Invoke-ZhkuOwnedProcess -Executable $java.Source -Arguments ($arguments+@('--PrepareProbe')) -TimeoutSeconds 15
+  if($result.exitCode-ne 0-or !$result.resourcesClosed-or $result.timedOut){throw '�����׼��δ��ɣ���ִ��ģ��'}
+  $result.output
+  exit 0
+ }
+ # ��ϣֻ��������������������ڻ�����ɣ����ñ���֧�����û���ȷ��׼�����ⷢ��
+ if(!$ApprovedPackageSha256-or !(Test-Path -LiteralPath $package)-or (Get-FileHash -LiteralPath $package).Hash.ToLowerInvariant()-ne $ApprovedPackageSha256){throw 'ȱ������׼�ľ��������ָ��'}
+ # �ڵ���ƾ֤����������ǰ�˶�ʵ�ʹ�����ȫ�������ʲ��������þ�jar���������Ρ�
+ $env:ZHKU_RULE_AGENT_PROBE_SHA256=$ApprovedPackageSha256
+ $checked=Invoke-ZhkuOwnedProcess -Executable $java.Source -Arguments ($arguments+@('--CheckPackage')) -TimeoutSeconds 15
+ if($checked.exitCode-ne 0-or !$checked.resourcesClosed-or $checked.timedOut){throw '����Դ�롢�����������ʲ��仯����������ʱ�⡢������ģ��'}
+ if(!$docker-or $DatabasePort-eq 54329){throw '��ҪDocker��ר����ʱ��˿ڣ��ܾ�ԭ��'}
+ & $importer -RequireDatabase -RequireDashScope
+ $secrets=@($env:ZHKU_DB_PASSWORD,$env:DASHSCOPE_API_KEY)
+ $env:POSTGRES_PASSWORD=$env:ZHKU_DB_PASSWORD
+ $env:ZHKU_DB_URL="jdbc:postgresql://127.0.0.1:$DatabasePort/zhkuagent_rulecheck_e2e"
+ $env:ZHKU_RULE_AGENT_MODE='ONLINE';$env:ZHKU_RULE_AGENT_AUTHORIZATION_ID=$ApprovedPackageSha256;$env:ZHKU_RULE_AGENT_PROBE_SHA256=$ApprovedPackageSha256
+ $env:ZHKU_RULE_AGENT_PROBE_CASE='P02_CONTINUATION_01'
+ # ��ǰ.NET/PowerShell���ܽ�nullת��Ϊ��ֵ����������ONLINE�ܾ��κλطż�����������ɾ����
+ foreach($name in @('ZHKU_RULECHECK_TASK_BATCH_DIRECTORY','ZHKU_RULECHECK_TASK_PACKAGE_SHA256','ZHKU_RULECHECK_TASK_SUMMARY_SHA256')){Remove-Item -LiteralPath "Env:\$name" -ErrorAction SilentlyContinue}
+ $env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-15/t05-65-p02-eligibility-request/live-'+[guid]::NewGuid().ToString('N')
+ $container='zhku-rule-agent-probe-'+[guid]::NewGuid().ToString('N')
+ function Docker([string[]]$argsForDocker){
+  & $importer -RequireDatabase
+  $r=Invoke-ZhkuOwnedProcess -Executable $docker.Source -Arguments $argsForDocker -TimeoutSeconds 10 -Secrets $secrets
+  if($r.exitCode-ne 0-or !$r.resourcesClosed-or $r.timedOut){throw '����Docker����ʧ�ܣ�����ʧ�ܽ����������̽��'}
+  return $r
+ }
+ try{
+  $null=Docker @('run','--rm','-d','--pull','never','--name',$container,'--publish',"127.0.0.1:${DatabasePort}:5432",'--env','POSTGRES_PASSWORD','--env','POSTGRES_USER=zhkuagent','--env','POSTGRES_DB=zhkuagent_rulecheck_e2e','pgvector/pgvector:0.8.6-pg16-bookworm')
+  $ready=$false;$deadline=[DateTime]::UtcNow.AddSeconds(30)
+  while([DateTime]::UtcNow-lt $deadline){try{$null=Docker @('exec',$container,'pg_isready','-U','zhkuagent','-d','zhkuagent_rulecheck_e2e');$ready=$true;break}catch{Start-Sleep -Milliseconds 200}}
+  if(!$ready){throw '��ʱ��δ������������ģ��'}
+  & $importer -RequireDatabase -RequireDashScope
+  $result=Invoke-ZhkuOwnedProcess -Executable $java.Source -Arguments ($arguments+@('--Probe')) -TimeoutSeconds 235 -Secrets $secrets
+  # ���������ڴ���ҵ��֤��Ŀ¼ǰʧ�ܣ�Ҳ���뱣����������������ϣ����ܶ�ʧʧ��λ�á�
+  $launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-15/t05-65-p02-eligibility-request/launcher-'+[guid]::NewGuid().ToString('N')+'.log')
+  New-Item -ItemType Directory -Force (Split-Path $launcherLog -Parent)|Out-Null
+  [IO.File]::WriteAllText($launcherLog,$result.output+"`n"+$result.errorOutput,$utf8)
+  $directory=Join-Path $root $env:ZHKU_RULE_AGENT_EVIDENCE
+  if(Test-Path -LiteralPath $directory){[IO.File]::WriteAllText((Join-Path $directory 'host.log'),$result.output+"`n"+$result.errorOutput,$utf8)}
+  if($result.exitCode-ne 0-or !$result.resourcesClosed-or $result.timedOut){throw '��ʵ̽��δͨ�����˳�δȷ�ϣ������ӵ��û��Զ�����'}
+ }finally{
+  # ֻ���ձ��������������ʱ���������ܰ������������û��ͻ��˻��������
+  $null=Docker @('rm','-f',$container)
+ }
+}finally{Pop-Location}
+"
+to contain:
+  ["$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json'",
+    "$env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-'",
+    "$launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/launcher-'"]
+but could not find:
+  ["$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json'",
+    "$env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-'",
+    "$launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/launcher-'"]
+ 
+[INFO] 
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  21.125 s
+[INFO] Finished at: 2026-10-16T14:47:24+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: There are test failures.
+[ERROR] 
+[ERROR] See D:\alldesk\Projects\ZhkuAgent-t05\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+

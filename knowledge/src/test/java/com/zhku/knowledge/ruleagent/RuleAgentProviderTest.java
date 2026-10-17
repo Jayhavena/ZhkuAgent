@@ -77,6 +77,52 @@ class RuleAgentProviderTest {
             assertThat(workers.awaitTermination(2,TimeUnit.SECONDS)).isTrue();
         }
     }
+    @Test void actualHttpRequestUsesOneConnectionWithoutAnIndependentProbe()throws Exception{
+        try(var listener=new java.net.ServerSocket(0,10,InetAddress.getByName("127.0.0.1"))){
+            var accepted=new AtomicInteger();workers=Executors.newSingleThreadExecutor();
+            String body=good();
+            var served=workers.submit(()->{
+                try{
+                    while(!listener.isClosed())try(var socket=listener.accept()){
+                        accepted.incrementAndGet();socket.setSoTimeout(2000);
+                        var reader=new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream(),StandardCharsets.UTF_8));
+                        String first=reader.readLine();if(first==null)continue;
+                        while(true){String line=reader.readLine();if(line==null||line.isEmpty())break;}
+                        byte[] bytes=body.getBytes(StandardCharsets.UTF_8);
+                        socket.getOutputStream().write(("HTTP/1.1 200 OK\r\nContent-Length: "+bytes.length+"\r\nConnection: close\r\n\r\n").getBytes(StandardCharsets.UTF_8));
+                        socket.getOutputStream().write(bytes);socket.getOutputStream().flush();return;
+                    }
+                }catch(java.io.IOException invalid){throw new IllegalStateException(invalid);}
+            });
+            port=new RuleAgentProvider(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+listener.getLocalPort()+"/chat/completions"),RuleAgentProvider.MODEL,"LOCAL_TEST_ONLY"),UUID.randomUUID(),UUID.randomUUID(),()->"local-test-placeholder",traces::add,new AtomicInteger(5));
+            port.decide(view(),Duration.ofSeconds(2));served.get(3,TimeUnit.SECONDS);
+            assertThat(accepted).hasValue(1);
+            assertThat(traces.getLast().diagnostics().connectedMillis()).isNull();
+        }
+    }
+    @Test void credentialPreparationConsumesTheSameDeadlineAndCannotDispatchLate()throws Exception{
+        start(200,good(),0);port.close();
+        port=new RuleAgentProvider(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),RuleAgentProvider.MODEL,"LOCAL_TEST_ONLY"),UUID.randomUUID(),UUID.randomUUID(),()->{
+            try{Thread.sleep(600);}catch(InterruptedException interrupted){Thread.currentThread().interrupt();}
+            return "local-test-placeholder";
+        },traces::add,new AtomicInteger(5));
+        assertThatThrownBy(()->port.decide(view(),Duration.ofMillis(200))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls).hasValue(0);
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.MODEL_TIMEOUT);
+        assertThat(traces.getLast().diagnostics().dispatchedMillis()).isNull();
+    }
+    @Test void responseModelKeepsTheSelectedAliasWithoutInventingAnIdentity()throws Exception{
+        var body=new ObjectMapper().readTree(good());((com.fasterxml.jackson.databind.node.ObjectNode)body).put("model","qwen3.8-flash");
+        start(200,body.toString(),0);port.decide(view(),Duration.ofSeconds(2));
+        assertThat(traces.getLast().diagnostics().responseModel()).isEqualTo("qwen3.8-flash");
+    }
+    @Test void actualConnectionFailureHasASafeCategoryWithoutExceptionText()throws Exception{
+        start(200,good(),0);server.stop(0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        var diagnostics=new ObjectMapper().valueToTree(traces.getLast().diagnostics());
+        assertThat(diagnostics.path("transportFailure").asText()).isEqualTo("CONNECTION_FAILURE");
+        assertThat(diagnostics.toString()).doesNotContain("local-test-placeholder","exceptionMessage");
+    }
     @Test void validActionAndUsageAreRecordedWithoutCredentials()throws Exception{
         start(200,good(),0);
         var reply=port.decide(view(),Duration.ofSeconds(1));
@@ -222,11 +268,83 @@ class RuleAgentProviderTest {
         var d=new ObjectMapper().valueToTree(traces.getLast()).path("diagnostics");
         assertThat(d.path("requestBytes").asInt()).isEqualTo(request.get().getBytes(StandardCharsets.UTF_8).length);
         assertThat(d.path("responseBytes").asInt()).isEqualTo(good().getBytes(StandardCharsets.UTF_8).length);
+        assertThat(d.path("connectedMillis").isNull()).isTrue();
         assertThat(d.path("headersMillis").isNumber()).isTrue();
         assertThat(d.path("bodyCompletedMillis").isNumber()).isTrue();
         assertThat(d.path("elapsedMillis").asLong()).isGreaterThanOrEqualTo(d.path("bodyCompletedMillis").asLong());
         assertThat(d.path("bodyCompletedMillis").asLong()).isGreaterThanOrEqualTo(d.path("headersMillis").asLong());
+        assertThat(d.path("headersMillis").asLong()).isGreaterThanOrEqualTo(d.path("dispatchedMillis").asLong());
+        assertThat(d.path("dispatchedMillis").asLong()).isGreaterThanOrEqualTo(0);
         assertThat(new ObjectMapper().writeValueAsString(traces)).doesNotContain("local-test-placeholder");
+    }
+    /**
+     * 本地重建P01首决策，核对字节数和所列字段；不证明历史逐字节身份或供应商接受该schema。
+     * 运行时剩余时间会变化，超时原因仍须真实交换证据判断。
+     */
+    @Test void firstDecisionPayloadIncludesBoundedFeedbackShape()throws Exception{
+        start(200,good(),0);
+        String question="专业选修课和公共选修课在修读安排上有什么不同？";
+        var state=new RuleAgentRunner.ActionState(List.of("SEARCH_REVIEWED_RULES"),List.of(),
+            DEFAULT_BUDGET.maxEvidenceFragments(),DEFAULT_BUDGET.maxEvidenceBytes(),DEFAULT_BUDGET.maxRunMillis(),DEFAULT_BUDGET.maxModelMillis(),5000);
+        var view=new RuleAgentRunner.View(question,List.of(new RuleAgentRunner.Question("q1",question)),Map.of(),List.of(),List.of(),List.of(),List.of(),
+            RulePublicationContract.MAX_DECISION_CALLS,DEFAULT_BUDGET.maxToolStepsPerRun(),state);
+        String payload=port.payload(view);
+        assertThat(payload.getBytes(StandardCharsets.UTF_8).length).isEqualTo(4607); // 原4557属于旧冻结合同；新增两个空反馈数组增加50字节，不是供应商兼容性证明。
+        var wire=new ObjectMapper().readTree(payload);
+        var format=wire.path("response_format").path("json_schema");
+        assertThat(format.path("name").asText()).isEqualTo("zhku_rule_agent_action");
+        assertThat(format.path("strict").asBoolean()).isTrue();
+        var branches=new ArrayList<String>();
+        format.path("schema").path("oneOf").forEach(b->branches.add(b.path("properties").path("type").path("const").asText()));
+        // 首决策只允许 SEARCH：状态过滤后单分支，不得留下空 enum 或未声明分支。
+        assertThat(branches).containsExactly("SEARCH_REVIEWED_RULES");
+        assertThat(format.path("schema").toString()).doesNotContain("enum");
+        var data=new ObjectMapper().readTree(wire.path("messages").get(1).path("content").asText());
+        assertThat(data.path("question").asText()).isEqualTo(question);
+        assertThat(data.path("candidateSetId").isNull()).isTrue();
+        assertThat(data.path("currentCandidates").isEmpty()).isTrue();
+        assertThat(data.path("observations").isEmpty()).isTrue();
+        assertThat(data.path("facts").isEmpty()).isTrue();
+        var allowed=new ArrayList<String>();
+        data.path("executionState").path("allowedActions").forEach(n->allowed.add(n.asText()));
+        assertThat(allowed).containsExactly("SEARCH_REVIEWED_RULES");
+        assertThat(data.path("executionState").path("candidates").isEmpty()).isTrue();
+        assertThat(data.path("executionState").path("reservedReviewMillis").asInt()).isEqualTo(DEFAULT_BUDGET.maxModelMillis());
+        assertThat(data.path("executionState").path("reservedPublicationMillis").asInt()).isEqualTo(5000);
+        assertThat(data.path("remainingBudget").path("modelAttemptsIncludingThisCall").asInt()).isEqualTo(RulePublicationContract.MAX_DECISION_CALLS);
+        assertThat(data.path("remainingBudget").path("toolSteps").asInt()).isEqualTo(DEFAULT_BUDGET.maxToolStepsPerRun());
+        assertThat(wire.path("model").asText()).isEqualTo(RuleAgentProvider.MODEL);
+        assertThat(wire.path("stream").asBoolean()).isFalse();
+        assertThat(wire.path("enable_thinking").asBoolean()).isFalse();
+        assertThat(wire.path("max_completion_tokens").asInt()).isEqualTo(DEFAULT_BUDGET.maxOutputTokens());
+    }
+    /** 实际请求未取得响应头时只报告超时，不从独立连通性测试推断供应商状态。 */
+    @Test void silentSupplierKeepsActualConnectionUnknownWithoutHeaders()throws Exception{
+        start(200,good(),1500);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofMillis(500))).isInstanceOf(RuleAgentProvider.Failure.class);
+        var d=new ObjectMapper().valueToTree(traces.getLast()).path("diagnostics");
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.MODEL_TIMEOUT);
+        assertThat(traces.getLast().responseReceived()).isFalse();
+        assertThat(d.path("connectedMillis").isNull()).isTrue();
+        assertThat(d.path("dispatchedMillis").isNumber()).isTrue();
+        assertThat(d.path("headersMillis").isNull()).isTrue();
+        assertThat(d.path("transportFailure").asText()).isIn("REQUEST_TIMEOUT","DEADLINE_EXCEEDED");
+        assertThat(calls).hasValue(1);
+    }
+    /** 实际连接拒绝可分类；没有连接时刻回调，诊断必须保持未知。 */
+    @Test void refusedConnectionLeavesProbeEmptyAndClassifiesFailure()throws Exception{
+        start(200,good(),0);
+        server.stop(0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
+        var d=new ObjectMapper().valueToTree(traces.getLast()).path("diagnostics");
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.MODEL_CONNECTION_FAILURE);
+        assertThat(d.path("connectedMillis").isNull()).isTrue();
+        // 实际连接被拒：处理器侧零到达（calls==0），而宿主侧恰好一次尝试（BEGIN+FINISHED，无 RECEIVED）。
+        assertThat(calls).hasValue(0);
+        assertThat(traces).hasSize(2);
+        assertThat(traces.get(0).phase()).isEqualTo(RuleAgentProvider.Phase.BEGIN);
+        assertThat(traces.get(1).phase()).isEqualTo(RuleAgentProvider.Phase.FINISHED);
+        assertThat(traces.stream().map(RuleAgentProvider.Trace::attempt).distinct().toList()).containsExactly(1);
     }
     @Test void revisedBudgetCanReceiveBeyondFiveSecondsWithoutAutomaticRetry()throws Exception{
         start(200,good(),5500);
@@ -406,7 +524,7 @@ class RuleAgentProviderTest {
         start(200,response(reviewJson().replace("a".repeat(64),"b".repeat(64)),"stop"),0);
         var reviewer=reviewPort();
         assertThatThrownBy(()->reviewer.assess(reviewInput(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
-        assertThat(new ObjectMapper().valueToTree(traces.getLast()).path("validation").path("code").asText()).isEqualTo("REVIEW_BINDING_INVALID");
+        assertThat(new ObjectMapper().valueToTree(traces.getLast()).path("validation").path("code").asText()).isEqualTo("REVIEW_INPUT_MISMATCH");
         responseBody.set(response(reviewJson().replace("AMBIGUOUS_SCOPE","invented"),"stop"));
         assertThatThrownBy(()->reviewer.assess(reviewInput(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
         responseBody.set(response(reviewJson().replace("\"requirements\":[]","\"extra\":7,\"requirements\":[]"),"stop"));
@@ -462,5 +580,107 @@ class RuleAgentProviderTest {
             assertThat(calls).hasValue(1);
             assertThat(port.isTerminated()).isTrue();
         }finally{caller.shutdownNow();assertThat(caller.awaitTermination(2,TimeUnit.SECONDS)).isTrue();}
+    }
+    /**
+     * 诊断样例留档：把本地假服务上五类情形的可验证调用诊断（请求准备→客户端提交→响应头→响应体→
+     * 异常类型→实际退出）写成脱敏样例，供人工核对。连接/TLS 时刻只在真实观测到时记录，
+     * 未观测到一律 null（未知），不以派发或本地接收冒充供应商已收到。样例全部来自 LOCAL_TEST_ONLY，不判定在线行为。
+     */
+    @Test @Timeout(40) void diagnosticSamplesAreSavedForLocalFailureModes()throws Exception{
+        var mapper=new ObjectMapper();
+        var samples=mapper.createArrayNode();
+        int callsBefore=0,tracesBefore=0;
+        // 1) 正常响应：连接/响应头/首字节/完成时刻与 requestId、模型回传名齐全，单次调用。
+        start(200,good(),0);
+        callsBefore=calls.get();tracesBefore=traces.size();
+        port.decide(view(),Duration.ofSeconds(2));
+        assertThat(traces.getLast().responseReceived()).isTrue();
+        assertThat(traces.getLast().diagnostics().headersMillis()).isNotNull();
+        assertThat(traces.getLast().diagnostics().connectedMillis()).isNull();
+        samples.add(diagnosticSample(mapper,"NORMAL_RESPONSE",callsBefore,tracesBefore,false,false));
+        assertThat(calls.get()-callsBefore).isEqualTo(1);
+        stopRound();
+        // 2) 拒绝连接：连接未建立即失败；探测与响应头均未知，处理器零到达，宿主侧恰好一次尝试。
+        start(200,good(),0);server.stop(0);
+        callsBefore=calls.get();tracesBefore=traces.size();
+        assertThatThrownBy(()->port.decide(view(),Duration.ofMillis(800))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.MODEL_CONNECTION_FAILURE);
+        assertThat(traces.getLast().diagnostics().connectedMillis()).isNull();
+        assertThat(calls.get()-callsBefore).isZero();
+        samples.add(diagnosticSample(mapper,"CONNECTION_REFUSED",callsBefore,tracesBefore,false,false));
+        stopRound();
+        // 3) 接收后静默：连接已建立但无响应头；原因码 MODEL_TIMEOUT，不伪报 received。
+        start(200,good(),1200);
+        callsBefore=calls.get();tracesBefore=traces.size();
+        assertThatThrownBy(()->port.decide(view(),Duration.ofMillis(400))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(traces.getLast().reason()).isEqualTo(ReasonCode.MODEL_TIMEOUT);
+        assertThat(traces.getLast().diagnostics().connectedMillis()).isNull();
+        assertThat(traces.getLast().diagnostics().headersMillis()).isNull();
+        assertThat(calls.get()-callsBefore).isEqualTo(1);
+        samples.add(diagnosticSample(mapper,"SILENT_AFTER_ACCEPT",callsBefore,tracesBefore,false,false));
+        stopRound();
+        // 4) 延迟响应：超过 5 秒仍收到完整响应，无自动重试。
+        start(200,good(),5200);
+        callsBefore=calls.get();tracesBefore=traces.size();
+        port.decide(view(),Duration.ofSeconds(8));
+        assertThat(traces.getLast().diagnostics().headersMillis()).isGreaterThanOrEqualTo(5000);
+        assertThat(calls.get()-callsBefore).isEqualTo(1);
+        samples.add(diagnosticSample(mapper,"DELAYED_RESPONSE",callsBefore,tracesBefore,false,false));
+        stopRound();
+        // 5) 取消与迟到响应：进行中关闭端口，不返回迟到结果，资源退出。
+        start(200,response(reviewJson(),"stop"),1500);
+        callsBefore=calls.get();tracesBefore=traces.size();
+        var reviewer=reviewPort();
+        var caller=Executors.newSingleThreadExecutor();
+        try{
+            var pending=caller.submit(()->{try{reviewer.assess(reviewInput(),Duration.ofSeconds(3));return "UNEXPECTED_SUCCESS";}catch(RuleAgentProvider.Failure failure){return failure.reason.name();}});
+            // requestReceived 是实例级闩锁且已被本方法先前情形消耗，不能作为本轮的到达判据；改以处理器调用计数确认到达。
+            var deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(2);
+            while(calls.get()==callsBefore&&System.nanoTime()<deadline)Thread.sleep(5);
+            assertThat(calls.get()).isGreaterThan(callsBefore);
+            port.close();
+            assertThat(pending.get(3,TimeUnit.SECONDS)).isEqualTo("CANCELLED");
+            assertThat(calls.get()-callsBefore).isEqualTo(1);
+            samples.add(diagnosticSample(mapper,"CANCELLED_LATE_RESPONSE",callsBefore,tracesBefore,true,port.isTerminated()));
+        }finally{caller.shutdownNow();assertThat(caller.awaitTermination(2,TimeUnit.SECONDS)).isTrue();}
+        var evidenceDir=System.getProperty("zhku.rulecheck.evidenceDir");
+        assertThat(evidenceDir).as("诊断样例留档需要 -Dzhku.rulecheck.evidenceDir").isNotNull();
+        java.nio.file.Files.write(java.nio.file.Path.of(evidenceDir,"provider-diagnostic-samples.json"),
+            mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(samples),java.nio.file.StandardOpenOption.CREATE,java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+        assertThat(samples).hasSize(5);
+    }
+    /** 一条脱敏诊断样例：只落盘本地假服务真实观测到的字段；未观测时刻保持 null。 */
+    com.fasterxml.jackson.databind.node.ObjectNode diagnosticSample(ObjectMapper mapper,String scenario,int callsBefore,int tracesBefore,boolean cancelled,boolean resourcesClosed){
+        var last=traces.getLast();var diag=last.diagnostics();
+        var node=mapper.createObjectNode();
+        node.put("scenario",scenario);
+        node.put("source","LOCAL_TEST_ONLY_FAKE_SUPPLIER");
+        if(last.reason()==null)node.putNull("reasonCode");else node.put("reasonCode",last.reason().name());
+        node.put("lastPhase",last.phase().name());
+        node.put("responseReceived",last.responseReceived());
+        var phases=mapper.createArrayNode();for(int i=tracesBefore;i<traces.size();i++)phases.add(traces.get(i).phase().name());
+        node.set("phases",phases);
+        node.put("httpCallsThisScenario",calls.get()-callsBefore);
+        node.put("cancelled",cancelled);
+        node.put("resourcesClosed",resourcesClosed);
+        var d=node.putObject("diagnostics");
+        d.put("requestBytes",diag.requestBytes());
+        d.put("elapsedMillis",diag.elapsedMillis());
+        d.put("dispatchedMillis",diag.dispatchedMillis());
+        d.put("connectedMillis",diag.connectedMillis());
+        if(diag.transportFailure()==null)d.putNull("transportFailure");else d.put("transportFailure",diag.transportFailure().name());
+        d.put("headersMillis",diag.headersMillis());
+        d.put("firstBodyMillis",diag.firstBodyMillis());
+        d.put("bodyCompletedMillis",diag.bodyCompletedMillis());
+        d.put("responseBytes",diag.responseBytes());
+        d.put("requestId",diag.requestId());
+        d.put("responseModel",diag.responseModel());
+        return node;
+    }
+    /** 结束一轮本地假服务与线程池，避免下一情形复用已停端口或泄漏执行器。 */
+    void stopRound()throws Exception{
+        if(port!=null)port.close();
+        if(server!=null)server.stop(0);
+        if(workers!=null){workers.shutdownNow();workers.awaitTermination(2,TimeUnit.SECONDS);}
     }
 }

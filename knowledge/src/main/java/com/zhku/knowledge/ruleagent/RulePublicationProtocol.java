@@ -8,6 +8,10 @@ import static com.zhku.knowledge.ruleagent.RulePublicationContract.*;
 /** 核验模型只声明需求及对应关系；字段/枚举/容量从宿主合同生成，不维护第二份限制。 */
 public final class RulePublicationProtocol {
     private RulePublicationProtocol() {}
+    // 条件键引用审核目录原键；系统提示与合同共用说明，避免模型把规则或分支身份拼进引用。
+    static final String CONDITION_ID_FORM="necessaryConditionIds 中的每个值必须逐字复制 input.conditions[].conditionId，不得拼接 ruleId 或任何前缀。"
+        +"例如目录给出 courseType 时，只能填写 courseType，S10/RETAKE_ONLY:courseType 属于非法值，会被拒绝。"
+        +"同名 conditionId 出现在多条规则下时仍使用该原键；需求分支通过各自的 id、subject 和事实绑定区分，不修改条件键。";
     private static final ObjectMapper JSON=new ObjectMapper();
     public static ObjectNode description() {
         var root=JSON.createObjectNode();
@@ -17,6 +21,8 @@ public final class RulePublicationProtocol {
         root.put("maxUnresolvedDemands",MAX_REQUIREMENTS);
         root.put("additionalFieldsAllowed",false);
         root.put("spanCoordinates","原questions.text的UTF-16字符坐标，左闭右开；不得从工具原文截取需求");
+        root.put("conditionalBranches","已识别意图但缺少一个审核条件时，按conditions的每个可行值分别声明IDENTIFIED需求，可共用原始跨度；具体subject/CORE绑定须匹配能力。分支不是用户已声明条件。真正未知保留unresolvedDemands，不截断分支以满足容量。");
+        root.put("conditionIdForm",CONDITION_ID_FORM);
         var records=root.putObject("records");
         for(Class<?> type:List.of(SemanticAssessment.class,Requirement.class,DemandSpan.class,SemanticBinding.class,UnresolvedDemand.class)) {
             var fields=records.putArray(type.getSimpleName());
@@ -44,21 +50,26 @@ public final class RulePublicationProtocol {
             requirements.put(requirement.id(),requirement);
         }
         for(var unresolved:result.unresolvedDemands())checkSpan(unresolved.span(),questions);
-        check(result.inputFingerprint().equals(input.inputFingerprint()));
+        check(result.inputFingerprint().equals(input.inputFingerprint()),RuleAgentProtocol.Code.REVIEW_INPUT_MISMATCH);
         for(String q:questions.keySet())check(result.requirements().stream().anyMatch(r->r.span().subquestionId().equals(q))
-            ||result.unresolvedDemands().stream().anyMatch(r->r.span().subquestionId().equals(q)));
+            ||result.unresolvedDemands().stream().anyMatch(r->r.span().subquestionId().equals(q)),RuleAgentProtocol.Code.REVIEW_QUESTION_UNCOVERED);
         for(var binding:result.bindings()) {
-            check(requirements.containsKey(binding.requirementId()));
-            check(input.facts().stream().anyMatch(f->f.id().equals(binding.factId())));
+            check(requirements.containsKey(binding.requirementId()),RuleAgentProtocol.Code.REVIEW_REQUIREMENT_UNKNOWN);
+            check(input.facts().stream().anyMatch(f->f.id().equals(binding.factId())),RuleAgentProtocol.Code.REVIEW_FACT_NOT_IN_INPUT);
         }
+        // 原键属于当前审核输入；形状合法的带前缀ID仍不能被静默纠正。
+        var conditionIds=input.conditions().stream().map(ReviewedCondition::conditionId).collect(java.util.stream.Collectors.toSet());
+        for(var requirement:result.requirements())for(String id:requirement.necessaryConditionIds())
+            check(conditionIds.contains(id),RuleAgentProtocol.Code.REVIEW_CONDITION_UNKNOWN);
         // 这里只验证结构和输入身份；事实能力/条件/提议覆盖仍由独立Gate决定，不能自报通过。
         return result;
     }
     private static void checkSpan(DemandSpan span,Map<String,String> questions) {
-        check(questions.containsKey(span.subquestionId()));
-        check(span.endExclusive()<=questions.get(span.subquestionId()).length());
+        check(questions.containsKey(span.subquestionId()),RuleAgentProtocol.Code.REVIEW_QUESTION_UNKNOWN);
+        check(span.endExclusive()<=questions.get(span.subquestionId()).length(),RuleAgentProtocol.Code.REVIEW_SPAN_OUT_OF_RANGE);
     }
-    private static void check(boolean valid) {
-        if(!valid)throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.REVIEW_BINDING,RuleAgentProtocol.Code.REVIEW_BINDING_INVALID);
+    // 同一拒绝边界保留独立分支码；不能靠响应SHA猜测是哪项关联失败。
+    private static void check(boolean valid,RuleAgentProtocol.Code code) {
+        if(!valid)throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.REVIEW_BINDING,code);
     }
 }

@@ -1,0 +1,16 @@
+docs(t05): 归档t05-65 P02在线执行结果并关闭授权（CLOSED_FAILED）
+
+用户2026-10-16明确批准包 ce4ddb85（一次P02/2run/10次/12元）后执行1个run：
+4次调用全部HTTP 200。决策侧ASK合格（裸courseType+已登记事实）；
+核验侧模型输出带规则前缀键S10/RETAKE_ONLY:courseType，宿主以
+REVIEW_CONDITION_UNKNOWN一票否决，run FAILED未形成WAITING_USER，
+PUBLIC未注入、第二run未启动。与t05-63死因相同。
+
+剩余6次调用已关闭不复用；usage估算0.0069754元，实际账单未知不记零。
+临时容器/临时库已回收，演示库54329未动，探针JVM已退出。
+attempt-3事件的INVALID_MODEL_RESPONSE为attempt-4失败按设计回填，
+非ASK被拒（快照已落盘为证）。
+
+结论：T05仍未完成，真实在线验收未通过；剩余缺口为模型对核验合同
+条件键命名空间的混淆，非宿主工程问题。只新增本目录收口文件，
+不改动t05-62/t05-63/t05-64既有证据，不push/PR/标签/部署/合并。

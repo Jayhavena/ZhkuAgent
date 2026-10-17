@@ -23,7 +23,9 @@ public final class RuleAgentRunner {
     public record RuleContext(String ruleId,String questionScope,List<com.zhku.knowledge.rulecheck.RuleCheckRuleTemplate.Condition> conditions,List<String> evidenceGaps){}
     public record CandidateReadState(UUID handle,boolean alreadyRead){}
     public record ActionState(List<String> allowedActions,List<CandidateReadState> candidates,int remainingEvidenceFragments,int remainingEvidenceBytes,long runMillisRemaining,int reservedReviewMillis,int reservedPublicationMillis){}
-    public record View(String question,List<Question> questions,Map<String,String> userConditions,List<ToolObservation> observations,List<RuleAgentEvidenceTools.VerifiedFact> facts,List<RuleContext> ruleContexts,List<Event> events,int attemptsRemaining,int stepsRemaining,ActionState state){
+    public record View(String question,List<Question> questions,Map<String,String> userConditions,List<ToolObservation> observations,List<RuleAgentEvidenceTools.VerifiedFact> facts,List<RuleContext> ruleContexts,List<Event> events,int attemptsRemaining,int stepsRemaining,ActionState state,List<String> publicationFactIds){
+        public View {if(publicationFactIds!=null)publicationFactIds=List.copyOf(publicationFactIds);}
+        public View(String question,List<Question> questions,Map<String,String> userConditions,List<ToolObservation> observations,List<RuleAgentEvidenceTools.VerifiedFact> facts,List<RuleContext> ruleContexts,List<Event> events,int attemptsRemaining,int stepsRemaining,ActionState state){this(question,questions,userConditions,observations,facts,ruleContexts,events,attemptsRemaining,stepsRemaining,state,null);}
         public View(String question,List<Question> questions,Map<String,String> userConditions,List<ToolObservation> observations,List<RuleAgentEvidenceTools.VerifiedFact> facts,List<RuleContext> ruleContexts,List<Event> events,int attemptsRemaining,int stepsRemaining){this(question,questions,userConditions,observations,facts,ruleContexts,events,attemptsRemaining,stepsRemaining,null);}
     }
     public record Reply(String actionJson,boolean providerResponseReceived){}
@@ -60,8 +62,10 @@ public final class RuleAgentRunner {
             while(published==null){
                 if(context.isStopRequested()){published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.CANCELLED);break;}
                 if(attempts>=decisionLimit||steps>=DEFAULT_BUDGET.maxToolStepsPerRun()||!clock.instant().isBefore(deadline)){published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.BUDGET_EXCEEDED);break;}
-                var contexts=broker.facts().stream().map(f->broker.tools.reviewedEntry(f.ruleId()).orElseThrow(()->new Rejected(ReasonCode.EVIDENCE_CHANGED))).distinct().map(e->new RuleContext(e.template().ruleId(),e.questionScope(),e.template().conditions(),e.template().evidenceGaps())).toList();
-                var view=new View(input.question(),input.questions(),input.userConditions(),broker.observations(),broker.facts(),contexts,List.copyOf(events),decisionLimit-attempts,DEFAULT_BUDGET.maxToolStepsPerRun()-steps,publicationReview==null?null:broker.actionState(decisionLimit-attempts,DEFAULT_BUDGET.maxToolStepsPerRun()-steps,Duration.between(clock.instant(),deadline).toMillis()));
+                var entries=broker.facts().stream().map(f->broker.tools.reviewedEntry(f.ruleId()).orElseThrow(()->new Rejected(ReasonCode.EVIDENCE_CHANGED))).distinct().toList();
+                var capabilities=publicationReview==null?null:RuleFactCapabilityCatalogue.fromReviewed(entries);
+                var contexts=entries.stream().map(e->new RuleContext(e.template().ruleId(),e.questionScope(),e.template().conditions(),e.template().evidenceGaps())).toList();
+                var view=new View(input.question(),input.questions(),input.userConditions(),broker.observations(),broker.facts(),contexts,List.copyOf(events),decisionLimit-attempts,DEFAULT_BUDGET.maxToolStepsPerRun()-steps,publicationReview==null?null:broker.actionState(decisionLimit-attempts,DEFAULT_BUDGET.maxToolStepsPerRun()-steps,Duration.between(clock.instant(),deadline).toMillis()),capabilities==null?null:capabilities.publicationFactIds(broker.facts()));
                 if(json(view).getBytes(java.nio.charset.StandardCharsets.UTF_8).length>DEFAULT_BUDGET.maxRequestBytes())throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
                 long reserve=publicationReview==null?0:DEFAULT_BUDGET.maxModelMillis()+5000L;
                 long decisionMillis=Duration.between(clock.instant(),deadline).toMillis()-reserve;
@@ -84,7 +88,7 @@ public final class RuleAgentRunner {
                     if(fingerprint.equals(previous)){published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.NO_PROGRESS);events.add(new Event(attempts,name,null,ReasonCode.NO_PROGRESS));break;}previous=fingerprint;
                     String q=action instanceof Search s?s.subquestionId():action instanceof Read r?r.subquestionId():action instanceof Ask a?a.subquestionId():null;
                     if(q!=null&&input.questions().stream().noneMatch(x->x.id().equals(q)))throw new Rejected(ReasonCode.INVALID_MODEL_RESPONSE);
-                    steps++;var call=context.proposeToolCall(null,name,fingerprint);ToolObservation observation=null;ReasonCode reason=null;
+                    steps++;var call=context.proposeToolCall(null,name,fingerprint);ToolObservation observation=null;ReasonCode reason=null;RulePublicationContract.Code publicationReason=null;
                     Event reviewEvent=null;
                     try{
                         if(action instanceof Search||action instanceof Read)observation=broker.execute(action,input,context.runId(),steps);
@@ -98,14 +102,15 @@ public final class RuleAgentRunner {
                                 if(action instanceof Ask a)precheck.precheckAsk(a);
                                 else precheck.precheckFinish((Finish)action);
                                 if(attempts>=DEFAULT_BUDGET.maxModelAttemptsPerRun()||!clock.instant().isBefore(deadline))throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
-                                var entries=broker.facts().stream().map(fact->broker.tools.reviewedEntry(fact.ruleId()).orElseThrow(()->new Rejected(ReasonCode.EVIDENCE_CHANGED))).distinct().toList();
-                                var capabilities=RuleFactCapabilityCatalogue.fromReviewed(entries);
+                                // 在核验消费前拒绝无发布能力的提议；保留实际ID，不做别名替换。
+                                capabilities.requireProposal(action,broker.facts());
                                 var safe=RulePublicationContract.input(input,broker.facts(),capabilities);
                                 if(json(safe).getBytes(java.nio.charset.StandardCharsets.UTF_8).length>DEFAULT_BUDGET.maxRequestBytes())throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
                                 if(Duration.between(clock.instant(),deadline).toMillis()<DEFAULT_BUDGET.maxModelMillis()+5000L)throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
                                 attempts++;context.advanceStep();
                                 Instant reviewStarted=clock.instant();
                                 try{
+                                    publicationReview.captureInput(input,broker.facts(),capabilities);
                                     var assessed=publicationReview.assess(safe,Duration.ofMillis(Math.min(DEFAULT_BUDGET.maxModelMillis(),Math.max(1,Duration.between(reviewStarted,deadline).toMillis()-5000))));
                                     if(context.isStopRequested())throw new Rejected(ReasonCode.CANCELLED);
                                     if(Duration.between(reviewStarted,clock.instant()).toMillis()>DEFAULT_BUDGET.maxModelMillis())throw new Rejected(ReasonCode.MODEL_TIMEOUT);
@@ -120,14 +125,26 @@ public final class RuleAgentRunner {
                                 }
                             }
                         }
+                        // 发布会fresh重读原文；预留5秒不等于读取有硬超时，迟到结果必须在终态前撤销。
+                        if(published!=null&&!clock.instant().isBefore(deadline)){
+                            published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.BUDGET_EXCEEDED);
+                            throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
+                        }
                         var toolStatus=observation==null||observation.status()==ObservationStatus.SUCCEEDED||observation.status()==ObservationStatus.NO_MATCH?AgentToolCall.Status.SUCCEEDED:observation.status()==ObservationStatus.UNAVAILABLE?AgentToolCall.Status.FAILED:AgentToolCall.Status.REJECTED;
                         context.recordToolResult(call,new AgentToolCall.Result(toolStatus,json(observation==null?published.result():observation),AgentToolCall.PayloadFormat.JSON,toolStatus==AgentToolCall.Status.SUCCEEDED?null:com.zhku.agent.agent.runtime.contract.AgentRuntimeError.of(com.zhku.agent.agent.runtime.contract.AgentRuntimeError.Category.TOOL_FAILURE)));
                     }catch(RulePublicationContract.Rejected invalid){
+                        publicationReason=invalid.code;
                         reason=ReasonCode.INVALID_MODEL_RESPONSE;
                         published=new RuleResultPublisher(broker,input,context.runId()).failed(reason);
                         context.recordToolResult(call,new AgentToolCall.Result(AgentToolCall.Status.REJECTED,null,null,com.zhku.agent.agent.runtime.contract.AgentRuntimeError.of(com.zhku.agent.agent.runtime.contract.AgentRuntimeError.Category.DOMAIN_FAILURE)));
+                    }catch(RuleAgentProvider.Failure invalid){
+                        // Provider失败越过原领域异常分支；先留下提议和核验失败，不能在外层收敛时丢失动作。
+                        events.add(new Event(decisionAttempt,name,null,invalid.reason));
+                        if(attempts>decisionAttempt)events.add(new Event(attempts,"PUBLICATION_REVIEW",null,invalid.reason));
+                        context.recordToolResult(call,new AgentToolCall.Result(AgentToolCall.Status.FAILED,null,null,com.zhku.agent.agent.runtime.contract.AgentRuntimeError.of(com.zhku.agent.agent.runtime.contract.AgentRuntimeError.Category.TOOL_FAILURE)));
+                        throw invalid;
                     }catch(Rejected invalid){reason=invalid.reason;context.recordToolResult(call,new AgentToolCall.Result(AgentToolCall.Status.REJECTED,null,null,com.zhku.agent.agent.runtime.contract.AgentRuntimeError.of(com.zhku.agent.agent.runtime.contract.AgentRuntimeError.Category.DOMAIN_FAILURE)));}
-                    events.add(new Event(decisionAttempt,name,observation,reason));
+                    events.add(new Event(decisionAttempt,name,observation,reason,publicationReason));
                     if(reviewEvent!=null)events.add(reviewEvent);
                     if(observation!=null&&observation.status()==ObservationStatus.SUCCEEDED&&!broker.progressed()){
                         events.add(new Event(decisionAttempt,name,null,ReasonCode.NO_PROGRESS));
@@ -148,6 +165,8 @@ public final class RuleAgentRunner {
             // 清理失败须在终态CAS前确定，避免runtime成功但结果失败的不可发布快照。
             try{context.cleanupOnce(this::closePorts);}catch(RuntimeException cleanupFailure){/* runtime已记录清理异常，仍需完成失败状态与终止收尾。 */}
             if(context.hasCleanupFailure())published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.TASK_EXECUTION_UNAVAILABLE);
+            if(published!=null&&(published.status()==TaskStatus.RESOLVED||published.status()==TaskStatus.WAITING_USER)&&!clock.instant().isBefore(deadline))
+                published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.BUDGET_EXCEEDED);
             var target=published==null?TaskStatus.FAILED:published.status();var state=target==TaskStatus.STOPPED?(context.isStopRequested()?AgentRunState.CANCELLED:AgentRunState.INCOMPLETE):target==TaskStatus.FAILED?AgentRunState.FAILED:target==TaskStatus.WAITING_USER||published.result().coverage()!=Coverage.COMPLETE?AgentRunState.INCOMPLETE:AgentRunState.SUCCEEDED;
             if(!context.finish(state)&&context.isStopRequested()){published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.CANCELLED);context.finish(AgentRunState.CANCELLED);}
             context.signalTermination();context.publishTermination();

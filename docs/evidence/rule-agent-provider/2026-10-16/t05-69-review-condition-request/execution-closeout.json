@@ -1,0 +1,117 @@
+{
+  "verifiedUtc": "2026-10-16T07:28:17.519325+00:00",
+  "sourceCommit": "bc5cdf4e3072689a7f54d09941745b11176887ed",
+  "jarSha256": "73500a441c7c8e936042f6a4119d0349a29bb50d32d1ababca864c06e9f61842",
+  "packageSha256": "3d6a515c2eeae15732540bf8fb96d87f52a6691b94a5e6131d67d8b7445999e5",
+  "liveDirectory": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047",
+  "runs": [
+    {
+      "taskId": "8c687d69-833f-405f-aaeb-80f0ec5cb386",
+      "runId": "9ad28cae-9f00-4c32-a40d-7443ccf017cb",
+      "version": 2,
+      "status": "WAITING_USER",
+      "runState": "INCOMPLETE",
+      "coverage": "NONE",
+      "actions": [
+        "SEARCH_REVIEWED_RULES",
+        "READ_VERIFIED_RULE",
+        "ASK_NECESSARY_CONDITION",
+        "PUBLICATION_REVIEW"
+      ],
+      "modelCalls": 4,
+      "allProviderValidationPassed": true,
+      "allGateEventsPassed": true,
+      "publishedSnapshotMatchesOutcomeExceptTaskOwnedTurnId": true,
+      "providerElapsedMillis": 12604,
+      "candidateCountShown": 10,
+      "verifiedOriginalEvidence": true
+    },
+    {
+      "taskId": "8c687d69-833f-405f-aaeb-80f0ec5cb386",
+      "runId": "1fb4624b-9623-465b-a153-8a11d3deced3",
+      "version": 4,
+      "status": "RESOLVED",
+      "runState": "SUCCEEDED",
+      "coverage": "COMPLETE",
+      "actions": [
+        "SEARCH_REVIEWED_RULES",
+        "READ_VERIFIED_RULE",
+        "FINISH_CHECK",
+        "PUBLICATION_REVIEW"
+      ],
+      "modelCalls": 4,
+      "allProviderValidationPassed": true,
+      "allGateEventsPassed": true,
+      "publishedSnapshotMatchesOutcomeExceptTaskOwnedTurnId": true,
+      "providerElapsedMillis": 8334,
+      "candidateCountShown": 10,
+      "verifiedOriginalEvidence": true
+    }
+  ],
+  "reviewConditionKeys": [
+    {
+      "runId": "9ad28cae-9f00-4c32-a40d-7443ccf017cb",
+      "conditionsCount": 2,
+      "userConditions": {},
+      "necessaryConditionIds": [
+        [
+          "courseType"
+        ],
+        [
+          "courseType"
+        ]
+      ]
+    },
+    {
+      "runId": "1fb4624b-9623-465b-a153-8a11d3deced3",
+      "conditionsCount": 2,
+      "userConditions": {
+        "courseType": "PUBLIC"
+      },
+      "necessaryConditionIds": [
+        []
+      ]
+    }
+  ],
+  "launcher": {
+    "startedUtc": "2026-10-16T07:24:08.524151+00:00",
+    "finishedUtc": "2026-10-16T07:24:43.090775+00:00",
+    "exitCode": 0,
+    "timedOut": false,
+    "launcherProcessExited": true,
+    "launcherPid": 38864,
+    "elapsedSeconds": 34.546,
+    "packageSha256": "3d6a515c2eeae15732540bf8fb96d87f52a6691b94a5e6131d67d8b7445999e5",
+    "maximumCalls": 10,
+    "maximumCny": "12",
+    "ordinaryWindowsPowerShell51CmdEntry": true,
+    "automaticRetries": 0,
+    "actualProviderCalls": "DERIVE_FROM_FRESH_TRACE",
+    "javaResourceState": "DERIVE_FROM_HOST_AND_PROCESS_CHECK",
+    "containerCleanup": "VERIFY_AFTER_EXIT"
+  },
+  "resources": {
+    "matchingProbeJavaProcesses": 0,
+    "newOwnedProbeContainersRemaining": 0,
+    "temporaryDatabaseContainerRemoved": true,
+    "checkedUtc": "2026-10-16T07:25:52.5375000Z",
+    "originalDemoDatabaseOperations": 0,
+    "newProviderCalls": 0,
+    "allPreexistingContainerIdentityStatePortsPreserved": true,
+    "ownedLauncherProcessRemaining": 0,
+    "rowCleanupCountStatus": "NOT_MEASURED_BEFORE_CONTAINER_REMOVAL",
+    "temporaryDatabaseRowCleanupCount": null
+  },
+  "allEightCalls200AndKnownUsage": true,
+  "duplicateContinuationIdempotency": "Host exited0 after all same-task duplicate assertions in unchanged source",
+  "databaseScope": "Only random owned container on127.0.0.1:55518/zhkuagent_rulecheck_e2e; no54329 operation",
+  "remainingCalls": 0,
+  "untested": [
+    "Repeated frozen-configuration reliability",
+    "Unseen questions and language/product quality",
+    "Student benefit",
+    "Actual supplier invoice",
+    "Deleted temporary DB row counts before removal"
+  ],
+  "interpretation": "This batch is complete same-task/two-run online P02 evidence. Bare courseType emitted for both first-run branches; no REVIEW_CONDITION_UNKNOWN occurred. One successful sample supports feasibility,not causal proof of prompt fix or reliability guarantee. All prior failures remain unchanged history."
+}

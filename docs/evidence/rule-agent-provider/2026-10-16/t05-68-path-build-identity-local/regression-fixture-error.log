@@ -1,0 +1,352 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------------< com.zhku:knowledge >-------------------------
+[INFO] Building ZhkuAgent Knowledge 0.1.0-rc.1
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowledge ---
+[INFO] Copying 5 resources from src\main\resources to target\classes
+[INFO] Copying 21 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ knowledge ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 331 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ knowledge ---
+[INFO] Copying 3 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ knowledge ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 281 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /D:/alldesk/Projects/ZhkuAgent-t05/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentReviewDiagnosticsTest.java: D:\alldesk\Projects\ZhkuAgent-t05\knowledge\src\test\java\com\zhku\knowledge\ruleagent\RuleAgentReviewDiagnosticsTest.javaʹ�û򸲸����ѹ�ʱ�� API��
+[INFO] /D:/alldesk/Projects/ZhkuAgent-t05/knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentReviewDiagnosticsTest.java: �й���ϸ��Ϣ, ��ʹ�� -Xlint:deprecation ���±��롣
+[INFO] /D:/alldesk/Projects/ZhkuAgent-t05/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheck2025LexicalCalibrationTest.java: ĳЩ�����ļ�ʹ����δ�����򲻰�ȫ�Ĳ�����
+[INFO] /D:/alldesk/Projects/ZhkuAgent-t05/knowledge/src/test/java/com/zhku/knowledge/retrieval/RuleCheck2025LexicalCalibrationTest.java: �й���ϸ��Ϣ, ��ʹ�� -Xlint:unchecked ���±��롣
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ knowledge ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[WARNING] file.encoding cannot be set as system property, use <argLine>-Dfile.encoding=...</argLine> instead
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentContractTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.852 s -- in com.zhku.knowledge.ruleagent.RuleAgentContractTest
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentEvidenceToolsTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.931 s -- in com.zhku.knowledge.ruleagent.RuleAgentEvidenceToolsTest
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest
+[ERROR] Tests run: 46, Failures: 0, Errors: 6, Skipped: 0, Time elapsed: 4.968 s <<< FAILURE! -- in com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.prepareP01PacketFromCurrentAuthoritiesWithoutOpeningPorts -- Time elapsed: 0.263 s <<< ERROR!
+java.io.FileNotFoundException: D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\p01-request-package.json (ϵͳ�Ҳ���ָ����·����)
+	at java.base/java.io.FileOutputStream.open0(Native Method)
+	at java.base/java.io.FileOutputStream.open(FileOutputStream.java:289)
+	at java.base/java.io.FileOutputStream.<init>(FileOutputStream.java:230)
+	at java.base/java.io.FileOutputStream.<init>(FileOutputStream.java:179)
+	at com.fasterxml.jackson.core.TokenStreamFactory._fileOutputStream(TokenStreamFactory.java:334)
+	at com.fasterxml.jackson.core.JsonFactory.createGenerator(JsonFactory.java:1558)
+	at com.fasterxml.jackson.databind.ObjectWriter.createGenerator(ObjectWriter.java:764)
+	at com.fasterxml.jackson.databind.ObjectWriter.writeValue(ObjectWriter.java:1081)
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.prepareP01PacketFromCurrentAuthoritiesWithoutOpeningPorts(RuleAgentOnlineFactoryTest.java:365)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.p02SameTaskResumeIsIdempotentAndRequiresBothLiveReviews -- Time elapsed: 0.380 s <<< ERROR!
+java.io.FileNotFoundException: D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\p02-local-continuation.json (ϵͳ�Ҳ���ָ����·����)
+	at java.base/java.io.FileOutputStream.open0(Native Method)
+	at java.base/java.io.FileOutputStream.open(FileOutputStream.java:289)
+	at java.base/java.io.FileOutputStream.<init>(FileOutputStream.java:230)
+	at java.base/java.io.FileOutputStream.<init>(FileOutputStream.java:179)
+	at com.fasterxml.jackson.core.TokenStreamFactory._fileOutputStream(TokenStreamFactory.java:334)
+	at com.fasterxml.jackson.core.JsonFactory.createGenerator(JsonFactory.java:1558)
+	at com.fasterxml.jackson.databind.ObjectWriter.createGenerator(ObjectWriter.java:764)
+	at com.fasterxml.jackson.databind.ObjectWriter.writeValue(ObjectWriter.java:1081)
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.p02SameTaskResumeIsIdempotentAndRequiresBothLiveReviews(RuleAgentOnlineFactoryTest.java:653)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.realTaskStoreTokenContinuesThroughOnlineFactoryAndSharesBatchQuota -- Time elapsed: 0.262 s <<< ERROR!
+java.io.FileNotFoundException: D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\actual-factory-continuation.json (ϵͳ�Ҳ���ָ����·����)
+	at java.base/java.io.FileOutputStream.open0(Native Method)
+	at java.base/java.io.FileOutputStream.open(FileOutputStream.java:289)
+	at java.base/java.io.FileOutputStream.<init>(FileOutputStream.java:230)
+	at java.base/java.io.FileOutputStream.<init>(FileOutputStream.java:179)
+	at com.fasterxml.jackson.core.TokenStreamFactory._fileOutputStream(TokenStreamFactory.java:334)
+	at com.fasterxml.jackson.core.JsonFactory.createGenerator(JsonFactory.java:1558)
+	at com.fasterxml.jackson.databind.ObjectWriter.createGenerator(ObjectWriter.java:764)
+	at com.fasterxml.jackson.databind.ObjectWriter.writeValue(ObjectWriter.java:1081)
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.realTaskStoreTokenContinuesThroughOnlineFactoryAndSharesBatchQuota(RuleAgentOnlineFactoryTest.java:391)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.legalCountsPublishBothReviewedStudyFactsWithoutTruncatingCandidates(int)[1] -- Time elapsed: 0.126 s <<< ERROR!
+java.nio.file.NoSuchFileException: D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\decision-request-budget.json
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:234)
+	at java.base/java.nio.file.spi.FileSystemProvider.newOutputStream(FileSystemProvider.java:482)
+	at java.base/java.nio.file.Files.newOutputStream(Files.java:228)
+	at java.base/java.nio.file.Files.write(Files.java:3505)
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.legalCountsPublishBothReviewedStudyFactsWithoutTruncatingCandidates(RuleAgentOnlineFactoryTest.java:342)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.legalCountsPublishBothReviewedStudyFactsWithoutTruncatingCandidates(int)[2] -- Time elapsed: 0.126 s <<< ERROR!
+java.nio.file.NoSuchFileException: D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\decision-request-budget.json
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:234)
+	at java.base/java.nio.file.spi.FileSystemProvider.newOutputStream(FileSystemProvider.java:482)
+	at java.base/java.nio.file.Files.newOutputStream(Files.java:228)
+	at java.base/java.nio.file.Files.write(Files.java:3505)
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.legalCountsPublishBothReviewedStudyFactsWithoutTruncatingCandidates(RuleAgentOnlineFactoryTest.java:342)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.legalCountsPublishBothReviewedStudyFactsWithoutTruncatingCandidates(int)[3] -- Time elapsed: 0.127 s <<< ERROR!
+java.nio.file.NoSuchFileException: D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\decision-request-budget.json
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:234)
+	at java.base/java.nio.file.spi.FileSystemProvider.newOutputStream(FileSystemProvider.java:482)
+	at java.base/java.nio.file.Files.newOutputStream(Files.java:228)
+	at java.base/java.nio.file.Files.write(Files.java:3505)
+	at com.zhku.knowledge.ruleagent.RuleAgentOnlineFactoryTest.legalCountsPublishBothReviewedStudyFactsWithoutTruncatingCandidates(RuleAgentOnlineFactoryTest.java:342)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentProviderTest
+[ERROR] Tests run: 54, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 14.38 s <<< FAILURE! -- in com.zhku.knowledge.ruleagent.RuleAgentProviderTest
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentProviderTest.diagnosticSamplesAreSavedForLocalFailureModes -- Time elapsed: 5.690 s <<< ERROR!
+java.nio.file.NoSuchFileException: D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\provider-diagnostic-samples.json
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:234)
+	at java.base/java.nio.file.spi.FileSystemProvider.newOutputStream(FileSystemProvider.java:482)
+	at java.base/java.nio.file.Files.newOutputStream(Files.java:228)
+	at java.base/java.nio.file.Files.write(Files.java:3505)
+	at com.zhku.knowledge.ruleagent.RuleAgentProviderTest.diagnosticSamplesAreSavedForLocalFailureModes(RuleAgentProviderTest.java:648)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.124 s -- in com.zhku.knowledge.ruleagent.RuleAgentRequestPathTest
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentReviewDiagnosticsTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.282 s -- in com.zhku.knowledge.ruleagent.RuleAgentReviewDiagnosticsTest
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentReviewPayloadBudgetTest
+[ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.008 s <<< FAILURE! -- in com.zhku.knowledge.ruleagent.RuleAgentReviewPayloadBudgetTest
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentReviewPayloadBudgetTest.reviewPayloadStaysWithinRequestBudgetAndBreakdownIsRecorded -- Time elapsed: 0.007 s <<< ERROR!
+java.nio.file.NoSuchFileException: D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\review-payload-budget.json
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:234)
+	at java.base/java.nio.file.spi.FileSystemProvider.newOutputStream(FileSystemProvider.java:482)
+	at java.base/java.nio.file.Files.newOutputStream(Files.java:228)
+	at java.base/java.nio.file.Files.write(Files.java:3505)
+	at com.zhku.knowledge.ruleagent.RuleAgentReviewPayloadBudgetTest.reviewPayloadStaysWithinRequestBudgetAndBreakdownIsRecorded(RuleAgentReviewPayloadBudgetTest.java:78)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentRunnerTest
+[INFO] Tests run: 22, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.343 s -- in com.zhku.knowledge.ruleagent.RuleAgentRunnerTest
+[INFO] Running com.zhku.knowledge.ruleagent.RuleAgentTaskStoreTest
+[ERROR] Tests run: 14, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.315 s <<< FAILURE! -- in com.zhku.knowledge.ruleagent.RuleAgentTaskStoreTest
+[ERROR] com.zhku.knowledge.ruleagent.RuleAgentTaskStoreTest.dispatchFailureIsRecordedAndContractCanBeConsumedByFrontend -- Time elapsed: 0.001 s <<< ERROR!
+java.io.FileNotFoundException: D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\dispatch-failure-snapshot.json (ϵͳ�Ҳ���ָ����·����)
+	at java.base/java.io.FileOutputStream.open0(Native Method)
+	at java.base/java.io.FileOutputStream.open(FileOutputStream.java:289)
+	at java.base/java.io.FileOutputStream.<init>(FileOutputStream.java:230)
+	at java.base/java.io.FileOutputStream.<init>(FileOutputStream.java:179)
+	at com.fasterxml.jackson.core.TokenStreamFactory._fileOutputStream(TokenStreamFactory.java:334)
+	at com.fasterxml.jackson.core.JsonFactory.createGenerator(JsonFactory.java:1558)
+	at com.fasterxml.jackson.databind.ObjectWriter.createGenerator(ObjectWriter.java:764)
+	at com.fasterxml.jackson.databind.ObjectWriter.writeValue(ObjectWriter.java:1081)
+	at com.zhku.knowledge.ruleagent.RuleAgentTaskStoreTest.dispatchFailureIsRecordedAndContractCanBeConsumedByFrontend(RuleAgentTaskStoreTest.java:59)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.zhku.knowledge.ruleagent.RuleClarificationContractTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.023 s -- in com.zhku.knowledge.ruleagent.RuleClarificationContractTest
+[INFO] Running com.zhku.knowledge.ruleagent.RulePublicationEligibilityTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.299 s -- in com.zhku.knowledge.ruleagent.RulePublicationEligibilityTest
+[INFO] Running com.zhku.knowledge.ruleagent.RulePublicationGateTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.091 s -- in com.zhku.knowledge.ruleagent.RulePublicationGateTest
+[INFO] Running com.zhku.knowledge.ruleagent.RuleReviewConditionPromptTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.044 s -- in com.zhku.knowledge.ruleagent.RuleReviewConditionPromptTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Errors: 
+[ERROR]   RuleAgentOnlineFactoryTest.legalCountsPublishBothReviewedStudyFactsWithoutTruncatingCandidates:342 ? NoSuchFile D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\decision-request-budget.json
+[ERROR]   RuleAgentOnlineFactoryTest.legalCountsPublishBothReviewedStudyFactsWithoutTruncatingCandidates:342 ? NoSuchFile D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\decision-request-budget.json
+[ERROR]   RuleAgentOnlineFactoryTest.legalCountsPublishBothReviewedStudyFactsWithoutTruncatingCandidates:342 ? NoSuchFile D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\decision-request-budget.json
+[ERROR]   RuleAgentOnlineFactoryTest.p02SameTaskResumeIsIdempotentAndRequiresBothLiveReviews:653 ? FileNotFound D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\p02-local-continuation.json (ϵͳ�Ҳ���ָ����·����)
+[ERROR]   RuleAgentOnlineFactoryTest.prepareP01PacketFromCurrentAuthoritiesWithoutOpeningPorts:365 ? FileNotFound D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\p01-request-package.json (ϵͳ�Ҳ���ָ����·����)
+[ERROR]   RuleAgentOnlineFactoryTest.realTaskStoreTokenContinuesThroughOnlineFactoryAndSharesBatchQuota:391 ? FileNotFound D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\actual-factory-continuation.json (ϵͳ�Ҳ���ָ����·����)
+[ERROR]   RuleAgentProviderTest.diagnosticSamplesAreSavedForLocalFailureModes:648 ? NoSuchFile D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\provider-diagnostic-samples.json
+[ERROR]   RuleAgentReviewPayloadBudgetTest.reviewPayloadStaysWithinRequestBudgetAndBreakdownIsRecorded:78 ? NoSuchFile D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\review-payload-budget.json
+[ERROR]   RuleAgentTaskStoreTest.dispatchFailureIsRecordedAndContractCanBeConsumedByFrontend:59 ? FileNotFound D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-16\t05-68-path-build-identity-local\test-evidence\dispatch-failure-snapshot.json (ϵͳ�Ҳ���ָ����·����)
+[INFO] 
+[ERROR] Tests run: 213, Failures: 0, Errors: 9, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  42.681 s
+[INFO] Finished at: 2026-10-16T14:49:03+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project knowledge: 
+[ERROR] 
+[ERROR] See D:\alldesk\Projects\ZhkuAgent-t05\knowledge\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+

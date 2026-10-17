@@ -1,0 +1,111 @@
+[ {
+  "scenario" : "NORMAL_RESPONSE",
+  "source" : "LOCAL_TEST_ONLY_FAKE_SUPPLIER",
+  "reasonCode" : null,
+  "lastPhase" : "FINISHED",
+  "responseReceived" : true,
+  "phases" : [ "BEGIN", "RECEIVED", "FINISHED" ],
+  "httpCallsThisScenario" : 1,
+  "cancelled" : false,
+  "resourcesClosed" : false,
+  "diagnostics" : {
+    "requestBytes" : 7491,
+    "elapsedMillis" : 17,
+    "dispatchedMillis" : 3,
+    "connectedMillis" : 2,
+    "headersMillis" : 16,
+    "firstBodyMillis" : 16,
+    "bodyCompletedMillis" : 16,
+    "responseBytes" : 231,
+    "requestId" : "local-request-01",
+    "responseModel" : null
+  }
+}, {
+  "scenario" : "CONNECTION_REFUSED",
+  "source" : "LOCAL_TEST_ONLY_FAKE_SUPPLIER",
+  "reasonCode" : "MODEL_CONNECTION_FAILURE",
+  "lastPhase" : "FINISHED",
+  "responseReceived" : false,
+  "phases" : [ "BEGIN", "FINISHED" ],
+  "httpCallsThisScenario" : 0,
+  "cancelled" : false,
+  "resourcesClosed" : false,
+  "diagnostics" : {
+    "requestBytes" : 7491,
+    "elapsedMillis" : 21,
+    "dispatchedMillis" : 5,
+    "connectedMillis" : null,
+    "headersMillis" : null,
+    "firstBodyMillis" : null,
+    "bodyCompletedMillis" : null,
+    "responseBytes" : 0,
+    "requestId" : null,
+    "responseModel" : null
+  }
+}, {
+  "scenario" : "SILENT_AFTER_ACCEPT",
+  "source" : "LOCAL_TEST_ONLY_FAKE_SUPPLIER",
+  "reasonCode" : "MODEL_TIMEOUT",
+  "lastPhase" : "FINISHED",
+  "responseReceived" : false,
+  "phases" : [ "BEGIN", "FINISHED" ],
+  "httpCallsThisScenario" : 1,
+  "cancelled" : false,
+  "resourcesClosed" : false,
+  "diagnostics" : {
+    "requestBytes" : 7491,
+    "elapsedMillis" : 406,
+    "dispatchedMillis" : 2,
+    "connectedMillis" : 2,
+    "headersMillis" : null,
+    "firstBodyMillis" : null,
+    "bodyCompletedMillis" : null,
+    "responseBytes" : 0,
+    "requestId" : null,
+    "responseModel" : null
+  }
+}, {
+  "scenario" : "DELAYED_RESPONSE",
+  "source" : "LOCAL_TEST_ONLY_FAKE_SUPPLIER",
+  "reasonCode" : null,
+  "lastPhase" : "FINISHED",
+  "responseReceived" : true,
+  "phases" : [ "BEGIN", "RECEIVED", "FINISHED" ],
+  "httpCallsThisScenario" : 1,
+  "cancelled" : false,
+  "resourcesClosed" : false,
+  "diagnostics" : {
+    "requestBytes" : 7491,
+    "elapsedMillis" : 5229,
+    "dispatchedMillis" : 3,
+    "connectedMillis" : 2,
+    "headersMillis" : 5228,
+    "firstBodyMillis" : 5228,
+    "bodyCompletedMillis" : 5229,
+    "responseBytes" : 231,
+    "requestId" : "local-request-01",
+    "responseModel" : null
+  }
+}, {
+  "scenario" : "CANCELLED_LATE_RESPONSE",
+  "source" : "LOCAL_TEST_ONLY_FAKE_SUPPLIER",
+  "reasonCode" : "CANCELLED",
+  "lastPhase" : "FINISHED",
+  "responseReceived" : false,
+  "phases" : [ "BEGIN", "FINISHED" ],
+  "httpCallsThisScenario" : 1,
+  "cancelled" : true,
+  "resourcesClosed" : true,
+  "diagnostics" : {
+    "requestBytes" : 2699,
+    "elapsedMillis" : 19,
+    "dispatchedMillis" : 1,
+    "connectedMillis" : 1,
+    "headersMillis" : null,
+    "firstBodyMillis" : null,
+    "bodyCompletedMillis" : null,
+    "responseBytes" : 0,
+    "requestId" : null,
+    "responseModel" : null
+  }
+} ]

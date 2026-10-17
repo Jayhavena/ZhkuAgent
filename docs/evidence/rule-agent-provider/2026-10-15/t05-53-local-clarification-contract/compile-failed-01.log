@@ -1,0 +1,15 @@
+D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-15\t05-53-local-clarification-contract\ClarificationReplay.java:22: 错误: 找不到符号
+  String actual;try{actual=String.valueOf(p.run());}catch(RulePublicationContract.Rejected e){actual=e.code.name();}catch(RuleAgentProtocol.Rejected e){actual=e.stage+":"+e.code;}catch(RuleAgentRunner.Rejected e){actual=e.reason.name();}
+                                                                                                                                                                ^
+  符号:   变量 stage
+  位置: 类型为Rejected的变量 e
+D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-15\t05-53-local-clarification-contract\ClarificationReplay.java:22: 错误: 找不到符号
+  String actual;try{actual=String.valueOf(p.run());}catch(RulePublicationContract.Rejected e){actual=e.code.name();}catch(RuleAgentProtocol.Rejected e){actual=e.stage+":"+e.code;}catch(RuleAgentRunner.Rejected e){actual=e.reason.name();}
+                                                                                                                                                                            ^
+  符号:   变量 code
+  位置: 类型为Rejected的变量 e
+D:\alldesk\Projects\ZhkuAgent-t05\docs\evidence\rule-agent-provider\2026-10-15\t05-53-local-clarification-contract\ClarificationReplay.java:34: 错误: 不兼容的类型: 从long转换到int可能会有损失
+  var eb=new RuleCheckRuleTemplate.EvidenceBinding(UUID.fromString(proof.path("sourceId").asText()),UUID.fromString(proof.path("chunkId").asText()),proof.path("revision").asText(),proof.path("checksum").asText(),proof.path("startInclusive").asLong(),proof.path("endExclusive").asLong(),proof.path("quote").asText());
+                                                                                                                                                                                                                                                       ^
+注: 某些消息已经过简化; 请使用 -Xdiags:verbose 重新编译以获得完整输出
+3 个错误
