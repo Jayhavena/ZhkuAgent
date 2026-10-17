@@ -43,6 +43,9 @@
     "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RulePublicationGateTest.java"
   ],
   "t05JavaConflictRootCause": {
+    "_SUPERSEDED": true,
+    "_SUPERSEDED_BY": "CORRECTION-20261016-T05-conflict-direction.md",
+    "_SUPERSEDED_NOTE": "下方 reading 字段方向说反了：真实方向是主线 58e1ef7(2f82467a) → T05 在其之上继续演进为 6b79b0bf；T06/T07/基线停在 2f82467a。T05 是更新的一侧，14 个冲突是 merge-base 取到 5ee26d8 造成的假冲突，非设计分歧，无需语义裁决。",
     "sampleFile": "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentRunner.java",
     "blobs": {
       "5ee26d8_commonAncestor": "3c39d78b102fb0d5c442bd7c784a8ccbea7f8f36",
@@ -54,5 +57,31 @@
     "reading": "主线/T06/T07 三方 Java 已完全一致；只有 T05 停在旧版本上另行演进。属版本陈旧，非设计分歧。",
     "adjudicatedBy": "NOT_ADJUDICATED — 超出 T07 授权范围"
   },
-  "baselineVsMainlineFileCounts": {"added": 93, "deletedOrAbsent": 387, "modified": 10}
+  "baselineVsMainlineFileCounts": {"added": 93, "deletedOrAbsent": 387, "modified": 10},
+  "blobTimelineSample": {
+    "file": "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentRunner.java",
+    "5ee26d8_commonAncestor": "3c39d78b102fb0d5c442bd7c784a8ccbea7f8f36",
+    "58e1ef7_mainlineForkPoint": "2f82467a10313bb53035a3b7b51ecfece2fa1b99",
+    "zhkuagent-modules_ec1e362": "2f82467a10313bb53035a3b7b51ecfece2fa1b99",
+    "88e57d6_baseline": "2f82467a10313bb53035a3b7b51ecfece2fa1b99",
+    "t06": "2f82467a10313bb53035a3b7b51ecfece2fa1b99",
+    "t07": "2f82467a10313bb53035a3b7b51ecfece2fa1b99",
+    "t05": "6b79b0bfff28230c34813d9d034d56e952b0c090"
+  },
+  "postureAfterMainlineAdvanced": {
+    "mainlineHead": "d3937d619441a9ed63843f44d6ff2cc926c5f7d1",
+    "T06_x_newMainline": {
+      "mergeBase": "88e57d68799d3a5996bb84346090a84040a88387",
+      "conflicts": 0,
+      "resultTree": "8fb458d56c467b3d15614f760706fcc6c7aa072c",
+      "note": "T06 与 T07 变更文件交集为 0，可直接以 ff 或 merge 跟进"
+    },
+    "T05_x_newMainline": {
+      "mergeBase": "58e1ef751e8a659178afaac04830ae3df86ad579",
+      "conflicts": 0,
+      "resultTree": "ac28aefb4dc9a1cfb44d40dc21e5c2d5d1c999e2",
+      "sampleFileBlobInResult": "6b79b0bfff28230c34813d9d034d56e952b0c090 (= T05 版本)",
+      "note": "0 冲突且结果正确：取 T05 的更新演进，不丢主线内容。是否合入属范围决策，不是技术障碍"
+    }
+  }
 }

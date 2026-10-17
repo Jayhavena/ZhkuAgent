@@ -21,17 +21,41 @@
     ]
   },
   "mergeCommit": {
-    "sha": "PENDING — 证据提交必须先落定，合并提交才能产生；最终 SHA 记录在主线 ref 与合并提交消息中",
-    "parents": ["ec1e36234327e1de2d14c0a9ddb05148a02b885a", "本证据提交"],
+    "sha": "d3937d619441a9ed63843f44d6ff2cc926c5f7d1",
+    "short": "d3937d6",
+    "parents": [
+      "ec1e36234327e1de2d14c0a9ddb05148a02b885a (zhkuagent-modules 推进前)",
+      "6803e2b0837ba1daa1183b8dcdf08be57b200255 (本证据提交)"
+    ],
+    "mergedTree": "d3a4f35b012f860dc63c60fdf79f74b9221dc476",
+    "frontendSubtree": "3237572c35dfe207b77bd59f7f204cf31ec049c6",
+    "frontendSubtreeIdenticalToPreEvidenceTree": true,
     "method": "merge-tree + commit-tree + update-ref（不在主线 worktree 执行 git merge）",
-    "safetyRef": "backup-zhkuagent-modules-before-t07-<sha>"
+    "safetyRef": "refs/backup/backup-zhkuagent-modules-before-t07-ec1e362 -> ec1e36234327e1de2d14c0a9ddb05148a02b885a",
+    "mainlineAdvancedAt": "2026-10-16",
+    "intermediateState": "update-ref 后主线 worktree 索引仍停在 ec1e362，status 一度显示 997 项'待提交的回退'；已用 git reset --mixed 同步索引（不动工作区）",
+    "mainlineWorktreeSync": {
+      "action": "git checkout --pathspec-from-file（142 条路径，取自 ec1e362..d3937d6）",
+      "excluded": "刻意排除别人未提交改动的 4 个 docs/product 文件（命中 0 条，未覆盖）",
+      "resultBefore": "997 条 status 条目",
+      "resultAfter": "4 条已跟踪改动（正是那 4 个 docs/product）+ 851 条未跟踪（与推进前一致）",
+      "untrackedDirsPreserved": [".learnings/", ".superpowers/", "career/"],
+      "othersUncommittedDiffPreserved": true,
+      "backupOfTheirDiff": "tmp/t07-merge/mainline-worktree-uncommitted.patch（1438 行，未入库，含他人未提交内容）"
+    }
   },
   "notDone": [
     "未 push / PR / 打标签 / 部署 / 改写历史",
-    "未裁决 T05 与 T06 的 13 个 ruleagent Java 冲突",
-    "未合入 T06 代码（T06 与 T07 文件交集为 0，可后续以 ff 方式跟进）",
+    "未合入 T05 代码（经更正：T05 × 新主线 0 冲突且结果正确，属范围决策而非技术障碍）",
+    "未合入 T06 代码（T06 与 T07 文件交集为 0，T06 × 新主线 0 冲突，可后续直接跟进）",
     "未在合并提交上重跑两窗口浏览器验收"
   ],
+  "correction": {
+    "file": "CORRECTION-20261016-T05-conflict-direction.md",
+    "what": "原判断'T05 停在旧版本、属版本陈旧'方向说反；真实方向为 T05 建立在主线 58e1ef7 之上继续演进",
+    "impactOnThisMerge": "无。本次只合 T07，T05 未参与，主线 d3937d6 无需回滚",
+    "unavoidableResidue": "合并提交 d3937d6 的消息中含同一错误表述，按不改写历史原则保留，以更正文件为准"
+  },
   "standingLabels": {
     "providerCalls": 0,
     "databaseCalls": 0,
