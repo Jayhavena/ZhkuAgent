@@ -4,6 +4,7 @@ param(
     [int]$BackendPort,
     [ValidateRange(1024, 65535)][int]$WebPort = 8080,
     [ValidatePattern('^[a-z0-9][a-z0-9_-]{0,62}$')][string]$ProjectName = 'zhku-web-preview',
+    [ValidateSet('student', 'engineering', 'replay')][string]$EntryMode,
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'
@@ -13,6 +14,10 @@ $savedBackend = $env:ZHKU_CONTROLLED_BACKEND_PORT
 $savedWeb = $env:ZHKU_WEB_PORT
 $created = $false
 try {
+    # 模式写入构建产物；跳过构建不能保证磁盘上的页面与所选后端合同匹配。
+    if ($Action -eq 'Start' -and $EntryMode -and $SkipBuild) {
+        throw 'EntryMode requires a fresh frontend build; omit -SkipBuild.'
+    }
     # Stop不需要真实后端；仅让Compose完成插值，绝不启动该端口的服务。
     if ($Action -ne 'Stop' -and ($BackendPort -lt 1024 -or $BackendPort -gt 65535)) {
         throw 'Provide -BackendPort with the actual controlled service port (1024..65535).'
@@ -41,12 +46,19 @@ try {
         . (Join-Path $previewRoot '../../scripts/Resolve-ZhkuNode.ps1')
         $nodeTools=Get-ZhkuNodeToolchain
         $nodePathBefore=$env:PATH
+        $entryModeBefore=$env:VITE_ENTRY_MODE
         Push-Location $previewRoot
         try {
             $env:PATH=$nodeTools.Directory+';'+$nodePathBefore
+            if ($EntryMode) { $env:VITE_ENTRY_MODE=$EntryMode }
             & $nodeTools.Npm run build
             if ($LASTEXITCODE -ne 0) { throw 'Frontend build failed.' }
-        } finally { $env:PATH=$nodePathBefore; Pop-Location }
+        } finally {
+            $env:PATH=$nodePathBefore
+            if ($null -eq $entryModeBefore) { Remove-Item Env:VITE_ENTRY_MODE -ErrorAction SilentlyContinue }
+            else { $env:VITE_ENTRY_MODE=$entryModeBefore }
+            Pop-Location
+        }
     }
     if (-not (Test-Path -LiteralPath (Join-Path $previewRoot 'dist/index.html') -PathType Leaf)) {
         throw 'Missing dist/index.html. Build the frontend first.'

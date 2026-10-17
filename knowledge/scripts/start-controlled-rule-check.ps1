@@ -173,7 +173,8 @@ try{
     if($Smoke){HttpSmoke $run;StopHost $run;$run=StartHost 2;HttpSmoke $run;StopHost $run}
     else{
         Write-Host "接口：http://127.0.0.1:$BackendPort/api/zhku/controlled-preview/v2；账号 controlled-2025-student"
-        Write-Host "最长运行$MaxMinutes分钟，回车正常退出；网页代理可沿用已有规则查证前端，勿用于在线试点。"
+        Write-Host "最长运行$MaxMinutes分钟，回车正常退出；网页须用配套回放入口，勿用于在线试点。"
+        Write-Host ".\agent\frontend\start-nginx-preview.cmd -BackendPort $BackendPort -WebPort 58080 -EntryMode replay"
         $deadline=[DateTime]::UtcNow.AddMinutes($MaxMinutes);$inputTask=[Console]::In.ReadLineAsync()
         while(!$inputTask.IsCompleted-and [DateTime]::UtcNow-lt $deadline-and !$hostProcess.HasExited){Start-Sleep -Milliseconds 200}
         StopHost $run

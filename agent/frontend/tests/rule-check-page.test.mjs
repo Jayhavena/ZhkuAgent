@@ -23,6 +23,7 @@ async function render({actor={role:'USER',userId:ID,authRevision:0},reason='',re
 }
 test('student page has independent login and explicit first reference boundary',async()=>{
   const html=await render({actor:null});assert.match(html,/登录规则查证/);assert.match(html,/2025/);assert.match(html,/现行/)
+  assert.match(html,/离线回放演示/);assert.match(html,/不会实时调用模型/)
   assert.match(html,/autocomplete="username"/);assert.match(html,/autocomplete="current-password"/)
 })
 test('clarification and refusal show separate original controls without confirmed facts',async()=>{

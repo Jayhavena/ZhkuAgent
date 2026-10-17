@@ -9,6 +9,7 @@ import { ruleCheckConditionLabel } from '../state/rule-check-labels.js'
 
 // 测试可注入渲染状态；正式入口仍只从独立v2客户端取得结果，不提供URL资料自证参数。
 const runtime = inject('rule-check-runtime', null)
+const replayEntry = import.meta.env.VITE_ENTRY_MODE === 'replay'
 const session = runtime?.session || ruleCheckSession, api = runtime?.client || ruleCheckClient
 const flow = runtime?.workflow || createRuleCheckWorkflow(), state = flow.state
 const username = ref(''), password = ref(''), question = ref(''), choice = ref(''), loginError = ref('')
@@ -79,11 +80,12 @@ function newQuestion() { flow.reset(); question.value = ''; choice.value = '' }
 <template>
   <main class="rule-page">
     <header class="rule-header"><RouterLink to="/" class="rule-brand">仲园规则查证</RouterLink>
-      <nav aria-label="查证导航"><RouterLink to="/campus/run">学分实验</RouterLink><RouterLink to="/super-agent">通用助手实验</RouterLink>
+      <nav aria-label="查证导航"><template v-if="!replayEntry"><RouterLink to="/campus/run">学分实验</RouterLink><RouterLink to="/super-agent">通用助手实验</RouterLink></template>
         <button v-if="session.state.actor" type="button" :disabled="session.state.identityBusy" @click="logout">退出登录</button></nav>
     </header>
     <section class="rule-intro"><h1>先找到依据，再理解规则。</h1><p>用你的话提问，确认必要条件，逐条核对原文。</p>
-      <p class="reference-note">首轮以2025版文本为依据；现行适用性仍需核实。</p></section>
+      <p class="reference-note">首轮以2025版文本为依据；现行适用性仍需核实。</p>
+      <p class="reference-note" role="note">离线回放演示：使用已封存的模型响应；未覆盖的问题可能缺少依据，不会实时调用模型。</p></section>
     <section v-if="!session.state.actor" class="rule-login" aria-labelledby="rule-login-title">
       <h2 id="rule-login-title">登录规则查证</h2><p>使用受控演示账号，查看当前可查证的规则。</p>
       <p v-if="authChecking" role="status">正在核对登录状态…</p>

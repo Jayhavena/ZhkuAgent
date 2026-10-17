@@ -23,6 +23,14 @@
 
 ## 启动和停止
 
+规则查证的离线回放后端（`start-controlled-rule-check.cmd`）使用同步接口，须显式构建配套页面。在另一个终端启动网页：
+
+```powershell
+.\agent\frontend\start-nginx-preview.cmd -BackendPort 58126 -WebPort 58080 -EntryMode replay
+```
+
+打开 `http://127.0.0.1:58080/rules`，使用 `controlled-2025-student` 和本次在后端窗口设置的密码。页面会标明“离线回放演示”，提问使用 `/v2/rule-check`。默认学生页面使用新版异步 `/v2/tasks` 合同，不能直接搭配旧回放后端。`-EntryMode` 需要重新构建，不能与 `-SkipBuild` 混用；已有网页项目应先按其项目名正常停止，再用对应模式启动。后端最长运行15分钟；网页代理仍需单独停止。
+
 先启动**既有受控服务**，确认它的实际HTTP端口；不要把通用Agent服务误当成受控服务。普通Windows PowerShell/CMD可调用包装入口，不依赖用户安装pwsh。
 
 在仓库根目录启动（以下8123只是示例，替换为受控服务实际端口）：

@@ -1,11 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { studentRoutes } from './student-routes.js'
-import { engineeringRoutes } from './engineering-routes.js'
+import { selectEntryRoutes } from './entry-routes.js'
 import { controlledClient } from '../api/controlled.js'
 import { controlledSession } from '../state/controlled-session.js'
 
-// 入口模式在构建期定型：学生的运行期路由表只有查证页，工程模式才挂两个实验入口与回放。
-const routes = import.meta.env.VITE_ENTRY_MODE === 'engineering' ? engineeringRoutes : studentRoutes
+// 入口在构建期固定，离线演示须使用配套的同步回放页面。
+const routes = selectEntryRoutes(import.meta.env.VITE_ENTRY_MODE)
 
 const router = createRouter({
   history: createWebHistory(),
