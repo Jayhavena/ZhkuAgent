@@ -1,0 +1,119 @@
+{
+  "resourcesExited" : true,
+  "executionMode" : "SIMULATED_ENGINEERING_REPLAY",
+  "assetsRevision" : "2025.9.2",
+  "modelAttemptCount" : 0,
+  "providerCalls" : 0,
+  "exchanges" : [ {
+    "status" : 401,
+    "input" : "",
+    "path" : "/tasks/capabilities",
+    "actual" : "{\"code\":\"AUTHENTICATION_REQUIRED\",\"message\":\"需要有效登录\"}",
+    "method" : "GET"
+  }, {
+    "status" : 403,
+    "input" : "",
+    "path" : "/tasks/capabilities",
+    "actual" : "{\"code\":\"ACCESS_DENIED\",\"message\":\"请求未获许可\"}",
+    "method" : "GET"
+  }, {
+    "status" : 200,
+    "input" : "",
+    "path" : "/tasks/capabilities",
+    "actual" : "{\"schemaVersion\":3,\"asynchronous\":true}",
+    "method" : "GET"
+  }, {
+    "status" : 403,
+    "input" : "{\"clientRequestId\":\"973bb256-f794-4670-9b32-21814d2dd56d\",\"question\":\"需要澄清\"}",
+    "path" : "/tasks",
+    "actual" : "{\"code\":\"ACCESS_DENIED\",\"message\":\"请求未获许可\"}",
+    "method" : "POST"
+  }, {
+    "status" : 404,
+    "input" : "",
+    "path" : "/tasks/requests/CREATE/973bb256-f794-4670-9b32-21814d2dd56d",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET"
+  }, {
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"973bb256-f794-4670-9b32-21814d2dd56d\",\"question\":\"需要澄清\"}",
+    "path" : "/tasks",
+    "actual" : "{\"taskId\":\"cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be\",\"turnId\":\"9ada4b15-f0aa-4fcf-9d4f-db48bacf14d7\",\"runId\":\"2ef2fb15-bb6b-40a4-aa77-94092fd99a4d\",\"version\":1,\"duplicate\":false}",
+    "method" : "POST"
+  }, {
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"973bb256-f794-4670-9b32-21814d2dd56d\",\"question\":\"需要澄清\"}",
+    "path" : "/tasks",
+    "actual" : "{\"taskId\":\"cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be\",\"turnId\":\"9ada4b15-f0aa-4fcf-9d4f-db48bacf14d7\",\"runId\":\"2ef2fb15-bb6b-40a4-aa77-94092fd99a4d\",\"version\":1,\"duplicate\":true}",
+    "method" : "POST"
+  }, {
+    "status" : 409,
+    "input" : "{\"clientRequestId\":\"973bb256-f794-4670-9b32-21814d2dd56d\",\"question\":\"改了问题\"}",
+    "path" : "/tasks",
+    "actual" : "{\"code\":\"TASK_CONFLICT\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "POST"
+  }, {
+    "status" : 404,
+    "input" : "",
+    "path" : "/tasks/cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET"
+  }, {
+    "status" : 404,
+    "input" : "",
+    "path" : "/tasks/requests/CREATE/973bb256-f794-4670-9b32-21814d2dd56d",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET"
+  }, {
+    "status" : 200,
+    "input" : "",
+    "path" : "/tasks/cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be\",\"turnId\":\"9ada4b15-f0aa-4fcf-9d4f-db48bacf14d7\",\"runId\":\"2ef2fb15-bb6b-40a4-aa77-94092fd99a4d\",\"version\":2,\"taskStatus\":\"WAITING_USER\",\"runState\":\"INCOMPLETE\",\"terminated\":true,\"result\":{\"publishedVersion\":2,\"originatingRunId\":\"2ef2fb15-bb6b-40a4-aa77-94092fd99a4d\",\"catalogueVersion\":\"chain-fixture-v1\",\"referenceRevision\":\"2025.9.2\",\"coverage\":\"NONE\",\"items\":[{\"id\":\"q1\",\"coverage\":\"NONE\",\"claims\":[],\"issues\":[{\"id\":\"condition\",\"kind\":\"CLARIFICATION\",\"reasonCode\":\"MISSING_CONDITION\",\"message\":\"请确认课程类别\",\"nextStep\":\"补充必要条件\"}],\"clarification\":[{\"conditionId\":\"courseType\",\"question\":\"课程类别？\",\"allowedValues\":[\"PUBLIC\",\"PROFESSIONAL\"]}]}],\"evidence\":[],\"evidenceRelations\":[]},\"continuationToken\":\"ac1dc04f-7822-438a-90c1-0dd87ac38a6e\",\"execution\":{\"mode\":\"ENGINEERING_REPLAY\",\"modelAttemptCount\":0,\"toolStepCount\":0,\"providerResponseReceived\":false,\"answerSource\":\"NONE\",\"replayCoverage\":\"HIT\"}}",
+    "method" : "GET"
+  }, {
+    "status" : 409,
+    "input" : "{\"clientRequestId\":\"4e0ba116-7cf5-4948-994d-acf90257f73f\",\"expectedVersion\":1,\"message\":\"PUBLIC\",\"continuationToken\":\"ac1dc04f-7822-438a-90c1-0dd87ac38a6e\"}",
+    "path" : "/tasks/cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be/messages",
+    "actual" : "{\"code\":\"TASK_CONFLICT\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "POST"
+  }, {
+    "status" : 202,
+    "input" : "{\"clientRequestId\":\"4e0ba116-7cf5-4948-994d-acf90257f73f\",\"expectedVersion\":2,\"message\":\"PUBLIC\",\"continuationToken\":\"ac1dc04f-7822-438a-90c1-0dd87ac38a6e\"}",
+    "path" : "/tasks/cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be/messages",
+    "actual" : "{\"taskId\":\"cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be\",\"turnId\":\"f67ea044-b8af-4a52-9ced-c50da6dd2e16\",\"runId\":\"15070212-41d0-486e-9901-89ad18f87424\",\"version\":3,\"duplicate\":false}",
+    "method" : "POST"
+  }, {
+    "status" : 200,
+    "input" : "",
+    "path" : "/tasks/cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be",
+    "actual" : "{\"schemaVersion\":3,\"taskId\":\"cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be\",\"turnId\":\"f67ea044-b8af-4a52-9ced-c50da6dd2e16\",\"runId\":\"15070212-41d0-486e-9901-89ad18f87424\",\"version\":4,\"taskStatus\":\"RESOLVED\",\"runState\":\"SUCCEEDED\",\"terminated\":true,\"result\":{\"publishedVersion\":4,\"originatingRunId\":\"15070212-41d0-486e-9901-89ad18f87424\",\"catalogueVersion\":\"chain-fixture-v1\",\"referenceRevision\":\"2025.9.2\",\"coverage\":\"COMPLETE\",\"items\":[{\"id\":\"q1\",\"coverage\":\"COMPLETE\",\"claims\":[{\"id\":\"answer\",\"factId\":\"chain-fixture\",\"text\":\"工程模拟确认内容\",\"when\":{},\"conditionSource\":\"USER_DECLARED\"}],\"issues\":[],\"clarification\":[]}],\"evidence\":[{\"id\":\"697ef448-4889-4496-a3e8-e1a91be9f098:0-36\",\"sourceId\":\"c83101a9-14a8-48a4-bc97-68b791d72907\",\"chunkId\":\"4802085a-d190-3bdf-81d6-31c0941cb034\",\"revision\":\"2025.9.2\",\"checksum\":\"2d1dbdbee0a567fea8c345a62e6568bc93d373d36518c5b62253a11f5f136dd1\",\"startInclusive\":0,\"endExclusive\":36,\"quote\":\"第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\\n课学习。\",\"originalToken\":\"1c6e9991-1cc7-4528-81de-aa0dc0a8005e\"}],\"evidenceRelations\":[{\"evidenceId\":\"697ef448-4889-4496-a3e8-e1a91be9f098:0-36\",\"subquestionId\":\"q1\",\"role\":\"CLAIM\",\"targetId\":\"answer\"}]},\"continuationToken\":null,\"execution\":{\"mode\":\"ENGINEERING_REPLAY\",\"modelAttemptCount\":0,\"toolStepCount\":2,\"providerResponseReceived\":false,\"answerSource\":\"VERIFIED_RULE_ONLY\",\"replayCoverage\":\"HIT\"}}",
+    "method" : "GET"
+  }, {
+    "status" : 404,
+    "input" : "",
+    "path" : "/tasks/cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be/originals/1c6e9991-1cc7-4528-81de-aa0dc0a8005e",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET"
+  }, {
+    "status" : 404,
+    "input" : "",
+    "path" : "/tasks/cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be/originals/f0fd6be8-4673-4ba9-8bd3-b15e865ffec7",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET"
+  }, {
+    "status" : 200,
+    "input" : "",
+    "path" : "/tasks/cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be/originals/1c6e9991-1cc7-4528-81de-aa0dc0a8005e",
+    "actual" : "{\"citationId\":\"697ef448-4889-4496-a3e8-e1a91be9f098\",\"sourceId\":\"c83101a9-14a8-48a4-bc97-68b791d72907\",\"chunkId\":\"4802085a-d190-3bdf-81d6-31c0941cb034\",\"revision\":\"2025.9.2\",\"title\":\"本科生学生手册（2025版）·选修课程管理办法·查证原文试验\",\"sourceLocator\":\"PDF物理第76页／印刷第64页，第2条\",\"recordedPageNumber\":76,\"pageNumberKind\":\"RECORDED_SOURCE_PAGE\",\"sectionTitle\":\"第2条\",\"safeSourceUrl\":null,\"contextText\":\"第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\\n课学习。\",\"contextStartInclusive\":0,\"quoteStartInclusive\":0,\"quoteEndExclusive\":36,\"unknownItems\":[\"记录页码的物理页与印刷页映射尚未核实\",\"暂无已验证安全的原件地址\"]}",
+    "method" : "GET"
+  }, {
+    "status" : 404,
+    "input" : "",
+    "path" : "/tasks/cc62ca39-2c1d-4ab7-beb5-7fd8fd6c94be",
+    "actual" : "{\"code\":\"TASK_NOT_AVAILABLE\",\"message\":\"请求未获确认，请根据任务状态继续操作。\"}",
+    "method" : "GET"
+  } ],
+  "injectedServerPort" : "null",
+  "schemaVersion" : 3,
+  "database" : "zhkuagent_rulecheck_e2e(temp,一次性容器)"
+}

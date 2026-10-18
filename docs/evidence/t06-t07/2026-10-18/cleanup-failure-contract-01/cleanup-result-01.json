@@ -1,0 +1,85 @@
+{
+  "scope": "T06 acceptance runner initialization and cleanup failure paths; controlled external boundaries only",
+  "sourceCommit": "4de322d20899cf793c130c97ee92186f93bd9e3e",
+  "baselineSha256": "D60FE1C985EA45826B23589E82F429D7F6C1F5C5B4C6030B8B2649E99FC30ABB",
+  "runnerSha256": "7D578BBB49DBCE016935DA53308F54105E63AD3BE31022432A09F57AE9917B4B",
+  "contractSha256": "20EA5AF51EAB5E9202483097F4042AEA4B628298AD9ABE22238DF1B58BF489D2",
+  "finalContractCases": 33,
+  "runs": [
+    {
+      "passed": 18,
+      "log": "red-01-ps51.log",
+      "cases": 31,
+      "source": "frozen baseline",
+      "exitCode": 1,
+      "failed": 13
+    },
+    {
+      "passed": 31,
+      "log": "green-01-ps51.log",
+      "cases": 31,
+      "source": "first fix",
+      "exitCode": 0,
+      "failed": 0
+    },
+    {
+      "passed": 31,
+      "log": "green-02-ps7.log",
+      "cases": 31,
+      "source": "first fix",
+      "exitCode": 0,
+      "failed": 0
+    },
+    {
+      "passed": 18,
+      "log": "red-02-ps51.log",
+      "cases": 33,
+      "source": "frozen baseline with strengthened ownership/container-start cases",
+      "exitCode": 1,
+      "failed": 15
+    },
+    {
+      "passed": 33,
+      "log": "green-03-ps51.log",
+      "cases": 33,
+      "source": "final files UTF-8 BOM / CRLF",
+      "exitCode": 0,
+      "failed": 0
+    },
+    {
+      "passed": 33,
+      "log": "green-04-ps7.log",
+      "cases": 33,
+      "source": "final files UTF-8 BOM / CRLF",
+      "exitCode": 0,
+      "failed": 0
+    }
+  ],
+  "implementation": [
+    "Post-start database initialization catches failures and forces cleanup even with KeepContainer",
+    "Proxy startup enters protected try before starting relay",
+    "Container names have per-creation GUID suffix; no pre-creation deletes",
+    "Database removal rejects unregistered containers",
+    "Failed nginx starts remain registered for cleanup attempts",
+    "Cleanup continues across every owned proxy resource, reports failures without false success",
+    "Cleanup failures produce nonzero acceptance without replacing original business exception or Maven exit code"
+  ],
+  "actualExternalCalls": {
+    "database": 0,
+    "provider": 0,
+    "realProcessKills": 0,
+    "maven": 0,
+    "docker": 0
+  },
+  "testMethod": "Production functions and orchestration execute unchanged through AST extraction; controlled Docker/process/readiness/credential/Maven boundaries inject failures. Existing relay socket probe runs generated Python and only binds OS loopback, then closes before listening.",
+  "notVerified": [
+    "Actual Docker/temporary database startup and failure cleanup",
+    "Actual background relay process termination",
+    "Actual Maven/Java/HTTP/proxy or browser acceptance",
+    "Actual credential-store fallback",
+    "Online provider and external authorization materials"
+  ],
+  "sourceAndBrowserBoundary": "Java/Node files and the existing 4de322d browser lease were not changed; new scripts require their own acceptance identity.",
+  "encoding": "Both scripts UTF-8 BOM / CRLF; Windows PowerShell 5.1 parser has zero errors; diff --check exits 0",
+  "repositoryActions": "No staging, commits, merges, global process-name cleanup, foreign-container deletion or overwriting earlier evidence"
+}

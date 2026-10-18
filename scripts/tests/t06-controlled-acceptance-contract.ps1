@@ -20,6 +20,8 @@ for ($index = $lastFunction + 1; $index -lt $ast.EndBlock.Statements.Count; $ind
 }
 $orchestration = [scriptblock]::Create($tail -join [Environment]::NewLine)
 $productionMaven = ${function:Invoke-MavenAcceptance}
+$productionStartProxy = ${function:Start-ProxyScaffold}
+$productionStopProxy = ${function:Stop-ProxyScaffold}
 $fixture = Join-Path $env:TEMP ('zhku-t06-contract-' + [guid]::NewGuid().ToString('N'))
 $trackedNames = @('ZHKU_DB_PASSWORD', 'POSTGRES_PASSWORD', 'SERVER__PORT', 'T06_CONTRACT_CREDENTIAL', 'T06_CONTRACT_MAVEN_EXIT', 'T06_CONTRACT_REQUIRE_DB')
 $saved = @{}
@@ -45,8 +47,15 @@ function Reset-Boundaries {
     $script:DockerRunArgs = @()
     $script:DockerRunHadPassword = $false
     $script:DockerRunExit = 0
+    $script:NginxRunExit = 0
     $script:LastDatabaseImportCount = 0
     $script:EveryDatabaseCommandReimported = $true
+    $script:CredentialFailureAt = 0
+    $script:PsqlTableCount = '0'
+    $script:DockerRemoveExit = 0
+    $script:DockerRemoveFailurePrefix = ''
+    $script:MavenBoundaryFailure = $null
+    $script:MavenBoundaryCalls = 0
     $script:ContainerSeq = 0
     $script:Containers = New-Object System.Collections.ArrayList
     $script:TempPassword = $null
@@ -57,6 +66,9 @@ function Reset-Boundaries {
     $script:AssetsRoot = $fixture
     $script:EvidenceRoot = Join-Path $fixture ([guid]::NewGuid().ToString('N'))
     $script:repoRoot = $fixture
+    $script:BackendPort = 18081
+    $script:PublicPort = 18082
+    $script:RelayPort = 18083
     $env:ZHKU_DB_PASSWORD = 'contract-process-only'
     $env:T06_CONTRACT_CREDENTIAL = 'contract-process-only'
     $env:T06_CONTRACT_MAVEN_EXIT = '0'
@@ -75,16 +87,36 @@ function docker {
         $script:DockerRunArgs = $arguments
         $script:DockerRunHadPassword = ($env:POSTGRES_PASSWORD -eq $env:T06_CONTRACT_CREDENTIAL)
         $global:LASTEXITCODE = $script:DockerRunExit
+        if ($arguments -contains 'nginx:1.27-alpine') { $global:LASTEXITCODE = $script:NginxRunExit }
     }
-    if ($arguments[0] -eq 'exec' -and $arguments[2] -eq 'psql') { return '0' }
+    if ($arguments[0] -eq 'rm' -and ($script:DockerRemoveFailurePrefix -eq '' -or $arguments[2] -like ($script:DockerRemoveFailurePrefix + '*'))) { $global:LASTEXITCODE = $script:DockerRemoveExit }
+    if ($arguments[0] -eq 'exec' -and $arguments[2] -eq 'psql') { return $script:PsqlTableCount }
 }
 function Get-FreeLoopbackPort { return 56123 }
+function Get-StartedContractContainer([string]$Prefix) {
+    foreach ($call in $script:DockerCalls) {
+        if ($call[0] -eq 'run') {
+            $nameIndex = [array]::IndexOf($call, '--name')
+            if ($nameIndex -ge 0 -and $call[$nameIndex + 1] -like ($Prefix + '*')) { return $call[$nameIndex + 1] }
+        }
+    }
+    return $null
+}
+function Test-RemovedAfterCreation([string]$Container) {
+    $created = $false
+    foreach ($call in $script:DockerCalls) {
+        if ($call[0] -eq 'run' -and $call -contains $Container) { $created = $true }
+        if ($created -and $call[0] -eq 'rm' -and $call[2] -eq $Container) { return $true }
+    }
+    return $false
+}
 try {
     New-Item -ItemType Directory -Path (Join-Path $fixture 'scripts') -Force *> $null
     # 凭证存储是外部边界：替身禁止读取本机密钥，计数检查每次数据库操作是否重新导入。
     $credentialStub = @'
 param([switch]$RequireDatabase)
 $script:CredentialImports++
+if ($script:CredentialFailureAt -eq $script:CredentialImports) { throw 'contract credential import failed' }
 if ([string]::IsNullOrWhiteSpace($env:T06_CONTRACT_CREDENTIAL)) { throw 'contract credential unavailable' }
 $env:ZHKU_DB_PASSWORD = $env:T06_CONTRACT_CREDENTIAL
 '@
@@ -128,6 +160,74 @@ exit /b %T06_CONTRACT_MAVEN_EXIT%
         Reset-Boundaries
         $null = New-TempDatabase
         Assert-Contract ($script:CredentialImports -ge 3 -and $script:EveryDatabaseCommandReimported) '数据库操作复用了缓存凭证'
+    }
+    Invoke-Case '创建前不删除任何既有容器' {
+        Reset-Boundaries
+        $null = New-TempDatabase
+        $created = $false
+        foreach ($call in $script:DockerCalls) {
+            if ($call[0] -eq 'run') { $created = $true }
+            Assert-Contract ($created -or $call[0] -ne 'rm') '尚未创建本次容器就执行了删除'
+        }
+    }
+    foreach ($initializationFailure in @('readiness', 'credential', 'nonempty')) {
+        $script:InitializationFailure = $initializationFailure
+        Invoke-Case "临时库初始化 $initializationFailure 失败即使 KeepContainer 也回收" {
+            Reset-Boundaries
+            $KeepContainer = $true
+            if ($script:InitializationFailure -eq 'readiness') { $TimeoutSeconds = 0 }
+            if ($script:InitializationFailure -eq 'credential') { $script:CredentialFailureAt = 3 }
+            if ($script:InitializationFailure -eq 'nonempty') { $script:PsqlTableCount = '1' }
+            $blocked = $false
+            try { $null = New-TempDatabase } catch { $blocked = $true }
+            $owned = Get-StartedContractContainer 'zhku-t06-tmpdb-'
+            Assert-Contract ($blocked -and $owned -and (Test-RemovedAfterCreation $owned)) '初始化失败留下了临时库'
+        }
+    }
+    Invoke-Case '初始化与清理同时失败保留原始失败并尝试回收' {
+        Reset-Boundaries
+        $script:CredentialFailureAt = 3
+        $script:DockerRemoveExit = 1
+        $primary = ''
+        try { $null = New-TempDatabase 3>$null } catch { $primary = $_.Exception.Message }
+        $owned = Get-StartedContractContainer 'zhku-t06-tmpdb-'
+        Assert-Contract ($primary -eq 'contract credential import failed' -and (Test-RemovedAfterCreation $owned)) '原始失败丢失或未尝试清理'
+    }
+    Invoke-Case '成功初始化的 KeepContainer 仍可用于调试保留' {
+        Reset-Boundaries
+        $KeepContainer = $true
+        $database = New-TempDatabase
+        Remove-TempDatabase -Container $database.Container
+        Assert-Contract (-not (Test-RemovedAfterCreation $database.Container)) '成功的调试保留被错误回收'
+    }
+    Invoke-Case '临时库回收拒绝未由本轮登记的容器' {
+        Reset-Boundaries
+        $blocked = $false
+        try { Remove-TempDatabase -Container 'unrelated-existing-database' } catch { $blocked = $true }
+        Assert-Contract ($blocked -and $script:DockerCalls.Count -eq 0) '未登记容器被清理'
+    }
+    Invoke-Case '转发进程清理失败仍逐个尝试自有 nginx' {
+        Reset-Boundaries
+        $script:RelayProcess = [pscustomobject]@{ Id = 2147000001; HasExited = $false }
+        $script:StoppedPids = New-Object System.Collections.ArrayList
+        [void]$script:Containers.Add('zhku-t06-nginx-contract-first')
+        [void]$script:Containers.Add('zhku-t06-nginx-contract-second')
+        [void]$script:Containers.Add('unrelated-container-must-not-be-removed')
+        function Stop-Process { param($Id, [switch]$Force) [void]$script:StoppedPids.Add($Id); throw 'contract stop failed' }
+        $blocked = $false
+        try { Stop-ProxyScaffold 3>$null } catch { $blocked = $true }
+        $removed = @($script:DockerCalls | Where-Object { $_[0] -eq 'rm' })
+        Assert-Contract ($blocked -and $script:StoppedPids.Count -eq 1 -and $script:StoppedPids[0] -eq 2147000001 -and $removed.Count -eq 2) '首个清理失败中断了其他自有资源回收'
+        Assert-Contract (@($removed | Where-Object { $_[2] -eq 'unrelated-container-must-not-be-removed' }).Count -eq 0) '触及了非本脚手架资源'
+    }
+    Invoke-Case 'nginx 删除失败不得记录已回收且必须失败' {
+        Reset-Boundaries
+        $script:DockerRemoveExit = 1
+        [void]$script:Containers.Add('zhku-t06-nginx-contract-failed-remove')
+        $blocked = $false
+        $messages = @()
+        try { $messages = @(Stop-ProxyScaffold 3>$null 6>&1) } catch { $blocked = $true }
+        Assert-Contract ($blocked -and @($messages | Where-Object { $_.ToString() -like '*已回收*' }).Count -eq 0) '清理失败被冒报为已回收'
     }
     Invoke-Case '数据库 Maven 每轮重读并还原凭证、端口及目录' {
         Reset-Boundaries
@@ -224,6 +324,8 @@ runpy.run_path(sys.argv[1], run_name="__main__")
     # 场景测试替换 Maven 外部执行及代理拓扑；证据判断、编排和清理仍运行生产函数。
     function Invoke-MavenAcceptance {
         param($TestFilter, $EvidenceDir, $DbUrl, $AssetsRootForTests, $ExtraArgs)
+        $script:MavenBoundaryCalls++
+        if ($script:MavenBoundaryFailure) { throw $script:MavenBoundaryFailure }
         if ($script:CreateEvidence) {
             foreach ($file in @('http-exchanges.json', 'simulated-chain-tempdb.json', 'cancel-capacity-terminal.json', 'proxied-chain.json')) { [IO.File]::WriteAllText((Join-Path $EvidenceDir $file), '{}') }
         }
@@ -241,8 +343,8 @@ runpy.run_path(sys.argv[1], run_name="__main__")
             . $orchestration 3>$null 6>$null
             Assert-Contract ($overall -ne 0) '缺证据被冒认为成功'
             if ($Scenario -ne 'existing') {
-                $removals = @($script:DockerCalls | Where-Object { $_[0] -eq 'rm' -and $_[2] -like 'zhku-t06-tmpdb-*' })
-                Assert-Contract ($removals.Count -ge 2) '缺证据后未清理临时库'
+                $owned = Get-StartedContractContainer 'zhku-t06-tmpdb-'
+                Assert-Contract (Test-RemovedAfterCreation $owned) '缺证据后未清理临时库'
             }
         }
     }
@@ -261,6 +363,93 @@ runpy.run_path(sys.argv[1], run_name="__main__")
         $script:BoundaryMavenExit = 17
         . $orchestration 3>$null 6>$null
         Assert-Contract ($overall -eq 17 -and $script:DockerCalls.Count -eq 0) '原失败码丢失或继续后续场景'
+    }
+    foreach ($proxyFailureStage in @('relay-readiness', 'template', 'nginx-run', 'nginx-readiness', 'nginx-readiness-and-cleanup')) {
+        $script:ProxyFailureStage = $proxyFailureStage
+        Invoke-Case "代理初始化 $proxyFailureStage 失败回收全部自有资源" {
+            Reset-Boundaries
+            $Scenario = 'proxy'
+            $script:StoppedPids = New-Object System.Collections.ArrayList
+            $templateDirectory = Join-Path $fixture 'agent/frontend'
+            New-Item -ItemType Directory -Path $templateDirectory -Force *> $null
+            $templatePath = Join-Path $templateDirectory 'nginx.conf'
+            if ($script:ProxyFailureStage -eq 'template') {
+                Remove-Item -LiteralPath $templatePath -ErrorAction SilentlyContinue
+            } else { [IO.File]::WriteAllText($templatePath, '# contract template') }
+            if ($script:ProxyFailureStage -eq 'nginx-readiness-and-cleanup') { $script:DockerRemoveExit = 1 }
+            if ($script:ProxyFailureStage -eq 'nginx-run') { $script:NginxRunExit = 1 }
+            function Test-TcpListener { param($TargetHost, $Port) return $false }
+            function Start-Process { param($FilePath, $ArgumentList, $WindowStyle, [switch]$PassThru) return [pscustomobject]@{ Id = 2147000002; HasExited = $false } }
+            function Stop-Process {
+                param($Id, [switch]$Force)
+                [void]$script:StoppedPids.Add($Id)
+                if ($script:ProxyFailureStage -eq 'nginx-readiness-and-cleanup') { throw 'contract stop failed' }
+            }
+            function Wait-Until {
+                param([scriptblock]$Condition, [string]$What, [int]$Seconds)
+                if ($What -eq '临时库就绪') { $null = & $Condition; return }
+                if (($What -like '宿主转发端口*' -and $script:ProxyFailureStage -eq 'relay-readiness') -or ($What -like 'nginx 发布端口*' -and $script:ProxyFailureStage -like 'nginx-readiness*')) { throw 'contract proxy readiness failed' }
+            }
+            function Start-ProxyScaffold { param($Backend, $Public, $Relay) & $productionStartProxy -Backend $Backend -Public $Public -Relay $Relay }
+            function Stop-ProxyScaffold { & $productionStopProxy }
+            $primary = ''
+            $originalTemp = $env:TEMP
+            try { $env:TEMP = $fixture; try { . $orchestration 3>$null 6>$null } catch { $primary = $_.Exception.Message } }
+            finally { $env:TEMP = $originalTemp }
+            if ($script:ProxyFailureStage -eq 'template') { Assert-Contract ($primary -like '未找到仓库 nginx 配置*') '模板失败原始原因丢失' }
+            elseif ($script:ProxyFailureStage -eq 'nginx-run') { Assert-Contract ($primary -like 'nginx 容器启动失败*') '容器启动失败原始原因丢失' }
+            else { Assert-Contract ($primary -eq 'contract proxy readiness failed') '原始代理失败被清理异常覆盖' }
+            $ownedDatabase = Get-StartedContractContainer 'zhku-t06-tmpdb-'
+            Assert-Contract ($script:StoppedPids.Count -eq 1 -and $script:StoppedPids[0] -eq 2147000002 -and (Test-RemovedAfterCreation $ownedDatabase)) '代理启动失败后转发进程或临时库未回收'
+            if ($script:ProxyFailureStage -like 'nginx-*') {
+                $ownedNginx = Get-StartedContractContainer 'zhku-t06-nginx-'
+                Assert-Contract ($ownedNginx -and (Test-RemovedAfterCreation $ownedNginx)) '代理启动失败后 nginx 未回收'
+            }
+            Assert-Contract ($script:MavenBoundaryCalls -eq 0) '代理初始化失败后仍调用了 Maven'
+        }
+    }
+    foreach ($mavenExit in @(0, 17)) {
+        $script:CleanupCaseMavenExit = $mavenExit
+        Invoke-Case "临时库清理失败影响验收结果并保留 Maven $mavenExit 原码" {
+            Reset-Boundaries
+            $Scenario = 'chain'
+            $script:CreateEvidence = $true
+            $script:BoundaryMavenExit = $script:CleanupCaseMavenExit
+            $script:DockerRemoveExit = 1
+            . $orchestration 3>$null 6>$null
+            $wanted = 1
+            if ($script:CleanupCaseMavenExit -ne 0) { $wanted = $script:CleanupCaseMavenExit }
+            Assert-Contract ($overall -eq $wanted) '资源清理失败被当成通过或覆盖原码'
+        }
+    }
+    Invoke-Case '业务异常与清理异常同时发生仍保留业务异常' {
+        Reset-Boundaries
+        $Scenario = 'chain'
+        $script:MavenBoundaryFailure = 'contract original business failure'
+        $script:DockerRemoveExit = 1
+        $primary = ''
+        try { . $orchestration 3>$null 6>$null } catch { $primary = $_.Exception.Message }
+        $owned = Get-StartedContractContainer 'zhku-t06-tmpdb-'
+        Assert-Contract ($primary -eq 'contract original business failure' -and (Test-RemovedAfterCreation $owned)) '业务异常被清理异常覆盖或未回收'
+    }
+    Invoke-Case '正常代理验收后 nginx 清理失败必须使整体失败' {
+        Reset-Boundaries
+        $Scenario = 'proxy'
+        $script:CreateEvidence = $true
+        $script:BoundaryMavenExit = 0
+        $script:DockerRemoveExit = 1
+        $script:DockerRemoveFailurePrefix = 'zhku-t06-nginx-'
+        $script:StoppedPids = New-Object System.Collections.ArrayList
+        function Start-ProxyScaffold {
+            param($Backend, $Public, $Relay)
+            $script:RelayProcess = [pscustomobject]@{ Id = 2147000003; HasExited = $false }
+            [void]$script:Containers.Add('zhku-t06-nginx-contract-cleanup')
+        }
+        function Stop-ProxyScaffold { & $productionStopProxy }
+        function Stop-Process { param($Id, [switch]$Force) [void]$script:StoppedPids.Add($Id) }
+        . $orchestration 3>$null 6>$null
+        $owned = Get-StartedContractContainer 'zhku-t06-tmpdb-'
+        Assert-Contract ($overall -ne 0 -and $script:StoppedPids.Count -eq 1 -and (Test-RemovedAfterCreation $owned)) '代理清理失败被当成成功或跳过数据库回收'
     }
 } finally {
     foreach ($name in $trackedNames) { [Environment]::SetEnvironmentVariable($name, $saved[$name], 'Process') }

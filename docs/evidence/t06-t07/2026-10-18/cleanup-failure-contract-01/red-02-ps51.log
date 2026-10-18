@@ -1,0 +1,34 @@
+[PASS] 缺凭证时先失败，不能自造口令或创建数据库
+[PASS] Docker 口令仅通过环境传入并还原宿主环境
+[PASS] 临时数据库只发布到回环地址
+[PASS] Docker 创建失败也还原宿主口令环境
+[PASS] 建库、就绪检查和空库查询各自重新导入凭证
+[FAIL] 创建前不删除任何既有容器: 尚未创建本次容器就执行了删除
+[FAIL] 临时库初始化 readiness 失败即使 KeepContainer 也回收: 初始化失败留下了临时库
+[FAIL] 临时库初始化 credential 失败即使 KeepContainer 也回收: 初始化失败留下了临时库
+[FAIL] 临时库初始化 nonempty 失败即使 KeepContainer 也回收: 初始化失败留下了临时库
+[FAIL] 初始化与清理同时失败保留原始失败并尝试回收: 原始失败丢失或未尝试清理
+[PASS] 成功初始化的 KeepContainer 仍可用于调试保留
+[FAIL] 临时库回收拒绝未由本轮登记的容器: 未登记容器被清理
+[FAIL] 转发进程清理失败仍逐个尝试自有 nginx: 首个清理失败中断了其他自有资源回收
+[FAIL] nginx 删除失败不得记录已回收且必须失败: 清理失败被冒报为已回收
+[PASS] 数据库 Maven 每轮重读并还原凭证、端口及目录
+[PASS] existing Maven 不要求数据库凭证
+[PASS] Maven 非零退出仍还原环境与目录
+[PASS] 代理显式非回环地址在启动任何进程或容器前拒绝
+[PASS] 代理默认生成代码实际绑定回环 socket
+[PASS] existing 缺证据必须失败且临时库已回收
+[PASS] chain 缺证据必须失败且临时库已回收
+[PASS] proxy 缺证据必须失败且临时库已回收
+[PASS] 完整证据与 Maven 成功返回成功
+[PASS] Maven 原失败码保留且 all 停止后续场景
+[FAIL] 代理初始化 relay-readiness 失败回收全部自有资源: 代理启动失败后转发进程或临时库未回收
+[FAIL] 代理初始化 template 失败回收全部自有资源: 代理启动失败后转发进程或临时库未回收
+[FAIL] 代理初始化 nginx-run 失败回收全部自有资源: 代理启动失败后转发进程或临时库未回收
+[FAIL] 代理初始化 nginx-readiness 失败回收全部自有资源: 代理启动失败后转发进程或临时库未回收
+[FAIL] 代理初始化 nginx-readiness-and-cleanup 失败回收全部自有资源: 代理启动失败后转发进程或临时库未回收
+[FAIL] 临时库清理失败影响验收结果并保留 Maven 0 原码: 资源清理失败被当成通过或覆盖原码
+[PASS] 临时库清理失败影响验收结果并保留 Maven 17 原码
+[PASS] 业务异常与清理异常同时发生仍保留业务异常
+[FAIL] 正常代理验收后 nginx 清理失败必须使整体失败: 代理清理失败被当成成功或跳过数据库回收
+T06 contract: 18 passed, 15 failed; Docker/DB/provider calls: 0 real.

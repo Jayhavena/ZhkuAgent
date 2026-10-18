@@ -19,7 +19,7 @@
 # 记账边界（脚本只负责"跑真"，不负责"冒领"）：
 #   · chain / proxy 的决策段是宿主显式模拟执行器：模型尝试 0、供应商调用 0，不得读作在线可用；
 #   · existing 的身份仓储是 Mockito 替身、资料是合成 fixture：databaseCalls=0，属 HTTP 契约面证据；
-#   · 判据为 maven 退出码及全部预期证据落盘；"命令返回"不等于"JVM 退出"（surefire 分叉 JVM 可能残留，
+#   · 判据为 maven 退出码、全部预期证据落盘及自有资源处置；"命令返回"不等于"JVM 退出"（surefire 分叉 JVM 可能残留，
 #     禁止按进程名批量终止，只能按 PID + 命令行核实）；
 #   · 测试因假设未满足而跳过时脚本会指出证据文件缺失——跳过不算通过。
 #
@@ -44,7 +44,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
-$script:RunStamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+# 同秒并行验收也必须隔离转发脚本与证据目录，避免互相覆盖或误读另一轮结果。
+$script:RunStamp = (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + [guid]::NewGuid().ToString('N').Substring(0, 8)
 $script:AssetsRoot = (Resolve-Path $AssetsRoot).Path
 $script:Containers = New-Object System.Collections.ArrayList
 $script:RelayProcess = $null
@@ -103,9 +104,9 @@ function New-TempDatabase {
     }
     for ($attempt = 1; $attempt -le 3; $attempt++) {
         $script:ContainerSeq++
-        $container = "zhku-t06-tmpdb-$script:RunStamp-$script:ContainerSeq"
+        # 随机后缀隔离本轮所有权；不能先删除一个可能已被其他运行占用的同名容器。
+        $container = "zhku-t06-tmpdb-$script:RunStamp-$script:ContainerSeq-$([guid]::NewGuid().ToString('N'))"
         $port = Get-FreeLoopbackPort
-        docker rm -f $container *> $null
         . (Join-Path $repoRoot 'scripts\Import-ZhkuCredentials.ps1') -RequireDatabase
         $previousPostgresPassword = [Environment]::GetEnvironmentVariable('POSTGRES_PASSWORD', 'Process')
         try {
@@ -124,36 +125,47 @@ function New-TempDatabase {
         if ($dockerExitCode -eq 0) {
             [void]$script:Containers.Add($container)
             Write-Host "[t06] 一次性临时库 $container（127.0.0.1:${port}/zhkuagent_rulecheck_e2e）"
-            Wait-Until {
+            try {
+                Wait-Until {
+                    . (Join-Path $repoRoot 'scripts\Import-ZhkuCredentials.ps1') -RequireDatabase
+                    docker exec $container pg_isready -U zhkuagent -d zhkuagent_rulecheck_e2e *> $null
+                    return ($LASTEXITCODE -eq 0)
+                } '临时库就绪' $TimeoutSeconds
                 . (Join-Path $repoRoot 'scripts\Import-ZhkuCredentials.ps1') -RequireDatabase
-                docker exec $container pg_isready -U zhkuagent -d zhkuagent_rulecheck_e2e *> $null
-                return ($LASTEXITCODE -eq 0)
-            } '临时库就绪' $TimeoutSeconds
-            . (Join-Path $repoRoot 'scripts\Import-ZhkuCredentials.ps1') -RequireDatabase
-            $tables = (docker exec $container psql -U zhkuagent -d zhkuagent_rulecheck_e2e -t -A -c "SELECT count(*) FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog','information_schema')") -join ''
-            if ($tables.Trim() -ne '0') {
-                throw "临时库不是空库（$($tables.Trim()) 张表）：一次性库每轮必须重建，不得复用。"
+                $tables = (docker exec $container psql -U zhkuagent -d zhkuagent_rulecheck_e2e -t -A -c "SELECT count(*) FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog','information_schema')") -join ''
+                if ($tables.Trim() -ne '0') {
+                    throw "临时库不是空库（$($tables.Trim()) 张表）：一次性库每轮必须重建，不得复用。"
+                }
+                return @{ Container = $container; Port = $port; Url = "jdbc:postgresql://127.0.0.1:${port}/zhkuagent_rulecheck_e2e" }
+            } catch {
+                $initializationFailure = $_
+                # 尚未返回 db 时调用方没有可回收对象；初始化失败必须在这里清理，不能按调试保留处理。
+                try { Remove-TempDatabase -Container $container -InitializationFailed }
+                catch { Write-Warning "[t06] 初始化失败且临时库未确认回收：$container" }
+                throw $initializationFailure
             }
-            return @{ Container = $container; Port = $port; Url = "jdbc:postgresql://127.0.0.1:${port}/zhkuagent_rulecheck_e2e" }
         }
         docker rm -f $container *> $null
+        if ($LASTEXITCODE -ne 0) { throw "[t06] 失败启动的自有临时库未确认回收：$container；停止重试。" }
         Write-Warning "[t06] docker run 失败（第 $attempt 次，可能端口被抢占），换端口重试"
     }
     throw '临时库容器创建失败（3 次尝试）；请检查 docker 与镜像 pgvector/pgvector:0.8.6-pg16-bookworm'
 }
 
 function Remove-TempDatabase {
-    param([string]$Container)
+    param([string]$Container, [switch]$InitializationFailed)
     if (-not $Container) { return }
-    if ($KeepContainer) {
+    if (-not $script:Containers.Contains($Container)) { throw "拒绝回收本轮未登记的容器：$Container" }
+    if ($KeepContainer -and -not $InitializationFailed) {
         Write-Host "[t06] -KeepContainer：保留 $Container 供事后检查（用后请手动 docker rm -f）"
         return
     }
     docker rm -f $Container *> $null
     if ($LASTEXITCODE -eq 0) {
+        [void]$script:Containers.Remove($Container)
         Write-Host "[t06] 已回收临时库容器 $Container"
     } else {
-        Write-Warning "[t06] 回收 $Container 失败，请手动 docker rm -f $Container"
+        throw "[t06] 回收 $Container 失败，不能记为已回收；请手动核对本次容器。"
     }
 }
 
@@ -309,11 +321,12 @@ while True:
     Wait-Until { Test-TcpListener -TargetHost '127.0.0.1' -Port $Relay } "宿主转发端口 $Relay" 30
     Write-Host "[t06] 宿主转发已就绪（PID $($script:RelayProcess.Id)，脚本 $relayFile）"
 
-    $nginx = "zhku-t06-nginx-$script:RunStamp"
-    docker rm -f $nginx *> $null
+    $nginx = "zhku-t06-nginx-$script:RunStamp-$([guid]::NewGuid().ToString('N'))"
     $template = Join-Path $repoRoot 'agent\frontend\nginx.conf'
     if (-not (Test-Path $template)) { throw "未找到仓库 nginx 配置：$template" }
     # 官方镜像模板机制：挂到 /etc/nginx/templates/*.template，envsubst 用环境变量替换后生成 conf.d 配置
+    # 先登记本轮随机名称，启动失败也可能已经留下容器；调用方 finally 必须能尝试回收。
+    [void]$script:Containers.Add($nginx)
     docker run -d --name $nginx `
         --add-host "host.docker.internal:$DockerHostIp" `
         -e "ZHKU_CONTROLLED_BACKEND_PORT=$Relay" `
@@ -321,7 +334,6 @@ while True:
         -v "${template}:/etc/nginx/templates/default.conf.template:ro" `
         'nginx:1.27-alpine' *> $null
     if ($LASTEXITCODE -ne 0) { throw "nginx 容器启动失败；排查：docker logs $nginx" }
-    [void]$script:Containers.Add($nginx)
     Wait-Until { Test-TcpListener -TargetHost '127.0.0.1' -Port $Public } "nginx 发布端口 $Public" 60
     $generated = (docker exec $nginx cat /etc/nginx/conf.d/default.conf 2>$null) -join "`n"
     if ($generated -and ($generated -notmatch [regex]::Escape([string]$Relay))) {
@@ -332,16 +344,32 @@ while True:
 }
 
 function Stop-ProxyScaffold {
+    $cleanupFailed = $false
     if ($script:RelayProcess -and -not $script:RelayProcess.HasExited) {
-        Stop-Process -Id $script:RelayProcess.Id -Force
-        Write-Host "[t06] 宿主转发已终止（PID $($script:RelayProcess.Id)）"
-    }
-    foreach ($container in @($script:Containers)) {
-        if ($container -like 'zhku-t06-nginx-*') {
-            docker rm -f $container *> $null
-            Write-Host "[t06] nginx 容器已回收（$container）"
+        try {
+            Stop-Process -Id $script:RelayProcess.Id -Force
+            Write-Host "[t06] 宿主转发已终止（PID $($script:RelayProcess.Id)）"
+            $script:RelayProcess = $null
+        } catch {
+            $cleanupFailed = $true
+            Write-Warning "[t06] 宿主转发未确认终止（PID $($script:RelayProcess.Id)）"
         }
     }
+    # 单个资源失败不能阻断其余自有资源回收；只遍历本轮登记的 nginx，不按进程名或全局容器列表清理。
+    foreach ($container in @($script:Containers)) {
+        if ($container -like 'zhku-t06-nginx-*') {
+            try {
+                docker rm -f $container *> $null
+                if ($LASTEXITCODE -ne 0) { throw '本次容器回收失败' }
+                [void]$script:Containers.Remove($container)
+                Write-Host "[t06] nginx 容器已回收（$container）"
+            } catch {
+                $cleanupFailed = $true
+                Write-Warning "[t06] nginx 容器未确认回收（$container）"
+            }
+        }
+    }
+    if ($cleanupFailed) { throw '[t06] 代理自有资源未全部确认回收，本轮不能记为通过。' }
 }
 
 if ($Scenario -eq 'all') { $plan = @('existing', 'chain', 'proxy') } else { $plan = @($Scenario) }
@@ -373,14 +401,19 @@ foreach ($name in $plan) {
                     if ($overall -eq 0) { $overall = 1 }
                 }
             } finally {
-                Remove-TempDatabase -Container $db.Container
+                # 清理失败改变验收结果，但不能遮蔽已有业务异常或原 Maven 失败码。
+                try { Remove-TempDatabase -Container $db.Container }
+                catch {
+                    if ($overall -eq 0) { $overall = 1 }
+                    Write-Warning "[t06] 临时库未确认回收：$($db.Container)，本轮未通过。"
+                }
             }
         }
         'proxy' {
             $db = New-TempDatabase
             try {
-                Start-ProxyScaffold -Backend $BackendPort -Public $PublicPort -Relay $RelayPort
                 try {
+                    Start-ProxyScaffold -Backend $BackendPort -Public $PublicPort -Relay $RelayPort
                     $evidenceDir = Join-Path $evidenceRunRoot 'proxy'
                     New-Item -ItemType Directory -Path $evidenceDir -Force *> $null
                     $extra = @{ 'zhku.proxy.backendPort' = $BackendPort; 'zhku.proxy.publicPort' = $PublicPort; 'zhku.proxy.bindAddress' = '127.0.0.1' }
@@ -391,10 +424,18 @@ foreach ($name in $plan) {
                         if ($overall -eq 0) { $overall = 1 }
                     }
                 } finally {
-                    Stop-ProxyScaffold
+                    try { Stop-ProxyScaffold }
+                    catch {
+                        if ($overall -eq 0) { $overall = 1 }
+                        Write-Warning '[t06] 代理资源未确认完全回收，本轮未通过。'
+                    }
                 }
             } finally {
-                Remove-TempDatabase -Container $db.Container
+                try { Remove-TempDatabase -Container $db.Container }
+                catch {
+                    if ($overall -eq 0) { $overall = 1 }
+                    Write-Warning "[t06] 临时库未确认回收：$($db.Container)，本轮未通过。"
+                }
             }
         }
     }
@@ -408,11 +449,11 @@ Write-Host ''
 Write-Host '[t06] ===== 汇总 ====='
 Write-Host "  场景：$($plan -join ' -> ')"
 Write-Host "  证据目录：$evidenceRunRoot"
-Write-Host "  验收退出码：$overall（0=maven 成功且预期证据齐备）"
+Write-Host "  验收退出码：$overall（0=maven 成功、证据齐备且自有资源处置符合约定）"
 Write-Host '  记账边界：chain/proxy 决策段为宿主模拟执行器（模型尝试 0、供应商 0）；existing 为 HTTP 契约面（databaseCalls=0）。'
 if ($overall -ne 0) {
     Write-Host '  结论：未通过。失败轨迹以 maven 输出与证据目录为准，不得表述为通过。'
 } else {
-    Write-Host '  结论：本轮各场景 maven 成功且预期证据齐备；在线链路未运行，不得读作在线可用。'
+    Write-Host '  结论：本轮各场景 maven 成功、证据齐备且自有资源处置符合约定；在线链路未运行，不得读作在线可用。'
 }
 exit $overall
