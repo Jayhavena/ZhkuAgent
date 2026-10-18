@@ -38,7 +38,11 @@ function Invoke-HttpOwnedChild([string[]]$Arguments,[int]$Timeout=150){
  $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$env:ComSpec;$info.WorkingDirectory=$root;$info.UseShellExecute=$false;$info.CreateNoWindow=$true
  $info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;$info.StandardOutputEncoding=$utf8;$info.StandardErrorEncoding=$utf8
  # 每个参数单独引用；上方已拒绝可触发CMD解释的路径字符，凭证从不进入此参数列表。
- $command=($Arguments|ForEach-Object{'"'+$_+'"'}) -join ' '
+ # CMD按裸名称调用PATH中的批处理时，%~dp0可能退成工作目录；先固定实际可执行路径，避免npm寻找错误安装根。
+ $localExecutable=Join-Path $root $Arguments[0]
+ $resolvedExecutable=if(Test-Path -LiteralPath $localExecutable){(Resolve-Path -LiteralPath $localExecutable).Path}else{(Get-Command $Arguments[0] -CommandType Application -ErrorAction Stop).Source}
+ $resolvedArguments=@($resolvedExecutable)+@($Arguments|Select-Object -Skip 1)
+ $command=($resolvedArguments|ForEach-Object{'"'+$_+'"'}) -join ' '
  $info.Arguments='/d /s /c "'+$command+'"'
  $process=[Diagnostics.Process]::new();$process.StartInfo=$info;$timedOut=$false;$started=$false
  try{
