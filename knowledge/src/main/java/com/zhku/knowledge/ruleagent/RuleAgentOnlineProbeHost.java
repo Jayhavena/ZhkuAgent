@@ -168,6 +168,8 @@ public final class RuleAgentOnlineProbeHost {
         if(Files.exists(path))throw new FileAlreadyExistsException(path.toString());
         var pack=preparedPackage(root);validatePackage(pack);Files.createDirectories(path.getParent());byte[] bytes=JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(pack);Files.write(path,bytes,StandardOpenOption.CREATE_NEW);System.out.println("PROBE_PACKAGE_SHA256="+sha(bytes));
     }
+    /** 为新受控HTTP宿主复用完整静态披露；不改变历史探针固定包/授权入口。 */
+    public static ObjectNode controlledRequestDefinition(Path assetsRoot)throws Exception{return packageNode(assetsRoot);}
     private static ObjectNode packageNode(Path root)throws Exception{
         // 构造审核目录只验证本机资产；不安装数据库、不创建模型客户端。
         try(var qualification=new Reviewed2025ControlledCatalogue(root)){

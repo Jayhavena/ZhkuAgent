@@ -35,6 +35,43 @@ const waitFile = async file => {
   return JSON.parse(fs.readFileSync(path.join(batch, file), 'utf8'))
 }
 const report = { mode: 'SYNTHETIC_PROXY_SELF_CHECK_ONLY', actualDatabaseCalls: 0, actualProviderCalls: 0, checks: {} }
+const packageSha = 'b'.repeat(64)
+async function onlineCase(name, approval, overrides = {}, allowed = false) {
+  const directory = path.join(batch, name); fs.mkdirSync(directory)
+  fs.writeFileSync(path.join(directory, 'browser-ready.json'), JSON.stringify({ backendPort, executionMode: 'ONLINE', packageSha256: packageSha, bindAddress: '127.0.0.1', studentDist: dist, ...overrides }))
+  const options = approval === null ? [] : ['--approved-online-package-sha256', approval]
+  const process = spawn(globalThis.process.execPath, [path.join(root, 'reviewed-student-browser-proxy.mjs'), '--evidence', directory, '--dist', dist, '--explicit-test-lease', ...options], { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] })
+  let output = ''; process.stderr.on('data', data => { output += data }); process.stdout.on('data', data => { output += data })
+  const exit = new Promise(resolve => process.once('exit', resolve))
+  try {
+    const until = Date.now() + 5000, readyFile = path.join(directory, 'browser-proxy-ready.json')
+    while (!fs.existsSync(readyFile) && process.exitCode === null && Date.now() < until) await new Promise(resolve => setTimeout(resolve, 20))
+    if (!allowed) {
+      assert.equal(fs.existsSync(readyFile), false, `${name}: listener must never be created`)
+      assert.notEqual(await exit, 0, `${name}: rejection must fail the process`)
+      report.checks[name] = true
+      return
+    }
+    assert.equal(fs.existsSync(readyFile), true, `${name}: explicit matching ONLINE host should be attachable; ${output}`)
+    const ready = JSON.parse(fs.readFileSync(readyFile, 'utf8'))
+    assert.equal(ready.providerCalls, null); assert.equal(ready.proxyProviderCalls, 0); assert.equal(ready.packageSha256, packageSha)
+    const response = await fetch(ready.origin + task); assert.equal(response.status, 200); assert.equal((await response.json()).taskStatus, 'RESOLVED')
+    await fetch(ready.origin + prefix + '/auth/login', { method: 'POST', headers: { cookie: 'SECRET_ONLINE_SYNTHETIC' }, body: 'password=SECRET_ONLINE_SYNTHETIC' })
+    const exchanges = JSON.parse(fs.readFileSync(path.join(directory, 'browser-proxy-exchanges.json'), 'utf8'))
+    assert.equal(exchanges.providerCalls, null); assert.equal(exchanges.proxyProviderCalls, 0); assert.equal(exchanges.packageSha256, packageSha)
+    assert.equal(JSON.stringify(exchanges).includes('SECRET_ONLINE_SYNTHETIC'), false)
+    fs.writeFileSync(path.join(directory, 'STOP'), '')
+    assert.equal(await exit, 0)
+    const receipt = JSON.parse(fs.readFileSync(path.join(directory, 'browser-proxy-exit.json'), 'utf8'))
+    assert.equal(receipt.providerCalls, null); assert.equal(receipt.proxyProviderCalls, 0); assert.equal(receipt.packageSha256, packageSha)
+    assert.equal(receipt.frontendListenerExited, true); assert.equal(receipt.explicitStopReceived, true)
+    report.checks.onlineMatchingPackageForwardingAndHonestMetadata = true
+  } finally {
+    fs.writeFileSync(path.join(directory, 'STOP'), '')
+    if (process.exitCode === null) { process.kill(); await exit }
+    fs.writeFileSync(path.join(directory, 'process-output.txt'), output)
+  }
+}
 let frontendPort
 try {
   const ready = await waitFile('browser-proxy-ready.json'); frontendPort = ready.frontendPort
@@ -66,6 +103,12 @@ try {
   const listenerClosed = await new Promise(resolve => { const socket = net.connect({ port: frontendPort, host: '127.0.0.1' }); socket.on('connect', () => { socket.destroy(); resolve(false) }); socket.on('error', error => resolve(error.code === 'ECONNREFUSED')) })
   assert.equal(listenerClosed, true)
   report.checks.explicitStopOwnedProcessAndListenerExit = true
+  await onlineCase('onlineMissingApprovalRejectedBeforeListener', null)
+  await onlineCase('onlineWrongApprovalRejectedBeforeListener', 'c'.repeat(64))
+  await onlineCase('onlineMalformedShaRejectedBeforeListener', 'x'.repeat(64), { packageSha256: 'x'.repeat(64) })
+  await onlineCase('onlineWrongDistRejectedBeforeListener', packageSha, { studentDist: path.join(batch, 'wrong-dist') })
+  await onlineCase('onlineNonLoopbackRejectedBeforeListener', packageSha, { bindAddress: '0.0.0.0' })
+  await onlineCase('onlineMatchingPackage', packageSha, {}, true)
 } finally {
   fs.writeFileSync(path.join(batch, 'STOP'), '')
   if (child.exitCode === null) child.kill()

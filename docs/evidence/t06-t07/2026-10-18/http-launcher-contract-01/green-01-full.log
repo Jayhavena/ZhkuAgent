@@ -1,0 +1,12 @@
+[PASS] Process-only 凭证经零密钥校包后仍可启动获准阶段并还原调用方
+[PASS] 已有包 Prepare 在构建前拒绝并保留原字节
+[PASS] 坏 SHA Check 在构建或数据库边界前拒绝
+[PASS] 未匹配本包人工批准 Start 在数据库前拒绝
+[PASS] Check 子进程看不到凭证且调用后全部环境还原
+[PASS] 获准阶段 Process 优先于合成 User 与 Machine 回退
+[PASS] 校包失败不创建数据库或占用授权并还原环境
+[PASS] 批准阶段失败仍保留非退款 SHA 占用且再次启动被拒绝
+[PASS] 复制同 SHA 包到另一目录也不能再次占用
+[PASS] 原子占用竞争在容器前失败且不覆盖赢家记录
+[PASS] 新目录 Prepare 仅运行三项合成构建且全程无凭证
+HTTP launcher contract: 11 passed, 0 failed; real DB/Docker/Maven/model calls: 0.

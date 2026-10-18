@@ -6,18 +6,31 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const args = process.argv.slice(2)
-const flag = key => { const i = args.indexOf(key); return i < 0 ? null : args[i + 1] }
+const flag = key => { const i = args.indexOf(key); return i < 0 ? args.find(value => value.startsWith(key + '='))?.slice(key.length + 1) ?? null : args[i + 1] }
 const evidence = path.resolve(flag('--evidence') || '')
 const dist = path.resolve(flag('--dist') || '')
 if (!flag('--evidence') || !flag('--dist') || !args.includes('--explicit-test-lease')) throw new Error('须显式提供 --evidence、--dist、--explicit-test-lease')
 if (!fs.existsSync(path.join(dist, 'index.html'))) throw new Error('学生构建不存在')
 if (fs.existsSync(path.join(evidence, 'STOP'))) throw new Error('新租约不得复用旧 STOP')
 const ready = JSON.parse(fs.readFileSync(path.join(evidence, 'browser-ready.json'), 'utf8'))
-if (ready.executionMode !== 'SIMULATED_ENGINEERING_REPLAY_REAL_IDENTITY_REVIEWED_ASSETS' || ready.providerCalls !== 0 || !Number.isInteger(ready.backendPort) || ready.backendPort < 1024 || ready.backendPort > 65535) throw new Error('拒绝非本轮显式模拟/真实资料租约')
+if (!Number.isInteger(ready.backendPort) || ready.backendPort < 1024 || ready.backendPort > 65535) throw new Error('后端须提供合法回环端口')
+const online = ready.executionMode === 'ONLINE'
+if (online) {
+  const approval = flag('--approved-online-package-sha256')
+  // 此参数仅配对已获准的 JVM 宿主；外发批准、一次占用和额度仍由 JVM 门禁处理，代理不授予权限。
+  if (!/^[a-f0-9]{64}$/i.test(approval || '') || approval !== ready.packageSha256 || ready.bindAddress !== '127.0.0.1'
+      || typeof ready.studentDist !== 'string' || !path.isAbsolute(ready.studentDist)) throw new Error('ONLINE 代理须显式匹配合法包 SHA、回环绑定与学生构建')
+  const actualDist = fs.realpathSync(dist), hostDist = fs.realpathSync(ready.studentDist)
+  if ((process.platform === 'win32' ? actualDist.toLowerCase() !== hostDist.toLowerCase() : actualDist !== hostDist)) throw new Error('ONLINE 学生构建与宿主不匹配')
+} else if (ready.executionMode !== 'SIMULATED_ENGINEERING_REPLAY_REAL_IDENTITY_REVIEWED_ASSETS' || ready.providerCalls !== 0) throw new Error('拒绝非本轮显式模拟/真实资料租约')
+// 代理没有后端调用计量权限；ONLINE 不能把“代理本身未调用供应商”冒充“后端调用为零”。
+const executionMetadata = online
+  ? { executionMode: 'ONLINE', providerCalls: null, providerCallsStatus: 'UNKNOWN', proxyProviderCalls: 0, packageSha256: ready.packageSha256 }
+  : { executionMode: ready.executionMode, providerCalls: 0 }
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' }
 const events = [], held = []
 let heldOnce = false, stopping = false, port = 0
-const save = (file, value) => fs.writeFileSync(path.join(evidence, file), JSON.stringify(value, null, 2) + '\n')
+const save = (file, value) => fs.writeFileSync(path.join(evidence, file), JSON.stringify({ ...value, ...executionMetadata }, null, 2) + '\n')
 const snapshotPath = /^\/api\/zhku\/controlled-preview\/v2\/tasks\/[0-9a-f-]{36}$/i
 const sockets = new Set()
 const server = http.createServer((request, response) => {
@@ -36,14 +49,14 @@ const server = http.createServer((request, response) => {
         const deliver = () => {
           event.deliveryAttemptAt = new Date().toISOString(); event.clientDisconnected = response.destroyed
           if (!response.destroyed) { response.writeHead(reply.statusCode, { ...reply.headers, 'cache-control': 'no-store' }); response.end(body) }
-          save('browser-proxy-exchanges.json', { executionMode: ready.executionMode, providerCalls: 0, events })
+          save('browser-proxy-exchanges.json', { events })
         }
         let terminal = false
         try { terminal = snapshotPath.test(url.pathname) && JSON.parse(body).taskStatus === 'RESOLVED' } catch { /* 非快照 */ }
         if (!heldOnce && terminal && fs.existsSync(path.join(evidence, 'HOLD_NEXT_TERMINAL'))) {
           heldOnce = true; event.heldForLateResponseCheck = true; held.push(deliver)
           save('late-response-held.json', { path: url.pathname, status: reply.statusCode, actual: body.toString('utf8'), receivedAt: event.receivedAt })
-          save('browser-proxy-exchanges.json', { executionMode: ready.executionMode, providerCalls: 0, events })
+          save('browser-proxy-exchanges.json', { events })
         } else deliver()
       })
     })
@@ -64,7 +77,7 @@ const server = http.createServer((request, response) => {
 server.on('connection', socket => { sockets.add(socket); socket.on('close', () => sockets.delete(socket)) })
 server.listen(0, '127.0.0.1', () => {
   port = server.address().port
-  save('browser-proxy-ready.json', { processId: process.pid, frontendPort: port, backendPort: ready.backendPort, origin: `http://127.0.0.1:${port}`, dist, executionMode: ready.executionMode, providerCalls: 0, topology: 'TEST_STATIC_SAME_ORIGIN_PROXY_NOT_NGINX' })
+  save('browser-proxy-ready.json', { processId: process.pid, frontendPort: port, backendPort: ready.backendPort, origin: `http://127.0.0.1:${port}`, dist, topology: 'TEST_STATIC_SAME_ORIGIN_PROXY_NOT_NGINX' })
 })
 const until = Date.now() + 900000
 const timer = setInterval(() => {
@@ -80,7 +93,7 @@ const timer = setInterval(() => {
       probe.once('connect', () => { probe.destroy(); save('browser-proxy-exit.json', { frontendListenerExited: false }); process.exitCode = 1 })
       probe.once('error', error => {
         const exited = error.code === 'ECONNREFUSED'
-        save('browser-proxy-exit.json', { processId: process.pid, frontendListenerExited: exited, explicitStopReceived: fs.existsSync(path.join(evidence, 'STOP')), providerCalls: 0, heldResponsesRemaining: held.length })
+        save('browser-proxy-exit.json', { processId: process.pid, frontendListenerExited: exited, explicitStopReceived: fs.existsSync(path.join(evidence, 'STOP')), heldResponsesRemaining: held.length })
         if (!exited || !fs.existsSync(path.join(evidence, 'STOP'))) process.exitCode = 1
       })
     })
