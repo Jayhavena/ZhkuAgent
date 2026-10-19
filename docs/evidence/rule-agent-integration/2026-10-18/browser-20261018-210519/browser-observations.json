@@ -1,0 +1,23 @@
+{
+  "batch": "browser-20261018-210519",
+  "uiResult": "PASS_LOCAL_ENGINEERING_REPLAY",
+  "overallResult": "INTERRUPTED_BEFORE_RESOURCE_EXIT_RECEIPTS",
+  "baseCommit": "ba0e80f3de34cf59d40f435b9cb7d98c120e7b49",
+  "testedUncommittedChange": "BrowserLeaseTest atomic visibility_scope=INTERNAL_ONLY and sharing_rights_confirmed=false",
+  "testFileSha256": "aa792158d05306f06f9a1c6af1d69867e193cfc02ea0709ccf9142831436b435",
+  "sourceManifest": "../online-preflight-green-06/source-before.json",
+  "observer": "root direct CUA, tabs 3 and 4, both explicitly closed",
+  "origin": "http://127.0.0.1:58298",
+  "mode": "SIMULATED_ENGINEERING_REPLAY_REAL_IDENTITY_REVIEWED_ASSETS",
+  "providerCalls": 0,
+  "checks": [
+    {"name":"home/login", "passed":true, "observed":"仲园规则查证; 2025版/非官方提示; 临时身份登录成功"},
+    {"name":"async clarification", "passed":true, "observed":"需要澄清 -> ACTIVE -> 需要补充条件 -> 公共选修课 -> ACTIVE -> 有依据可确认; 同task 6dd8e6ff-435b-449a-b8cf-868288472392, version 1/2/3/4见代理轨迹"},
+    {"name":"reviewed original", "passed":true, "observed":"真实审核第二条36字原文; 2025.9.2/物理76/印刷64页; 页码映射及安全地址未知明确显示"},
+    {"name":"cross-tab logout", "passed":true, "observed":"B退出后A回到登录页，结果和原文均撤回"},
+    {"name":"late response", "passed":true, "observed":"实际RESOLVED响应被代理保持；跨页退出后释放，A仍为登录页；断开及释放时间见代理事件"},
+    {"name":"partial coverage", "passed":true, "observed":"有部分依据/处理未完成/覆盖不完整/补充说明后重新查证；工程回放零模型提示可见"},
+    {"name":"eligibility revocation", "passed":true, "observed":"review-revoked.json=true; 旧original接口409 TASK_EXPIRED；页面显示依据资格或版本已变化，旧结果暂停展示；结果和原文清空", "screenshot":"eligibility-withdrawn.jpg"}
+  ],
+  "limits": ["模型决策模拟，不计真实在线成功", "代理为测试同源静态代理，Nginx证据另批", "夜间中断前未完成STOP及退出回执，不能把UI通过当成整个租约通过", "10月19日05:55恢复时才写STOP，后续资源检查是恢复证据，不能回填原退出时间"]
+}

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "batch": "browser-20261018-205102",
+  "sourceSha": "ba0e80f3de34cf59d40f435b9cb7d98c120e7b49",
+  "overallResult": "FAIL",
+  "executionMode": "SIMULATED_ENGINEERING_REPLAY_REAL_IDENTITY_REVIEWED_ASSETS",
+  "providerCalls": 0,
+  "modelAttemptCount": 0,
+  "referenceRevision": "2025.9.2",
+  "topology": "TEST_STATIC_SAME_ORIGIN_PROXY_NOT_NGINX",
+  "origin": "http://127.0.0.1:18825",
+  "backendPort": 11111,
+  "uiObserver": "root session using mcp__cua_repl; two same-origin IAB tabs",
+  "recordedBy": "student_browser_run subagent from root's direct UI verification report and original files in this directory",
+  "uiEvidenceBoundary": "UI assertions below were performed and reported by root. The subagent had no browser connection and did not independently observe them. Primary UI snapshots and screenshots remain in root's CUA conversation transcript; this directory contains no exported screenshot or raw DOM snapshot files. Proxy HTTP records corroborate transport and task states but do not replace UI assertions.",
+  "partialChecks": [
+    {
+      "id": "login",
+      "result": "PARTIAL_PASS_REPORTED_BY_ROOT",
+      "observedUi": "Root opened the actual student login page and completed fixture login.",
+      "corroboration": ["browser-proxy-exchanges.json: auth/me 401, auth/login 200, auth/me 200 at 12:53:44-12:54:24 UTC"]
+    },
+    {
+      "id": "async-clarification-continuation-and-original",
+      "result": "PARTIAL_PASS_REPORTED_BY_ROOT",
+      "question": "需要澄清",
+      "condition": "PUBLIC",
+      "observedUi": "Root observed asynchronous ACTIVE polling, clarification, continuation, resolved result, reviewed excerpt and original text.",
+      "taskId": "476dc86e-f2c6-451b-9aac-8420509ff0ae",
+      "corroboration": ["browser-proxy-exchanges.json: POST tasks 202; ACTIVE v1; WAITING_USER v2; messages 202; ACTIVE v3; RESOLVED COMPLETE v4; originals 200 at 12:54:37-12:55:29 UTC"]
+    },
+    {
+      "id": "cross-tab-logout-withdrawal",
+      "result": "PARTIAL_PASS_REPORTED_BY_ROOT",
+      "observedUi": "Root logged out from tab B and verified tab A withdrew its result and original.",
+      "corroboration": ["browser-proxy-exchanges.json: auth/logout 204 at 12:56:27 UTC"],
+      "boundary": "The HTTP logout alone does not establish withdrawal; withdrawal is root's live UI assertion."
+    },
+    {
+      "id": "held-late-response-after-logout",
+      "result": "PARTIAL_PASS_REPORTED_BY_ROOT",
+      "question": "直接查证",
+      "observedUi": "After proxy held the next resolved snapshot, root logged out in the other tab, released the late response, and verified tab A did not revive its result or original.",
+      "taskId": "319a9134-9835-4927-8a6f-e953d9be384b",
+      "corroboration": ["HOLD_NEXT_TERMINAL", "late-response-held.json", "RELEASE_LATE", "browser-proxy-exchanges.json: held RESOLVED COMPLETE response received at 12:57:45 UTC; logout 204 at 12:57:56 UTC; delivery records clientDisconnected=true"],
+      "boundary": "Held-response transport evidence corroborates the scenario; absence of revived UI is root's live UI assertion."
+    },
+    {
+      "id": "partial-coverage-display",
+      "result": "PARTIAL_PASS_REPORTED_BY_ROOT",
+      "question": "部分覆盖",
+      "observedUi": "Root verified partial coverage display and opened the associated original before attempting review revocation.",
+      "taskId": "9d390df6-9088-4100-8c34-025a13f8e420",
+      "corroboration": ["browser-proxy-exchanges.json: POST tasks 202, ACTIVE polling, RESOLVED PARTIAL v2 with evidence, originals 200 at 12:58:32-12:59:07 UTC"]
+    }
+  ],
+  "failedGate": {
+    "id": "review-eligibility-revocation-and-old-original",
+    "result": "NOT_VERIFIED_HOST_ERROR",
+    "trigger": "REVOKE_REVIEW",
+    "error": "DataIntegrityViolationException: ck_knowledge_source_student_visibility",
+    "locationAtSourceSha": "RuleAgentReviewedBrowserLeaseTest.java:59",
+    "cause": "The test host set sharing_rights_confirmed=false while retaining STUDENT_VISIBLE. The database constraint rejected the update before eligibility revocation completed.",
+    "consequence": "The host terminated and upstream later became unavailable. This cannot establish that the reader rejects an old original after successful eligibility revocation.",
+    "evidence": ["maven.log", "TEST-com.zhku.knowledge.ruleagent.web.RuleAgentReviewedBrowserLeaseTest.xml", "browser-proxy-upstream-error.json"],
+    "surefire": {"tests": 1, "failures": 0, "errors": 1, "skipped": 0},
+    "build": "FAILURE"
+  },
+  "cleanup": {
+    "explicitProxyStop": true,
+    "proxySessionExitCode": 0,
+    "proxyProcessId": 47060,
+    "proxyProcessPresent": false,
+    "frontend18825ConnectionRefused": true,
+    "backend11111ConnectionRefused": true,
+    "temporaryDatabaseContainerExited": true,
+    "hostProcessExitCode": 1,
+    "tabs": "Root reported closing its own tab1 and tab2; subagent created no tabs.",
+    "evidence": ["STOP", "browser-proxy-exit.json", "subagent-resource-cleanup.json", "owned-process-exit.json"]
+  },
+  "acceptanceBoundary": "Five partial UI observations do not make the batch pass. The review-revocation gate remains unverified, the host build failed, and this batch must not be reused as full acceptance for a later source SHA or lease."
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-18T21:01:34.1441710+08:00",
+  "sourceSha": "ba0e80f3de34cf59d40f435b9cb7d98c120e7b49",
+  "proxyProcessId": 47060,
+  "proxyProcessPresent": false,
+  "proxySessionExitCode": 0,
+  "explicitStopWritten": true,
+  "portProbes": [
+    {
+      "port": 18825,
+      "connectionRefused": true,
+      "connected": false,
+      "socketError": "ConnectionRefused"
+    },
+    {
+      "port": 11111,
+      "connectionRefused": true,
+      "connected": false,
+      "socketError": "ConnectionRefused"
+    }
+  ],
+  "outcome": "FAIL",
+  "partialUiCoverageReportedByRoot": [
+    "login; ACTIVE -> clarification; PUBLIC continuation; RESOLVED",
+    "reviewed excerpt and original visible",
+    "two-tab logout withdraws result and original",
+    "held late terminal response cannot revive results after cross-tab logout",
+    "partial coverage UI"
+  ],
+  "unverified": [
+    "eligibility revocation rejects old original: host SQL violated ck_knowledge_source_student_visibility before revocation could complete"
+  ],
+  "failureBoundary": "Host SQL cleared sharing_rights_confirmed without simultaneously setting visibility_scope=INTERNAL_ONLY. Backend unavailability is not evidence of eligibility rejection.",
+  "browserOwnership": "Root reported closing its tab1 and tab2; subagent created no tabs.",
+  "providerCalls": 0,
+  "executionMode": "SIMULATED_ENGINEERING_REPLAY_REAL_IDENTITY_REVIEWED_ASSETS"
+}

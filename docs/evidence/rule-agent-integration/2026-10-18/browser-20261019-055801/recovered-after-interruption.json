@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "recoveryObservedAt": "2026-10-19T08:20:45.9717685+08:00",
+  "batch": "browser-20261019-055801",
+  "overallResult": "INTERRUPTED",
+  "uiResult": "PASS_REPORTED_BY_ROOT",
+  "uiBoundary": "Root directly verified original 200, real review-revoked receipt, then old original 409 and withdrawal of old result/original. Root reported tab closed. Screenshot API failed in this batch; no new screenshot was saved. The earlier 210519 screenshot is not a screenshot of this batch.",
+  "sourceIdentity": "base ba0e80f3de34cf59d40f435b9cb7d98c120e7b49 plus root-reported BrowserLeaseTest SQL visibility_scope fix",
+  "stopLastWriteTime": "2026-10-19T08:18:30.1400007+08:00",
+  "stopBoundary": "STOP written after interruption, not during original lease. It cannot establish normal explicit-stop exit retroactively.",
+  "originalExitReceipts": {
+    "browserProxyExit": false,
+    "ownedProcessExit": false,
+    "browserHostExit": false
+  },
+  "proxySessionId": 53557,
+  "proxySessionStatus": "Unknown process id after interruption; original exit code unavailable",
+  "proxyPid37108Present": false,
+  "portProbes": [
+    {
+      "port": 10899,
+      "connected": false,
+      "connectionRefused": true,
+      "socketError": "ConnectionRefused"
+    },
+    {
+      "port": 10840,
+      "connected": false,
+      "connectionRefused": true,
+      "socketError": "ConnectionRefused"
+    },
+    {
+      "port": 55272,
+      "connected": false,
+      "connectionRefused": true,
+      "socketError": "ConnectionRefused"
+    }
+  ],
+  "dockerRecovery": {
+    "desktopExecutableVerified": true,
+    "preRecovery": {
+      "observedAt": "2026-10-19T08:19:49.028943+08:00",
+      "credentialAvailable": true,
+      "credentialSource": "User",
+      "inspectExitCode": 0,
+      "container": "zhku-t06-tmpdb-20261019-055801-1-3bd9c5ee3ae3489aa751d3484eefdb21",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 255,
+        "Error": "",
+        "StartedAt": "2026-10-18T21:58:01.70243768Z",
+        "FinishedAt": "2026-10-19T00:19:27.341194612Z"
+      }
+    },
+    "postRecovery": {
+      "verifiedAt": "2026-10-19T08:20:14.8366412+08:00",
+      "container": "zhku-t06-tmpdb-20261019-055801-1-3bd9c5ee3ae3489aa751d3484eefdb21",
+      "listExitCode": 0,
+      "exactContainerAbsent": true
+    },
+    "desktopStartedHidden": true,
+    "engineVersion": "29.8.2",
+    "removal": {
+      "container": "zhku-t06-tmpdb-20261019-055801-1-3bd9c5ee3ae3489aa751d3484eefdb21",
+      "removedAt": "2026-10-19T08:20:03.5840865+08:00",
+      "removalExitCode": 0
+    }
+  },
+  "credentials": "Fresh process/user/machine ZHKU_DB_PASSWORD check before each exact owned-container operation; User scope available; values never printed; no SQL issued",
+  "providerCalls": 0,
+  "modelAttemptCount": 0,
+  "acceptanceBoundary": "Current owned resources are absent after recovery. Original normal host/proxy/lease exit is unproven. UI observations remain root-owned; overall batch remains INTERRUPTED. No source/Maven/CUA operations or additional leases performed by cleanup subagent."
+}

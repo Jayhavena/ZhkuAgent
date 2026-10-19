@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "recoveryObservedAt": "2026-10-19T05:57:45.4076026+08:00",
+  "batch": "browser-20261018-210519",
+  "overallResult": "INTERRUPTED",
+  "uiResult": "PASS_REPORTED_BY_ROOT",
+  "uiBoundary": "Root reported all critical UI checks passed, including reviewed-eligibility withdrawal with screenshot eligibility-withdrawn.jpg; subagent did not operate CUA.",
+  "sourceIdentity": "base ba0e80f3de34cf59d40f435b9cb7d98c120e7b49 plus root-reported uncommitted BrowserLeaseTest SQL visibility_scope fix",
+  "explicitStopWriteTime": "2026-10-19T05:55:44.9655294+08:00",
+  "stopBoundary": "STOP was written after overnight interruption, not within original lease; it cannot retroactively establish normal explicit-stop exit.",
+  "originalExitReceipts": {
+    "browserHostExit": false,
+    "ownedProcessExit": false,
+    "browserProxyExit": false
+  },
+  "proxySessionId": 80853,
+  "proxySessionStatus": "Unknown process id after interruption; original exit code unavailable",
+  "proxyPid45440Present": false,
+  "hostPid36196Present": false,
+  "portProbes": [
+    {
+      "port": 58298,
+      "connected": false,
+      "connectionRefused": true,
+      "socketError": "ConnectionRefused"
+    },
+    {
+      "port": 28403,
+      "connected": false,
+      "connectionRefused": true,
+      "socketError": "ConnectionRefused"
+    },
+    {
+      "port": 55294,
+      "connected": false,
+      "connectionRefused": true,
+      "socketError": "ConnectionRefused"
+    }
+  ],
+  "dockerRecovery": {
+    "engineVersion": "29.8.2",
+    "exactContainerAbsent": true,
+    "priorState": {
+      "StartedAt": "2026-10-18T13:05:20.068931927Z",
+      "Status": "exited",
+      "FinishedAt": "2026-10-18T21:56:52.929939025Z",
+      "ExitCode": 255,
+      "Running": false,
+      "Pid": 0
+    },
+    "desktopStartedHidden": true,
+    "postRemovalListExitCode": 0,
+    "ownedContainer": "zhku-t06-tmpdb-20261018-210519-1-81f4460339c343fdaf6c4b0127e7af32",
+    "removalExitCode": 0,
+    "removedAt": "2026-10-19T05:57:21.1633937+08:00"
+  },
+  "credentials": "ZHKU_DB_PASSWORD freshly checked process/user/machine before each owned-container operation; available from User scope; values never printed; no SQL issued",
+  "providerCalls": 0,
+  "modelAttemptCount": 0,
+  "acceptanceBoundary": "Current resources recovered and absent. Original host/proxy/lease normal exit is unproven; this batch remains INTERRUPTED, not PASS. No source/Maven/CUA operations performed by cleanup subagent."
+}

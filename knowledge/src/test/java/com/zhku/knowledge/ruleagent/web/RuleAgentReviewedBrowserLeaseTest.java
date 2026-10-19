@@ -54,9 +54,9 @@ class RuleAgentReviewedBrowserLeaseTest {
                 try {
                     while (!Files.exists(evidence.resolve("STOP")) && Instant.now().isBefore(until)) {
                         if (!reviewRevoked && Files.exists(evidence.resolve("REVOKE_REVIEW"))) {
-                            // 只撤销本租约临时库内本资料目录的资格；真实 reader 必须重新拒绝旧原文。
+                            // 资格撤销须与可见范围一并降级，避免违反学生可见资料必须已获分享授权的数据库约束。
                             var jdbc = new JdbcTemplate(RuleAgentSimulatedChainTempDbHttpTest.db);
-                            int changed = jdbc.update("UPDATE knowledge_source SET sharing_rights_confirmed=false WHERE id IN (SELECT c.source_id FROM knowledge_chunk c JOIN retrieval_index_entry e ON e.chunk_id=c.id WHERE e.profile_id=?)",
+                            int changed = jdbc.update("UPDATE knowledge_source SET visibility_scope='INTERNAL_ONLY', sharing_rights_confirmed=false WHERE id IN (SELECT c.source_id FROM knowledge_chunk c JOIN retrieval_index_entry e ON e.chunk_id=c.id WHERE e.profile_id=?)",
                                     RuleAgentSimulatedChainTempDbHttpTest.catalogue.settings().profileId());
                             assertThat(changed).isPositive(); reviewRevoked = true;
                             Files.writeString(evidence.resolve("review-revoked.json"), "{\"temporaryDatabaseOnly\":true,\"realEligibilityChanged\":true,\"providerCalls\":0}");
