@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-10-19T08:25:17.4862264+08:00",
+  "candidateBranch": "codex/rule-agent-integration-20261018",
+  "sourceCommit": "dabd499a5a6cad65b28ed10226b7ecf3ba94e07d",
+  "sourceTree": "f9b7c401646be20c4bf201cf4c020ba3b0471645",
+  "originalWorktree": "D:\\alldesk\\Projects\\ZhkuAgent",
+  "originalHead": "a687c059371ec7177e2eb25dda72daa45f756c21",
+  "sourceMergedToOriginal": false,
+  "integration": {
+    "T05": "1c270c475d281e2032cd381925a7b2fd549d9fa3",
+    "T06": "a03af6965183a9b9baf421cc76bb3f17f13bc100",
+    "T07Correction": "2b527df30b5e67492290eb4c90271ab08f473c04",
+    "testRevocationFix": "dabd499a5a6cad65b28ed10226b7ecf3ba94e07d"
+  },
+  "identity": {
+    "schemaVersion": 3,
+    "referenceRevision": "2025.9.2",
+    "studentMode": "student",
+    "studentBundleFiles": 27,
+    "studentBundleDriftFromActualBrowserBuild": 0,
+    "currentJavaResourceDriftFrom165TestManifest": 0,
+    "controlledJarSha256": "69a27b82e67978ed9bdf0bd40ab8bfb56048a463b7c45c2e32ad6dadf217827a",
+    "fullIdentity": "docs/evidence/rule-agent-integration/2026-10-19/online-http-20261019-unified-01/request-package.json",
+    "browserTestFileSha256": "aa792158d05306f06f9a1c6af1d69867e193cfc02ea0709ccf9142831436b435",
+    "identityCaveat": "Browser receipts record ba0e80f plus explicit two-line test patch SHA, committed unchanged as dabd499. Other evidence remains bound to its recorded checkpoint; no historical batch identity rewritten."
+  },
+  "layers": [
+    {
+      "result": "PASS",
+      "layer": "targeted Java",
+      "skipped": 0,
+      "failures": 0,
+      "receipt": "online-preflight-green-06/results.json",
+      "sourceManifest": "online-preflight-green-06/source-before.json",
+      "errors": 0,
+      "tests": 165
+    },
+    {
+      "builds": [
+        "student",
+        "engineering",
+        "replay"
+      ],
+      "receipt": "frontend-builds.json",
+      "scope": "frontend source unchanged by final test-only patch; new Prepare student bundle matches actual browser bundle byte-for-byte",
+      "tests": 178,
+      "testLog": "frontend-tests.log",
+      "layer": "frontend",
+      "result": "PASS"
+    },
+    {
+      "layer": "temp-db identity HTTP and Nginx",
+      "scope": "real temporary DB, identity, reviewed assets and Nginx; simulated model decision; provider0",
+      "tests": {
+        "chain": 2,
+        "existing": 1,
+        "proxy": 1
+      },
+      "result": "PASS_SIMULATED_DECISION",
+      "receipt": "t06-final-owned-process.json"
+    },
+    {
+      "layer": "online zero-call positive assembly",
+      "scope": "fresh DB identity/auth/capabilities/extra-input rejection, no key read/provider, resource exit",
+      "result": "PASS_NO_PROVIDER",
+      "receipt": "online-assembly-20261018-061635-27456359"
+    },
+    {
+      "independentReview": "browser-210519-evidence-review.md",
+      "receipt": "browser-20261018-210519/browser-observations.json",
+      "scope": "root direct real browser; engineering replay decision; each overall lease remains INTERRUPTED",
+      "additionalReceipt": "browser-20261019-055801/browser-observations.json",
+      "layer": "student actual UI",
+      "result": "PASS_OBSERVATIONS_WITH_INTERRUPTED_LEASE_CLOSEOUT"
+    },
+    {
+      "browserOperations": 0,
+      "scope": "same exact test source SHA, real temp DB revocation, explicit STOP, worker/listener/container closed; does not stand in for UI rerun",
+      "tests": 1,
+      "receipt": "browser-20261019-082036/automated-host-closeout.json",
+      "layer": "test-host revocation and resource lifecycle",
+      "result": "PASS"
+    },
+    {
+      "layer": "new package ordinary-terminal Prepare and Check",
+      "scope": "one selected test each; no live authorization or reservation",
+      "tests": 2,
+      "result": "PASS_NO_PROVIDER_NO_DATABASE",
+      "receipt": "../2026-10-19/package-preparation-result.json"
+    },
+    {
+      "layer": "new ONLINE HTTP-model-tools-result-student flow",
+      "result": "NOT_RUN_REQUIRES_NEW_APPROVAL",
+      "providerCalls": 0
+    },
+    {
+      "layer": "T08/T09/T10",
+      "scope": "formal online quality, real student/PDF comparison, final freeze remain pending",
+      "result": "NOT_EXECUTED"
+    }
+  ],
+  "failuresPreserved": [
+    {
+      "batch": "browser-20261018-205102",
+      "result": "FAIL_SQL_CONSTRAINT",
+      "receipt": "browser-20261018-205102/README.md"
+    },
+    {
+      "batch": "browser-20261018-210519",
+      "result": "INTERRUPTED",
+      "receipt": "browser-20261018-210519/recovered-after-interruption.json"
+    },
+    {
+      "batch": "browser-20261019-055801",
+      "result": "INTERRUPTED",
+      "receipt": "browser-20261019-055801/recovered-after-interruption.json"
+    }
+  ],
+  "authorization": {
+    "status": "NOT_APPROVED",
+    "package": "docs/evidence/rule-agent-integration/2026-10-19/online-http-20261019-unified-01/request-package.json",
+    "sha256": "c3616b1d01ed3f27835e1f825318e969647114c37eeda983f6ddcfd946781460",
+    "batchId": "6aab157c-d3b7-4640-811f-6cd949857594",
+    "maximumCallsProposed": 10,
+    "maximumRmbProposed": 10,
+    "currentlyAuthorizedCalls": 0,
+    "realProviderCallsThisIntegration": 0,
+    "reservationCreated": false,
+    "priorQuotas": "ALL_CLOSED",
+    "nextStep": "explicit new approval of exact packet, then one ONLINE representative flow; no T08 quota implied"
+  },
+  "preservation": {
+    "originalFourDirtyDocumentsUnchanged": true,
+    "receipt": "original-worktree-preserved.json",
+    "originalDatabaseWrites": 0,
+    "pushed": false,
+    "pullRequestCreated": false,
+    "deployed": false,
+    "automation": "10-18-05-55 deleted 2026-10-19; no follow-up created"
+  }
+}
