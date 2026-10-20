@@ -34,7 +34,7 @@ public sealed class ZhkuOwnedJob : IDisposable {
 }
 '@
 }
-function Initialize-Safety([string]$Directory,[int]$Seconds) {
+function Initialize-Safety([string]$Directory,[int]$Seconds,[string[]]$SecretNames) {
     $script:SafetyDir=$Directory
     $script:SafetyClock=[Diagnostics.Stopwatch]::StartNew()
     $script:SafetyLimit=$Seconds
@@ -43,6 +43,11 @@ function Initialize-Safety([string]$Directory,[int]$Seconds) {
     $script:Secrets=@()
     # 只在内存保存脱敏词；不会把环境变量清单或 Docker inspect 的 Env 写入证据。
     foreach($scope in @('Process','User','Machine')) {
+        # 独立模拟宿主只读取明确需要的数据库/合成身份口令，不扫描供应商 Key 的值；旧调用保持原行为。
+        if($PSBoundParameters.ContainsKey('SecretNames')) {
+            foreach($name in $SecretNames){$value=[Environment]::GetEnvironmentVariable($name,$scope);if($value -and $value.Length -ge 4){$script:Secrets+=$value}}
+            continue
+        }
         foreach($entry in [Environment]::GetEnvironmentVariables($scope).GetEnumerator()) {
             if($entry.Key -match '(?i)password|api.?key|token|secret' -and ([string]$entry.Value).Length -ge 4){$script:Secrets+=([string]$entry.Value)}
         }
@@ -84,7 +89,7 @@ function Invoke-Owned([string]$Exe,[string[]]$Arguments,[string]$Name,[int]$Seco
     foreach($arg in @('-NoProfile','-File',$worker,'-Request',$request,'-Gate',$gate)){$info.ArgumentList.Add($arg)}
     # 模拟验收不继承供应商凭证，也不继承可能注入在线模式/额外 Maven 命令的选项。
     foreach($key in @($info.Environment.Keys)) {
-        if($key -match '(?i)dashscope|openai|anthropic|api.?key|^(JAVA_TOOL_OPTIONS|JDK_JAVA_OPTIONS|_JAVA_OPTIONS|MAVEN_ARGS|MAVEN_OPTS|SERVER__PORT|SPRING_APPLICATION_JSON|SPRING_PROFILES_ACTIVE)$') {[void]$info.Environment.Remove($key)}
+        if($key -match '(?i)dashscope|openai|anthropic|api.?key|^(JAVA_TOOL_OPTIONS|JDK_JAVA_OPTIONS|_JAVA_OPTIONS|MAVEN_ARGS|MAVEN_OPTS)$|^(LOADER_|SPRING_|SERVER_|ZHKU_RAG_|ZHKU_RULECHECK_|ZHKU_RULE_AGENT_)') {[void]$info.Environment.Remove($key)}
     }
     $p=[Diagnostics.Process]::new();$p.StartInfo=$info
     $job=[ZhkuOwnedJob]::new(); $assigned=$false;$timed=$false;$stopped=$false;$seen=@{};$left=@();$output=[Text.StringBuilder]::new()

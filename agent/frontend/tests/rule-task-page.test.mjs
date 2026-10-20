@@ -10,7 +10,13 @@ const server=await createServer({root:fileURLToPath(new URL('..',import.meta.url
 after(()=>server.close())
 const {default:Page}=await server.ssrLoadModule('/src/views/RuleCheckView.vue')
 const data=JSON.parse(await readFile(new URL('../../../knowledge/src/test/resources/ruleagent/contract-v3-fixtures.json',import.meta.url),'utf8'))
-async function render(snapshot=null,actor={role:'USER'},extra={},session={}){const app=createSSRApp(Page),router=createRouter({history:createMemoryHistory(),routes:[{path:'/rules',component:{render:()=>null}}]});app.use(router);await router.push('/rules');await router.isReady();app.provide('rule-task-runtime',{session:{state:{actor,epoch:0,identityBusy:false,...session}},client:{},workflow:{state:{snapshot,ticket:snapshot?{taskId:snapshot.taskId}:null,question:'合成问题',busy:false,polling:false,error:'',...extra},reset(){},dispose(){}}});return renderToString(app)}
+async function render(snapshot=null,actor={role:'USER'},extra={},session={},simulated=false){const app=createSSRApp(Page),router=createRouter({history:createMemoryHistory(),routes:[{path:'/rules',component:{render:()=>null}}]});app.use(router);await router.push('/rules');await router.isReady();app.provide('rule-task-runtime',{simulated,session:{state:{actor,epoch:0,identityBusy:false,...session}},client:{},workflow:{state:{snapshot,ticket:snapshot?{taskId:snapshot.taskId}:null,question:'合成问题',busy:false,polling:false,error:'',...extra},reset(){},dispose(){}}});return renderToString(app)}
+test('fixed simulation scope is visible before login and does not claim general answers',async()=>{
+  const html=await render(null,null,{},{},true)
+  assert.match(html,/工程模拟：仅支持下方固定问题，不调用在线模型/)
+  assert.match(html,/我这门选修课没过，能不能重修？/)
+  assert.doesNotMatch(await render(null,null),/工程模拟：仅支持下方固定问题/)
+})
 test('student login and navigation expose rules only',async()=>{const html=await render(null,null);assert.match(html,/登录规则查证/);assert.match(html,/href="\/rules"/);assert.doesNotMatch(html,/学分实验|通用助手实验|href="\/campus/)} )
 for(const row of data.snapshots)test(`student presents shared ${row.name}`,async()=>{const html=await render(row.value);for(const q of row.value.result?.items||[]){for(const c of q.claims)assert.ok(html.includes(c.text));for(const i of q.issues){assert.ok(html.includes(i.message));assert.ok(html.includes(i.nextStep))}}assert.doesNotMatch(html,/<details[^>]*open/);if(row.value.result?.claims?.length)assert.ok(html.indexOf('能确认')<html.indexOf('依据'))})
 test('partial answers, processing failure, missing data and replay have separate labels',async()=>{const labels={'partial-and-processing-failure':'处理未完成','honest-data-gap':'资料缺口','replay-not-covered':'回放未覆盖','partial-and-clarification':'需要补充条件'};for(const [name,label]of Object.entries(labels))assert.match(await render(data.snapshots.find(x=>x.name===name).value),new RegExp(label))})

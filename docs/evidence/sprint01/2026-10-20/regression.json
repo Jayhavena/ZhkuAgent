@@ -1,0 +1,151 @@
+{
+  "frontend": {
+    "skipped": 0,
+    "failures": 0,
+    "tests": 83,
+    "sha256": "15FAEB02AE5225144CC8A3A35F1365F3B33500A987F39FBCF278FAB73657D57B",
+    "log": "D:/alldesk/Projects/ZhkuAgent/tmp/sprint01-page-green.log"
+  },
+  "correction": "Final browser batch supersedes earlier insufficient logout assertion and mislabeled cancel summary; original earlier batches preserved under tmp",
+  "firstFailures": [
+    "Docker engine stopped; no resources created",
+    "Controller form dictionary cast failed; host and resources exited",
+    "Isolated Java copy lacked 21 asset/4 fixture files; restored originals, no assertions changed",
+    "Student simulation notice absent before login; new page test failed then passed",
+    "Strict HEAD rejected identical source after checkpoint; ancestor plus digest regression passed"
+  ],
+  "safety": {
+    "jsonSecretRedacted": true,
+    "passed": true,
+    "cases": 4,
+    "raw": "D:\\alldesk\\Projects\\ZhkuAgent\\tmp\\sprint01-safety\\supervisor-09825928440a44eb8eedd211a70fa41d\\supervisor-test.json",
+    "secretArgumentRejected": true
+  },
+  "limits": [
+    "No real provider",
+    "Historical 2025.9.2 fixed retake question only",
+    "Browser ACTIVE cancellation and actual DB evidence withdrawal not covered in this batch"
+  ],
+  "java": [
+    {
+      "failures": 0,
+      "suite": "com.zhku.knowledge.ruleagent.demo.RuleAgentSimulatedDemoTest",
+      "skipped": 0,
+      "tests": 6,
+      "errors": 0,
+      "sha256": "9B7AC869367E36ECD0D2653515402388A7B9058AD8D7EA27B5DF8BEFC13B44E8"
+    },
+    {
+      "failures": 0,
+      "suite": "com.zhku.knowledge.ruleagent.RuleAgentEvidenceToolsTest",
+      "skipped": 0,
+      "tests": 12,
+      "errors": 0,
+      "sha256": "C11D033CECEA0D11DFA8CCD731DF565171E846C34D24D9D8875A71B599FA3415"
+    },
+    {
+      "failures": 0,
+      "suite": "com.zhku.knowledge.ruleagent.RuleAgentRunnerTest",
+      "skipped": 0,
+      "tests": 22,
+      "errors": 0,
+      "sha256": "CA87FF49E8BA68851AFA6C5B10FFA39F46FFB0A5CF5585D0B9A878687E4D6403"
+    },
+    {
+      "failures": 0,
+      "suite": "com.zhku.knowledge.ruleagent.RulePublicationGateTest",
+      "skipped": 0,
+      "tests": 15,
+      "errors": 0,
+      "sha256": "043AA03187123CA19C07DDFDCE978F72ED926A774A773C039A07C65D027DB212"
+    },
+    {
+      "failures": 0,
+      "suite": "com.zhku.knowledge.ruleagent.web.RuleAgentTaskHttpTest",
+      "skipped": 0,
+      "tests": 1,
+      "errors": 0,
+      "sha256": "04EC263B10A440FF82DAF1CB57DAE26834B173F7BCEABFCA9E845FC34C5B262D"
+    }
+  ],
+  "evidenceRedaction": {
+    "syntheticRedGreen": true,
+    "fieldsAndOriginalPaths": true,
+    "passed": true
+  },
+  "lifecycle": [
+    {
+      "passed": true,
+      "cleanup": {
+        "containerId": "8f12c2e1c9c9a6b4dd08389458b18d2ca8404f619c927e342eb5f44386f3d98f",
+        "volumeAbsent": true,
+        "containerName": "zhku-m1close-sprint01-20261020-2010-success",
+        "containerAbsent": true,
+        "port": 55170,
+        "volumeName": "zhku-m1close-sprint01-20261020-2010-success-data",
+        "portListenerAbsent": true
+      },
+      "case": "success"
+    },
+    {
+      "passed": true,
+      "expectedContainerExit": 23,
+      "cleanup": {
+        "containerId": "e4d1d7914176e9ee4070a8b114f521f382af108fbdd7c12e66a977f7290649db",
+        "volumeAbsent": true,
+        "containerName": "zhku-m1close-sprint01-20261020-2010-failure",
+        "containerAbsent": true,
+        "port": 55171,
+        "volumeName": "zhku-m1close-sprint01-20261020-2010-failure-data",
+        "portListenerAbsent": true
+      },
+      "case": "failure"
+    },
+    {
+      "case": "timeout",
+      "passed": true,
+      "cleanup": {
+        "containerId": "df652529245ab1c627aad7bc7d45e3d2591f1d4c4c2acf83945cbba024621ffa",
+        "volumeAbsent": true,
+        "containerName": "zhku-m1close-sprint01-20261020-2010-timeout",
+        "containerAbsent": true,
+        "port": 55172,
+        "volumeName": "zhku-m1close-sprint01-20261020-2010-timeout-data",
+        "portListenerAbsent": true
+      },
+      "supervisorExit": 124,
+      "workerExitConfirmed": true,
+      "detectedResidual": true
+    },
+    {
+      "case": "interrupted",
+      "passed": true,
+      "cleanup": {
+        "containerId": "10a37363c1eacc14dfdb915685f0147333d640f29592cdaef9ecc2c1f4da79c3",
+        "volumeAbsent": true,
+        "containerName": "zhku-m1close-sprint01-20261020-2010-interrupted",
+        "containerAbsent": true,
+        "port": 55173,
+        "volumeName": "zhku-m1close-sprint01-20261020-2010-interrupted-data",
+        "portListenerAbsent": true
+      },
+      "detectedResidual": true,
+      "parentExitConfirmed": true,
+      "workerExitConfirmed": true
+    }
+  ],
+  "gitRecovery": {
+    "method": "Actual git checkout-index to fresh isolated directory with current attributes and line-ending filters",
+    "sha256Mismatches": 0,
+    "sourceFiles": 711
+  },
+  "finalReview": {
+    "importantFindings": 2,
+    "items": [
+      "Original URL token redaction RED then GREEN",
+      "Logout while original already expanded, final real Edge batch passed"
+    ],
+    "fixedAndVerified": 2,
+    "readOnly": true
+  }
+}

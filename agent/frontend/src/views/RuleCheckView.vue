@@ -9,6 +9,8 @@ import { ruleCheckConditionLabel } from '../state/rule-check-labels.js'
 
 // 测试可注入渲染状态；正式入口仍只从独立v2客户端取得结果，不提供URL资料自证参数。
 const runtime = inject('rule-task-runtime', null)
+// 模拟范围在构建时固定，登录前也应告知；不能等待首个结果才暴露它不具备通用问答能力。
+const simulated = runtime?.simulated ?? import.meta.env.VITE_DEMO_MODE === 'simulated'
 const session = runtime?.session || ruleCheckSession, api = runtime?.client || ruleTaskClient
 const flow = runtime?.workflow || createRuleTaskWorkflow({client:api,session}), state = flow.state
 const username = ref(''), password = ref(''), question = ref(''), choice = ref(''), loginError = ref('')
@@ -85,6 +87,7 @@ const relatedEvidence = q => result.value.evidence.filter(e => result.value.evid
       <nav aria-label="查证导航"><button v-if="session.state.actor" type="button" :disabled="session.state.identityBusy" @click="logout">退出登录</button></nav>
     </header>
     <section class="rule-intro"><h1>先找到依据，再理解规则。</h1><p>用你的话提问，确认必要条件，逐条核对原文。</p><p class="reference-note">首轮以2025版文本为依据；现行适用性仍需核实。</p>
+      <p v-if="simulated" class="rule-notice">工程模拟：仅支持下方固定问题，不调用在线模型。<br />我这门选修课没过，能不能重修？<br />可补充公共选修课或专业选修课；仅验证历史资料的查证流程。</p>
       <p v-if="$route.query.entry === 'rules'" class="rule-hint">学生入口提供规则查证，请在这里提交问题。</p></section>
     <section v-if="!session.state.actor" class="rule-login" aria-labelledby="rule-login-title">
       <h2 id="rule-login-title">登录规则查证</h2><p>使用受控演示账号，查看当前可查证的规则。</p><p v-if="authChecking" role="status">正在核对登录状态…</p>

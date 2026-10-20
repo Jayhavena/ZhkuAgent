@@ -10,14 +10,17 @@ param(
 )
 $ErrorActionPreference='Stop'
 . "$PSScriptRoot/Safety.ps1"
+. "$PSScriptRoot/DockerResources.ps1"
 $SourceRoot=(Resolve-Path -LiteralPath $SourceRoot).Path
 $AssetsRoot=(Resolve-Path -LiteralPath $AssetsRoot).Path
 $batch='m1-'+$Mode.ToLower()+'-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N')
 $run=Join-Path $EvidenceRoot $batch
 [void][IO.Directory]::CreateDirectory($run)
 Initialize-Safety $run $TimeoutSeconds
+# 父监督者异常时，人工只可按 PID 与启动时间核实本轮父进程，不能依赖进程名批量停止。
+Save-Json 'supervisor-owner.json' @{pid=$PID;startTime=[Diagnostics.Process]::GetCurrentProcess().StartTime.ToUniversalTime().ToString('o');executable=(Join-Path $PSHOME 'pwsh.exe');evidenceDirectory=$run}
 $initialLocation=Get-Location
-$exitCode=1;$mavenExit=$null;$failure='';$containerId='';$containerName='';$volumeName='';$port=$null
+$exitCode=1;$mavenExit=$null;$failure='';$containerId='';$containerName='';$volumeName='';$port=$null;$ledgerPath=''
 $cleanup=@{database='not-created';http='not-started';jvm='not-started';container='not-created';volume='not-created';ports='not-started'}
 $observations=@();$summary=@();$model=@{providerCalls=$null;modelAttemptCount=$null;basis='not-run'}
 Write-Output "证据目录：$run"
@@ -44,15 +47,7 @@ function Read-DatabaseCredential {
     # 每个数据库操作前重读统一入口，绝不从资料目录 .env 获取口令。
     . (Join-Path $SourceRoot 'scripts/Import-ZhkuCredentials.ps1') -RequireDatabase
 }
-function Inspect-Container([string]$Id) {
-    # 只选无敏感字段；禁止保存完整 inspect（Config.Env 含口令）。
-    $format='{"id":{{json .Id}},"name":{{json .Name}},"image":{{json .Image}},"labels":{{json .Config.Labels}},"mounts":{{json .Mounts}},"ports":{{json .HostConfig.PortBindings}}}'
-    $text=Run-Checked $script:Docker @('inspect','--format',$format,$Id) 'inspect-container' 15
-    return $text|ConvertFrom-Json
-}
 try {
-    # M1-02 仅交付准备。Docker 真实创建/失败/超时回收尚未经许可验证，不能把静态方案当成放行。
-    if($Mode -eq 'Chain'){throw 'M1_02_NOT_RELEASED: Chain execution locked; resource lifecycle validation and review required'}
     Set-Location -LiteralPath $SourceRoot
     $git=(Get-Command git.exe -ErrorAction Stop).Source
     $head=Run-Checked $git @('rev-parse','HEAD') 'head' 15
@@ -107,18 +102,17 @@ try {
         if(!$credentialPresent){throw 'Database credential unavailable'}
         $listener=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$listener.Start();$port=$listener.LocalEndpoint.Port;$listener.Stop()
         if($port -eq 54329){throw 'Forbidden demonstration database port'}
-        $containerName='zhku-'+$batch;$volumeName=$containerName+'-data';$label='zhku.m1.batch='+$batch
-        # 先持久化意图，Docker 调用超时仍可按唯一标签查找；不按全局 PostgreSQL 名称清理。
-        Save-Json 'resource-intent.json' @{batch=$batch;containerName=$containerName;volumeName=$volumeName;port=$port;database='zhkuagent_rulecheck_e2e';label=$label;imageId=$imageObject.id}
-        [void](Run-Checked $script:Docker @('volume','create','--label',$label,$volumeName) 'create-volume' 20)
+        $containerName='zhku-'+$batch;$volumeName=$containerName+'-data'
+        $ledgerPath=Join-Path $run 'resource-intent.json'
+        $ledger=@{batch=$batch;containerName=$containerName;volumeName=$volumeName;containerId='';port=$port;database='zhkuagent_rulecheck_e2e';imageId=$imageObject.id}
+        # 使用四种真实生命周期探针共用的创建/所有权/回收实现，不改变临时库与测试语义。
         Read-DatabaseCredential
+        $previousPostgresPassword=[Environment]::GetEnvironmentVariable('POSTGRES_PASSWORD','Process')
         $env:POSTGRES_PASSWORD=$env:ZHKU_DB_PASSWORD
         try {
-            $containerId=Run-Checked $script:Docker @('run','--pull=never','-d','--name',$containerName,'--label',$label,'--mount',"type=volume,source=$volumeName,target=/var/lib/postgresql/data",'-e','POSTGRES_USER=zhkuagent','-e','POSTGRES_PASSWORD','-e','POSTGRES_DB=zhkuagent_rulecheck_e2e','-p',"127.0.0.1:${port}:5432",$imageObject.id) 'create-container' 30
-        } finally {Remove-Item Env:POSTGRES_PASSWORD -ErrorAction SilentlyContinue}
-        $owned=Inspect-Container $containerId
-        if($owned.name -ne ('/'+$containerName) -or $owned.labels.'zhku.m1.batch' -ne $batch -or $owned.image -ne $imageObject.id -or @($owned.mounts).Count -ne 1 -or $owned.mounts[0].Name -ne $volumeName){throw 'Container ownership/mount mismatch'}
-        Save-Json 'resource-owner.json' $owned
+            $owned=New-OwnedDockerResource $ledger $ledgerPath @('-e','POSTGRES_USER=zhkuagent','-e','POSTGRES_PASSWORD','-e','POSTGRES_DB=zhkuagent_rulecheck_e2e')
+            $containerId=$owned.id
+        } finally {[Environment]::SetEnvironmentVariable('POSTGRES_PASSWORD',$previousPostgresPassword,'Process')}
         $ready=$false
         for($i=0;$i -lt 30;$i++) {
             Read-DatabaseCredential
@@ -164,28 +158,9 @@ try {
     # 业务时限与退出预算分开；退出阶段最多 120 秒，失败即记录剩余资源，不无限等待。
     $script:CleanupMode=$true;$script:SafetyLimit=[Math]::Min($TimeoutSeconds,$script:SafetyClock.Elapsed.TotalSeconds)+120
     try {
-        if($containerName) {
-            $listed=Run-Checked $script:Docker @('ps','-aq','--no-trunc','--filter',('label=zhku.m1.batch='+$batch)) 'owned-container-discovery' 15
-            foreach($id in @($listed -split '\r?\n'|Where-Object {$_})) {
-                $owned=Inspect-Container $id
-                if($owned.labels.'zhku.m1.batch' -ne $batch -or $owned.name -ne ('/'+$containerName) -or $owned.image -ne $imageObject.id){throw 'Cleanup ownership mismatch'}
-                Save-Json 'resource-before-removal.json' $owned
-                [void](Run-Checked $script:Docker @('rm','-f',$owned.id) 'remove-owned-container' 20)
-            }
-            $left=Run-Checked $script:Docker @('ps','-aq','--no-trunc','--filter',('label=zhku.m1.batch='+$batch)) 'container-exit-check' 15
-            if($left){throw 'Owned container remains'};$cleanup.container='absent-after-label-query';$cleanup.database='container-absent'
-            $v=Run-Checked $script:Docker @('volume','ls','-q','--filter',('label=zhku.m1.batch='+$batch)) 'owned-volume-discovery' 15
-            foreach($name in @($v -split '\r?\n'|Where-Object {$_})) {
-                if($name -ne $volumeName){throw 'Cleanup volume name mismatch'}
-                $label=Run-Checked $script:Docker @('volume','inspect','--format','{{index .Labels "zhku.m1.batch"}}',$name) 'verify-volume-owner' 10
-                if($label -ne $batch){throw 'Cleanup volume label mismatch'}
-                [void](Run-Checked $script:Docker @('volume','rm',$name) 'remove-owned-volume' 15)
-            }
-            $left=Run-Checked $script:Docker @('volume','ls','-q','--filter',('label=zhku.m1.batch='+$batch)) 'volume-exit-check' 10
-            if($left){throw 'Owned volume remains'};$cleanup.volume='absent-after-label-query'
-            $listening=@(Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue)
-            $cleanup.ports=if($listening.Count){'listener-present-do-not-kill-unknown-owner'}else{'database-listener-absent'}
-            if($listening.Count){throw 'Database port still listening'}
+        if($ledgerPath -and (Test-Path -LiteralPath $ledgerPath)) {
+            $resourceExit=Remove-OwnedDockerResource $ledgerPath
+            $cleanup.container='absent-after-owned-removal';$cleanup.volume='absent-after-owned-removal';$cleanup.database='container-absent';$cleanup.ports='database-listener-absent'
         }
     } catch {$cleanup.failure=Protect-Text $_.ToString();if($exitCode -eq 0){$exitCode=2}}
     try {
