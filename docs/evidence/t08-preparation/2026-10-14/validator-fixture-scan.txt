@@ -1,0 +1,48 @@
+[INFO] I-SYN-002 tools/t08-acceptance/test/fixtures/duplicate-count-batch.json containsSynthetic: 本批次含合成记录：仅供工具测试，不得作为正式验收证据
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/duplicate-count-batch.json synthetic: 合成记录：不得作为真实证据统计
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/duplicate-count-batch.json synthetic: 合成记录：不得作为真实证据统计
+[ERROR] E-DUP-001 tools/t08-acceptance/test/fixtures/duplicate-count-batch.json execution.runId: 重复计数的 run：syn-task-40|syn-turn-1|syn-run-40（同一 task/turn/run 只能计一次）
+[ERROR] E-DUP-004 tools/t08-acceptance/test/fixtures/duplicate-count-batch.json declared.sampleCount: 批次声明样本数 3 与实际记录数 2 不符
+[ERROR] E-OMIT-002 tools/t08-acceptance/test/fixtures/duplicate-count-batch.json summary.total: 汇总 total=3 与记录数 2 不符
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/missing-identity.json synthetic: 合成记录：不得作为真实证据统计
+[ERROR] E-ID-001 tools/t08-acceptance/test/fixtures/missing-identity.json identity.sourceSha: 身份字段缺失或为空：sourceSha（候选身份必须完整，未知也要显式登记，不得省略）
+[ERROR] E-ID-001 tools/t08-acceptance/test/fixtures/missing-identity.json identity.budgetRevision: 身份字段缺失或为空：budgetRevision（候选身份必须完整，未知也要显式登记，不得省略）
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/missing-trajectory.json synthetic: 合成记录：不得作为真实证据统计
+[ERROR] E-TRJ-001 tools/t08-acceptance/test/fixtures/missing-trajectory.json execution.actions: ONLINE 且有模型尝试，但动作轨迹缺失
+[ERROR] E-TRJ-004 tools/t08-acceptance/test/fixtures/missing-trajectory.json execution.observations: ONLINE 且有模型尝试，但工具观察记录缺失
+[ERROR] E-GRP-005 tools/t08-acceptance/test/fixtures/mixed-group-batch.json records[].group: 批次内混用多个组（G3,G4）：四组证据必须分开归档统计
+[INFO] I-SYN-002 tools/t08-acceptance/test/fixtures/mixed-group-batch.json containsSynthetic: 本批次含合成记录：仅供工具测试，不得作为正式验收证据
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/mixed-group-batch.json synthetic: 合成记录：不得作为真实证据统计
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/mixed-group-batch.json synthetic: 合成记录：不得作为真实证据统计
+[INFO] I-SYN-002 tools/t08-acceptance/test/fixtures/omitted-failure-batch.json containsSynthetic: 本批次含合成记录：仅供工具测试，不得作为正式验收证据
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/omitted-failure-batch.json synthetic: 合成记录：不得作为真实证据统计
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/omitted-failure-batch.json synthetic: 合成记录：不得作为真实证据统计
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/omitted-failure-batch.json synthetic: 合成记录：不得作为真实证据统计
+[ERROR] E-OMIT-001 tools/t08-acceptance/test/fixtures/omitted-failure-batch.json declared.expectedQuestionIds: 期望样本缺失：SYN-G3-A-53（失败样本也必须出现在批次中，不得静默剔除）
+[ERROR] E-OMIT-002 tools/t08-acceptance/test/fixtures/omitted-failure-batch.json summary.total: 汇总 total=4 与记录数 3 不符
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/replay-posing-online.json synthetic: 合成记录：不得作为真实证据统计
+[ERROR] E-MODE-001 tools/t08-acceptance/test/fixtures/replay-posing-online.json metrics.providerResponseReceived: mode=ONLINE 但未记录供应商响应收到（不得把未收到响应记为在线成功）
+[ERROR] E-MODE-002 tools/t08-acceptance/test/fixtures/replay-posing-online.json metrics.modelAttemptCount: mode=ONLINE 但模型尝试计数缺失或为 0（无法证明当次真实调用）
+[ERROR] E-MODE-004 tools/t08-acceptance/test/fixtures/replay-posing-online.json metrics.replayCoverage: mode=ONLINE 时 replayCoverage 只能为 NOT_APPLICABLE（合同第 6 节）
+[ERROR] E-MODE-005 tools/t08-acceptance/test/fixtures/replay-posing-online.json metrics.answerSource: mode=ONLINE 但 answerSource=SEALED_REPLAY（回放冒充在线）
+[WARN] W-LAT-002 tools/t08-acceptance/test/fixtures/replay-posing-online.json metrics.latencyMillis: ONLINE 样本缺少延迟记录
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/success-on-refusal.json synthetic: 合成记录：不得作为真实证据统计
+[ERROR] E-SCR-003 tools/t08-acceptance/test/fixtures/success-on-refusal.json scoring.criticalError: 存在关键错误不得记为 SUCCESS
+[WARN] W-SCR-001 tools/t08-acceptance/test/fixtures/success-on-refusal.json scoring.outcome: SUCCESS 但 coverage=NONE：须说明是诚实缺证且参考答案认可，防止把可答题拒答记为成功
+[ERROR] E-SYN-001 tools/t08-acceptance/test/fixtures/synthetic-unmarked-batch.json containsSynthetic: 批次含合成记录但未声明 containsSynthetic
+[INFO] I-SYN-002 tools/t08-acceptance/test/fixtures/synthetic-unmarked-batch.json containsSynthetic: 本批次含合成记录：仅供工具测试，不得作为正式验收证据
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/synthetic-unmarked-batch.json synthetic: 合成记录：不得作为真实证据统计
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/unknown-as-zero.json synthetic: 合成记录：不得作为真实证据统计
+[ERROR] E-UNK-001 tools/t08-acceptance/test/fixtures/unknown-as-zero.json metrics.usage: 供应商已响应但 usage 全为 0：疑似把未知记为 0，应改 null 并附说明
+[WARN] W-UNK-003 tools/t08-acceptance/test/fixtures/unknown-as-zero.json metrics.costCny: 费用记为 0 而用量未知：疑似把未知记为 0，应改 null
+[INFO] I-SYN-002 tools/t08-acceptance/test/fixtures/valid-batch.json containsSynthetic: 本批次含合成记录：仅供工具测试，不得作为正式验收证据
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/valid-batch.json synthetic: 合成记录：不得作为真实证据统计
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/valid-batch.json synthetic: 合成记录：不得作为真实证据统计
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/valid-online-sample.json synthetic: 合成记录：不得作为真实证据统计
+[ERROR] E-VER-001 tools/t08-acceptance/test/fixtures/version-mixing-batch.json records[].identity: 批次内存在 2 种不同身份（候选/源码SHA/合同/目录/预算必须单一）
+[ERROR] E-VER-002 tools/t08-acceptance/test/fixtures/version-mixing-batch.json records[].identity.sourceSha: 批次头 sourceSha 与记录不一致
+[INFO] I-SYN-002 tools/t08-acceptance/test/fixtures/version-mixing-batch.json containsSynthetic: 本批次含合成记录：仅供工具测试，不得作为正式验收证据
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/version-mixing-batch.json synthetic: 合成记录：不得作为真实证据统计
+[INFO] I-SYN-001 tools/t08-acceptance/test/fixtures/version-mixing-batch.json synthetic: 合成记录：不得作为真实证据统计
+
+合计：ERROR 19，WARN 3，INFO 24

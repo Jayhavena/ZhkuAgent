@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 3,
+  "recordType": "T08_SAMPLE",
+  "synthetic": true,
+  "identity": {
+    "candidateId": "synthetic-candidate-01",
+    "sourceSha": "88e57d68799d3a5996bb84346090a84040a88387",
+    "contractVersion": "rule-agent-contract-v3",
+    "schemaVersion": 3,
+    "catalogueVersion": "reviewed-2025-v1",
+    "referenceRevision": "article4-increment-v1",
+    "budgetRevision": "T05_REVIEW_BUDGET_03"
+  },
+  "group": "G3",
+  "category": "A",
+  "mode": "ONLINE",
+  "question": {
+    "questionId": "SYN-G3-A-60",
+    "text": "（合成题面）未知记零样本：供应商已响应但 usage 与费用全记 0",
+    "reference": { "verifiedBeforeRun": true }
+  },
+  "execution": {
+    "taskId": "syn-task-60",
+    "turnId": "syn-turn-1",
+    "runId": "syn-run-60",
+    "version": 3,
+    "clientRequestId": "syn-req-60",
+    "taskStatus": "RESOLVED",
+    "runState": "SUCCEEDED",
+    "terminated": true,
+    "actions": [{ "step": 1, "actionId": "syn-act-60", "type": "SEARCH_REVIEWED_RULES" }],
+    "observations": [{ "step": 1, "actionId": "syn-act-60", "status": "SUCCEEDED", "dataLevel": "CANDIDATE" }],
+    "result": {
+      "coverage": "COMPLETE",
+      "items": [{ "id": "sq-1", "coverage": "COMPLETE", "claims": [{ "id": "claim-1" }], "issues": [] }],
+      "evidenceRelations": [{ "evidenceId": "ev-1", "subquestionId": "sq-1", "role": "CLAIM", "targetId": "claim-1" }]
+    },
+    "review": { "performed": true, "runId": "syn-review-60", "verdict": "AGREED" }
+  },
+  "metrics": {
+    "modelAttemptCount": 4,
+    "toolStepCount": 1,
+    "providerResponseReceived": true,
+    "replayCoverage": "NOT_APPLICABLE",
+    "answerSource": "LIVE_AGENT",
+    "latencyMillis": { "total": 8000, "perAttempt": [2000, 2000, 2000, 2000] },
+    "usage": { "promptTokens": 0, "completionTokens": 0, "totalTokens": 0 },
+    "costCny": 0
+  },
+  "scoring": {
+    "scoredBy": "synthetic-scorer",
+    "scoredAt": "2026-10-14T11:00:00+08:00",
+    "dimensions": { "D1": 2, "D2": 2, "D3": 2, "D4": 2, "D5": 1, "D6": 2, "D7": 1, "D8": 1 },
+    "outcome": "SUCCESS",
+    "criticalError": null,
+    "notes": "合成记录：未知记为 0 反例"
+  },
+  "resourceExit": { "terminated": true, "ownedProcessesCleaned": true, "databaseOperations": 0 }
+}

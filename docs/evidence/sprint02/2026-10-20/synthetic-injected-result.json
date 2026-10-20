@@ -1,0 +1,260 @@
+{
+  "recordType": "T08_S02_RESULT",
+  "schemaVersion": 1,
+  "datasetId": "t08-s02-synthetic-engineering",
+  "datasetRevision": "1",
+  "rubricRevision": "t08-s02-rubric-v1",
+  "rubricStatus": "PROPOSED_NOT_APPROVED",
+  "group": "G2",
+  "split": "development",
+  "candidateId": "synthetic-failure-engineering",
+  "sourceSha": "synthetic-fixture-only",
+  "datasetSha256": "e610c397bfe2f59bb57f40c8223a1676ecaa0a309af7980382accfeaa26f8a5a",
+  "rubricSha256": "1c1f08677d9b0978fac9d2c8f9822c41166829bec5a3bccf194ce48355ac34f9",
+  "mode": "SYNTHETIC_OFFLINE",
+  "providerCalls": 0,
+  "scope": "OFFLINE_ENGINEERING_ONLY_NOT_MODEL_QUALITY",
+  "datasetTotalCaseIds": [
+    "synthetic-ok",
+    "synthetic-throw",
+    "synthetic-missing-trajectory"
+  ],
+  "excludedCaseIds": [],
+  "expectedCaseIds": [
+    "synthetic-ok",
+    "synthetic-throw",
+    "synthetic-missing-trajectory"
+  ],
+  "records": [
+    {
+      "caseId": "synthetic-ok",
+      "group": "G2",
+      "split": "development",
+      "candidateId": "synthetic-failure-engineering",
+      "sourceSha": "synthetic-fixture-only",
+      "datasetSha256": "e610c397bfe2f59bb57f40c8223a1676ecaa0a309af7980382accfeaa26f8a5a",
+      "rubricSha256": "1c1f08677d9b0978fac9d2c8f9822c41166829bec5a3bccf194ce48355ac34f9",
+      "synthetic": true,
+      "engineeringStatus": "PASS",
+      "qualityStatus": "NOT_EVALUABLE",
+      "execution": {
+        "taskId": "synthetic-task-synthetic-ok",
+        "turnId": "synthetic-turn-0",
+        "runId": "synthetic-run-synthetic-ok-0",
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "actions": [
+          {
+            "actionId": "a-0",
+            "type": "SYNTHETIC_READ",
+            "step": 1
+          }
+        ],
+        "observations": [
+          {
+            "actionId": "a-0",
+            "status": "SUCCEEDED",
+            "dataLevel": "SYNTHETIC"
+          }
+        ],
+        "result": {
+          "coverage": "COMPLETE",
+          "evidence": [
+            {
+              "id": "synthetic-evidence"
+            }
+          ],
+          "evidenceRelations": [],
+          "items": [],
+          "issues": []
+        }
+      },
+      "turns": [
+        {
+          "taskId": "synthetic-task-synthetic-ok",
+          "turnId": "synthetic-turn-0",
+          "runId": "synthetic-run-synthetic-ok-0",
+          "taskStatus": "RESOLVED",
+          "runState": "SUCCEEDED",
+          "actions": [
+            {
+              "actionId": "a-0",
+              "type": "SYNTHETIC_READ",
+              "step": 1
+            }
+          ],
+          "observations": [
+            {
+              "actionId": "a-0",
+              "status": "SUCCEEDED",
+              "dataLevel": "SYNTHETIC"
+            }
+          ],
+          "result": {
+            "coverage": "COMPLETE",
+            "evidence": [
+              {
+                "id": "synthetic-evidence"
+              }
+            ],
+            "evidenceRelations": [],
+            "items": [],
+            "issues": []
+          }
+        }
+      ],
+      "faultInjection": null,
+      "faultReceipt": null,
+      "metrics": {
+        "elapsedMillis": 0.4461000000000013,
+        "modelAttemptCount": 0,
+        "providerResponseReceived": false,
+        "usage": {
+          "promptTokens": null,
+          "completionTokens": null,
+          "totalTokens": null
+        },
+        "costCny": null,
+        "unknown": true
+      },
+      "error": null,
+      "findings": []
+    },
+    {
+      "caseId": "synthetic-throw",
+      "group": "G2",
+      "split": "development",
+      "candidateId": "synthetic-failure-engineering",
+      "sourceSha": "synthetic-fixture-only",
+      "datasetSha256": "e610c397bfe2f59bb57f40c8223a1676ecaa0a309af7980382accfeaa26f8a5a",
+      "rubricSha256": "1c1f08677d9b0978fac9d2c8f9822c41166829bec5a3bccf194ce48355ac34f9",
+      "synthetic": true,
+      "engineeringStatus": "FAIL",
+      "qualityStatus": "NOT_EVALUABLE",
+      "execution": null,
+      "turns": [],
+      "faultInjection": null,
+      "faultReceipt": null,
+      "metrics": {
+        "elapsedMillis": 0.038400000000002876,
+        "modelAttemptCount": 0,
+        "providerResponseReceived": false,
+        "usage": {
+          "promptTokens": null,
+          "completionTokens": null,
+          "totalTokens": null
+        },
+        "costCny": null,
+        "unknown": true
+      },
+      "error": {
+        "code": "ADAPTER_EXCEPTION",
+        "message": "Adapter failed; raw error omitted to avoid credential disclosure"
+      },
+      "findings": []
+    },
+    {
+      "caseId": "synthetic-missing-trajectory",
+      "group": "G2",
+      "split": "development",
+      "candidateId": "synthetic-failure-engineering",
+      "sourceSha": "synthetic-fixture-only",
+      "datasetSha256": "e610c397bfe2f59bb57f40c8223a1676ecaa0a309af7980382accfeaa26f8a5a",
+      "rubricSha256": "1c1f08677d9b0978fac9d2c8f9822c41166829bec5a3bccf194ce48355ac34f9",
+      "synthetic": true,
+      "engineeringStatus": "INSUFFICIENT_EVIDENCE",
+      "qualityStatus": "NOT_EVALUABLE",
+      "execution": {
+        "taskId": "synthetic-task-synthetic-missing-trajectory",
+        "turnId": "synthetic-turn-0",
+        "runId": "synthetic-run-synthetic-missing-trajectory-0",
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "actions": [
+          {
+            "actionId": "a-0",
+            "type": "SYNTHETIC_READ",
+            "step": 1
+          }
+        ],
+        "observations": [],
+        "result": {
+          "coverage": "COMPLETE",
+          "evidence": [
+            {
+              "id": "synthetic-evidence"
+            }
+          ],
+          "evidenceRelations": [],
+          "items": [],
+          "issues": []
+        }
+      },
+      "turns": [
+        {
+          "taskId": "synthetic-task-synthetic-missing-trajectory",
+          "turnId": "synthetic-turn-0",
+          "runId": "synthetic-run-synthetic-missing-trajectory-0",
+          "taskStatus": "RESOLVED",
+          "runState": "SUCCEEDED",
+          "actions": [
+            {
+              "actionId": "a-0",
+              "type": "SYNTHETIC_READ",
+              "step": 1
+            }
+          ],
+          "observations": [],
+          "result": {
+            "coverage": "COMPLETE",
+            "evidence": [
+              {
+                "id": "synthetic-evidence"
+              }
+            ],
+            "evidenceRelations": [],
+            "items": [],
+            "issues": []
+          }
+        }
+      ],
+      "faultInjection": null,
+      "faultReceipt": null,
+      "metrics": {
+        "elapsedMillis": 0.05640000000000356,
+        "modelAttemptCount": 0,
+        "providerResponseReceived": false,
+        "usage": {
+          "promptTokens": null,
+          "completionTokens": null,
+          "totalTokens": null
+        },
+        "costCny": null,
+        "unknown": true
+      },
+      "error": null,
+      "findings": [
+        {
+          "severity": "ERROR",
+          "code": "MISSING_TRAJECTORY",
+          "path": "turns[0]"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "datasetTotal": 3,
+    "excludedCount": 0,
+    "byEngineeringStatus": {
+      "PASS": 1,
+      "FAIL": 1,
+      "NOT_EXECUTED": 0,
+      "INSUFFICIENT_EVIDENCE": 1,
+      "NOT_EVALUABLE": 0
+    },
+    "modelQualityEvaluable": false,
+    "qualityStatus": "NOT_EVALUABLE"
+  },
+  "manifestSha256": "81726bed63ef2cb1237664dd5b156408d2f25baabadcdf0c229ce6b9ccbc2a72"
+}

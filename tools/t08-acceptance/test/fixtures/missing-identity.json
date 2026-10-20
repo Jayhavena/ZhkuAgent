@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 3,
+  "recordType": "T08_SAMPLE",
+  "synthetic": true,
+  "identity": {
+    "candidateId": "synthetic-candidate-01",
+    "contractVersion": "rule-agent-contract-v3",
+    "schemaVersion": 3,
+    "catalogueVersion": "reviewed-2025-v1",
+    "referenceRevision": "article4-increment-v1",
+    "promptRevision": "synthetic-prompt-v0"
+  },
+  "group": "G3",
+  "category": "A",
+  "mode": "ONLINE",
+  "question": {
+    "questionId": "SYN-G3-A-02",
+    "text": "（合成题面）身份缺失样本：故意缺少 sourceSha 与 budgetRevision",
+    "supplements": [],
+    "reference": { "verifiedBeforeRun": true }
+  },
+  "execution": {
+    "taskId": "syn-task-2",
+    "turnId": "syn-turn-1",
+    "runId": "syn-run-2",
+    "version": 3,
+    "clientRequestId": "syn-req-2",
+    "taskStatus": "RESOLVED",
+    "runState": "SUCCEEDED",
+    "terminated": true,
+    "actions": [{ "step": 1, "actionId": "syn-act-2", "type": "SEARCH_REVIEWED_RULES" }],
+    "observations": [{ "step": 1, "actionId": "syn-act-2", "status": "SUCCEEDED", "dataLevel": "CANDIDATE" }],
+    "result": {
+      "coverage": "COMPLETE",
+      "items": [{ "id": "sq-1", "coverage": "COMPLETE", "claims": [{ "id": "claim-1" }], "issues": [] }],
+      "evidenceRelations": [{ "evidenceId": "ev-1", "subquestionId": "sq-1", "role": "CLAIM", "targetId": "claim-1" }]
+    },
+    "review": { "performed": true, "runId": "syn-review-2", "verdict": "AGREED" }
+  },
+  "metrics": {
+    "modelAttemptCount": 4,
+    "toolStepCount": 1,
+    "providerResponseReceived": true,
+    "replayCoverage": "NOT_APPLICABLE",
+    "answerSource": "LIVE_AGENT",
+    "latencyMillis": { "total": 8000, "perAttempt": [2000, 2000, 2000, 2000] },
+    "usage": { "promptTokens": null, "completionTokens": null, "totalTokens": null },
+    "costCny": null
+  },
+  "scoring": {
+    "scoredBy": "synthetic-scorer",
+    "scoredAt": "2026-10-14T11:00:00+08:00",
+    "dimensions": { "D1": 2, "D2": 2, "D3": 2, "D4": 2, "D5": 1, "D6": 2, "D7": 1, "D8": 1 },
+    "outcome": "SUCCESS",
+    "criticalError": null,
+    "notes": "合成记录：身份缺失反例"
+  },
+  "resourceExit": { "terminated": true, "ownedProcessesCleaned": true, "databaseOperations": 0 }
+}

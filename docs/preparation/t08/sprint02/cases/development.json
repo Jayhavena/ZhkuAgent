@@ -1,0 +1,344 @@
+{
+  "recordType": "T08_S02_DATASET",
+  "schemaVersion": 1,
+  "datasetId": "t08-s02-20261020",
+  "revision": "1",
+  "split": "development",
+  "cases": [
+    {
+      "caseId": "S02-D01",
+      "group": "G2",
+      "category": "A",
+      "synthetic": false,
+      "provenance": {
+        "kind": "EXPOSED_DEVELOPMENT",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "DEVELOPMENT"
+      },
+      "input": {
+        "question": "学校选修课分哪两类，公选又有哪些？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "学校选修课分为专业选修课和公共选修课。",
+          "公共选修课包括校内公选课和网络公选课。"
+        ],
+        "forbiddenConclusions": [
+          "把专业选修和公共选修混为一类。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [
+          "E2025-A04"
+        ],
+        "allowedGaps": [],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "COMPLETE"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "complete_conditions_direct_answer"
+      ]
+    },
+    {
+      "caseId": "S02-D02",
+      "group": "G2",
+      "category": "B",
+      "synthetic": false,
+      "provenance": {
+        "kind": "EXPOSED_DEVELOPMENT",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "DEVELOPMENT"
+      },
+      "input": {
+        "question": "选修没过可以重修吗",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "课程类别决定公共与专业选修的重修结论，应先澄清类别。"
+        ],
+        "forbiddenConclusions": [
+          "未知类别时给统一结论。"
+        ],
+        "necessaryConditions": [
+          "courseType:PUBLIC|PROFESSIONAL"
+        ],
+        "relevantEvidence": [
+          "E2025-A18"
+        ],
+        "allowedGaps": [],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "WAITING_USER"
+        ],
+        "coverage": [
+          "NONE"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "incomplete_conditions_clarify"
+      ]
+    },
+    {
+      "caseId": "S02-D03",
+      "group": "G2",
+      "category": "F",
+      "synthetic": false,
+      "provenance": {
+        "kind": "EXPOSED_DEVELOPMENT",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "DEVELOPMENT"
+      },
+      "input": {
+        "question": "公共选修课授课时间一般是多少，最多多少？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "原则上为16学时。",
+          "最多不超过32学时。"
+        ],
+        "forbiddenConclusions": [
+          "所有课程固定16学时。",
+          "将32学时说成32学分。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [
+          "E2025-A05"
+        ],
+        "allowedGaps": [],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "COMPLETE"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "complete_conditions_direct_answer"
+      ]
+    },
+    {
+      "caseId": "S02-D04",
+      "group": "G2",
+      "category": "F",
+      "synthetic": false,
+      "provenance": {
+        "kind": "EXPOSED_DEVELOPMENT",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "DEVELOPMENT"
+      },
+      "input": {
+        "question": "网络公选课一般最多占多少学分？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "一般不能超过人才培养方案要求选修课的一半学分。",
+          "分母是培养方案要求的选修课学分；不认定个人资格。"
+        ],
+        "forbiddenConclusions": [
+          "所有情形都无例外地一半。",
+          "分母改为个人已修总学分。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [
+          "E2025-A08"
+        ],
+        "allowedGaps": [],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "COMPLETE"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "complete_conditions_direct_answer"
+      ]
+    },
+    {
+      "caseId": "S02-D05",
+      "group": "G2",
+      "category": "D",
+      "synthetic": false,
+      "provenance": {
+        "kind": "EXPOSED_DEVELOPMENT",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "DEVELOPMENT"
+      },
+      "input": {
+        "question": "我还缺多少选修学分？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "仅凭手册不能核实个人缺额。",
+          "培养方案是选课依据，需对应培养方案与可靠已修记录。"
+        ],
+        "forbiddenConclusions": [
+          "编造个人缺额或毕业资格。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [
+          "E2025-A08"
+        ],
+        "allowedGaps": [
+          "PERSONAL_RECORD_NOT_AVAILABLE"
+        ],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "PARTIAL"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "no_authoritative_basis"
+      ]
+    },
+    {
+      "caseId": "S02-D06",
+      "group": "G2",
+      "category": "A",
+      "synthetic": false,
+      "provenance": {
+        "kind": "EXPOSED_DEVELOPMENT",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "DEVELOPMENT"
+      },
+      "input": {
+        "question": "公选课与必修、专业选修的排课顺序是什么？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "开课前一个学期排课。",
+          "先安排必修课和专业选修课，再安排全校性公共选修课。"
+        ],
+        "forbiddenConclusions": [
+          "保证个人公选课表与所有课程均无冲突。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [
+          "E2025-A12"
+        ],
+        "allowedGaps": [],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "COMPLETE"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "complete_conditions_direct_answer"
+      ]
+    }
+  ]
+}

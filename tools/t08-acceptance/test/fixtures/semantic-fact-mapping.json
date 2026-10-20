@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 3,
+  "recordType": "T08_SAMPLE",
+  "synthetic": true,
+  "identity": {
+    "candidateId": "synthetic-candidate-01",
+    "sourceSha": "88e57d68799d3a5996bb84346090a84040a88387",
+    "contractVersion": "rule-agent-contract-v3",
+    "schemaVersion": 3,
+    "catalogueVersion": "reviewed-2025-v1",
+    "referenceRevision": "article4-increment-v1",
+    "budgetRevision": "T05_REVIEW_BUDGET_03",
+    "promptRevision": "synthetic-prompt-v0"
+  },
+  "group": "G3",
+  "category": "A",
+  "mode": "ONLINE",
+  "question": {
+    "questionId": "SYN-SEMANTIC-FACT-MAPPING",
+    "text": "（合成题面）semantic-fact-mapping",
+    "supplements": [],
+    "reference": {
+      "answerPoints": [
+        "ap-1"
+      ],
+      "forbiddenConclusions": [],
+      "necessaryConditions": [],
+      "relevantEvidence": [],
+      "allowedGaps": [],
+      "verifiedBeforeRun": true
+    }
+  },
+  "execution": {
+    "taskId": "syn-task-1",
+    "turnId": "syn-turn-1",
+    "runId": "syn-run-1",
+    "version": 3,
+    "clientRequestId": "syn-req-1",
+    "ownerHash": "sha256:synthetic-owner",
+    "taskStatus": "RESOLVED",
+    "runState": "SUCCEEDED",
+    "terminated": true,
+    "startedAt": "2026-10-14T10:00:00+08:00",
+    "endedAt": "2026-10-14T10:00:12+08:00",
+    "actions": [
+      {
+        "step": 1,
+        "actionId": "syn-act-1",
+        "type": "SEARCH_REVIEWED_RULES",
+        "paramsDigest": "sha256:synthetic"
+      }
+    ],
+    "observations": [
+      {
+        "step": 1,
+        "actionId": "syn-act-1",
+        "status": "SUCCEEDED",
+        "reasonCode": null,
+        "dataLevel": "CANDIDATE"
+      }
+    ],
+    "result": {
+      "catalogueVersion": "reviewed-2025-v1",
+      "referenceRevision": "article4-increment-v1",
+      "coverage": "COMPLETE",
+      "publishedVersion": 1,
+      "items": [
+        {
+          "id": "sq-1",
+          "coverage": "COMPLETE",
+          "claims": [
+            {
+              "id": "claim-1",
+              "factId": "S10/GENERAL:public-failed-no-retakee",
+              "when": null,
+              "conditionSource": null
+            }
+          ],
+          "issues": [],
+          "clarification": null
+        }
+      ],
+      "evidenceRelations": [
+        {
+          "evidenceId": "ev-1",
+          "subquestionId": "sq-1",
+          "role": "CLAIM",
+          "targetId": "claim-1"
+        }
+      ]
+    },
+    "review": {
+      "performed": true,
+      "runId": "syn-review-1",
+      "verdict": "AGREED"
+    },
+    "observedFacts": [
+      {
+        "id": "S10/GENERAL:public-failed-no-retake",
+        "when": {}
+      }
+    ]
+  },
+  "metrics": {
+    "modelAttemptCount": 4,
+    "toolStepCount": 2,
+    "providerResponseReceived": true,
+    "replayCoverage": "NOT_APPLICABLE",
+    "answerSource": "LIVE_AGENT",
+    "latencyMillis": {
+      "total": 12000,
+      "perAttempt": [
+        3000,
+        3000,
+        3000,
+        3000
+      ]
+    },
+    "usage": {
+      "promptTokens": null,
+      "completionTokens": null,
+      "totalTokens": null
+    },
+    "costCny": null
+  },
+  "scoring": {
+    "scoredBy": "synthetic-scorer",
+    "scoredAt": "2026-10-14T11:00:00+08:00",
+    "dimensions": {
+      "D1": 2,
+      "D2": 2,
+      "D3": 2,
+      "D4": 2,
+      "D5": 1,
+      "D6": 2,
+      "D7": 1,
+      "D8": 1
+    },
+    "outcome": "SUCCESS",
+    "criticalError": null,
+    "notes": "合成记录：仅验证校验工具对合法形状不误报",
+    "coverageMap": {
+      "ap-1": "sq-1"
+    }
+  },
+  "resourceExit": {
+    "terminated": true,
+    "terminationReason": "SUCCEEDED",
+    "ownedProcessesCleaned": true,
+    "databaseOperations": 0,
+    "notes": "合成记录"
+  }
+}

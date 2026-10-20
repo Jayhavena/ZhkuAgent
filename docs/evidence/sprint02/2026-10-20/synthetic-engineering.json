@@ -1,0 +1,133 @@
+{
+  "recordType": "T08_S02_RESULT",
+  "schemaVersion": 1,
+  "datasetId": "t08-s02-synthetic-engineering",
+  "datasetRevision": "1",
+  "rubricRevision": "t08-s02-rubric-v1",
+  "rubricStatus": "PROPOSED_NOT_APPROVED",
+  "group": "G2",
+  "split": "development",
+  "candidateId": "synthetic-engineering",
+  "sourceSha": "synthetic-fixture-only",
+  "datasetSha256": "92f0638ec73daa5a92d031b190bdc0f702b77bb9d577833d16dc4e38d07a215f",
+  "rubricSha256": "1c1f08677d9b0978fac9d2c8f9822c41166829bec5a3bccf194ce48355ac34f9",
+  "mode": "SYNTHETIC_OFFLINE",
+  "providerCalls": 0,
+  "scope": "OFFLINE_ENGINEERING_ONLY_NOT_MODEL_QUALITY",
+  "datasetTotalCaseIds": [
+    "synthetic-pass"
+  ],
+  "excludedCaseIds": [],
+  "expectedCaseIds": [
+    "synthetic-pass"
+  ],
+  "records": [
+    {
+      "caseId": "synthetic-pass",
+      "group": "G2",
+      "split": "development",
+      "candidateId": "synthetic-engineering",
+      "sourceSha": "synthetic-fixture-only",
+      "datasetSha256": "92f0638ec73daa5a92d031b190bdc0f702b77bb9d577833d16dc4e38d07a215f",
+      "rubricSha256": "1c1f08677d9b0978fac9d2c8f9822c41166829bec5a3bccf194ce48355ac34f9",
+      "synthetic": true,
+      "engineeringStatus": "PASS",
+      "qualityStatus": "NOT_EVALUABLE",
+      "execution": {
+        "taskId": "synthetic-task-synthetic-pass",
+        "turnId": "synthetic-turn-0",
+        "runId": "synthetic-run-synthetic-pass-0",
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "actions": [
+          {
+            "actionId": "a-0",
+            "type": "SYNTHETIC_READ",
+            "step": 1
+          }
+        ],
+        "observations": [
+          {
+            "actionId": "a-0",
+            "status": "SUCCEEDED",
+            "dataLevel": "SYNTHETIC"
+          }
+        ],
+        "result": {
+          "coverage": "COMPLETE",
+          "evidence": [
+            {
+              "id": "synthetic-evidence"
+            }
+          ],
+          "evidenceRelations": [],
+          "items": [],
+          "issues": []
+        }
+      },
+      "turns": [
+        {
+          "taskId": "synthetic-task-synthetic-pass",
+          "turnId": "synthetic-turn-0",
+          "runId": "synthetic-run-synthetic-pass-0",
+          "taskStatus": "RESOLVED",
+          "runState": "SUCCEEDED",
+          "actions": [
+            {
+              "actionId": "a-0",
+              "type": "SYNTHETIC_READ",
+              "step": 1
+            }
+          ],
+          "observations": [
+            {
+              "actionId": "a-0",
+              "status": "SUCCEEDED",
+              "dataLevel": "SYNTHETIC"
+            }
+          ],
+          "result": {
+            "coverage": "COMPLETE",
+            "evidence": [
+              {
+                "id": "synthetic-evidence"
+              }
+            ],
+            "evidenceRelations": [],
+            "items": [],
+            "issues": []
+          }
+        }
+      ],
+      "metrics": {
+        "elapsedMillis": 0.9924999999999997,
+        "modelAttemptCount": 0,
+        "providerResponseReceived": false,
+        "usage": {
+          "promptTokens": null,
+          "completionTokens": null,
+          "totalTokens": null
+        },
+        "costCny": null,
+        "unknown": true
+      },
+      "error": null,
+      "findings": []
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "datasetTotal": 1,
+    "excludedCount": 0,
+    "byEngineeringStatus": {
+      "PASS": 1,
+      "FAIL": 0,
+      "NOT_EXECUTED": 0,
+      "INSUFFICIENT_EVIDENCE": 0,
+      "NOT_EVALUABLE": 0
+    },
+    "modelQualityEvaluable": false,
+    "qualityStatus": "NOT_EVALUABLE"
+  },
+  "manifestSha256": "87e2df031b667570ecfcc316acfb64e5b8cd1e7dd407d761958b85b2517d0300"
+}

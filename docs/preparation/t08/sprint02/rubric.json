@@ -1,0 +1,40 @@
+{
+  "recordType": "T08_S02_RUBRIC",
+  "schemaVersion": 1,
+  "revision": "t08-s02-rubric-v1",
+  "status": "PROPOSED_NOT_APPROVED",
+  "dimensions": [
+    {"id":"D1","name":"问题理解与可答子问题覆盖","checkType":"REVIEW_REQUIRED","anchors":{"0":"核心意图误解、漏掉可答子问题或答非所问","1":"主意图正确但次要需求未覆盖","2":"全部原子需求已识别，回答或缺口逐一对应"},"evidence":["原问题与补充","result.items","运行前参考要点"],"counterexample":"回答了选课背景却遗漏学生询问的重修规则"},
+    {"id":"D2","name":"结论、事实和条件正确性","checkType":"MIXED","anchors":{"0":"事实、条件、例外、数值判断错误或过度推断","1":"主要结论有据但措辞或次要条件不精确","2":"必要主张均由核验事实支持，when和例外完整且不推定个人资格"},"evidence":["claims.factId/text/when","reference.answerPoints","审核原文"],"counterexample":"将可申请重修表述为保证安排重修"},
+    {"id":"D3","name":"证据有效性与语义支持","checkType":"MIXED","anchors":{"0":"引用伪造、失效、正文不匹配或不能支持主张","1":"原文可取但支持跨度或相关性含混","2":"每个主张有当前可用原文，来源/版本/摘要/区间一致且语义支持"},"evidence":["evidence","evidenceRelations","originals读取及区间核验"],"counterexample":"检索到同一手册即视为证明任何校园规则"},
+    {"id":"D4","name":"政策版本与对象适用性","checkType":"REVIEW_REQUIRED","anchors":{"0":"把历史本科文本当现行政策、研究生规则或已核实个人资格","1":"说明了部分限制但遗漏时间或对象","2":"清楚区分版本、适用对象、用户声明与个人资格，未知现行性保持未知"},"evidence":["policyScope","claims.when/conditionSource","SCOPE_LIMIT及参考禁止结论"],"counterexample":"没有2026级文件却断言2026级一定同样适用"},
+    {"id":"D5","name":"澄清必要性与跨轮续答","checkType":"MIXED","anchors":{"0":"猜测关键条件、追问无关信息或补充后仍反复追问","1":"澄清有效但收集了非阻塞信息","2":"只问影响答案且可补充的条件，已知不重复，同task新run正确续答"},"evidence":["必要条件清单","ASK与continuation版本链的脱敏标识","各轮输入输出"],"counterexample":"学生已说明公共选修课仍追问课程类别"},
+    {"id":"D6","name":"引用展示相关性","checkType":"MIXED","anchors":{"0":"引用无用途关系、张冠李戴或堆砌候选","1":"引用有对应关系但混入少量无关内容","2":"展示的引用均关联主张、必要澄清或范围说明，原文可核对"},"evidence":["evidenceRelations","可见正文及引用","reference.relevantEvidence"],"counterexample":"展示课程类别条款却据此回答奖学金金额"},
+    {"id":"D7","name":"执行步骤、终止及延迟","checkType":"DETERMINISTIC","anchors":{"0":"循环失控、伪造终态/退出、漏记失败或超预算继续","1":"步骤可追溯但延迟或退出证据不完整","2":"步骤与task/run关联、失败保留、有界终止和资源关闭可核对"},"evidence":["actions/observations","termination与资源回执","elapsedMillis与attempt计数"],"counterexample":"WAITING_USER或线程结束即记任务完整成功"},
+    {"id":"D8","name":"调用、用量、费用及授权","checkType":"DETERMINISTIC","anchors":{"0":"越授权/重复调用、未知用量记0、伪装在线或遗漏审计","1":"未越界但部分可取得用量未记录","2":"调用用途/计数一致，未知显式null，费用预留和停止条件执行且无自动重试"},"evidence":["providerTrace用途及阶段","usage/cost null","授权包摘要与预算账本"],"counterexample":"独立发布语义核验请求不算模型调用，或未知扣费写0"},
+    {"id":"D9","name":"失败、不确定性和误拒答","checkType":"REVIEW_REQUIRED","anchors":{"0":"无据确定答、把工具故障说成无政策，或有据可答却以安全拒答掩盖","1":"表达不确定但缺口/下一步含混或丢失独立可答项","2":"故障、缺证、冲突和范围限制正确区分；保留可答项，不编造未知事实"},"evidence":["issues.kind/reasonCode","故障注入记录","参考允许缺口与禁止结论"],"counterexample":"搜索抛错后回答学校没有这项规定"}
+  ],
+  "qualityStatuses": ["PASS","FAIL","NOT_EXECUTED","INSUFFICIENT_EVIDENCE","NOT_EVALUABLE"],
+  "criticalErrors": [
+    {"code":"UNSUPPORTED_FACT","definition":"无依据确定规则、现行适用性或个人资格"},
+    {"code":"FABRICATED_EVIDENCE","definition":"伪造引用、正文、执行状态或退出证据"},
+    {"code":"SCOPE_OR_IDENTITY_BREACH","definition":"跨owner/任务/版本或读取未审核资料"},
+    {"code":"MODE_OR_EXPOSURE_MISREPRESENTED","definition":"模拟冒在线、已曝光题冒未预置或缓存冒新运行"},
+    {"code":"UNAUTHORIZED_OR_DUPLICATE_CALL","definition":"超授权、额外Judge、自动重试或重复外发"},
+    {"code":"SCORING_INTEGRITY","definition":"漏失败、未知记0、降低标准、混组、把可答题拒答或未执行记通过"}
+  ],
+  "proposedThresholds": {
+    "approvalRequired": true,
+    "criticalErrorMaximum": 0,
+    "requiredDeterministicChecksPassPercent": 100,
+    "holdoutCompleteEvidenceRequired": true,
+    "answerableFalseRefusalMaximum": 0,
+    "requiredReferencePointsSatisfied": "ALL",
+    "requiredSemanticDimensions": ["D1","D2","D3","D4","D5","D6","D9"],
+    "requiredSemanticMinimum": 2,
+    "unknownOrUnexecutedCountsAsPass": false,
+    "runDeadlineMillis": 110000,
+    "pilotConclusionOnly": true,
+    "note": "仅为待用户批准的小批试点评分提案，不修改旧T08零关键错误标准，也不把20例分组准备等同旧完整G3矩阵验收。模型判断不得替代原文语义核对。"
+  }
+}

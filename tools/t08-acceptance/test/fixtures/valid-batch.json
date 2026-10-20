@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 3,
+  "recordType": "T08_BATCH",
+  "batchId": "SYN-batch-valid",
+  "group": "G3",
+  "candidateId": "synthetic-candidate-01",
+  "sourceSha": "88e57d68799d3a5996bb84346090a84040a88387",
+  "declared": {
+    "sampleCount": 2,
+    "mode": "ONLINE",
+    "expectedQuestionIds": ["SYN-G3-A-90", "SYN-G3-C-91"]
+  },
+  "containsSynthetic": true,
+  "records": [
+    {
+      "schemaVersion": 3,
+      "recordType": "T08_SAMPLE",
+      "synthetic": true,
+      "identity": {
+        "candidateId": "synthetic-candidate-01",
+        "sourceSha": "88e57d68799d3a5996bb84346090a84040a88387",
+        "contractVersion": "rule-agent-contract-v3",
+        "schemaVersion": 3,
+        "catalogueVersion": "reviewed-2025-v1",
+        "referenceRevision": "article4-increment-v1",
+        "budgetRevision": "T05_REVIEW_BUDGET_03"
+      },
+      "group": "G3",
+      "category": "A",
+      "mode": "ONLINE",
+      "question": { "questionId": "SYN-G3-A-90", "text": "（合成题面）合法批次：成功样本", "reference": { "verifiedBeforeRun": true } },
+      "execution": {
+        "taskId": "syn-task-90",
+        "turnId": "syn-turn-1",
+        "runId": "syn-run-90",
+        "version": 3,
+        "clientRequestId": "syn-req-90",
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "actions": [{ "step": 1, "actionId": "syn-act-90", "type": "SEARCH_REVIEWED_RULES" }],
+        "observations": [{ "step": 1, "actionId": "syn-act-90", "status": "SUCCEEDED", "dataLevel": "CANDIDATE" }],
+        "result": {
+          "coverage": "COMPLETE",
+          "publishedVersion": 1,
+          "items": [{ "id": "sq-1", "coverage": "COMPLETE", "claims": [{ "id": "claim-1" }], "issues": [] }],
+          "evidenceRelations": [{ "evidenceId": "ev-1", "subquestionId": "sq-1", "role": "CLAIM", "targetId": "claim-1" }]
+        },
+        "review": { "performed": true, "runId": "syn-review-90", "verdict": "AGREED" }
+      },
+      "metrics": {
+        "modelAttemptCount": 4,
+        "toolStepCount": 1,
+        "providerResponseReceived": true,
+        "replayCoverage": "NOT_APPLICABLE",
+        "answerSource": "LIVE_AGENT",
+        "latencyMillis": { "total": 8000, "perAttempt": [2000, 2000, 2000, 2000] },
+        "usage": { "promptTokens": null, "completionTokens": null, "totalTokens": null },
+        "costCny": null
+      },
+      "scoring": {
+        "scoredBy": "synthetic-scorer",
+        "scoredAt": "2026-10-14T11:00:00+08:00",
+        "dimensions": { "D1": 2, "D2": 2, "D3": 2, "D4": 2, "D5": 1, "D6": 2, "D7": 1, "D8": 1 },
+        "outcome": "SUCCESS",
+        "criticalError": null
+      },
+      "resourceExit": { "terminated": true, "ownedProcessesCleaned": true, "databaseOperations": 0 }
+    },
+    {
+      "schemaVersion": 3,
+      "recordType": "T08_SAMPLE",
+      "synthetic": true,
+      "identity": {
+        "candidateId": "synthetic-candidate-01",
+        "sourceSha": "88e57d68799d3a5996bb84346090a84040a88387",
+        "contractVersion": "rule-agent-contract-v3",
+        "schemaVersion": 3,
+        "catalogueVersion": "reviewed-2025-v1",
+        "referenceRevision": "article4-increment-v1",
+        "budgetRevision": "T05_REVIEW_BUDGET_03"
+      },
+      "group": "G3",
+      "category": "C",
+      "mode": "ONLINE",
+      "question": { "questionId": "SYN-G3-C-91", "text": "（合成题面）合法批次：诚实缺证样本", "reference": { "verifiedBeforeRun": true } },
+      "execution": {
+        "taskId": "syn-task-91",
+        "turnId": "syn-turn-1",
+        "runId": "syn-run-91",
+        "version": 3,
+        "clientRequestId": "syn-req-91",
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "actions": [{ "step": 1, "actionId": "syn-act-91", "type": "SEARCH_REVIEWED_RULES" }],
+        "observations": [{ "step": 1, "actionId": "syn-act-91", "status": "SUCCEEDED", "reasonCode": "RETRIEVAL_NO_MATCH", "dataLevel": null }],
+        "result": {
+          "coverage": "NONE",
+          "items": [],
+          "issues": [{ "kind": "DATA_GAP", "reasonCode": "DETAIL_NOT_IN_REVIEWED_TEXT" }]
+        },
+        "review": { "performed": true, "runId": "syn-review-91", "verdict": "AGREED" }
+      },
+      "metrics": {
+        "modelAttemptCount": 3,
+        "toolStepCount": 1,
+        "providerResponseReceived": true,
+        "replayCoverage": "NOT_APPLICABLE",
+        "answerSource": "LIVE_AGENT",
+        "latencyMillis": { "total": 6000, "perAttempt": [2000, 2000, 2000] },
+        "usage": { "promptTokens": null, "completionTokens": null, "totalTokens": null },
+        "costCny": null
+      },
+      "scoring": {
+        "scoredBy": "synthetic-scorer",
+        "scoredAt": "2026-10-14T11:00:00+08:00",
+        "dimensions": { "D1": 1, "D2": 1, "D3": 1, "D4": 2, "D5": 1, "D6": 1, "D7": 1, "D8": 1 },
+        "outcome": "UNKNOWN",
+        "criticalError": null,
+        "notes": "诚实缺证：按参考答案认可为 UNKNOWN（缺证解释正确），不计成功"
+      },
+      "resourceExit": { "terminated": true, "ownedProcessesCleaned": true, "databaseOperations": 0 }
+    }
+  ],
+  "summary": { "total": 2, "byOutcome": { "SUCCESS": 1, "UNKNOWN": 1 }, "criticalErrors": [], "usageKnown": false }
+}

@@ -1,0 +1,355 @@
+{
+  "recordType": "T08_S02_DATASET",
+  "schemaVersion": 1,
+  "datasetId": "t08-s02-20261020",
+  "revision": "1",
+  "split": "regression",
+  "cases": [
+    {
+      "caseId": "S02-R01",
+      "group": "G2",
+      "category": "F",
+      "synthetic": false,
+      "provenance": {
+        "kind": "EXPOSED_DEVELOPMENT",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "REGRESSION"
+      },
+      "input": {
+        "question": "一学期最多选多少公共选修学分？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "每学期公共选修课最高不超过4个学分。"
+        ],
+        "forbiddenConclusions": [
+          "把单学期上限说成毕业总学分。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [
+          "E2025-A10"
+        ],
+        "allowedGaps": [],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "COMPLETE"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "complete_conditions_direct_answer"
+      ]
+    },
+    {
+      "caseId": "S02-R02",
+      "group": "G2",
+      "category": "B",
+      "synthetic": false,
+      "provenance": {
+        "kind": "EXPOSED_DEVELOPMENT",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "REGRESSION"
+      },
+      "input": {
+        "question": "选修没过可以重修吗",
+        "supplements": [
+          "公共选修课"
+        ]
+      },
+      "reference": {
+        "answerPoints": [
+          "首轮先问课程类别。",
+          "补充公共选修后回答成绩不合格者不安排重修。"
+        ],
+        "forbiddenConclusions": [
+          "要求学号或成绩单才能解释一般规则。",
+          "推断必须退学或必须改选。"
+        ],
+        "necessaryConditions": [
+          "courseType:PUBLIC|PROFESSIONAL"
+        ],
+        "relevantEvidence": [
+          "E2025-A18"
+        ],
+        "allowedGaps": [],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "WAITING_USER",
+          "RESOLVED"
+        ],
+        "coverage": [
+          "NONE",
+          "COMPLETE"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "incomplete_conditions_clarify",
+        "cross_turn_supplement"
+      ]
+    },
+    {
+      "caseId": "S02-R03",
+      "group": "G2",
+      "category": "C",
+      "synthetic": false,
+      "provenance": {
+        "kind": "EXPOSED_DEVELOPMENT",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "REGRESSION"
+      },
+      "input": {
+        "question": "今天网上公选入口是否开放？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "当期通知及可靠入口状态未取得，不能确认今天是否开放。"
+        ],
+        "forbiddenConclusions": [
+          "编造今天开放或截止时间。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [],
+        "allowedGaps": [
+          "CURRENT_NOTICE_MISSING"
+        ],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "SAFETY_EXPECTATION_ONLY"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "NONE"
+        ],
+        "requiredToolTypes": [],
+        "evidenceRequired": false
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "no_authoritative_basis"
+      ]
+    },
+    {
+      "caseId": "S02-R04",
+      "group": "G4",
+      "category": "G",
+      "synthetic": true,
+      "provenance": {
+        "kind": "SYNTHETIC_FAULT",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "REGRESSION"
+      },
+      "input": {
+        "question": "请核对2025文本的公共选修课单学期学分上限。",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "本次检索无有效候选只能说明未取得依据。",
+          "不得将零召回解释为政策不存在；可提示核对原文。"
+        ],
+        "forbiddenConclusions": [
+          "宣称手册没有上限规定。",
+          "凭模型记忆冒充本次已核验证据。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [],
+        "allowedGaps": [
+          "RETRIEVAL_NO_MATCH"
+        ],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "SAFETY_EXPECTATION_ONLY"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "NONE"
+        ],
+        "requiredToolTypes": [],
+        "evidenceRequired": false
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "insufficient_retrieval"
+      ],
+      "faultInjection": {
+        "type": "EMPTY_RETRIEVAL",
+        "point": "SEARCH",
+        "payload": {
+          "candidates": []
+        }
+      }
+    },
+    {
+      "caseId": "S02-R05",
+      "group": "G4",
+      "category": "H",
+      "synthetic": true,
+      "provenance": {
+        "kind": "SYNTHETIC_FAULT",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "REGRESSION"
+      },
+      "input": {
+        "question": "请引用2025文本核对公共选修课学分限制。",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "本次读取的原文摘要或跨度身份不匹配时不得发布由该证据支持的主张。",
+          "说明核验失败而非资料不存在。"
+        ],
+        "forbiddenConclusions": [
+          "展示失效引用作为已审核依据。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [],
+        "allowedGaps": [
+          "EVIDENCE_IDENTITY_MISMATCH"
+        ],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "SAFETY_EXPECTATION_ONLY"
+      },
+      "expected": {
+        "taskStatus": [
+          "FAILED"
+        ],
+        "coverage": [
+          "NONE"
+        ],
+        "requiredToolTypes": [],
+        "evidenceRequired": false
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "invalidated_citation"
+      ],
+      "faultInjection": {
+        "type": "INVALID_EVIDENCE_CHECKSUM",
+        "point": "READ",
+        "payload": {
+          "checksum": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "caseId": "S02-R06",
+      "group": "G4",
+      "category": "G",
+      "synthetic": true,
+      "provenance": {
+        "kind": "SYNTHETIC_FAULT",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "REGRESSION"
+      },
+      "input": {
+        "question": "帮我查2025选修课重修规定。",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "检索工具异常应归为处理失败。",
+          "不能声称没有政策或要求用户提供不能补齐的系统故障信息。"
+        ],
+        "forbiddenConclusions": [
+          "将工具异常归成资料没有规定。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [],
+        "allowedGaps": [
+          "RETRIEVAL_UNAVAILABLE"
+        ],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "SAFETY_EXPECTATION_ONLY"
+      },
+      "expected": {
+        "taskStatus": [
+          "FAILED"
+        ],
+        "coverage": [
+          "NONE"
+        ],
+        "requiredToolTypes": [],
+        "evidenceRequired": false
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "tool_execution_failure"
+      ],
+      "faultInjection": {
+        "type": "TOOL_EXCEPTION",
+        "point": "SEARCH",
+        "payload": {
+          "errorCode": "RETRIEVAL_UNAVAILABLE"
+        }
+      }
+    }
+  ]
+}

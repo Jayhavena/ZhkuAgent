@@ -20,6 +20,11 @@ knowledge/scripts/start-rule-agent-probe.ps1 -text
 scripts/Invoke-ZhkuOwnedProcess.ps1 -text
 knowledge/scripts/test-rule-agent-p02-owned-process.ps1 -text
 
+# T08 题集/Rubric/计划由 freeze.json 按原始字节 SHA-256 冻结；autocrlf 换行转换会让
+# 新工作树验签失败，也会让同一提交在不同 Windows 机器上出现两种字节。
+docs/preparation/t08/** -text
+tools/t08-acceptance/** -text
+
 # 本轮普通启动与所有权监督使用原始字节清单；本地提交/新检出不得悄悄转换换行。
 knowledge/scripts/start-rule-agent-simulated-demo.* -text
 tools/m1-02/** -text

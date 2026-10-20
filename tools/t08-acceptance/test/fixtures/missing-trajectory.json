@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 3,
+  "recordType": "T08_SAMPLE",
+  "synthetic": true,
+  "identity": {
+    "candidateId": "synthetic-candidate-01",
+    "sourceSha": "88e57d68799d3a5996bb84346090a84040a88387",
+    "contractVersion": "rule-agent-contract-v3",
+    "schemaVersion": 3,
+    "catalogueVersion": "reviewed-2025-v1",
+    "referenceRevision": "article4-increment-v1",
+    "budgetRevision": "T05_REVIEW_BUDGET_03"
+  },
+  "group": "G3",
+  "category": "A",
+  "mode": "ONLINE",
+  "question": {
+    "questionId": "SYN-G3-A-30",
+    "text": "（合成题面）轨迹缺失样本：声称 4 次模型尝试但没有动作与观察记录",
+    "reference": { "verifiedBeforeRun": true }
+  },
+  "execution": {
+    "taskId": "syn-task-30",
+    "turnId": "syn-turn-1",
+    "runId": "syn-run-30",
+    "version": 3,
+    "clientRequestId": "syn-req-30",
+    "taskStatus": "RESOLVED",
+    "runState": "SUCCEEDED",
+    "terminated": true,
+    "actions": [],
+    "observations": [],
+    "result": {
+      "coverage": "COMPLETE",
+      "items": [{ "id": "sq-1", "coverage": "COMPLETE", "claims": [{ "id": "claim-1" }], "issues": [] }],
+      "evidenceRelations": [{ "evidenceId": "ev-1", "subquestionId": "sq-1", "role": "CLAIM", "targetId": "claim-1" }]
+    },
+    "review": { "performed": true, "runId": "syn-review-30", "verdict": "AGREED" }
+  },
+  "metrics": {
+    "modelAttemptCount": 4,
+    "toolStepCount": 2,
+    "providerResponseReceived": true,
+    "replayCoverage": "NOT_APPLICABLE",
+    "answerSource": "LIVE_AGENT",
+    "latencyMillis": { "total": 12000, "perAttempt": [3000, 3000, 3000, 3000] },
+    "usage": { "promptTokens": null, "completionTokens": null, "totalTokens": null },
+    "costCny": null
+  },
+  "scoring": {
+    "scoredBy": "synthetic-scorer",
+    "scoredAt": "2026-10-14T11:00:00+08:00",
+    "dimensions": { "D1": 2, "D2": 2, "D3": 2, "D4": 2, "D5": 1, "D6": 2, "D7": 1, "D8": 1 },
+    "outcome": "SUCCESS",
+    "criticalError": null,
+    "notes": "合成记录：轨迹缺失反例"
+  },
+  "resourceExit": { "terminated": true, "ownedProcessesCleaned": true, "databaseOperations": 0 }
+}

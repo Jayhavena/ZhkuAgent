@@ -1,0 +1,25 @@
+T08 校验工具合成测试运行记录（第三轮复核）
+==================================================
+
+运行时间：2026-10-16 18:2x（+08:00）
+运行环境：worktree C:/Users/nangua/.codex/worktrees/t08-acceptance-prep/ZhkuAgent
+          分支 codex/t08-acceptance-prep，HEAD 9904184f915ea01f8de86b8fdc0b4cbdf6d525a7
+          node 22.22.2（managed）
+命令：
+  node --test tools/t08-acceptance/test/validate-evidence.test.mjs
+
+结果：
+  # tests 22
+  # pass 22
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  # duration_ms 670.4641
+
+说明：
+- 全部 22 项为合成夹具测试（fixtures 均含 "synthetic": true），不构成任何真实验收证据。
+- 第三轮未改工具源码，本轮复核目的：确认 2026-10-16 权威状态更新后工具行为无回归。
+- 全夹具扫描见 validator-fixture-scan-round3.txt：19 个夹具中 3 个合法夹具 0 ERROR/0 WARN，
+  16 个问题夹具各自只触发目标检查代码（semantic-false-refusal 按设计为 0 ERROR/2 WARN，
+  semantic-scope-overreach 按设计为 1 WARN，均需人工语义判定）。

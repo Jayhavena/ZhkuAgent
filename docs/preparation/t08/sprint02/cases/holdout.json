@@ -1,0 +1,471 @@
+{
+  "recordType": "T08_S02_DATASET",
+  "schemaVersion": 1,
+  "datasetId": "t08-s02-20261020",
+  "revision": "1",
+  "split": "holdout",
+  "cases": [
+    {
+      "caseId": "S02-H01",
+      "group": "G3",
+      "category": "F",
+      "synthetic": false,
+      "provenance": {
+        "kind": "DESIGNED_STUDENT_QUESTION",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "HOLDOUT"
+      },
+      "input": {
+        "question": "我只核对2025手册：公选一门课的最长授课时数，跟一学期最多修的公选学分，是同一个数吗？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "两个指标不同：公共选修课最多32学时；每学期公共选修课最高4学分。",
+          "授课时间原则上16学时；保留原则与上限差别。"
+        ],
+        "forbiddenConclusions": [
+          "混淆学时和学分。",
+          "用课程学时计算个人毕业资格。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [
+          "E2025-A05",
+          "E2025-A10"
+        ],
+        "allowedGaps": [],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "COMPLETE"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "complete_conditions_direct_answer"
+      ]
+    },
+    {
+      "caseId": "S02-H02",
+      "group": "G3",
+      "category": "B",
+      "synthetic": false,
+      "provenance": {
+        "kind": "DESIGNED_STUDENT_QUESTION",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "HOLDOUT"
+      },
+      "input": {
+        "question": "只按2025手册核对，我一门选修课没通过，还能申请再学一遍吗？",
+        "supplements": [
+          "课表归类为专业选修，我只问重修。"
+        ]
+      },
+      "reference": {
+        "answerPoints": [
+          "先澄清公共还是专业选修。",
+          "补充专业选修后，解释成绩不合格者可申请重修学习；可申请不等于获批。"
+        ],
+        "forbiddenConclusions": [
+          "把申请视为已获准。",
+          "把专业选修的缓考缺证混入只问重修的回答。"
+        ],
+        "necessaryConditions": [
+          "courseType:PUBLIC|PROFESSIONAL"
+        ],
+        "relevantEvidence": [
+          "E2025-A18"
+        ],
+        "allowedGaps": [],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "WAITING_USER",
+          "RESOLVED"
+        ],
+        "coverage": [
+          "NONE",
+          "COMPLETE"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "incomplete_conditions_clarify",
+        "cross_turn_supplement"
+      ]
+    },
+    {
+      "caseId": "S02-H03",
+      "group": "G3",
+      "category": "E",
+      "synthetic": false,
+      "provenance": {
+        "kind": "DESIGNED_STUDENT_QUESTION",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "HOLDOUT"
+      },
+      "input": {
+        "question": "同学说2026版已撤掉每学期公选上限，能按现在版本确定吗？也说明你手里的旧版写了什么。",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "仅能说明2025.9.2第10条每学期公共选修课最高4学分。",
+          "未核对2026新文本及取代关系，不能确认现行上限已撤销或仍适用。"
+        ],
+        "forbiddenConclusions": [
+          "把同学转述当正式修订。",
+          "由旧版直接确认2026现行适用。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [
+          "E2025-A10"
+        ],
+        "allowedGaps": [
+          "CURRENT_APPLICABILITY_UNKNOWN"
+        ],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "PARTIAL"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "policy_version_change"
+      ]
+    },
+    {
+      "caseId": "S02-H04",
+      "group": "G3",
+      "category": "E",
+      "synthetic": false,
+      "provenance": {
+        "kind": "DESIGNED_STUDENT_QUESTION",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "HOLDOUT"
+      },
+      "input": {
+        "question": "我是2024级同学，2025手册关于专业选修要按学期修读的解释只管2025级吗？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "第4条专业选修列入教学计划要求在规定学期内修读。",
+          "本批依据没有入学年级差异或对2024级现行适用的证明，不能作年级资格判断。"
+        ],
+        "forbiddenConclusions": [
+          "杜撰只适用2025级或所有年级适用的范围。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [
+          "E2025-A04-PRO"
+        ],
+        "allowedGaps": [
+          "MATERIAL_SCOPE_MISMATCH",
+          "CURRENT_APPLICABILITY_UNKNOWN"
+        ],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "PARTIAL"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "cohort_applicability"
+      ]
+    },
+    {
+      "caseId": "S02-H05",
+      "group": "G3",
+      "category": "E",
+      "synthetic": false,
+      "provenance": {
+        "kind": "DESIGNED_STUDENT_QUESTION",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "HOLDOUT"
+      },
+      "input": {
+        "question": "我是研究生，能直接用这本本科手册的公选规则作为我的培养要求吗？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "本批解释对象是指定本科历史文本，不能据此确认研究生培养要求。",
+          "需要研究生适用培养方案或正式制度。"
+        ],
+        "forbiddenConclusions": [
+          "将本科规则自动推广为研究生规则。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [
+          "E2025-A02"
+        ],
+        "allowedGaps": [
+          "MATERIAL_SCOPE_MISMATCH"
+        ],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "NONE"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "policy_not_applicable"
+      ]
+    },
+    {
+      "caseId": "S02-H06",
+      "group": "G3",
+      "category": "D",
+      "synthetic": false,
+      "provenance": {
+        "kind": "DESIGNED_STUDENT_QUESTION",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "HOLDOUT"
+      },
+      "input": {
+        "question": "有人转发一张未署名截图说公选挂科必须重修，但你们旧手册写法好像不同；可以判定到底听哪个吗？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "未取得截图的权威来源、版本和适用范围，不能确认两份政策形成真实冲突或裁定优先级。",
+          "2025第18条公共选修成绩不合格者不安排重修；限定为指定历史文本。"
+        ],
+        "forbiddenConclusions": [
+          "编造第二份有效政策。",
+          "仅凭截图宣称已确认政策冲突或新规优先。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [
+          "E2025-A18"
+        ],
+        "allowedGaps": [
+          "UNVERIFIED_COMPETING_SOURCE",
+          "CURRENT_APPLICABILITY_UNKNOWN"
+        ],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "PARTIAL"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "possible_policy_conflict",
+        "no_authoritative_basis"
+      ]
+    },
+    {
+      "caseId": "S02-H07",
+      "group": "G3",
+      "category": "C",
+      "synthetic": false,
+      "provenance": {
+        "kind": "DESIGNED_STUDENT_QUESTION",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "HOLDOUT"
+      },
+      "input": {
+        "question": "宿舍无线网连不上，能查这批规定帮我重置密码吗？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "该问题超出本批选修课程管理规则范围；不能用选修证据提供网络账号办理或编造流程。"
+        ],
+        "forbiddenConclusions": [
+          "索取账号密码或提供虚构的办理入口。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [],
+        "allowedGaps": [
+          "MATERIAL_SCOPE_MISMATCH"
+        ],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "SAFETY_EXPECTATION_ONLY"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "NONE"
+        ],
+        "requiredToolTypes": [],
+        "evidenceRequired": false
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "unrelated_question"
+      ]
+    },
+    {
+      "caseId": "S02-H08",
+      "group": "G3",
+      "category": "A",
+      "synthetic": false,
+      "provenance": {
+        "kind": "DESIGNED_STUDENT_QUESTION",
+        "sourceCommit": "828c55530013dc417b03ab178f83d8867538c928",
+        "exposure": "HOLDOUT"
+      },
+      "input": {
+        "question": "只核对2025文字：专业选修要跟着教学计划指定学期修，公选则自己选着修，这样理解修读安排对吗？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [
+          "专业选修列入教学计划要求在规定学期内修读。",
+          "公共选修包括校内和网络公选课，学生自行选课修读。",
+          "以上仅解释指定2025文本修读安排，不核实个人课表或选课资格。"
+        ],
+        "forbiddenConclusions": [
+          "自行选课等于不受学分、时间或培养方案约束。",
+          "据此保证个人实际课表或办理资格。"
+        ],
+        "necessaryConditions": [],
+        "relevantEvidence": [
+          "E2025-A04-PRO",
+          "E2025-A04-PUB"
+        ],
+        "allowedGaps": [],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "HISTORICAL_SOURCE_CHECKED"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "COMPLETE"
+        ],
+        "requiredToolTypes": [
+          "SEARCH",
+          "READ"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "指定2025文本解释；不认定个人资格"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1",
+      "riskTags": [
+        "complete_conditions_direct_answer"
+      ]
+    }
+  ]
+}

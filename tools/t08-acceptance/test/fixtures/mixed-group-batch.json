@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 3,
+  "recordType": "T08_BATCH",
+  "batchId": "SYN-batch-mixed-group",
+  "group": "G3",
+  "candidateId": "synthetic-candidate-01",
+  "sourceSha": "88e57d68799d3a5996bb84346090a84040a88387",
+  "declared": { "sampleCount": 2, "mode": "ONLINE", "expectedQuestionIds": ["SYN-G3-A-95", "SYN-G4-H-96"] },
+  "containsSynthetic": true,
+  "records": [
+    {
+      "schemaVersion": 3,
+      "recordType": "T08_SAMPLE",
+      "synthetic": true,
+      "identity": {
+        "candidateId": "synthetic-candidate-01",
+        "sourceSha": "88e57d68799d3a5996bb84346090a84040a88387",
+        "contractVersion": "rule-agent-contract-v3",
+        "schemaVersion": 3,
+        "catalogueVersion": "reviewed-2025-v1",
+        "referenceRevision": "article4-increment-v1",
+        "budgetRevision": "T05_REVIEW_BUDGET_03"
+      },
+      "group": "G3",
+      "category": "A",
+      "mode": "ONLINE",
+      "question": { "questionId": "SYN-G3-A-95", "text": "（合成题面）混组批次：新报告集样本", "reference": { "verifiedBeforeRun": true } },
+      "execution": {
+        "taskId": "syn-task-95",
+        "turnId": "syn-turn-1",
+        "runId": "syn-run-95",
+        "version": 3,
+        "clientRequestId": "syn-req-95",
+        "taskStatus": "RESOLVED",
+        "runState": "SUCCEEDED",
+        "terminated": true,
+        "actions": [{ "step": 1, "actionId": "syn-act-95", "type": "SEARCH_REVIEWED_RULES" }],
+        "observations": [{ "step": 1, "actionId": "syn-act-95", "status": "SUCCEEDED", "dataLevel": "CANDIDATE" }],
+        "result": {
+          "coverage": "COMPLETE",
+          "items": [{ "id": "sq-1", "coverage": "COMPLETE", "claims": [{ "id": "claim-1" }], "issues": [] }],
+          "evidenceRelations": [{ "evidenceId": "ev-1", "subquestionId": "sq-1", "role": "CLAIM", "targetId": "claim-1" }]
+        },
+        "review": { "performed": true, "runId": "syn-review-95", "verdict": "AGREED" }
+      },
+      "metrics": {
+        "modelAttemptCount": 4,
+        "toolStepCount": 1,
+        "providerResponseReceived": true,
+        "replayCoverage": "NOT_APPLICABLE",
+        "answerSource": "LIVE_AGENT",
+        "latencyMillis": { "total": 8000, "perAttempt": [2000, 2000, 2000, 2000] },
+        "usage": { "promptTokens": null, "completionTokens": null, "totalTokens": null },
+        "costCny": null
+      },
+      "scoring": {
+        "scoredBy": "synthetic-scorer",
+        "scoredAt": "2026-10-14T11:00:00+08:00",
+        "dimensions": { "D1": 2, "D2": 2, "D3": 2, "D4": 2, "D5": 1, "D6": 2, "D7": 1, "D8": 1 },
+        "outcome": "SUCCESS",
+        "criticalError": null
+      },
+      "resourceExit": { "terminated": true, "ownedProcessesCleaned": true, "databaseOperations": 0 }
+    },
+    {
+      "schemaVersion": 3,
+      "recordType": "T08_SAMPLE",
+      "synthetic": true,
+      "identity": {
+        "candidateId": "synthetic-candidate-01",
+        "sourceSha": "88e57d68799d3a5996bb84346090a84040a88387",
+        "contractVersion": "rule-agent-contract-v3",
+        "schemaVersion": 3,
+        "catalogueVersion": "reviewed-2025-v1",
+        "referenceRevision": "article4-increment-v1",
+        "budgetRevision": "T05_REVIEW_BUDGET_03"
+      },
+      "group": "G4",
+      "category": "H",
+      "mode": "ONLINE",
+      "injection": { "point": "http-cancel-late-response", "expected": "迟到结果不得发布" },
+      "question": { "questionId": "SYN-G4-H-96", "text": "（合成题面）混组批次：异常注入样本", "reference": { "verifiedBeforeRun": true } },
+      "execution": {
+        "taskId": "syn-task-96",
+        "turnId": "syn-turn-1",
+        "runId": "syn-run-96",
+        "version": 3,
+        "clientRequestId": "syn-req-96",
+        "taskStatus": "STOPPED",
+        "runState": "CANCELLED",
+        "terminated": true,
+        "actions": [{ "step": 1, "actionId": "syn-act-96", "type": "FINISH_CHECK" }],
+        "observations": [{ "step": 1, "actionId": "syn-act-96", "status": "REJECTED", "reasonCode": "CANCELLED", "dataLevel": null }],
+        "result": {
+          "coverage": "NONE",
+          "items": [],
+          "issues": [{ "kind": "PROCESSING_FAILURE", "reasonCode": "CANCELLED" }]
+        },
+        "review": { "performed": false }
+      },
+      "metrics": {
+        "modelAttemptCount": 2,
+        "toolStepCount": 0,
+        "providerResponseReceived": true,
+        "replayCoverage": "NOT_APPLICABLE",
+        "answerSource": "LIVE_AGENT",
+        "latencyMillis": { "total": 4000, "perAttempt": [2000, 2000] },
+        "usage": { "promptTokens": null, "completionTokens": null, "totalTokens": null },
+        "costCny": null
+      },
+      "scoring": {
+        "scoredBy": "synthetic-scorer",
+        "scoredAt": "2026-10-14T11:00:00+08:00",
+        "dimensions": { "D1": 0, "D2": 0, "D3": 0, "D4": 1, "D5": 0, "D6": 0, "D7": 1, "D8": 1 },
+        "outcome": "UNKNOWN",
+        "criticalError": null,
+        "notes": "取消竞态：迟到响应未发布，符合预期"
+      },
+      "resourceExit": { "terminated": true, "ownedProcessesCleaned": true, "databaseOperations": 0 }
+    }
+  ],
+  "summary": { "total": 2, "byOutcome": { "SUCCESS": 1, "UNKNOWN": 1 }, "criticalErrors": [], "usageKnown": false }
+}

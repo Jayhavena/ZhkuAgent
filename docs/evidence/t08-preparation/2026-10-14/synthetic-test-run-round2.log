@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: 合法 ONLINE 单样本：无 ERROR 无 WARN
+ok 1 - 合法 ONLINE 单样本：无 ERROR 无 WARN
+  ---
+  duration_ms: 4.6993
+  type: 'test'
+  ...
+# Subtest: 合法批次（含诚实缺证 UNKNOWN）：无 ERROR 无 WARN
+ok 2 - 合法批次（含诚实缺证 UNKNOWN）：无 ERROR 无 WARN
+  ---
+  duration_ms: 1.917
+  type: 'test'
+  ...
+# Subtest: 身份缺失：E-ID-001
+ok 3 - 身份缺失：E-ID-001
+  ---
+  duration_ms: 1.3165
+  type: 'test'
+  ...
+# Subtest: 版本混用：批次内多身份 E-VER-001
+ok 4 - 版本混用：批次内多身份 E-VER-001
+  ---
+  duration_ms: 1.1476
+  type: 'test'
+  ...
+# Subtest: 模拟冒充在线：E-MODE-001/002/004/005
+ok 5 - 模拟冒充在线：E-MODE-001/002/004/005
+  ---
+  duration_ms: 0.963
+  type: 'test'
+  ...
+# Subtest: 缺失轨迹：E-TRJ-001 与 E-TRJ-004
+ok 6 - 缺失轨迹：E-TRJ-001 与 E-TRJ-004
+  ---
+  duration_ms: 1.1275
+  type: 'test'
+  ...
+# Subtest: 重复计数：E-DUP-001、E-DUP-004 与汇总不符
+ok 7 - 重复计数：E-DUP-001、E-DUP-004 与汇总不符
+  ---
+  duration_ms: 1.2193
+  type: 'test'
+  ...
+# Subtest: 失败样本被遗漏：E-OMIT-001 与 E-OMIT-002
+ok 8 - 失败样本被遗漏：E-OMIT-001 与 E-OMIT-002
+  ---
+  duration_ms: 1.1829
+  type: 'test'
+  ...
+# Subtest: 未知记为 0：E-UNK-001 与 W-UNK-003
+ok 9 - 未知记为 0：E-UNK-001 与 W-UNK-003
+  ---
+  duration_ms: 1.2475
+  type: 'test'
+  ...
+# Subtest: 拒答记成功：E-SCR-003 与 W-SCR-001
+ok 10 - 拒答记成功：E-SCR-003 与 W-SCR-001
+  ---
+  duration_ms: 1.9102
+  type: 'test'
+  ...
+# Subtest: 合成记录未声明：E-SYN-001
+ok 11 - 合成记录未声明：E-SYN-001
+  ---
+  duration_ms: 1.6051
+  type: 'test'
+  ...
+# Subtest: 四组混批：E-GRP-005
+ok 12 - 四组混批：E-GRP-005
+  ---
+  duration_ms: 1.7625
+  type: 'test'
+  ...
+# Subtest: 合法语义样本（observedFacts/coverageMap/禁止结论核对齐全）：无 ERROR 无 WARN
+ok 13 - 合法语义样本（observedFacts/coverageMap/禁止结论核对齐全）：无 ERROR 无 WARN
+  ---
+  duration_ms: 1.069
+  type: 'test'
+  ...
+# Subtest: CE1 事实映射错误：E-SEM-001
+ok 14 - CE1 事实映射错误：E-SEM-001
+  ---
+  duration_ms: 1.5958
+  type: 'test'
+  ...
+# Subtest: CE2 条件遗漏：E-SEM-002
+ok 15 - CE2 条件遗漏：E-SEM-002
+  ---
+  duration_ms: 1.255
+  type: 'test'
+  ...
+# Subtest: CE3 问题未覆盖：E-SEM-003
+ok 16 - CE3 问题未覆盖：E-SEM-003
+  ---
+  duration_ms: 0.9066
+  type: 'test'
+  ...
+# Subtest: CE4 范围越界待确认：W-SEM-004
+ok 17 - CE4 范围越界待确认：W-SEM-004
+  ---
+  duration_ms: 1.0902
+  type: 'test'
+  ...
+# Subtest: CE5 误拒绝待确认：W-SEM-005（零召回拒答须人工确认）
+ok 18 - CE5 误拒绝待确认：W-SEM-005（零召回拒答须人工确认）
+  ---
+  duration_ms: 0.9435
+  type: 'test'
+  ...
+# Subtest: 反例未登记拦截方式：E-SEM-006
+ok 19 - 反例未登记拦截方式：E-SEM-006
+  ---
+  duration_ms: 0.8888
+  type: 'test'
+  ...
+# Subtest: 选项参数：预算超限 E-BUD-001、SHA 不符 E-VER-003、组别不符 E-VER-006
+ok 20 - 选项参数：预算超限 E-BUD-001、SHA 不符 E-VER-003、组别不符 E-VER-006
+  ---
+  duration_ms: 1.3486
+  type: 'test'
+  ...
+# Subtest: G3 非在线：E-GRP-001；未声明模拟冒充在线：E-MODE-006
+ok 21 - G3 非在线：E-GRP-001；未声明模拟冒充在线：E-MODE-006
+  ---
+  duration_ms: 0.6791
+  type: 'test'
+  ...
+# Subtest: CLI（进程内）：合法批次退出 0，问题样本退出 1，--json 可解析
+ok 22 - CLI（进程内）：合法批次退出 0，问题样本退出 1，--json 可解析
+  ---
+  duration_ms: 2.0431
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 701.3784
