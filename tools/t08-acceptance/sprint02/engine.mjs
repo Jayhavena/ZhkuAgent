@@ -99,7 +99,7 @@ function safeExecution(e) {
   const pick=(v,keys)=>Object.fromEntries(keys.filter(k=>v?.[k]!==undefined).map(k=>[k,redact(v[k])]));
   return {
     ...pick(e,['taskId','turnId','runId','taskStatus','runState']),
-    actions:Array.isArray(e.actions)?e.actions.map(a=>pick(a,['actionId','type','step'])):[],
+    actions:Array.isArray(e.actions)?e.actions.map(a=>({...pick(a,['actionId','type','step']),...(Number.isSafeInteger(a?.modelAttempt)&&a.modelAttempt>=1&&a.modelAttempt<=10000?{modelAttempt:a.modelAttempt}:{})})):[],
     observations:Array.isArray(e.observations)?e.observations.map(o=>pick(o,['actionId','status','dataLevel','reasonCode'])):[],
     result:obj(e.result)?{coverage:e.result.coverage,evidence:Array.isArray(e.result.evidence)?e.result.evidence.map(v=>pick(v,['id','evidenceId','sourceId','chunkId','revision'])):[],evidenceRelations:Array.isArray(e.result.evidenceRelations)?e.result.evidenceRelations.map(v=>pick(v,['targetId','evidenceId','role'])):[],items:Array.isArray(e.result.items)?e.result.items.map(v=>({claims:Array.isArray(v?.claims)?v.claims.map(c=>pick(c,['id','factId'])):[]})):[],issues:Array.isArray(e.result.issues)?e.result.issues.map(v=>pick(v,['kind','reasonCode'])):[]}:null,
   };
@@ -109,10 +109,15 @@ function safeFaultReceipt(receipt) {
   return {type:['EMPTY_RETRIEVAL','INVALID_EVIDENCE_CHECKSUM','TOOL_EXCEPTION'].includes(receipt.type)?receipt.type:null,
     point:['SEARCH','READ'].includes(receipt.point)?receipt.point:null,reached:receipt.reached===true,applied:receipt.applied===true};
 }
+/** Only real, allowlisted observation statuses can attest execution. */
+const REAL_OBSERVATION_STATUSES = new Set(['SUCCEEDED','NO_MATCH','REJECTED','UNAVAILABLE','FAILED']);
+const hasRealObservation = o => o && REAL_OBSERVATION_STATUSES.has(o.status);
+const needsObservation = a => ['SEARCH_REVIEWED_RULES','READ_VERIFIED_RULE','SYNTHETIC_READ'].includes(a?.type);
+
 function faultSatisfied(injection,receipt,turns) {
   const tool={SEARCH:'SEARCH_REVIEWED_RULES',READ:'READ_VERIFIED_RULE'}[injection?.point];
   return !!tool&&receipt?.type===injection.type&&receipt?.point===injection.point&&receipt?.reached===true&&receipt?.applied===true&&
-    turns.some(e=>e?.actions?.some(a=>a.type===tool&&str(a.actionId)&&e.observations?.some(o=>o.actionId===a.actionId&&str(o.status))));
+    turns.some(e=>e?.actions?.some(a=>a.type===tool&&str(a.actionId)&&e.observations?.some(o=>o.actionId===a.actionId&&hasRealObservation(o))));
 }
 function evaluate(c,turns,faultReceipt) {
   const findings=[];
@@ -124,7 +129,7 @@ function evaluate(c,turns,faultReceipt) {
     const key=[e.taskId,e.turnId,e.runId].join('|');if(ids.has(key)){add(findings,'DUPLICATE_RUN',`turns[${i}]`);failed=true;}ids.add(key);
     if(i>0&&e.taskId!==turns[0]?.taskId){add(findings,'TASK_LINKAGE',`turns[${i}]`);failed=true;}
     if(e.taskStatus!==c.expected.taskStatus[i]||e.result?.coverage!==c.expected.coverage[i]||(e.runState==='FAILED'&&c.expected.taskStatus[i]!=='FAILED')){add(findings,'EXPECTED_STATE',`turns[${i}]`);failed=true;}
-    if(!e.result||!e.actions.length||!e.observations.length||e.actions.some(a=>!str(a.actionId)||!e.observations.some(o=>o.actionId===a.actionId))){add(findings,'MISSING_TRAJECTORY',`turns[${i}]`);missing=true;}
+    if(!e.result||!e.actions.length||e.actions.some(a=>!str(a.actionId)||(needsObservation(a)&&!e.observations.some(o=>o.actionId===a.actionId&&hasRealObservation(o))))){add(findings,'MISSING_TRAJECTORY',`turns[${i}]`);missing=true;}
     if(e.result?.items.some(item=>item.claims.some(claim=>!e.result.evidenceRelations.some(rel=>rel.targetId===claim.id)))){add(findings,'MISSING_CLAIM_EVIDENCE',`turns[${i}]`);missing=true;}
   }
   const types=new Set(turns.flatMap(e=>e?.actions?.map(a=>a.type)||[]));

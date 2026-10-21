@@ -60,6 +60,21 @@ test('synthetic engineering execution preserves task linkage and unknown cost wi
   assert.equal(r.execution.taskId,'task-synthetic-1');assert.equal(r.metrics.usage.totalTokens,null);assert.equal(r.metrics.costCny,null);
   assert.equal(result.summary.byEngineeringStatus.PASS,1);
 });
+test('safe execution carries event step and modelAttempt but never raw action payload',async()=>{
+  const report=await runDataset(dataset(),rubric(),{...identity,mode:'synthetic',adapter:c=>({
+    ...execution(c),actions:[{actionId:'a-1',type:'SYNTHETIC_READ',step:2,
+      modelAttempt:1,rawActionJson:'SENSITIVE-PROVIDER-PAYLOAD'}]})});
+  assert.equal(report.records[0].engineeringStatus,'PASS');
+  assert.deepEqual(report.records[0].execution.actions,[{
+    actionId:'a-1',type:'SYNTHETIC_READ',step:2,modelAttempt:1}]);
+  assert.ok(!JSON.stringify(report).includes('SENSITIVE-PROVIDER-PAYLOAD'));
+  const invalid=await runDataset(dataset(),rubric(),{...identity,mode:'synthetic',adapter:c=>({
+    ...execution(c),actions:[{actionId:'a-1',type:'SYNTHETIC_READ',
+      modelAttempt:'SENSITIVE-INSTEAD-OF-ATTEMPT'}]})});
+  assert.equal(invalid.records[0].engineeringStatus,'PASS');
+  assert.equal(invalid.records[0].execution.actions[0].modelAttempt,undefined);
+  assert.ok(!JSON.stringify(invalid).includes('SENSITIVE-INSTEAD-OF-ATTEMPT'));
+});
 test('missing trajectory and false success state become insufficient evidence and FAIL',async()=>{
   const missing=await runDataset(dataset(),rubric(),{...identity,mode:'synthetic',adapter:c=>({...execution(c),observations:[]})});
   assert.equal(missing.records[0].engineeringStatus,'INSUFFICIENT_EVIDENCE');
@@ -145,6 +160,42 @@ for(const [name,receipt,tool,want] of [
   if(want==='PASS')assert.deepEqual(result.records[0].faultReceipt,receipt);
 });
 
+test('notObservedCannotProveToolExecution for READ and SEARCH',async()=>{
+  for(const tool of ['READ_VERIFIED_RULE','SEARCH_REVIEWED_RULES']) {
+    const d=dataset();
+    d.cases[0].expected.requiredToolTypes=[tool];
+    const result=await runDataset(d,rubric(),{...identity,mode:'synthetic',adapter:c=>({
+      ...execution(c),actions:[{actionId:'a-1',type:tool}],
+      observations:[{actionId:'a-1',status:'NOT_OBSERVED'}]})});
+    assert.equal(result.records[0].engineeringStatus,'INSUFFICIENT_EVIDENCE');
+    assert.ok(result.records[0].findings.some(f=>f.code==='MISSING_TRAJECTORY'));
+  }
+});
+
+test('notObservedCannotProveFaultInjection even with a matched receipt',async()=>{
+  const d=dataset(),c=d.cases[0];c.group='G4';
+  c.faultInjection={type:'EMPTY_RETRIEVAL',point:'SEARCH',payload:'synthetic-fault'};
+  c.expected={taskStatus:['FAILED'],coverage:['NONE'],requiredToolTypes:[],evidenceRequired:false};
+  const receipt={type:'EMPTY_RETRIEVAL',point:'SEARCH',reached:true,applied:true};
+  for(const status of ['NOT_OBSERVED','FAKE_SUCCEEDED']) {
+    const result=await runDataset(d,rubric(),{...identity,mode:'synthetic',adapter:input=>({
+      ...execution(input),taskStatus:'FAILED',runState:'FAILED',
+      actions:[{actionId:'search-1',type:'SEARCH_REVIEWED_RULES'}],
+      observations:[{actionId:'search-1',status}],
+      result:{coverage:'NONE',items:[],issues:[],evidence:[],evidenceRelations:[]},
+      faultReceipt:receipt})});
+    assert.equal(result.records[0].engineeringStatus,'INSUFFICIENT_EVIDENCE');
+    assert.ok(result.records[0].findings.some(f=>f.code==='FAULT_INJECTION_UNPROVEN'));
+  }
+});
+
+test('control events do not require invented ToolObservations',async()=>{
+  const d=dataset();d.cases[0].expected.requiredToolTypes=['FINISH_CHECK'];
+  const result=await runDataset(d,rubric(),{...identity,mode:'synthetic',adapter:c=>({
+    ...execution(c),actions:[{actionId:'finish-1',type:'FINISH_CHECK'}],
+    observations:[{actionId:'finish-1',status:'NOT_OBSERVED'}]})});
+  assert.equal(result.records[0].engineeringStatus,'PASS');
+});
 test('G4 READ receipt cannot match an observation from another action; plan remains unexecuted',async()=>{
   const d=dataset(),c=d.cases[0];c.group='G4';c.faultInjection={type:'INVALID_EVIDENCE_CHECKSUM',point:'READ',payload:'synthetic-invalid'};
   const result=await runDataset(d,rubric(),{...identity,mode:'synthetic',adapter:input=>({...execution(input),

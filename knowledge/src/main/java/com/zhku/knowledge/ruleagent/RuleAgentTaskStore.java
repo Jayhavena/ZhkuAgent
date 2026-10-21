@@ -14,6 +14,8 @@ public final class RuleAgentTaskStore implements AutoCloseable {
     public static final class Failure extends RuntimeException {public final Code code;public Failure(Code code){super(code.name(),null,false,false);this.code=code;}}
     public record Limits(int maxTasks,int maxTasksPerActor,int maxRequestKeys){public Limits{if(maxTasks<1||maxTasks>2048||maxTasksPerActor<1||maxTasksPerActor>maxTasks||maxRequestKeys<1||maxRequestKeys>8192)throw new IllegalArgumentException("任务容量无效");}}
     public static final Limits DEFAULT_LIMITS=new Limits(128,8,512);
+    /** 每任务只留最近4次已接受运行，防止澄清链和异常重试造成无界内存增长。 */
+    static final int MAX_TRACES_PER_TASK=4;
     public record Accepted(UUID taskId,UUID turnId,UUID runId,long version,boolean duplicate){}
     public record Turn(UUID turnId,UUID runId,String message,Map<String,String> conditions,TaskStatus status,int attempts){public Turn{conditions=Map.copyOf(conditions);}}
     public interface Work {RuleAgentRunner.Outcome run(AgentRunContext context,RuleAgentRunner.Input input);boolean revalidate(ResultEnvelope previous);}
@@ -24,7 +26,7 @@ public final class RuleAgentTaskStore implements AutoCloseable {
     private static final class Slot {
         final UUID id;final Owner owner;final String question;final List<RuleAgentRunner.Question> questions;final Instant expires;
         long version=1;int runs=1,clarifications,attempts;UUID turn=UUID.randomUUID();AgentRunContext context;TaskSnapshot published;ResultEnvelope previous;Instant waitingExpires;Work work;
-        Map<String,String> conditions=Map.of();final List<Turn> history=new ArrayList<>();
+        Map<String,String> conditions=Map.of();final List<Turn> history=new ArrayList<>();List<RuleAgentRunTrace> traces=List.of();
         Slot(Owner owner,String question,Instant expires){this.id=UUID.randomUUID();this.owner=owner;this.question=question;this.expires=expires;this.questions=split(question);context=AgentRunContext.create(question);history.add(new Turn(turn,context.runId(),question,conditions,TaskStatus.ACTIVE,0));}
     }
     private record Ticket(Slot slot,long version,AgentRunContext context,UUID turn,Map<String,String> conditions){}
@@ -68,6 +70,14 @@ public final class RuleAgentTaskStore implements AutoCloseable {
     public TaskSnapshot snapshot(Owner owner,UUID task){synchronized(lock){ensureOpen();var slot=owned(owner,task);return slot.published!=null?slot.published:new TaskSnapshot(SCHEMA_VERSION,slot.id,slot.turn,slot.context.runId(),slot.version,TaskStatus.ACTIVE,slot.context.state(),false,slot.previous,null,new Execution(Mode.ONLINE,0,0,false,AnswerSource.NONE,ReplayCoverage.NOT_APPLICABLE));}}
     public Accepted lookup(Owner owner,RequestAction action,UUID key){synchronized(lock){ensureOpen();var entry=requests.get(new RequestKey(owner,action,key));if(entry==null)throw new Failure(Code.NOT_AVAILABLE);if(!clock.instant().isBefore(entry.expires()))throw new Failure(Code.EXPIRED);return entry.accepted();}}
     public List<Turn> history(Owner owner,UUID task){synchronized(lock){ensureOpen();return List.copyOf(owned(owner,task).history);}}
+    /** 评测侧只读入口：Owner必须完全匹配；返回副本，元素为不可变投影，跨Owner读取直接失败。 */
+    public List<RuleAgentRunTrace> traceHistory(Owner owner,UUID task){synchronized(lock){ensureOpen();return List.copyOf(owned(owner,task).traces);}}
+    /** 轨迹随任务Slot删除而释放；只保留最近MAX_TRACES_PER_TASK条，超限淘汰最旧。 */
+    static List<RuleAgentRunTrace> retainTrace(List<RuleAgentRunTrace> existing,RuleAgentRunTrace trace){
+        var kept=new ArrayList<RuleAgentRunTrace>(existing);kept.add(Objects.requireNonNull(trace));
+        while(kept.size()>MAX_TRACES_PER_TASK)kept.removeFirst();
+        return List.copyOf(kept);
+    }
     public int activeJobs(){return jobs.get();}
     private void schedule(Ticket ticket){
         var task=AgentRunTask.create(ticket.context(),()->execute(ticket));
@@ -82,9 +92,9 @@ public final class RuleAgentTaskStore implements AutoCloseable {
             var input=new RuleAgentRunner.Input(ticket.slot().owner,ticket.slot().id,ticket.version()+1,ticket.slot().question,ticket.slot().questions,ticket.conditions());outcome=work.run(ticket.context(),input);
         }catch(RuntimeException failure){publishFailure(ticket,ReasonCode.TASK_EXECUTION_UNAVAILABLE);}
         finally{jobs.decrementAndGet();}
-        if(outcome!=null)publish(ticket,outcome.snapshot());
+        if(outcome!=null)publish(ticket,outcome.snapshot(),outcome.events(),false);
     }
-    private void publish(Ticket t,TaskSnapshot result){
+    private void publish(Ticket t,TaskSnapshot result,List<RuleAgentRunner.Event> events,boolean exceptionalFailure){
         synchronized(lock){var slot=t.slot();if(tasks.get(slot.id)!=slot||slot.context!=t.context()||slot.version!=t.version()||slot.published!=null)return;
             if(!result.taskId().equals(slot.id)||!result.runId().equals(t.context().runId())||!result.terminated()||!t.context().termination().isDone()||result.version()!=t.version()+1)throw new Failure(Code.CONFLICT);
             // 取消赢得runtime状态后，迟到的成功产物不能覆盖任务。停止标记不等于工作线程已退出。
@@ -96,7 +106,9 @@ public final class RuleAgentTaskStore implements AutoCloseable {
                 var execution=result.execution();
                 result=new TaskSnapshot(SCHEMA_VERSION,slot.id,t.turn(),result.runId(),result.version(),TaskStatus.STOPPED,result.runState(),true,limited,null,new Execution(execution.mode(),execution.modelAttemptCount(),execution.toolStepCount(),execution.providerResponseReceived(),AnswerSource.NONE,execution.replayCoverage()));
             }
-            slot.version=result.version();slot.attempts+=result.execution().modelAttemptCount();slot.published=new TaskSnapshot(SCHEMA_VERSION,slot.id,t.turn(),result.runId(),slot.version,result.taskStatus(),result.runState(),true,result.result(),result.continuationToken(),result.execution());slot.previous=null;
+            // 轨迹必须与已接受快照在同一锁内落账：过期ticket已在入口返回，迟到的成功或取消都不能追加。
+            var retained=retainTrace(slot.traces,RuleAgentRunTrace.project(result,t.turn(),events,exceptionalFailure));
+            slot.version=result.version();slot.attempts+=result.execution().modelAttemptCount();slot.published=new TaskSnapshot(SCHEMA_VERSION,slot.id,t.turn(),result.runId(),slot.version,result.taskStatus(),result.runState(),true,result.result(),result.continuationToken(),result.execution());slot.previous=null;slot.traces=retained;
             if(result.taskStatus()==TaskStatus.WAITING_USER){slot.clarifications++;slot.waitingExpires=clock.instant().plusMillis(DEFAULT_BUDGET.waitingTtlMillis());}
             int last=slot.history.size()-1;var old=slot.history.get(last);slot.history.set(last,new Turn(old.turnId(),old.runId(),old.message(),old.conditions(),result.taskStatus(),result.execution().modelAttemptCount()));
             if(closed)tasks.remove(slot.id);
@@ -107,7 +119,7 @@ public final class RuleAgentTaskStore implements AutoCloseable {
         context.finish(cancelled?AgentRunState.CANCELLED:AgentRunState.FAILED);context.cleanupOnce(()->{});context.signalTermination();context.publishTermination();
         var issue=new Issue("failure",reason.kind,reason,cancelled?"本轮已停止，未完成的部分不作结论。":"本轮任务执行失败，不代表资料没有规定。","请查询任务状态后重新查证，不自动重复提交。");
         var result=new ResultEnvelope(ticket.version()+1,context.runId(),"unavailable","2025.9.2",Coverage.NONE,ticket.slot().questions.stream().map(q->new Subquestion(q.id(),Coverage.NONE,List.of(),List.of(issue),List.of())).toList(),List.of(),List.of());
-        publish(ticket,new TaskSnapshot(SCHEMA_VERSION,ticket.slot().id,ticket.turn(),context.runId(),ticket.version()+1,cancelled?TaskStatus.STOPPED:TaskStatus.FAILED,context.state(),true,result,null,new Execution(Mode.ONLINE,Math.min(context.currentStep(),DEFAULT_BUDGET.maxModelAttemptsPerRun()),0,false,AnswerSource.NONE,ReplayCoverage.NOT_APPLICABLE)));
+        publish(ticket,new TaskSnapshot(SCHEMA_VERSION,ticket.slot().id,ticket.turn(),context.runId(),ticket.version()+1,cancelled?TaskStatus.STOPPED:TaskStatus.FAILED,context.state(),true,result,null,new Execution(Mode.ONLINE,Math.min(context.currentStep(),DEFAULT_BUDGET.maxModelAttemptsPerRun()),0,false,AnswerSource.NONE,ReplayCoverage.NOT_APPLICABLE)),List.of(),true);
     }
     private void checkWaiting(Slot slot,Message request){if(slot.published==null||slot.published.taskStatus()!=TaskStatus.WAITING_USER||slot.version!=request.expectedVersion()||!Objects.equals(slot.published.continuationToken(),request.continuationToken()))throw new Failure(Code.CONFLICT);if(slot.waitingExpires==null||!clock.instant().isBefore(slot.waitingExpires))throw new Failure(Code.EXPIRED);}
     private Slot owned(Owner owner,UUID task){var slot=tasks.get(task);if(slot==null||!slot.owner.equals(owner))throw new Failure(Code.NOT_AVAILABLE);if(!clock.instant().isBefore(slot.expires))throw new Failure(Code.EXPIRED);return slot;}
