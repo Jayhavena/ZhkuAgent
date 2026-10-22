@@ -1,7 +1,7 @@
 # OBS-02E 生产 Sink 与宿主生命周期合同门禁
 
 日期：2026-10-22
-状态：**PLANNED / DESIGN_ONLY / NO_PRODUCTION_WIRING**
+状态：**DESIGN_DRAFT_COMPLETE / PRODUCTION_GATE_BLOCKED**
 
 上游评审：docs/reviews/2026-10-22-obs-02d-rules-wiring-safety-review.md
 通过的输入证据：docs/evidence/observability/2026-10-22-obs-02c-combined-offline-acceptance.md
@@ -74,3 +74,11 @@
 - 生产接线需在合同评审和实现测试分别通过后再单独审批。
 
 **进入下一阶段的准入条件：生产 Sink 的用途/目的地/保留/访问合同与关闭协调方案均有可审查决议。未满足前继续 NO-GO。**
+## 设计阶段进展（2026-10-22）
+
+已形成以下可审查草案：
+- `docs/decisions/ADR-OBS-001-anonymous-observation-sink.md`：推荐有界异步结构化 stdout 日志作为候选；仍待运维确认采集、访问、保留/删除与外发边界，尚未获生产批准。
+- `docs/design/2026-10-22-obs-02e-shutdown-contract-and-test-matrix.md`：明确 web graceful shutdown、TaskStore、ExecutorService、dispatcher、Sink 的顺序、有限预算与 LC-01 至 LC-14 测试矩阵。
+- `docs/evidence/observability/2026-10-22-obs-02e-static-design-review.md`：记录源码核对事实、限制与未完成项。
+
+本轮只改文档，没有实现 Sink、Bean、配置开关或关闭协调器，没有运行测试。**下一步不得直接接线**；先确认日志目的地的访问、保留、删除与外发政策，再决定是否接受 ADR 并授权 OBS-02F 实现。
