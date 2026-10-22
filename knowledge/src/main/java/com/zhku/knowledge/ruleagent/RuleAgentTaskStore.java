@@ -1,10 +1,12 @@
 package com.zhku.knowledge.ruleagent;
 import com.zhku.agent.agent.runtime.*;
+import com.zhku.agent.agent.runtime.contract.AgentRunEvent;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.function.Consumer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 
@@ -21,22 +23,31 @@ public final class RuleAgentTaskStore implements AutoCloseable {
     public interface Work {RuleAgentRunner.Outcome run(AgentRunContext context,RuleAgentRunner.Input input);boolean revalidate(ResultEnvelope previous);}
     public interface Factory {Work open(Owner owner,UUID task);}
     private final Object lock=new Object();private final Executor executor;private final Factory factory;private final Clock clock;private final Limits limits;
+    private final Consumer<AgentRunEvent> observer;private final AgentRunObservationDispatcher dispatcher;
     private final Map<UUID,Slot> tasks=new LinkedHashMap<>();private final Map<RequestKey,StoredRequest> requests=new LinkedHashMap<>();private final AtomicInteger jobs=new AtomicInteger();private boolean closed;
     private record StoredRequest(String payload,Accepted accepted,Instant expires){}
     private static final class Slot {
         final UUID id;final Owner owner;final String question;final List<RuleAgentRunner.Question> questions;final Instant expires;
         long version=1;int runs=1,clarifications,attempts;UUID turn=UUID.randomUUID();AgentRunContext context;TaskSnapshot published;ResultEnvelope previous;Instant waitingExpires;Work work;
         Map<String,String> conditions=Map.of();final List<Turn> history=new ArrayList<>();List<RuleAgentRunTrace> traces=List.of();
-        Slot(Owner owner,String question,Instant expires){this.id=UUID.randomUUID();this.owner=owner;this.question=question;this.expires=expires;this.questions=split(question);context=AgentRunContext.create(question);history.add(new Turn(turn,context.runId(),question,conditions,TaskStatus.ACTIVE,0));}
+        Slot(Owner owner,String question,Instant expires,AgentRunContext context){this.id=UUID.randomUUID();this.owner=owner;this.question=question;this.expires=expires;this.questions=split(question);this.context=context;history.add(new Turn(turn,context.runId(),question,conditions,TaskStatus.ACTIVE,0));}
     }
     private record Ticket(Slot slot,long version,AgentRunContext context,UUID turn,Map<String,String> conditions){}
-    public RuleAgentTaskStore(Executor executor,Factory factory,Clock clock,Limits limits){this.executor=Objects.requireNonNull(executor);this.factory=Objects.requireNonNull(factory);this.clock=Objects.requireNonNull(clock);this.limits=Objects.requireNonNull(limits);}
+    public RuleAgentTaskStore(Executor executor,Factory factory,Clock clock,Limits limits){this.executor=Objects.requireNonNull(executor);this.factory=Objects.requireNonNull(factory);this.clock=Objects.requireNonNull(clock);this.limits=Objects.requireNonNull(limits);this.observer=null;this.dispatcher=null;}
+    /**
+     * 可选旁路入口：仅在OBS集成获批后，由T08宿主注入隐私安全的消费者。
+     * dispatcher由宿主管理；TaskStore只管理RunContext，绝不关闭借用资源（包括processDefault）。
+     * 默认HTTP Bean仍使用四参构造器；此接口不授权真实/rules接线。
+     */
+    public RuleAgentTaskStore(Executor executor,Factory factory,Clock clock,Limits limits,Consumer<AgentRunEvent> observer,AgentRunObservationDispatcher dispatcher){this.executor=Objects.requireNonNull(executor);this.factory=Objects.requireNonNull(factory);this.clock=Objects.requireNonNull(clock);this.limits=Objects.requireNonNull(limits);this.observer=Objects.requireNonNull(observer);this.dispatcher=Objects.requireNonNull(dispatcher);}
+    // subscribe只建立订阅，不调用消费者；避免在任务锁内执行用户代码。事件仍由Runtime异步有界投递。
+    private AgentRunContext newContext(String question){return observer==null?AgentRunContext.create(question):AgentRunContext.create(UUID.randomUUID(),question,observer,dispatcher);}
     public Accepted create(Owner owner,CreateTask request){
         Objects.requireNonNull(owner);Objects.requireNonNull(request);RequestKey key=new RequestKey(owner,RequestAction.CREATE,request.clientRequestId());String payload=payload(request);Ticket ticket;Accepted accepted;
         synchronized(lock){admit();var old=duplicate(key,payload);if(old!=null)return old;
             checkNewRequestCapacity();
             if(tasks.size()>=limits.maxTasks()||tasks.values().stream().filter(s->s.owner.actorId().equals(owner.actorId())).count()>=limits.maxTasksPerActor())throw new Failure(Code.CAPACITY);
-            var slot=new Slot(owner,request.question(),clock.instant().plusMillis(DEFAULT_BUDGET.taskTtlMillis()));tasks.put(slot.id,slot);accepted=accepted(slot,false);reserve(key,payload,accepted,slot.expires);ticket=ticket(slot);
+            var slot=new Slot(owner,request.question(),clock.instant().plusMillis(DEFAULT_BUDGET.taskTtlMillis()),newContext(request.question()));tasks.put(slot.id,slot);accepted=accepted(slot,false);reserve(key,payload,accepted,slot.expires);ticket=ticket(slot);
         }
         schedule(ticket);return accepted;
     }
@@ -52,7 +63,7 @@ public final class RuleAgentTaskStore implements AutoCloseable {
             checkNewRequestCapacity();
             if(slot.runs>=DEFAULT_BUDGET.maxTaskRuns()||slot.clarifications>DEFAULT_BUDGET.maxClarificationTurns()||slot.attempts+DEFAULT_BUDGET.maxModelAttemptsPerRun()>DEFAULT_BUDGET.maxModelAttemptsPerTask()||slot.version+2>MAX_SAFE_VERSION)throw new Failure(Code.CAPACITY);
             var conditions=new LinkedHashMap<>(slot.conditions);conditions.put(condition.conditionId(),value);slot.conditions=Map.copyOf(conditions);
-            slot.previous=previous;slot.published=null;slot.version++;slot.runs++;slot.turn=UUID.randomUUID();slot.context=AgentRunContext.create(slot.question);slot.waitingExpires=null;
+            slot.previous=previous;slot.published=null;slot.version++;slot.runs++;slot.turn=UUID.randomUUID();slot.context=newContext(slot.question);slot.waitingExpires=null;
             slot.history.add(new Turn(slot.turn,slot.context.runId(),request.message(),slot.conditions,TaskStatus.ACTIVE,0));accepted=accepted(slot,false);reserve(key,payload,accepted,slot.expires);ticket=ticket(slot);
         }
         schedule(ticket);return accepted;
