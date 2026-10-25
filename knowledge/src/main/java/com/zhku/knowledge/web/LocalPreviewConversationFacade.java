@@ -145,7 +145,8 @@ public final class LocalPreviewConversationFacade {
             // 而白名单允许缺省——宁可少两个维度，也不在这里拼一个猜出来的标识。
             telemetry.record(fields);
         } catch (RuntimeException exception) {
-            LOG.warn("匿名遥测写入失败，已跳过本次记录（作答不受影响）：{}", exception.getMessage());
+            // 异常原文可能包含凭证或正文；旁路失败只输出固定分类，不改变作答事实。
+            LOG.warn("TELEMETRY_WRITE_FAILED");
         }
     }
 

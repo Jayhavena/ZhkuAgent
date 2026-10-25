@@ -1,7 +1,6 @@
 package com.zhku.agent.advisor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClientMessageAggregator;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
@@ -11,8 +10,7 @@ import org.springframework.ai.chat.client.advisor.api.StreamAdvisorChain;
 import reactor.core.publisher.Flux;
 
 /**
- * 自定义日志 Advisor
- * 打印 info 级别日志、只输出单次用户提示词和 AI 回复的文本
+ * 只记录固定生命周期标记；请求、回答和异常可能携带正文或凭证，不能作为日志参数。
  */
 @Slf4j
 public class MyLoggerAdvisor implements CallAdvisor, StreamAdvisor {
@@ -27,27 +25,31 @@ public class MyLoggerAdvisor implements CallAdvisor, StreamAdvisor {
 		return 0;
 	}
 
-	private ChatClientRequest before(ChatClientRequest request) {
-		log.info("AI Request: {}", request.prompt());
-		return request;
-	}
-
-	private void observeAfter(ChatClientResponse chatClientResponse) {
-		log.info("AI Response: {}", chatClientResponse.chatResponse().getResult().getOutput().getText());
-	}
-
 	@Override
 	public ChatClientResponse adviseCall(ChatClientRequest chatClientRequest, CallAdvisorChain chain) {
-		chatClientRequest = before(chatClientRequest);
-		ChatClientResponse chatClientResponse = chain.nextCall(chatClientRequest);
-		observeAfter(chatClientResponse);
-		return chatClientResponse;
+		log.info("AI_CALL_STARTED");
+		try {
+			ChatClientResponse response = chain.nextCall(chatClientRequest);
+			log.info("AI_CALL_COMPLETED");
+			return response;
+		} catch (RuntimeException failure) {
+			log.info("AI_CALL_FAILED");
+			throw failure;
+		}
 	}
 
 	@Override
 	public Flux<ChatClientResponse> adviseStream(ChatClientRequest chatClientRequest, StreamAdvisorChain chain) {
-		chatClientRequest = before(chatClientRequest);
-		Flux<ChatClientResponse> chatClientResponseFlux = chain.nextStream(chatClientRequest);
-		return (new ChatClientMessageAggregator()).aggregateChatClientResponse(chatClientResponseFlux, this::observeAfter);
+		log.info("AI_STREAM_STARTED");
+		try {
+			// 日志不需要聚合正文；只观察信号，保持分块对象、订阅次数和上游取消传播。
+			return chain.nextStream(chatClientRequest)
+					.doOnComplete(() -> log.info("AI_STREAM_COMPLETED"))
+					.doOnError(failure -> log.info("AI_STREAM_FAILED"))
+					.doOnCancel(() -> log.info("AI_STREAM_CANCELLED"));
+		} catch (RuntimeException failure) {
+			log.info("AI_STREAM_FAILED");
+			throw failure;
+		}
 	}
 }
