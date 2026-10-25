@@ -1,0 +1,58 @@
+检测到 ZHKU_RULECHECK_STUDENT_PASSWORD：后端将直接使用该环境密码，不再提示输入。
+
+> zhku-agent-web@0.1.0-rc.1 build
+> vite build
+
+vite v4.5.14 building for production...
+transforming...
+✓ 135 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                      0.82 kB │ gzip:  0.49 kB
+dist/assets/rule-check-a4c83088.css                  0.97 kB │ gzip:  0.47 kB
+dist/assets/Home-511f49b3.css                        1.69 kB │ gzip:  0.59 kB
+dist/assets/AppFooter-5446e625.css                   1.88 kB │ gzip:  0.61 kB
+dist/assets/index-2e410f94.css                       2.88 kB │ gzip:  1.13 kB
+dist/assets/Agent-3d6f86ea.css                       5.36 kB │ gzip:  1.48 kB
+dist/assets/RuleCheckReplayView-85812282.css         5.72 kB │ gzip:  1.64 kB
+dist/assets/RuleCheckView-c4832aa7.css               6.19 kB │ gzip:  1.75 kB
+dist/assets/controlled-b38106dd.css                 11.75 kB │ gzip:  2.69 kB
+dist/assets/_plugin-vue_export-helper-c27b6911.js    0.09 kB │ gzip:  0.10 kB
+dist/assets/CampusSource-e5caebb8.js                 0.63 kB │ gzip:  0.42 kB
+dist/assets/AppFooter-c28712d0.js                    0.73 kB │ gzip:  0.49 kB
+dist/assets/PasswordInput-eb234b7e.js                1.20 kB │ gzip:  0.71 kB
+dist/assets/Home-664850a0.js                         1.41 kB │ gzip:  1.07 kB
+dist/assets/ControlledLayout-f43efd68.js             2.38 kB │ gzip:  1.36 kB
+dist/assets/ControlledLogin-619669d6.js              2.51 kB │ gzip:  1.62 kB
+dist/assets/CampusHistory-f3c84857.js                3.30 kB │ gzip:  1.81 kB
+dist/assets/controlled-results-732c3a2a.js           3.34 kB │ gzip:  1.75 kB
+dist/assets/controlled-9eaff835.js                   8.10 kB │ gzip:  3.70 kB
+dist/assets/CampusRun-65a2bd1b.js                    8.43 kB │ gzip:  3.87 kB
+dist/assets/rule-check-24590774.js                   9.10 kB │ gzip:  3.95 kB
+dist/assets/CampusConversation-d2974b0a.js           9.86 kB │ gzip:  4.32 kB
+dist/assets/RuleCheckReplayView-0ba003b6.js         13.34 kB │ gzip:  5.88 kB
+dist/assets/RuleCheckView-bb5e3f94.js               24.69 kB │ gzip: 10.30 kB
+dist/assets/Agent-e869ddb6.js                       39.59 kB │ gzip: 16.44 kB
+dist/assets/index-fc8fe43b.js                      112.13 kB │ gzip: 43.21 kB
+✓ built in 1.24s
+ Network zhku-web-preview_default Creating 
+ Network zhku-web-preview_default Creating 
+ Network zhku-web-preview_default Created 
+ Network zhku-web-preview_default Created 
+ Container zhku-web-preview-web-1 Creating 
+ Container zhku-web-preview-web-1 Created 
+ Container zhku-web-preview-web-1 Starting 
+ Container zhku-web-preview-web-1 Started 
+ Container zhku-web-preview-web-1 Waiting 
+ Container zhku-web-preview-web-1 Healthy 
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+Nginx page ready: http://127.0.0.1:58080/
+Controlled API upstream: host.docker.internal:58126
+Only controlled v1/v2 namespaces are proxied; the selected backend determines which functions are available.
+Stop this container with: .\start-nginx-preview.cmd -Action Stop -ProjectName zhku-web-preview
+
+页面地址：http://127.0.0.1:58080/rules  登录账号：controlled-2025-student
+密码：你通过 ZHKU_RULECHECK_STUDENT_PASSWORD 提供的值
+页面会标注 离线回放演示；提问使用页面预置问题，答案来自冻结回放，不代表在线能力。
+结束：后端窗口按提示退出（最长 8 分钟自动结束）；前端执行 agent\frontend\start-nginx-preview.cmd -Action Stop

@@ -1,0 +1,16 @@
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+2026-10-25T22:46:36.165+08:00 ERROR 54408 --- [zhku-knowledge] [           main] o.s.boot.SpringApplication               : Application run failed
+
+java.lang.IllegalArgumentException: 受控资料、回放或根目录不合格
+	at com.zhku.knowledge.rulecheck.web.RuleCheckPreviewConfiguration.validateEnvironment(RuleCheckPreviewConfiguration.java:83) ~[!/:0.1.0-rc.1]
+	at com.zhku.knowledge.rulecheck.web.RuleCheckPreviewApplication.lambda$application$0(RuleCheckPreviewApplication.java:21) ~[!/:0.1.0-rc.1]
+	at org.springframework.boot.SpringApplication.applyInitializers(SpringApplication.java:612) ~[spring-boot-3.4.4.jar!/:3.4.4]
+	at org.springframework.boot.SpringApplication.prepareContext(SpringApplication.java:383) ~[spring-boot-3.4.4.jar!/:3.4.4]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:317) ~[spring-boot-3.4.4.jar!/:3.4.4]
+	at com.zhku.knowledge.rulecheck.web.Controlled2025RuleCheckHost.main(Controlled2025RuleCheckHost.java:42) ~[!/:0.1.0-rc.1]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[knowledge-0.1.0-rc.1-controlled.jar:0.1.0-rc.1]
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[knowledge-0.1.0-rc.1-controlled.jar:0.1.0-rc.1]
+	at org.springframework.boot.loader.launch.PropertiesLauncher.main(PropertiesLauncher.java:580) ~[knowledge-0.1.0-rc.1-controlled.jar:0.1.0-rc.1]
+

@@ -46,22 +46,42 @@
 
 移除 10 个已合并且干净的工作树(分支引用全保留)。保留 4 个已合并但含未提交真实内容的工作树:`codex/rule-agent-integration`(审核资料 JSON 修改)、`codex/s02-eval-adapter`(暂存的 T08EvalAdapter 代码)、`codex/sprint01-question-loop`(.learnings)、`codex/t06-t07-student-http`(证据日志)。
 
-## 四、进行中任务:一条命令学生回放演示(恢复指南)
+## 四、一条命令学生回放演示(PASS,2026-10-25 修复并验证)
 
-**目标**:从主目录一条命令启动零模型成本的完整演示(登录→提问→引用),已完成 80%,卡在回放后端就绪。
+**结论**:一条命令 → 登录 → 提问 → 结论与引用 → 原文对照,全链路真实跑通,零模型外发,到点自动回收资源。
 
-**已完成**:
-1. `knowledge/scripts/start-student-replay-demo.cmd/.ps1`(包装:后端独立窗口→等端口→nginx 回放前端→开浏览器;支持 `ZHKU_RULECHECK_STUDENT_PASSWORD` 环境密码免交互)。
-2. 包装脚本编码问题已修(cmd 英文注释、ps1 BOM)。
+**真实阻断(不是 35 秒预算)**:「宿主35秒内未就绪」只是表象。把宿主 stdout/stderr 落盘后真实报错为
+`java.lang.IllegalArgumentException: 受控资料、回放或根目录不合格`
+(`RuleCheckPreviewConfiguration.validateEnvironment(RuleCheckPreviewConfiguration.java:83)`),宿主启动 3 秒即退出(已退出=True、退出码=1)。
 
-**当前阻断**:`start-controlled-rule-check.ps1` 的回放后端报「宿主35秒内未就绪」。两次失败证据在 `docs/evidence/rule-check-refactor/2026-10-10/package-02/startup/20261025-*/`(build 成功、容器已起、host-N 目录为空)。
+**根因**:`SealedRuleSelectionReplay` 钉死的封存回放目录 `docs/evidence/rule-check-refactor/2026-10-10/package-01/`(`PACKAGE_SHA=62d759d9…168`、`SUMMARY_SHA=3fb4bca6…092`)在主工作树里缺失——迁移时漏搬了运行时输入。35 秒死线本身够用:宿主实测 7.9 秒就绪。
 
-**下一步(按序)**:
-1. 先判别「宿主秒挂」还是「35 秒预算太紧」:在 `start-controlled-rule-check.ps1` 的 StartHost 里把宿主 stdout/stderr 落盘到 `$runDirectory`(现在只在内存 `$hostOut/$hostErr`,失败也不写),重跑一次拿真实报错。临时库脚本位置:第 95-118 行 StartHost、第 113 行 35 秒死线。
-2. 若是冷启动超预算:把 35 秒放宽(如 120 秒)——该常量只为识别宿主死亡,不应紧绷启动时间;顺带把宿主输出落盘补上。
-3. 若是秒挂:按报错修(注意宿主是 `com.zhku.knowledge.rulecheck.web.Controlled2025RuleCheckHost`,jar 为 `knowledge-0.1.0-rc.1-controlled.jar`,env:`ZHKU_RULECHECK_ROOT/PORT/EVIDENCE/STUDENT_PASSWORD`)。
-4. 修好后完整 E2E:`export ZHKU_RULECHECK_STUDENT_PASSWORD='<16-64位>'` → `knowledge\scripts\start-student-replay-demo.cmd -MaxMinutes 8` → 浏览器 `http://127.0.0.1:58080/rules` 用 `controlled-2025-student` + 该密码登录 → 页面预置问题提问 → 引用展示 → 截图留证 → 收尾(后端窗口退出、`agent\frontend\start-nginx-preview.cmd -Action Stop`)。
-5. 注意:同工作树禁止并行 Maven;演示前端用 `-EntryMode replay` 会重建前端(~40 秒)。
+**修复(仅两处,不重构)**:
+1. 补回 `docs/evidence/rule-check-refactor/2026-10-10/package-01/`(54 文件 385665B),逐文件 SHA256 与来源目录一致;不放宽任何指纹校验。
+2. `knowledge/scripts/start-controlled-rule-check.ps1`:①宿主 stdout/stderr 落盘(`host-N/host-stdout.log`、`host-stderr.log`)并新增 `host-launch.json`(pid/耗时/是否退出/退出码/是否就绪);②35 秒硬编码改为 `$hostReadySeconds=120`(只用于识别死亡或挂死);③修复到点退出:`[Console]::In.ReadLineAsync()` 在真实控制台窗口里同步阻塞调用线程,`MaxMinutes` 永不生效(实测到点 10 分钟仍在运行),改为 `[Console]::KeyAvailable` 轮询,到点自动 `STOP` 并回收。
+
+**验证记录(全部真实执行)**:
+
+| # | 操作 | 结果 |
+|---|------|------|
+| 1 | `start-controlled-rule-check.ps1 -Smoke`(加固后首次) | passed:false,`host-1/host-stdout.log` 含上述异常栈;批次 `20261025-224555-6373b6f3` |
+| 2 | 补回 package-01 后 `-Smoke` | passed:true,normalHostRuns:2,resourcesClosed:true,providerCalls:0;批次 `20261025-225002-b94b84dc` |
+| 3 | `start-controlled-rule-check.cmd -MaxMinutes 1`(验证到点退出) | exit 0,111.5 秒自动退出,passed:true,host-closed.json resourcesClosed:true;批次 `20261025-230606-e6d43e82` |
+| 4 | `$env:ZHKU_RULECHECK_STUDENT_PASSWORD='<16-64位>'; knowledge\scripts\start-student-replay-demo.cmd -MaxMinutes 3` | launchExit=0/38 秒;UI 退出码 0/6 秒;后端到点自动退出 passed:true、resourcesClosed:true;批次 `20261025-230818-2aeb3452` |
+| 5 | 收尾 `agent\frontend\start-nginx-preview.cmd -Action Stop` | 容器与网络 Removed;无 java 进程;55500/58126/58080 均无监听 |
+
+页面实测(Q17「一学期最多选多少公共选修学分?」):结论标题 **有原文支持**、依据版本 **2025.9.2**、正文「每学期选修公共选修课最高不得超过4个学分。」、引用「第十条　每学期选修公共选修课最高不得超过 4 个学分。」;点「核对原文」后右栏 **原文对照** 显示「本科生学生手册(2025版)·选修课程管理办法」、版本 2025.9.2、`PDF物理第77页/印刷第65页,第10条`、记录页码 77,高亮摘录与引用逐字一致,待核实项两条(物理页/印刷页映射未核实、暂无已验证安全的原件地址)。
+
+**证据**:`docs/evidence/rule-agent-integration/2026-10-25/student-demo-e2e-20261025-230814/`(01-login/02-desk/03-result/04-original.png、`ui-evidence.json`、`demo-run.log`:`passwordLength=28`,`launchExit=0`,`uiExit=0`,无明文密码)。
+
+**复现与收尾**:
+```
+$env:ZHKU_RULECHECK_STUDENT_PASSWORD='<16-64位>'
+knowledge\scripts\start-student-replay-demo.cmd -MaxMinutes 8
+# 浏览器 http://127.0.0.1:58080/rules ;账号 controlled-2025-student + 上面密码;提交页面预置问题
+agent\frontend\start-nginx-preview.cmd -Action Stop
+```
+已知噪声(既有设计路径,不影响结论):登录前 `auth/me` 探测返回 401、`favicon` 404。注意:同工作树禁止并行 Maven;`-EntryMode replay` 会重建前端(~40 秒)。
 
 ## 五、未验证事项与已知问题(如实,勿当已通过)
 
@@ -73,16 +93,20 @@
 6. 提交时 `safeguard-refs.ps1` 钩子报错(脚本在 worktree 内存在、钩子按主检出路径找,找不到):无害,提交均成功,未处理。
 7. 4 个含未提交内容的工作树(见 3.3)待人工决定收编或废弃;另有旧 stash `stash@{0}: On zhkuagent-modules: WB-1 状态板纪律纠正登记`(**不要**随手 pop,它属于别的分支)。
 8. 外层 `D:\alldesk\Projects\ZhkuAgent\docs` 是迁移残缺副本(缺 verbatim-import-draft.json 等),已从所有默认路径移除依赖,但目录本身未清理。
+9. **演示启动器依赖控制台窗口**:早期版本用 `[Console]::In.ReadLineAsync()` 等待回车,在真实控制台里会同步阻塞,`MaxMinutes` 失效(首轮演示批次 `20261025-225214-19c896d3` 因此卡到人工终止,该批次无 `results.json`,保留作缺陷证据)。现已改为按键轮询:到点自动退出;仅在 stdin 被重定向时按键提前退出不可用(仍按 `MaxMinutes` 结束)。
+10. **失败批次的 `resourcesClosed` 是误标**:`finally` 里只要宿主对象还在就把 `resourcesClosed` 置 `false`,即使容器已回收(如 `20261025-224555-6373b6f3`)。成功批次不受影响(`StopHost` 已清空对象)。本轮未改,避免扩大范围。
 
 ## 六、关键路径速查
 
 | 用途 | 路径 |
 | --- | --- |
 | 在线验收流程 | `knowledge/scripts/start-rule-agent-http-check.cmd -Action Prepare/CheckPackage/StartApproved`(StartApproved 需 env `ZHKU_HTTP_APPROVED_PACKAGE_SHA256=<包SHA>`) |
-| 一条命令演示(修完待验) | `knowledge/scripts/start-student-replay-demo.cmd` |
+| 一条命令演示(PASS) | `knowledge/scripts/start-student-replay-demo.cmd -MaxMinutes <1-15>`(后端独立窗口,到点自动退出) |
 | 回放后端 | `knowledge/scripts/start-controlled-rule-check.cmd`(密码:交互或 env `ZHKU_RULECHECK_STUDENT_PASSWORD`) |
 | 前端 | `agent/frontend/start-nginx-preview.cmd -BackendPort <端口> [-WebPort 58080] [-EntryMode replay]` |
 | 在线证据 | `docs/evidence/rule-agent-integration/2026-10-25/`(两批租约 + 裸参数包) |
+| 回放演示证据 | `docs/evidence/rule-agent-integration/2026-10-25/student-demo-e2e-20261025-230814/`(四张截图 + `ui-evidence.json` + `demo-run.log`) |
+| 回放封存输入 | `docs/evidence/rule-check-refactor/2026-10-10/package-01/`(缺它宿主 3 秒即退出) |
 | 学生页 API 前缀 | `/api/zhku/controlled-preview/v2`;登录账号合成:`t06-chain-a`(在线租约)/`controlled-2025-student`(回放),密码均为启动时设定 |
 | 前端 node_modules | 已 `npm ci` 安装(含 esbuild 手动 postinstall),dist-student/dist 已构建 |
 

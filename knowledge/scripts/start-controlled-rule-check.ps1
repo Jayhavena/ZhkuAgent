@@ -11,6 +11,8 @@ $ruleUtf8=[Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding=$ruleUtf8;[Console]::OutputEncoding=$ruleUtf8;$OutputEncoding=$ruleUtf8
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $replayMode=if($TaskPlanReplay){'TASK_PLAN_REPLAY_NOT_LIVE'}else{'SEALED_REPLAY_NOT_LIVE'}
+# 就绪死线只为识别宿主死亡/挂死，不是启动预算：冷启动含Spring上下文、库迁移与BCrypt，机器忙时明显偏长。
+$hostReadySeconds=120
 $taskBatch='docs/evidence/rule-check-final-candidate/2026-10-12'
 $importer=Join-Path $root 'scripts/Import-ZhkuCredentials.ps1'
 . (Join-Path $root 'scripts/Invoke-ZhkuOwnedProcess.ps1')
@@ -90,9 +92,19 @@ function InvokeDocker([string[]]$arguments,[int]$seconds=5){
     if($result.timedOut-or !$result.resourcesClosed){throw '本批Docker客户端超时，容器状态未确认'}
     return $result
 }
+function SaveHostOutput($runDirectory){
+    # 宿主输出必须随本批证据落盘：只在内存任务里时，抛错会连同真实报错一起丢掉，只剩“未就绪”这一层症状。
+    # 宿主未退出时输出流不会EOF，必须限时等待，否则保存日志本身会把启动器卡住。
+    foreach($stream in @(@{name='host-stdout.log';task=$script:hostOut},@{name='host-stderr.log';task=$script:hostErr})){
+        $text=if($stream.task){
+            try{if(!$stream.task.Wait(5000)){'[未读完：宿主仍在运行，输出流未关闭]'}else{$stream.task.GetAwaiter().GetResult()}}catch{"[读取失败] $($_.Exception.Message)"}
+        }else{''}
+        [IO.File]::WriteAllText((Join-Path $runDirectory $stream.name),$text,$ruleUtf8)
+    }
+}
 function StartHost([int]$number){
     & $importer -RequireDatabase
-    $runDirectory=Join-Path $directory "host-$number";New-Item -ItemType Directory -Path $runDirectory|Out-Null
+    $runDirectory=Join-Path $directory "host-$number";New-Item -ItemType Directory -Path $runDirectory|Out-Null;$script:hostDir=$runDirectory
     $info=[Diagnostics.ProcessStartInfo]::new($java.Source);$info.WorkingDirectory=$root;$info.UseShellExecute=$false;$info.CreateNoWindow=$true
     $info.RedirectStandardInput=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
     $info.StandardInputEncoding=$ruleUtf8;$info.StandardOutputEncoding=$ruleUtf8;$info.StandardErrorEncoding=$ruleUtf8
@@ -110,16 +122,30 @@ function StartHost([int]$number){
     [void]$info.Environment.Remove('DASHSCOPE_API_KEY')
     $script:hostProcess=[Diagnostics.Process]::Start($info)
     $script:hostOut=$hostProcess.StandardOutput.ReadToEndAsync();$script:hostErr=$hostProcess.StandardError.ReadToEndAsync()
-    $deadline=[DateTime]::UtcNow.AddSeconds(35)
+    $startedAt=[DateTime]::UtcNow
+    $deadline=$startedAt.AddSeconds($hostReadySeconds)
     while(!(Test-Path (Join-Path $runDirectory 'host-ready.json'))-and !$hostProcess.HasExited-and [DateTime]::UtcNow-lt $deadline){Start-Sleep -Milliseconds 100}
-    if(!(Test-Path (Join-Path $runDirectory 'host-ready.json'))){throw '宿主35秒内未就绪；查看本批退出记录，不重试'}
+    $launch=[ordered]@{pid=$hostProcess.Id;startedAt=$startedAt.ToString('o');elapsedSeconds=[Math]::Round(([DateTime]::UtcNow-$startedAt).TotalSeconds,2);exited=$hostProcess.HasExited;ready=(Test-Path (Join-Path $runDirectory 'host-ready.json'))}
+    if($launch.exited){$launch.exitCode=$hostProcess.ExitCode}
+    Save $launch (Join-Path $runDirectory 'host-launch.json')
+    if(!$launch.ready){
+        # 宿主仍活着时读输出会一直等不到EOF；失败时最需要它打印的报错，所以先收敛进程再落盘。
+        if(!$hostProcess.HasExited){try{$hostProcess.Kill($true)}catch{}}
+        try{[void]$hostProcess.WaitForExit(5000)}catch{}
+        SaveHostOutput $runDirectory
+        # 变量名不能直接粘中文：$hostReadySeconds秒会被解析成一个更长的变量名，报错里就丢了秒数。
+        throw "宿主${hostReadySeconds}秒内未就绪（实际等$($launch.elapsedSeconds)秒，已退出=$($hostProcess.HasExited)，退出码=$($hostProcess.ExitCode)）；输出已落盘到 host-$number，不重试"
+    }
     $ready=Get-Content -Raw (Join-Path $runDirectory 'host-ready.json')|ConvertFrom-Json
     if($ready.port-ne $BackendPort-or $ready.selectorMode-ne $replayMode-or $ready.providerCalls-ne 0){throw '实际宿主模式/端口不符'}
     $script:hostRuns++;return $runDirectory
 }
 function StopHost($runDirectory){
     if(!$hostProcess.HasExited){$hostProcess.StandardInput.WriteLine('STOP');$hostProcess.StandardInput.Flush()}
-    if(!$hostProcess.WaitForExit(10000)){throw '宿主未正常关闭；不能强杀冒充通过'}
+    $exited=$hostProcess.WaitForExit(10000)
+    # 退出后才能读完输出流；先落盘再看退出码/证据，否则宿主拒绝关闭时只剩一句断言。
+    if($exited){SaveHostOutput $runDirectory}
+    if(!$exited){throw '宿主未正常关闭；不能强杀冒充通过'}
     if($hostProcess.ExitCode-ne 0-or !(Test-Path (Join-Path $runDirectory 'host-closed.json'))){throw '宿主退出或资源确认失败'}
     $closed=Get-Content -Raw (Join-Path $runDirectory 'host-closed.json')|ConvertFrom-Json
     if(!$closed.resourcesClosed){throw '宿主资源未收敛'}
@@ -176,15 +202,21 @@ try{
     if($Smoke){HttpSmoke $run;StopHost $run;$run=StartHost 2;HttpSmoke $run;StopHost $run}
     else{
         Write-Host "接口：http://127.0.0.1:$BackendPort/api/zhku/controlled-preview/v2；账号 controlled-2025-student"
-        Write-Host "最长运行$MaxMinutes分钟，回车正常退出；网页须用配套回放入口，勿用于在线试点。"
+        Write-Host "最长运行$MaxMinutes分钟，按回车正常退出；网页须用配套回放入口，勿用于在线试点。"
         Write-Host ".\agent\frontend\start-nginx-preview.cmd -BackendPort $BackendPort -WebPort 58080 -EntryMode replay"
-        $deadline=[DateTime]::UtcNow.AddMinutes($MaxMinutes);$inputTask=[Console]::In.ReadLineAsync()
-        while(!$inputTask.IsCompleted-and [DateTime]::UtcNow-lt $deadline-and !$hostProcess.HasExited){Start-Sleep -Milliseconds 200}
+        # 控制台窗口里 ReadLineAsync 会同步阻塞调用线程，MaxMinutes 到点也不会退出；改成可中断的按键轮询。
+        $deadline=[DateTime]::UtcNow.AddMinutes($MaxMinutes);$stopRequested=$false;$canPollKeys=$true
+        while(!$stopRequested-and [DateTime]::UtcNow-lt $deadline-and !$hostProcess.HasExited){
+            try{if([Console]::KeyAvailable){[void][Console]::ReadKey($true);$stopRequested=$true}}catch{$canPollKeys=$false;break}
+            if(!$stopRequested-and [DateTime]::UtcNow-lt $deadline){Start-Sleep -Milliseconds 200}
+        }
+        # 输入被重定向时 KeyAvailable 不可用：仍按 MaxMinutes 到点退出。
+        if(!$canPollKeys){while([DateTime]::UtcNow-lt $deadline-and !$hostProcess.HasExited){Start-Sleep -Milliseconds 200}}
         StopHost $run
     }
     $passed=$true
 }catch{$failure=$_.Exception.Message;Write-Host '本批启动验收未完成，已记录并回收本批资源。'}finally{
-    if($hostProcess){try{if(!$hostProcess.HasExited){$hostProcess.Kill($true);[void]$hostProcess.WaitForExit(5000)};$hostProcess.Dispose()}catch{};$resources=$false}
+    if($hostProcess){try{if(!$hostProcess.HasExited){$hostProcess.Kill($true);[void]$hostProcess.WaitForExit(5000)};if($script:hostDir){SaveHostOutput $script:hostDir};$hostProcess.Dispose()}catch{};$resources=$false}
     if($owned){
         # 守护进程挂起时也必须写出未确认状态并恢复本机环境；stop参数不是客户端的时间上限。
         try{
