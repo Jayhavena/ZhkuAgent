@@ -3,7 +3,7 @@
 param(
     [ValidateSet('CheckEnvironment','Prepare','Start','Stop','Recover')][string]$Action='CheckEnvironment',
     [string]$ExpectedIdentity='',
-    [string]$AssetsRoot='D:\alldesk\Projects\ZhkuAgent',
+    [string]$AssetsRoot='',
     [string]$EvidenceRoot=(Join-Path $env:LOCALAPPDATA 'ZhkuAgent\controlled-acceptance\M1-04B'),
     [string]$PreparedDirectory='',
     [ValidatePattern('^m104b-[a-z0-9-]{8,80}$')][string]$Batch='m104b-20261020-demo01',
@@ -15,6 +15,8 @@ param(
 $ErrorActionPreference='Stop'
 [Console]::InputEncoding=[Console]::OutputEncoding=$OutputEncoding=[Text.UTF8Encoding]::new($false)
 $root=(Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '../..')).Path
+# 2026-10-24迁移后外层旧目录只剩残缺docs副本；默认以当前工作树为资料根，仍可显式传其他完整资料根。
+if(!$AssetsRoot){$AssetsRoot=$root}
 if(!$ExpectedIdentity){$ExpectedIdentity=Join-Path $root 'docs/preparation/m1-04a/identity.json'}
 if($DatabasePort -eq 54329 -or $BackendPort -eq 54329 -or $BackendPort -eq $DatabasePort){throw 'Forbidden or overlapping database/backend port'}
 # 未批准 Start 必须先于工具、目录、Docker 或凭证访问失败；M1-04A 仅执行 Prepare/CheckEnvironment。

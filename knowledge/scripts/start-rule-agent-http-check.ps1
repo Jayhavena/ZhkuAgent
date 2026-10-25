@@ -3,8 +3,11 @@ param(
  [ValidateSet('CheckEnvironment','Prepare','CheckPackage','StartApproved')][string]$Action='CheckEnvironment',
  [string]$PackageDirectory,
  [ValidatePattern('^[a-f0-9]{64}$')][string]$PackageSha256,
- [string]$AssetsRoot='D:\alldesk\Projects\ZhkuAgent'
+ [string]$AssetsRoot=''
 )
+# 2026-10-24迁移后外层旧目录只剩残缺docs副本；默认以当前工作树为资料根（git内审核资料完整，
+# 手册PDF由Reviewed2025ControlledCatalogue按迁移布局回溯定位）。仍可显式传其他完整资料根。
+if(!$AssetsRoot){$AssetsRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path}
 $ErrorActionPreference='Stop'
 $utf8=[Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding=$utf8;[Console]::OutputEncoding=$utf8;$OutputEncoding=$utf8
