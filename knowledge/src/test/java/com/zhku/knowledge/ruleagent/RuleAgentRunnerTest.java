@@ -19,6 +19,9 @@ class RuleAgentRunnerTest {
         return tools(available,match,conditional,false);
     }
     RuleAgentEvidenceTools tools(boolean available,boolean match,boolean conditional,boolean independent)throws Exception{
+        return tools(owner,task,available,match,conditional,independent);
+    }
+    RuleAgentEvidenceTools tools(Owner toolOwner,UUID toolTask,boolean available,boolean match,boolean conditional,boolean independent)throws Exception{
         var b=new RuleCheckRuleTemplate.EvidenceBinding(source,chunk,"2025.9.2",hash(),0,text.length(),text);
         var fact=new RuleCheckRuleTemplate.Fact("category","合成分类解释",true,conditional?Map.of("kind","A"):Map.of(),List.of(b));
         var conditions=conditional?List.of(new RuleCheckRuleTemplate.Condition("kind","请选择合成类别",List.of("A","B"))):List.<RuleCheckRuleTemplate.Condition>of();
@@ -26,7 +29,7 @@ class RuleAgentRunnerTest {
         var rule=new RuleCheckRuleTemplate("r","2025.9.2",RuleCheckRuleTemplate.ReviewState.APPROVED,"synthetic",LocalDate.of(2026,10,13),facts,conditions,List.of(),List.of());
         var entry=new RuleCheckApplicationService.CatalogEntry(rule,"合成范围",new RuleCheckApplicabilityGuard.Coverage(Set.of(RuleCheckApplicabilityGuard.Audience.UNDERGRADUATE)),RuleCheckTopicGuard.Coverage.declared(RuleCheckTopicGuard.Topic.CATEGORY));
         var candidate=new RetrievedChunk(chunk,text,"synthetic","synthetic",1,"2025.9.2",hash(),source);var current=new RuleCheckEvidenceSnapshot("current",source,chunk,"2025.9.2",hash(),text,true);
-        return new RuleAgentEvidenceTools(owner,task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->List.of(entry),(q,n)->{if(!available)throw new RetrieverUnavailableException("synthetic");return match?List.of(candidate):List.of();},(s,c)->Optional.of(current),r->{},clock);
+        return new RuleAgentEvidenceTools(toolOwner,toolTask,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->List.of(entry),(q,n)->{if(!available)throw new RetrieverUnavailableException("synthetic");return match?List.of(candidate):List.of();},(s,c)->Optional.of(current),r->{},clock);
     }
     RuleAgentRunner.Reply reply(NextAction a){try{return new RuleAgentRunner.Reply(new ObjectMapper().writeValueAsString(a),false);}catch(Exception e){throw new IllegalStateException(e);}}
     RuleAgentRunner.Outcome run(RuleAgentEvidenceTools tools,RuleAgentRunner.DecisionPort port){var input=RuleAgentRunner.Input.single(owner,task,"选修课程类别有哪些？");var context=AgentRunContext.create(input.question());var out=new RuleAgentRunner(port,new RuleActionBroker(tools),clock).run(context,input);assertThat(context.termination()).isCompleted();assertThat(context.snapshot().terminated()).isTrue();return out;}

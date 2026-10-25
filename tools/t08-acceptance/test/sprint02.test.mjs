@@ -1,9 +1,9 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync, writeFileSync, mkdirSync, symlinkSync, rmSync} from 'node:fs';
+import {mkdtempSync, writeFileSync, readFileSync, mkdirSync, symlinkSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {validateDataset, validateRubric, createManifest, verifyManifest, runDataset, aggregate, redact} from '../sprint02/engine.mjs';
+import {validateDataset, validateRubric, createManifest, verifyManifest, runDataset, aggregate, redact, sha256} from '../sprint02/engine.mjs';
 
 const makeCase = (id='synthetic-1') => ({caseId:id,group:'G2',category:'A',synthetic:true,
   provenance:{kind:'SYNTHETIC_FAULT',sourceCommit:'synthetic-source',exposure:'DEVELOPMENT'},
@@ -75,6 +75,213 @@ test('safe execution carries event step and modelAttempt but never raw action pa
   assert.equal(invalid.records[0].execution.actions[0].modelAttempt,undefined);
   assert.ok(!JSON.stringify(invalid).includes('SENSITIVE-INSTEAD-OF-ATTEMPT'));
 });
+
+test('safe execution copies only boolean coverage and removes private source identifiers',async()=>{
+  const report=await runDataset(dataset(),rubric(),{...identity,mode:'synthetic',adapter:c=>({
+    ...execution(c),traceCoverage:{truncated:false,exceptionalFailure:false,question:'SECRET_TEST_MARKER',nested:{secret:'SECRET_TEST_MARKER'}},
+    result:{...execution(c).result,evidence:[{id:'e-1',sourceId:'SECRET_TEST_MARKER',chunkId:'SECRET_TEST_MARKER'}]},
+  })});
+  assert.deepEqual(report.records[0].execution.traceCoverage,{truncated:false,exceptionalFailure:false});
+  assert.deepEqual(report.records[0].execution.result.evidence,[{id:'e-1'}]);
+  assert.ok(!JSON.stringify(report).includes('SECRET_TEST_MARKER'));
+});
+const javaIdentity={candidateId:'candidate-1',sourceSha:'a'.repeat(40),caseId:'synthetic-1',datasetSha256:'b'.repeat(64)};
+const javaExport=()=>({recordType:'T08_JAVA_TRACE_EXPORT',schemaVersion:1,
+  sourceLayer:'ACTUAL_JAVA_RUNNER_OFFLINE_SIMULATED',executionMode:'OFFLINE_SIMULATED',providerCalls:0,...javaIdentity,
+  traces:[{taskId:'task-1',turnId:'turn-1',runId:'run-1',version:2,exceptionalFailure:false,truncated:false,
+    taskStatus:'RESOLVED',runState:'SUCCEEDED',actions:[{actionId:'action-1',type:'READ_VERIFIED_RULE',step:1,modelAttempt:1},
+      {actionId:'action-2',type:'FINISH_CHECK',step:2,modelAttempt:2}],
+    observations:[{actionId:'action-1',status:'SUCCEEDED',dataLevel:'VERIFIED_FACT'},
+      {actionId:'action-2',status:'NOT_OBSERVED',dataLevel:null}],
+    result:{coverage:'COMPLETE',evidence:[{id:'evidence-1',revision:'2025.9.2'}],
+      evidenceRelations:[{targetId:'claim-1',evidenceId:'evidence-1',role:'CLAIM'}],
+      items:[{claims:[{id:'claim-1',factId:'sha256:'+'b'.repeat(64)}]}],issues:[]}}]});
+const javaDataset=()=>{const d=dataset();d.cases[0].expected.requiredToolTypes=['READ_VERIFIED_RULE','FINISH_CHECK'];return d;};
+const javaOptions=()=>({...identity,...javaIdentity,rubricSha256:identity.rubricSha256,mode:'java-offline',javaCaseId:'synthetic-1'});
+const javaNegatives=[
+  ['UUID composite',t=>t.result.evidence[0].id='prefix-123e4567-e89b-12d3-a456-426614174000:0-20'],
+  ['raw field',t=>t.question='SECRET_TEST_MARKER'],
+  ['duplicate action',t=>t.actions[1].actionId='action-1'],
+  ['missing control observation',t=>t.observations.pop()],
+  ['contradictory state',t=>t.runState='RUNNING'],
+  ['failed state pair',t=>t.taskStatus='FAILED'],
+  ['dangling evidence',t=>t.result.evidenceRelations[0].evidenceId='evidence-2'],
+  ['omitted items',t=>delete t.result.items],
+  ['omitted evidence',t=>delete t.result.evidence],
+  ['omitted relations',t=>delete t.result.evidenceRelations],
+  ['omitted issues',t=>delete t.result.issues],
+  ['omitted claims',t=>delete t.result.items[0].claims],
+  ['missing result',t=>delete t.result],
+  ['empty claims',t=>t.result.items[0].claims=[]],
+  ['duplicate claim',t=>t.result.items[0].claims.push({...t.result.items[0].claims[0]})],
+  ['duplicate evidence',t=>t.result.evidence.push({...t.result.evidence[0]})],
+  ['wrong role',t=>t.result.evidenceRelations[0].role='SCOPE'],
+  ['unreferenced evidence',t=>t.result.evidence.push({id:'evidence-2',revision:'2025.9.2'})],
+  ['source ID',t=>t.result.evidence[0].sourceId='SECRET_TEST_MARKER'],
+  ['chunk ID',t=>t.result.evidence[0].chunkId='SECRET_TEST_MARKER'],
+  ['unsafe revision',t=>t.result.evidence[0].revision='sk-test-marker'],
+  ['arbitrary reason',t=>t.observations[0].reasonCode='SECRET_TEST_MARKER'],
+  ['contradictory successful reason',t=>t.observations[0].reasonCode='RETRIEVAL_NO_MATCH'],
+  ['contradictory failed observation',t=>Object.assign(t.observations[0],{status:'NO_MATCH',reasonCode:'RETRIEVAL_NO_MATCH'})],
+  ['arbitrary issue',t=>t.result.issues.push({kind:'SECRET_TEST_MARKER',reasonCode:'SECRET_TEST_MARKER'})],
+  ['arbitrary status',t=>t.observations[0].status='SECRET_TEST_MARKER'],
+  ['arbitrary data level',t=>t.observations[0].dataLevel='SECRET_TEST_MARKER'],
+  ['arbitrary action',t=>t.actions[0].type='SECRET_TEST_MARKER'],
+  ['nested coverage',t=>t.traceCoverage={question:'SECRET_TEST_MARKER',truncated:false}],
+  ['nonboolean coverage',t=>t.truncated='SECRET_TEST_MARKER'],
+  ['step gap',t=>t.actions[1].step=3],
+  ['attempt decreases',t=>t.actions[1].modelAttempt=0],
+  ['spurious observation',t=>t.observations.push({actionId:'action-3',status:'NOT_OBSERVED',dataLevel:null})],
+  ['duplicate observation',t=>t.observations[1]={...t.observations[0]}],
+  ['invented control success',t=>t.observations[1]={actionId:'action-2',status:'SUCCEEDED',dataLevel:'VERIFIED_FACT'}],
+  ['tool not observed',t=>t.observations[0]={actionId:'action-1',status:'NOT_OBSERVED',dataLevel:null}],
+  ['failed read cannot prove claims',t=>t.observations[0]={actionId:'action-1',status:'UNAVAILABLE',dataLevel:'NONE',reasonCode:'RETRIEVAL_UNAVAILABLE'}],
+  ['bad fact hash',t=>t.result.items[0].claims[0].factId='SECRET_TEST_MARKER'],
+  ['hidden UUID action',t=>t.actions[0].actionId='action-123e4567-e89b-12d3-a456-426614174000'],
+  ['wrong turn ID',t=>t.turnId='turn-2'],
+  ['wrong run ID',t=>t.runId='run-2'],
+  ['wrong version',t=>t.version=3],
+];
+test('Java imports remain unverified even when hand-written JSON has matching identity',async()=>{
+  const {importJavaTraceExport}=await import('../sprint02/java-trace-adapter.mjs');
+  const [turn]=importJavaTraceExport(javaExport(),javaIdentity);
+  assert.deepEqual(turn.traceCoverage,{truncated:false,exceptionalFailure:false});
+  assert.equal(turn.observations[1].status,'NOT_OBSERVED');
+  const report=await runDataset(javaDataset(),rubric(),{...javaOptions(),javaExport:javaExport()});
+  assert.equal(report.mode,'UNVERIFIED_IMPORTED_JAVA_TRACE');
+  assert.equal(report.sourceLayer,'UNVERIFIED_IMPORTED_JAVA_TRACE');
+  assert.equal(report.javaExecutionVerified,false);assert.equal(report.summary.verifiedJavaCandidate,false);
+  assert.equal(report.records[0].engineeringStatus,'PASS');
+  assert.equal(report.records[0].qualityStatus,'NOT_EVALUABLE');assert.equal(report.providerCalls,0);
+  assert.equal(report.rubricStatus,'PROPOSED_NOT_APPROVED');
+  const adapterReport=await runDataset(javaDataset(),rubric(),{...javaOptions(),adapter:()=>javaExport()});
+  assert.equal(adapterReport.records[0].engineeringStatus,'PASS');assert.equal(adapterReport.javaExecutionVerified,false);
+  const bypass=await runDataset(javaDataset(),rubric(),{...javaOptions(),javaSourceVerified:true,adapter:()=>({turns:[turn]})});
+  assert.notEqual(bypass.records[0].engineeringStatus,'PASS');assert.equal(bypass.javaExecutionVerified,false);
+  assert.ok(!JSON.stringify(bypass).includes('ACTUAL_JAVA_RUNNER_VERIFIED'));
+  assert.throws(()=>aggregate({...report,mode:'ACTUAL_JAVA_RUNNER_OFFLINE_SIMULATED',javaExecutionVerified:true}));
+  assert.throws(()=>aggregate({...report,javaExecutionVerified:true}));
+  const forged=structuredClone(report);forged.records[0].turns[0].traceCoverage.question='SECRET_TEST_MARKER';
+  assert.throws(()=>aggregate(forged));
+  await assert.rejects(runDataset(javaDataset(),rubric(),{...javaOptions(),sourceSha:'not-a-sha',javaSourceVerified:true,javaExport:javaExport()}),/JAVA_EXPORT_IDENTITY/);
+  const multi=javaDataset();multi.cases.push({...makeCase('other')});
+  await assert.rejects(runDataset(multi,rubric(),{...javaOptions(),javaExport:javaExport()}),/JAVA_EXPORT_REQUIRED_SINGLE_CASE/);
+  const turns=javaExport();turns.traces.push(structuredClone(turns.traces[0]));
+  assert.throws(()=>importJavaTraceExport(turns,javaIdentity));
+  const mult=javaDataset();mult.cases[0].input.supplements=['extra'];mult.cases[0].expected.taskStatus.push('RESOLVED');mult.cases[0].expected.coverage.push('COMPLETE');
+  await assert.rejects(runDataset(mult,rubric(),{...javaOptions(),javaExport:javaExport()}),/JAVA_EXPORT_REQUIRED_SINGLE_CASE/);
+  for(const key of ['truncated','exceptionalFailure']) {
+    const doc=javaExport();doc.traces[0][key]=true;
+    const r=await runDataset(javaDataset(),rubric(),{...javaOptions(),javaExport:doc});
+    assert.notEqual(r.records[0].engineeringStatus,'PASS');
+    assert.ok(r.records[0].findings.some(f=>f.code===(key==='truncated'?'TRACE_TRUNCATED':'TRACE_EXCEPTIONAL_FAILURE')));
+  }
+});
+for(const [name,mutate] of javaNegatives)test(`Java import and direct API reject ${name} without leaking raw data`,async()=>{
+  const {importJavaTraceExport}=await import('../sprint02/java-trace-adapter.mjs');
+  const doc=javaExport();mutate(doc.traces[0]);
+  assert.throws(()=>importJavaTraceExport(doc,javaIdentity),/JAVA_EXPORT_/);
+  for(const input of [{javaExport:doc},{adapter:()=>doc}]) {
+    const report=await runDataset(javaDataset(),rubric(),{...javaOptions(),...input});
+    assert.ok(['FAIL','INSUFFICIENT_EVIDENCE'].includes(report.records[0].engineeringStatus));
+    assert.equal(report.records[0].execution,null);
+    assert.ok(!JSON.stringify(report).includes('SECRET_TEST_MARKER'));
+    assert.ok(!JSON.stringify(report).includes('123e4567'));
+  }
+});
+test('CLI saves rejected Java imports on fresh outputs and never verifies fake Java source',async()=>{
+  const {runCli}=await import('../sprint02/cli.mjs');
+  const root=mkdtempSync(join(tmpdir(),'t08-java-import-'));const messages=[];
+  const io={out:v=>messages.push(v),err:v=>messages.push(v)};
+  try {
+    const d=javaDataset();writeFileSync(join(root,'dataset.json'),JSON.stringify(d));writeFileSync(join(root,'rubric.json'),JSON.stringify(rubric()));
+    const digest=sha256(readFileSync(join(root,'dataset.json')));
+    assert.equal(await runCli(['create-manifest','--root',root,'--out',join(root,'freeze.json'),'dataset.json','rubric.json'],io),0);
+    const pin=sha256(readFileSync(join(root,'freeze.json')));
+    let index=0;
+    for(const [name,mutate] of [['valid self-attestation',()=>{}],...javaNegatives,
+      ['fake source',(_,doc)=>doc.sourceLayer='ACTUAL_JAVA_RUNNER_VERIFIED'],
+      ['unknown commit',(_,doc)=>doc.sourceSha='c'.repeat(40)],
+      ['parent commit',(_,doc)=>doc.sourceSha='f3414eee62025ef026d5eccc059b3aa4cd644553'],
+      ['non-SHA source',(_,doc)=>doc.sourceSha='SECRET_TEST_MARKER']]) {
+      const doc=javaExport();doc.datasetSha256=digest;mutate(doc.traces[0],doc);
+      writeFileSync(join(root,'java-export.json'),JSON.stringify(doc));
+      const out=join(root,`result-${index++}.json`);
+      const code=await runCli(['run','--root',root,'--manifest','freeze.json','--expect-manifest-sha256',pin,'--dataset','dataset.json','--rubric','rubric.json',
+        '--mode','java-offline','--candidate-id','candidate-1','--source-sha','a'.repeat(40),'--case-id','synthetic-1','--java-export','java-export.json','--out',out],io);
+      assert.equal(code,name==='valid self-attestation'?0:1,name);
+      const report=JSON.parse(readFileSync(out));assert.equal(report.javaExecutionVerified,false);
+      assert.equal(report.mode,'UNVERIFIED_IMPORTED_JAVA_TRACE');
+      if(name!=='valid self-attestation')assert.notEqual(report.records[0].engineeringStatus,'PASS',name);
+      assert.ok(!JSON.stringify(report).includes('SECRET_TEST_MARKER'),name);
+      assert.ok(!JSON.stringify(report).includes('123e4567'),name);
+    }
+    assert.ok(!messages.join('').includes('SECRET_TEST_MARKER'));
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
+
+test('Java export byte boundary distinguishes missing, malformed and unsafe JSON without raw output',async()=>{
+  const {runCli}=await import('../sprint02/cli.mjs');
+  const root=mkdtempSync(join(tmpdir(),'t08-java-bytes-'));
+  try {
+    writeFileSync(join(root,'dataset.json'),JSON.stringify(javaDataset()));
+    writeFileSync(join(root,'rubric.json'),JSON.stringify(rubric()));
+    writeFileSync(join(root,'freeze.json'),JSON.stringify(createManifest(root,['dataset.json','rubric.json'])));
+    const pin=sha256(readFileSync(join(root,'freeze.json')));
+    const cases=[
+      ['missing',null,'JAVA_EXPORT_MISSING'],
+      ['malformed',Buffer.from('{"private":"RAW_PRIVATE_MARKER"'),'JAVA_EXPORT_FORMAT'],
+      ['invalid-utf8',Buffer.from([0xff]),'JAVA_EXPORT_FORMAT'],
+      ['duplicate',Buffer.from('{"traces":[],"tr\\u0061ces":[]}'),'JAVA_EXPORT_DUPLICATE_KEY'],
+      ['prototype',Buffer.from('{"__proto__":{}}'),'JAVA_EXPORT_UNSAFE_KEY'],
+      ['nested-duplicate',Buffer.from('{"a":{"x":1,"x":2}}'),'JAVA_EXPORT_DUPLICATE_KEY'],
+      ['depth',Buffer.from('['.repeat(25)+'0'+']'.repeat(25)),'JAVA_EXPORT_LIMIT'],
+      ['size',Buffer.alloc(2*1024*1024+1,32),'JAVA_EXPORT_LIMIT'],
+    ];
+    for(const [name,bytes,want] of cases){
+      const input=`${name}.json`,output=join(root,`${name}-result.json`),messages=[];
+      if(bytes!==null)writeFileSync(join(root,input),bytes);
+      const code=await runCli(['run','--root',root,'--manifest','freeze.json','--expect-manifest-sha256',pin,
+        '--dataset','dataset.json','--rubric','rubric.json','--mode','java-offline','--candidate-id','candidate-1',
+        '--source-sha','a'.repeat(40),'--case-id','synthetic-1','--java-export',input,'--out',output],
+        {out:v=>messages.push(v),err:v=>messages.push(v)});
+      assert.equal(code,2,name);assert.equal(JSON.parse(messages.at(-1)).ok,false,name);
+      assert.equal(JSON.parse(messages.at(-1)).error,want,name);
+      assert.ok(!messages.join('').includes('RAW_PRIVATE_MARKER'));
+      assert.throws(()=>readFileSync(output),{code:'ENOENT'});
+    }
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
+
+test('unexpected Java adapter failure stops evaluation with a fixed safe error',async()=>{
+  for(const raw of ['RAW_PRIVATE_MARKER','JAVA_EXPORT_RAW_PRIVATE_MARKER']){
+    await assert.rejects(runDataset(javaDataset(),rubric(),{...javaOptions(),adapter:()=>{throw new Error(raw);}}),
+      error=>error.message==='JAVA_EVALUATION_FAILED');
+  }
+});
+
+test('Java aggregation rejects evidence supported only by a failed verified read',async()=>{
+  const report=await runDataset(javaDataset(),rubric(),{...javaOptions(),javaExport:javaExport()});
+  for(const turn of [report.records[0].execution,...report.records[0].turns]){
+    turn.observations[0]={actionId:'action-1',status:'UNAVAILABLE',dataLevel:'NONE',reasonCode:'RETRIEVAL_UNAVAILABLE'};
+  }
+  assert.throws(()=>aggregate(report),/JAVA_EXPORT_UNPROVEN_RESULT/);
+});
+
+test('a failed read followed by a successful verified read can support complete claims',async()=>{
+  const doc=javaExport();doc.traces[0].actions=[
+    {actionId:'action-1',type:'READ_VERIFIED_RULE',step:1,modelAttempt:1},
+    {actionId:'action-2',type:'READ_VERIFIED_RULE',step:2,modelAttempt:2},
+    {actionId:'action-3',type:'FINISH_CHECK',step:3,modelAttempt:3}];
+  doc.traces[0].observations=[
+    {actionId:'action-1',status:'UNAVAILABLE',dataLevel:'NONE',reasonCode:'RETRIEVAL_UNAVAILABLE'},
+    {actionId:'action-2',status:'SUCCEEDED',dataLevel:'VERIFIED_FACT'},
+    {actionId:'action-3',status:'NOT_OBSERVED',dataLevel:null}];
+  const report=await runDataset(javaDataset(),rubric(),{...javaOptions(),javaExport:doc});
+  assert.equal(report.records[0].engineeringStatus,'PASS');
+  assert.equal(aggregate(report).byEngineeringStatus.PASS,1);
+});
+
 test('missing trajectory and false success state become insufficient evidence and FAIL',async()=>{
   const missing=await runDataset(dataset(),rubric(),{...identity,mode:'synthetic',adapter:c=>({...execution(c),observations:[]})});
   assert.equal(missing.records[0].engineeringStatus,'INSUFFICIENT_EVIDENCE');

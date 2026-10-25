@@ -1,0 +1,55 @@
+{
+  "recordType": "T08_S02_DATASET",
+  "schemaVersion": 1,
+  "datasetId": "t08-s02-java-offline-runner-development",
+  "revision": "1",
+  "split": "development",
+  "cases": [
+    {
+      "caseId": "java-offline-runner-pass",
+      "group": "G2",
+      "category": "A",
+      "synthetic": true,
+      "provenance": {
+        "kind": "EXPOSED_DEVELOPMENT",
+        "sourceCommit": "f3414eee62025ef026d5eccc059b3aa4cd644553",
+        "exposure": "DEVELOPMENT"
+      },
+      "input": {
+        "question": "选修课程类别有哪些？",
+        "supplements": []
+      },
+      "reference": {
+        "answerPoints": [],
+        "forbiddenConclusions": [],
+        "necessaryConditions": [],
+        "relevantEvidence": [],
+        "allowedGaps": [],
+        "verifiedBeforeRun": true,
+        "reviewStatus": "SAFETY_EXPECTATION_ONLY"
+      },
+      "expected": {
+        "taskStatus": [
+          "RESOLVED"
+        ],
+        "coverage": [
+          "COMPLETE"
+        ],
+        "requiredToolTypes": [
+          "SEARCH_REVIEWED_RULES",
+          "READ_VERIFIED_RULE",
+          "FINISH_CHECK"
+        ],
+        "evidenceRequired": true
+      },
+      "policyScope": {
+        "revision": "2025.9.2",
+        "audience": [
+          "SYNTHETIC_ONLY"
+        ],
+        "currentApplicability": "UNKNOWN"
+      },
+      "rubricRevision": "t08-s02-rubric-v1"
+    }
+  ]
+}

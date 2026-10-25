@@ -3,6 +3,7 @@ import {createHash} from 'node:crypto';
 import {lstatSync, readFileSync, realpathSync} from 'node:fs';
 import {isAbsolute, join, relative, resolve, sep} from 'node:path';
 import {performance} from 'node:perf_hooks';
+import {importJavaTraceExport,validateJavaExecution,javaExportErrorCode} from './java-trace-adapter.mjs';
 
 const STATUS = ['PASS','FAIL','NOT_EXECUTED','INSUFFICIENT_EVIDENCE','NOT_EVALUABLE'];
 const str = v => typeof v === 'string' && v.trim().length > 0;
@@ -99,9 +100,10 @@ function safeExecution(e) {
   const pick=(v,keys)=>Object.fromEntries(keys.filter(k=>v?.[k]!==undefined).map(k=>[k,redact(v[k])]));
   return {
     ...pick(e,['taskId','turnId','runId','taskStatus','runState']),
+    ...(obj(e.traceCoverage)?{traceCoverage:Object.fromEntries(['truncated','exceptionalFailure'].filter(k=>typeof e.traceCoverage[k]==='boolean').map(k=>[k,e.traceCoverage[k]]))}:{}),
     actions:Array.isArray(e.actions)?e.actions.map(a=>({...pick(a,['actionId','type','step']),...(Number.isSafeInteger(a?.modelAttempt)&&a.modelAttempt>=1&&a.modelAttempt<=10000?{modelAttempt:a.modelAttempt}:{})})):[],
     observations:Array.isArray(e.observations)?e.observations.map(o=>pick(o,['actionId','status','dataLevel','reasonCode'])):[],
-    result:obj(e.result)?{coverage:e.result.coverage,evidence:Array.isArray(e.result.evidence)?e.result.evidence.map(v=>pick(v,['id','evidenceId','sourceId','chunkId','revision'])):[],evidenceRelations:Array.isArray(e.result.evidenceRelations)?e.result.evidenceRelations.map(v=>pick(v,['targetId','evidenceId','role'])):[],items:Array.isArray(e.result.items)?e.result.items.map(v=>({claims:Array.isArray(v?.claims)?v.claims.map(c=>pick(c,['id','factId'])):[]})):[],issues:Array.isArray(e.result.issues)?e.result.issues.map(v=>pick(v,['kind','reasonCode'])):[]}:null,
+    result:obj(e.result)?{coverage:e.result.coverage,evidence:Array.isArray(e.result.evidence)?e.result.evidence.map(v=>pick(v,['id','evidenceId','revision'])):[],evidenceRelations:Array.isArray(e.result.evidenceRelations)?e.result.evidenceRelations.map(v=>pick(v,['targetId','evidenceId','role'])):[],items:Array.isArray(e.result.items)?e.result.items.map(v=>({claims:Array.isArray(v?.claims)?v.claims.map(c=>pick(c,['id','factId'])):[]})):[],issues:Array.isArray(e.result.issues)?e.result.issues.map(v=>pick(v,['kind','reasonCode'])):[]}:null,
   };
 }
 function safeFaultReceipt(receipt) {
@@ -126,6 +128,8 @@ function evaluate(c,turns,faultReceipt) {
   const ids=new Set();
   for(const [i,e] of turns.entries()) {
     if(!e||!['taskId','turnId','runId','taskStatus','runState'].every(k=>str(e[k]))){add(findings,'EXECUTION_IDENTITY',`turns[${i}]`);missing=true;continue;}
+    if(e.traceCoverage?.exceptionalFailure===true){add(findings,'TRACE_EXCEPTIONAL_FAILURE',`turns[${i}].traceCoverage`);missing=true;}
+    if(e.traceCoverage?.truncated===true){add(findings,'TRACE_TRUNCATED',`turns[${i}].traceCoverage`);missing=true;}
     const key=[e.taskId,e.turnId,e.runId].join('|');if(ids.has(key)){add(findings,'DUPLICATE_RUN',`turns[${i}]`);failed=true;}ids.add(key);
     if(i>0&&e.taskId!==turns[0]?.taskId){add(findings,'TASK_LINKAGE',`turns[${i}]`);failed=true;}
     if(e.taskStatus!==c.expected.taskStatus[i]||e.result?.coverage!==c.expected.coverage[i]||(e.runState==='FAILED'&&c.expected.taskStatus[i]!=='FAILED')){add(findings,'EXPECTED_STATE',`turns[${i}]`);failed=true;}
@@ -146,26 +150,38 @@ function evaluate(c,turns,faultReceipt) {
 export async function runDataset(d,r,options={}) {
   const f=[...validateDataset(d),...validateRubric(r)];
   if(f.length)throw Object.assign(new Error('INVALID_INPUT'),{findings:f});
-  if(!['plan','synthetic'].includes(options.mode))throw new Error('OFFLINE_MODES_ONLY');
+  if(!['plan','synthetic','java-offline'].includes(options.mode))throw new Error('OFFLINE_MODES_ONLY');
   if(!str(options.candidateId)||!str(options.sourceSha)||!hash(options.datasetSha256)||!hash(options.rubricSha256))throw new Error('IDENTITY_REQUIRED');
   if(options.group!==undefined&&!['G2','G3','G4'].includes(options.group))throw new Error('INVALID_GROUP');
   const selected=options.group?d.cases.filter(c=>c.group===options.group):d.cases;
   const groups=new Set(selected.map(c=>c.group));if(groups.size!==1)throw new Error('MIXED_OR_EMPTY_GROUP');
   if(options.mode==='synthetic'&&(d.split==='holdout'||d.cases.some(c=>c.synthetic!==true||c.provenance.kind!=='SYNTHETIC_FAULT')))throw new Error('SYNTHETIC_ONLY');
-  const report={recordType:'T08_S02_RESULT',schemaVersion:1,datasetId:d.datasetId,datasetRevision:d.revision,rubricRevision:r.revision,rubricStatus:r.status,group:[...groups][0],split:d.split,candidateId:options.candidateId,sourceSha:options.sourceSha,datasetSha256:options.datasetSha256,rubricSha256:options.rubricSha256,mode:options.mode==='plan'?'PLAN_ONLY':'SYNTHETIC_OFFLINE',providerCalls:0,scope:'OFFLINE_ENGINEERING_ONLY_NOT_MODEL_QUALITY',datasetTotalCaseIds:d.cases.map(c=>c.caseId),excludedCaseIds:d.cases.filter(c=>!selected.includes(c)).map(c=>c.caseId),expectedCaseIds:selected.map(c=>c.caseId),records:[]};
+  if(options.mode==='java-offline'&&(d.split!=='development'||d.cases.length!==1||selected.length!==1||selected[0].group!=='G2'||selected[0].caseId!==options.javaCaseId||selected[0].input.supplements.length))throw new Error('JAVA_EXPORT_REQUIRED_SINGLE_CASE');
+  if(options.mode==='java-offline'&&!/^[a-f0-9]{40}(?:[a-f0-9]{24})?$/.test(options.sourceSha))throw new Error('JAVA_EXPORT_IDENTITY');
+  const report={recordType:'T08_S02_RESULT',schemaVersion:1,datasetId:d.datasetId,datasetRevision:d.revision,rubricRevision:r.revision,rubricStatus:r.status,group:[...groups][0],split:d.split,candidateId:options.candidateId,sourceSha:options.sourceSha,datasetSha256:options.datasetSha256,rubricSha256:options.rubricSha256,mode:options.mode==='plan'?'PLAN_ONLY':options.mode==='synthetic'?'SYNTHETIC_OFFLINE':'UNVERIFIED_IMPORTED_JAVA_TRACE',sourceLayer:options.mode==='java-offline'?'UNVERIFIED_IMPORTED_JAVA_TRACE':undefined,...(options.mode==='java-offline'?{javaExecutionVerified:false}:{}),providerCalls:0,scope:'OFFLINE_ENGINEERING_ONLY_NOT_MODEL_QUALITY',datasetTotalCaseIds:d.cases.map(c=>c.caseId),excludedCaseIds:d.cases.filter(c=>!selected.includes(c)).map(c=>c.caseId),expectedCaseIds:selected.map(c=>c.caseId),records:[]};
   for(const c of selected) {
     const row={caseId:c.caseId,group:c.group,split:d.split,candidateId:report.candidateId,sourceSha:report.sourceSha,datasetSha256:report.datasetSha256,rubricSha256:report.rubricSha256,synthetic:c.synthetic,engineeringStatus:'NOT_EXECUTED',qualityStatus:'NOT_EVALUABLE',execution:null,turns:[],faultInjection:c.faultInjection===undefined?null:{type:c.faultInjection?.type,point:c.faultInjection?.point},faultReceipt:null,metrics:{elapsedMillis:null,modelAttemptCount:0,providerResponseReceived:false,usage:{promptTokens:null,completionTokens:null,totalTokens:null},costCny:null,unknown:true},error:null,findings:[]};
-    if(options.mode==='synthetic'&&typeof options.adapter==='function') {
+    if(options.mode==='java-offline'||(options.mode==='synthetic'&&typeof options.adapter==='function')) {
       const start=performance.now();
       try {
         // 参考答案和expected不传给adapter，防止通过抄写评分条件伪造执行成绩。
-        const raw=await options.adapter(structuredClone({caseId:c.caseId,group:c.group,input:c.input,synthetic:true,...(c.faultInjection===undefined?{}:{faultInjection:c.faultInjection})}));
+        const raw=options.mode==='java-offline'&&options.javaExport!==undefined?options.javaExport:await options.adapter(structuredClone({caseId:c.caseId,group:c.group,input:c.input,synthetic:options.mode==='synthetic',... (c.faultInjection===undefined?{}:{faultInjection:c.faultInjection})}));
         const rawTurns=Array.isArray(raw?.turns)?raw.turns:[raw];
         if([raw,...rawTurns].some(e=>e?.mode==='ONLINE'||e?.providerCalls>0||e?.providerResponseReceived===true||e?.modelAttemptCount>0||e?.metrics?.providerResponseReceived===true||e?.metrics?.modelAttemptCount>0))throw new Error('ONLINE_ADAPTER_FORBIDDEN');
-        row.turns=rawTurns.map(safeExecution);row.execution=row.turns.at(-1)??null;
+        // Java 模式的 CLI、JSON 与直接 adapter 都经过同一入口，布尔自报不能绕过校验。
+        row.turns=options.mode==='java-offline'?importJavaTraceExport(raw,{candidateId:options.candidateId,sourceSha:options.sourceSha,caseId:c.caseId,datasetSha256:options.datasetSha256}):rawTurns.map(safeExecution);row.execution=row.turns.at(-1)??null;
         row.faultReceipt=safeFaultReceipt(raw?.faultReceipt);
         Object.assign(row,evaluate(c,row.turns,row.faultReceipt));
-      } catch {row.engineeringStatus=c.faultInjection===undefined?'FAIL':'INSUFFICIENT_EVIDENCE';if(c.faultInjection!==undefined)add(row.findings,'FAULT_INJECTION_UNPROVEN','faultReceipt');row.error={code:'ADAPTER_EXCEPTION',message:'Adapter failed; raw error omitted to avoid credential disclosure'};}
+      } catch(error) {
+        const java=options.mode==='java-offline';
+        const rejected=javaExportErrorCode(error);
+        // 未知执行/评测错误必须让本批非零退出，不能伪造成可继续计分的普通工具失败。
+        if(java&&!rejected&&error?.message!=='ONLINE_ADAPTER_FORBIDDEN')throw new Error('JAVA_EVALUATION_FAILED');
+        row.turns=[];row.execution=null;add(row.findings,java?'JAVA_TRACE_REJECTED':'ADAPTER_EXCEPTION','execution');
+        row.engineeringStatus=c.faultInjection===undefined?'FAIL':'INSUFFICIENT_EVIDENCE';
+        if(c.faultInjection!==undefined)add(row.findings,'FAULT_INJECTION_UNPROVEN','faultReceipt');
+        row.error={code:java?(rejected?error.message:'JAVA_EXPORT_VERSION_OR_SOURCE'):'ADAPTER_EXCEPTION',message:'Execution rejected; raw error omitted'};
+      }
       finally {row.metrics.elapsedMillis=Math.max(0,performance.now()-start);}
     }
     report.records.push(row);
@@ -176,7 +192,9 @@ export async function runDataset(d,r,options={}) {
 
 /** 单报告单身份；不允许把异组、异冻结输入或遗漏的失败记录合并为通过分母。 */
 export function aggregate(report) {
-  if(report.recordType!=='T08_S02_RESULT'||report.schemaVersion!==1||!['PLAN_ONLY','SYNTHETIC_OFFLINE'].includes(report.mode)||report.providerCalls!==0||!['G2','G3','G4'].includes(report.group)||!['development','regression','holdout'].includes(report.split)||!str(report.candidateId)||!str(report.sourceSha)||!hash(report.datasetSha256)||!hash(report.rubricSha256))throw new Error('RESULT_HEADER');
+  if(report.recordType!=='T08_S02_RESULT'||report.schemaVersion!==1||!['PLAN_ONLY','SYNTHETIC_OFFLINE','UNVERIFIED_IMPORTED_JAVA_TRACE'].includes(report.mode)||report.providerCalls!==0||!['G2','G3','G4'].includes(report.group)||!['development','regression','holdout'].includes(report.split)||!str(report.candidateId)||!str(report.sourceSha)||!hash(report.datasetSha256)||!hash(report.rubricSha256))throw new Error('RESULT_HEADER');
+  if((report.mode==='UNVERIFIED_IMPORTED_JAVA_TRACE')!==(report.sourceLayer==='UNVERIFIED_IMPORTED_JAVA_TRACE')||report.javaExecutionVerified===true)throw new Error('JAVA_SOURCE_LAYER');
+  if(report.mode==='UNVERIFIED_IMPORTED_JAVA_TRACE'&&(report.javaExecutionVerified!==false||report.group!=='G2'||report.split!=='development'||report.rubricStatus!=='PROPOSED_NOT_APPROVED'||!Array.isArray(report.records)||report.records.length!==1||!/^[a-f0-9]{40}(?:[a-f0-9]{24})?$/.test(report.sourceSha)))throw new Error('JAVA_SOURCE_LAYER');
   const expected=report.expectedCaseIds;
   if(!Array.isArray(expected)||!expected.length||new Set(expected).size!==expected.length||!Array.isArray(report.records)||report.records.length!==expected.length)throw new Error('CASE_COVERAGE');
   const all=report.datasetTotalCaseIds,excluded=report.excludedCaseIds;
@@ -189,9 +207,15 @@ export function aggregate(report) {
     if(row.metrics?.costCny!==null||!['promptTokens','completionTokens','totalTokens'].every(k=>row.metrics?.usage?.[k]===null)||row.metrics?.modelAttemptCount!==0||row.metrics?.providerResponseReceived!==false)throw new Error('OFFLINE_UNKNOWN_METRICS');
     if(report.mode==='PLAN_ONLY'&&row.engineeringStatus!=='NOT_EXECUTED')throw new Error('PLAN_NOT_EXECUTED');
     if(row.engineeringStatus==='PASS'&&(!row.execution||!Array.isArray(row.turns)||!row.turns.length||row.turns.some(e=>!e||!str(e.taskId)||!str(e.turnId)||!str(e.runId)||!e.actions?.length||!e.observations?.length||!e.result)))throw new Error('PASS_WITHOUT_EXECUTION');
+    if(report.mode==='UNVERIFIED_IMPORTED_JAVA_TRACE'){
+      if(!Array.isArray(row.turns)||row.turns.length>1)throw new Error('JAVA_TRACE_COVERAGE');
+      row.turns.forEach(validateJavaExecution);
+      if(JSON.stringify(row.execution)!==JSON.stringify(row.turns.at(-1)??null))throw new Error('JAVA_TRACE_COVERAGE');
+    }
+    if(report.mode==='UNVERIFIED_IMPORTED_JAVA_TRACE'&&row.engineeringStatus==='PASS'&&row.turns.some(e=>!e.traceCoverage||e.traceCoverage.truncated!==false||e.traceCoverage.exceptionalFailure!==false))throw new Error('JAVA_TRACE_COVERAGE');
     if(row.engineeringStatus==='PASS'&&row.faultInjection&&!faultSatisfied(row.faultInjection,row.faultReceipt,row.turns))throw new Error('PASS_WITHOUT_FAULT_EVIDENCE');
     if(row.engineeringStatus==='NOT_EXECUTED'&&(row.execution!==null||row.turns?.length||row.metrics.elapsedMillis!==null))throw new Error('NOT_EXECUTED_TRACE');
     byEngineeringStatus[row.engineeringStatus]++;
   }
-  return {total:report.records.length,datasetTotal:all.length,excludedCount:excluded.length,byEngineeringStatus,modelQualityEvaluable:false,qualityStatus:'NOT_EVALUABLE'};
+  return {total:report.records.length,datasetTotal:all.length,excludedCount:excluded.length,byEngineeringStatus,modelQualityEvaluable:false,qualityStatus:'NOT_EVALUABLE',verifiedJavaCandidate:false};
 }

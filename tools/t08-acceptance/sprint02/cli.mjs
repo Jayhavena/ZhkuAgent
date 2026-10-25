@@ -4,11 +4,13 @@ import {resolve, relative} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {validateDataset,validateRubric,createManifest,verifyManifest,runDataset,aggregate,sha256} from './engine.mjs';
 import {syntheticAdapter} from './synthetic-adapter.mjs';
+import {parseJavaExportJson} from './java-export-json.mjs';
+import {javaExportErrorCode} from './java-trace-adapter.mjs';
 
 const USAGE='Commands: validate | create-manifest | verify | run | aggregate. See sprint02/README.md. Offline only.';
 function parse(argv) {
   const [command,...args]=argv;const options={command,files:[]};
-  const allowed=new Set(['root','out','dataset','rubric','manifest','expect-manifest-sha256','candidate-id','source-sha','mode','result','group']);
+  const allowed=new Set(['root','out','dataset','rubric','manifest','expect-manifest-sha256','candidate-id','source-sha','mode','result','group','java-export','case-id']);
   for(let i=0;i<args.length;i++) {
     if(args[i].startsWith('--')) {
       const k=args[i].slice(2);if(!allowed.has(k)||options[k]!==undefined||!args[i+1]||args[i+1].startsWith('--'))throw new Error('INVALID_ARGUMENT');options[k]=args[++i];
@@ -57,9 +59,17 @@ export async function runCli(argv,io={out:v=>process.stdout.write(v+'\n'),err:v=
         if(sha256(bytes)!==entry(name).sha256||bytes.length!==entry(name).bytes)throw new Error('INPUT_CHANGED_AFTER_VERIFY');
         return JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/,''));
       };
+      let javaExport;
+      if(o.mode==='java-offline') {
+        requireOptions(o,['java-export']);
+        requireOptions(o,['case-id']);
+        try {javaExport=parseJavaExportJson(readFileSync(checkedFile(o.root,o['java-export'])));}
+        catch(error){if(error.code==='ENOENT')throw new Error('JAVA_EXPORT_MISSING');throw error;}
+      } else if(o['java-export']) throw new Error('JAVA_EXPORT_MODE_MISMATCH');
       const report=await runDataset(frozenJSON(o.dataset),frozenJSON(o.rubric),{
         mode:o.mode,group:o.group,candidateId:o['candidate-id'],sourceSha:o['source-sha'],datasetSha256:entry(o.dataset).sha256,rubricSha256:entry(o.rubric).sha256,
         adapter:o.mode==='synthetic'?syntheticAdapter:undefined,
+        ...(o.mode==='java-offline'?{javaCaseId:o['case-id'],javaExport}:{}),
       });
       report.manifestSha256=o['expect-manifest-sha256'];
       // 即使case失败也先保存全部记录，再以非零退出码报告；不可丢弃失败后只存绿例。
@@ -72,7 +82,10 @@ export async function runCli(argv,io={out:v=>process.stdout.write(v+'\n'),err:v=
     io.err(USAGE);return 2;
   } catch(error) {
     // 文件路径、JSON解析片段与原始异常可能携带正文或密钥，不直接打印message。
-    io.err(JSON.stringify({ok:false,error:'CLI_INPUT_OR_OUTPUT_ERROR',findings:Array.isArray(error.findings)?error.findings:[]}));return 2;
+    const safeCodes=new Set(['MISSING_ARGUMENT','JAVA_EXPORT_MODE_MISMATCH','JAVA_EXPORT_REQUIRED_SINGLE_CASE','OFFLINE_MODES_ONLY','JAVA_EXPORT_IDENTITY','JAVA_EXPORT_VERSION_OR_SOURCE','JAVA_EXPORT_EMPTY_TRACES','JAVA_EXPORT_COVERAGE','JAVA_EXPORT_LINKAGE','JAVA_EXPORT_STATUS','JAVA_EXPORT_MISSING_TRACE','JAVA_EXPORT_STEP','JAVA_EXPORT_NOT_OBSERVED','JAVA_EXPORT_OBSERVATION_LINK','JAVA_TRACE_COVERAGE']);
+    const safeMessage=javaExportErrorCode(error)||error?.message==='JAVA_EVALUATION_FAILED';
+    const safeCode=safeMessage||([...safeCodes].some(code=>error?.message===code))?error.message:'CLI_INPUT_OR_OUTPUT_ERROR';
+    io.err(JSON.stringify({ok:false,error:safeCode,findings:Array.isArray(error.findings)?error.findings:[]}));return 2;
   }
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)process.exitCode=await runCli(process.argv.slice(2));
