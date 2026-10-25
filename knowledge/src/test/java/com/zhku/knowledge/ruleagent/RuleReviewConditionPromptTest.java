@@ -38,7 +38,12 @@ class RuleReviewConditionPromptTest {
  @Test void actualPayloadPreservesInputFingerprintDuplicateConditionsAndRecordShapes()throws Exception {
   var envelope=json.readTree(payload());var data=user(envelope);assertThat(data.path("input")).isEqualTo(recordedInput);assertThat(data.path("input").path("inputFingerprint").asText()).isEqualTo(safe.inputFingerprint());
   var conditions=data.path("input").path("conditions");assertThat(conditions.size()).isEqualTo(2);for(var c:conditions)assertThat(c.path("conditionId").asText()).isEqualTo("courseType");
-  assertThat(data.path("reviewContract").path("records")).isEqualTo(recordedContract.path("records"));assertThat(envelope.path("response_format").path("type").asText()).isEqualTo("json_object");assertThat(envelope.path("max_completion_tokens").asInt()).isEqualTo(1024);
+  // DemandSpan自2026-10-25改为excerpt回显定位；其余record形状仍须与T05录制契约逐字段一致。
+  var records=data.path("reviewContract").path("records");var recorded=recordedContract.path("records");
+  assertThat(records.path("DemandSpan").toString()).isEqualTo("[\"subquestionId\",\"excerpt\"]");
+  for(var name:java.util.List.of("SemanticAssessment","Requirement","SemanticBinding","UnresolvedDemand"))assertThat(records.path(name)).isEqualTo(recorded.path(name));
+  assertThat(data.path("reviewContract").path("spanCoordinates").asText()).contains("excerpt","首次出现");
+  assertThat(envelope.path("response_format").path("type").asText()).isEqualTo("json_object");assertThat(envelope.path("max_completion_tokens").asInt()).isEqualTo(1024);
  }
  @Test void actualPayloadFitsExistingBudgetWithoutAnyProviderAllowance()throws Exception {
   String value=payload();int bytes=value.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;assertThat(bytes).isLessThanOrEqualTo(DEFAULT_BUDGET.maxRequestBytes());

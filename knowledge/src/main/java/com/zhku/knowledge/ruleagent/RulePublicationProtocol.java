@@ -1,5 +1,6 @@
 package com.zhku.knowledge.ruleagent;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.*;
@@ -20,12 +21,14 @@ public final class RulePublicationProtocol {
         root.put("maxBindings",MAX_BINDINGS);
         root.put("maxUnresolvedDemands",MAX_REQUIREMENTS);
         root.put("additionalFieldsAllowed",false);
-        root.put("spanCoordinates","原questions.text的UTF-16字符坐标，左闭右开；不得从工具原文截取需求");
+        root.put("spanCoordinates","DemandSpan只填subquestionId与excerpt：excerpt必须逐字复制该问题原text中一段连续原文（不改写、不翻译、不省略号、不从工具原文截取）；宿主取excerpt在原text中的首次出现为需求跨度（UTF-16左闭右开），模型不输出也不数坐标。");
         root.put("conditionalBranches","已识别意图但缺少一个审核条件时，按conditions的每个可行值分别声明IDENTIFIED需求，可共用原始跨度；具体subject/CORE绑定须匹配能力。分支不是用户已声明条件。真正未知保留unresolvedDemands，不截断分支以满足容量。");
         root.put("conditionIdForm",CONDITION_ID_FORM);
         var records=root.putObject("records");
         for(Class<?> type:List.of(SemanticAssessment.class,Requirement.class,DemandSpan.class,SemanticBinding.class,UnresolvedDemand.class)) {
             var fields=records.putArray(type.getSimpleName());
+            // 新响应用excerpt回显定位；坐标形态仅为兼容冻结的T05历史证据，不再向模型声明。
+            if(type==DemandSpan.class){fields.add("subquestionId");fields.add("excerpt");continue;}
             for(var field:type.getRecordComponents())fields.add(field.getName());
         }
         var enums=root.putObject("enums");
@@ -37,13 +40,23 @@ public final class RulePublicationProtocol {
     }
     public static SemanticAssessment decode(String content,SemanticInput input) {
         SemanticAssessment result;
+        var questions=new HashMap<String,String>();
+        input.questions().forEach(q->questions.put(q.id(),q.text()));
+        JsonNode tree;
         try {
-            result=RuleAgentJson.bindReview(RuleAgentJson.readTreeStrict(content));
+            tree=RuleAgentJson.readTreeStrict(content);
         } catch(IllegalArgumentException invalid) {
             throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.REVIEW_JSON,RuleAgentProtocol.Code.REVIEW_JSON_INVALID);
         }
-        var questions=new HashMap<String,String>();
-        input.questions().forEach(q->questions.put(q.id(),q.text()));
+        // 模型不再数UTF-16坐标：回显原文excerpt，由宿主在原问题文本中定位，消除计数漂移导致的越界拒绝。
+        // 解析在bind的IllegalArgumentException捕获之外，保留独立拒绝分支码。
+        for(var group:List.of(tree.path("requirements"),tree.path("unresolvedDemands")))
+            if(group.isArray())for(var item:group)if(item.isObject())resolveExcerptSpan((com.fasterxml.jackson.databind.node.ObjectNode)item,questions);
+        try {
+            result=RuleAgentJson.bindReview(tree);
+        } catch(IllegalArgumentException invalid) {
+            throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.REVIEW_JSON,RuleAgentProtocol.Code.REVIEW_JSON_INVALID);
+        }
         var requirements=new HashMap<String,Requirement>();
         for(var requirement:result.requirements()) {
             checkSpan(requirement.span(),questions);
@@ -67,6 +80,25 @@ public final class RulePublicationProtocol {
     private static void checkSpan(DemandSpan span,Map<String,String> questions) {
         check(questions.containsKey(span.subquestionId()),RuleAgentProtocol.Code.REVIEW_QUESTION_UNKNOWN);
         check(span.endExclusive()<=questions.get(span.subquestionId()).length(),RuleAgentProtocol.Code.REVIEW_SPAN_OUT_OF_RANGE);
+    }
+    /** excerpt形态：宿主以首次出现定位；改写、越界或未命中原文都视为无法绑定需求跨度。 */
+    private static void resolveExcerptSpan(com.fasterxml.jackson.databind.node.ObjectNode item,Map<String,String> questions) {
+        var span=item.path("span");
+        if(!span.isObject()||!span.path("excerpt").isTextual()||span.path("excerpt").asText().isEmpty())return;
+        String subquestionId=span.path("subquestionId").isTextual()?span.path("subquestionId").asText():null;
+        if(subquestionId==null)return;
+        if(!questions.containsKey(subquestionId)) {
+            // 未知问题保持既有诊断分支：改写为可绑定的占位坐标，由checkSpan给出REVIEW_QUESTION_UNKNOWN。
+            var placeholder=JSON.createObjectNode();placeholder.put("subquestionId",subquestionId);placeholder.put("startInclusive",0);placeholder.put("endExclusive",1);
+            item.set("span",placeholder);return;
+        }
+        int start=questions.get(subquestionId).indexOf(span.path("excerpt").asText());
+        if(start<0)throw new RuleAgentProtocol.Rejected(RuleAgentProtocol.Stage.REVIEW_BINDING,RuleAgentProtocol.Code.REVIEW_SPAN_OUT_OF_RANGE);
+        var resolved=JSON.createObjectNode();
+        resolved.put("subquestionId",subquestionId);
+        resolved.put("startInclusive",start);
+        resolved.put("endExclusive",start+span.path("excerpt").asText().length());
+        item.set("span",resolved);
     }
     // 同一拒绝边界保留独立分支码；不能靠响应SHA猜测是哪项关联失败。
     private static void check(boolean valid,RuleAgentProtocol.Code code) {
