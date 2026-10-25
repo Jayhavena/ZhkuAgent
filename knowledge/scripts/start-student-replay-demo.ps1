@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 # 一条命令的学生规则查证回放演示：受控回放后端（独立窗口）+ 回放前端 + 浏览器。
 # 真实模型链路仍走 start-rule-agent-http-check 的审包流程；本入口只用于零模型成本的日常演示。
 param(
