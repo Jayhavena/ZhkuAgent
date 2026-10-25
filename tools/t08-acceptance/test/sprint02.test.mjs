@@ -208,7 +208,7 @@ test('CLI saves rejected Java imports on fresh outputs and never verifies fake J
       writeFileSync(join(root,'java-export.json'),JSON.stringify(doc));
       const out=join(root,`result-${index++}.json`);
       const code=await runCli(['run','--root',root,'--manifest','freeze.json','--expect-manifest-sha256',pin,'--dataset','dataset.json','--rubric','rubric.json',
-        '--mode','java-offline','--candidate-id','candidate-1','--source-sha','a'.repeat(40),'--case-id','synthetic-1','--java-export','java-export.json','--out',out],io);
+        '--mode','java-offline','--receipt-policy','trace-only','--candidate-id','candidate-1','--source-sha','a'.repeat(40),'--case-id','synthetic-1','--java-export','java-export.json','--out',out],io);
       assert.equal(code,name==='valid self-attestation'?0:1,name);
       const report=JSON.parse(readFileSync(out));assert.equal(report.javaExecutionVerified,false);
       assert.equal(report.mode,'UNVERIFIED_IMPORTED_JAVA_TRACE');
@@ -242,7 +242,7 @@ test('Java export byte boundary distinguishes missing, malformed and unsafe JSON
       const input=`${name}.json`,output=join(root,`${name}-result.json`),messages=[];
       if(bytes!==null)writeFileSync(join(root,input),bytes);
       const code=await runCli(['run','--root',root,'--manifest','freeze.json','--expect-manifest-sha256',pin,
-        '--dataset','dataset.json','--rubric','rubric.json','--mode','java-offline','--candidate-id','candidate-1',
+        '--dataset','dataset.json','--rubric','rubric.json','--mode','java-offline','--receipt-policy','trace-only','--candidate-id','candidate-1',
         '--source-sha','a'.repeat(40),'--case-id','synthetic-1','--java-export',input,'--out',output],
         {out:v=>messages.push(v),err:v=>messages.push(v)});
       assert.equal(code,2,name);assert.equal(JSON.parse(messages.at(-1)).ok,false,name);

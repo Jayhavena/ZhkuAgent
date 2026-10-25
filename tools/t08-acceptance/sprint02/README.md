@@ -4,6 +4,10 @@
 
 ## 命令
 
+P2-C默认的 `java-offline` 已要求DSH普通离线回执，输出 `T08_RECEIPTED_RESULT`，其中的traceResult仍为既有评测结果。必须提供 `--receipts`、`--challenge`、`--surefire-report`，并将Java测试源码纳入冻结清单；`aggregate`须提供同一组证据重新校验。缺失/重复/错关联回执不会自动降级为纯轨迹通过。完整参数和2→3计数语义见 [回执契约](../../../../docs/preparation/t08/sprint02/execution-receipt-v1.md)。结果始终UNVERIFIED/SELF_REPORTED。
+
+以下历史单纯导入示例需额外指定 `--receipt-policy trace-only`，结果receiptStatus为NOT_REQUESTED，不能作为回执闭环验收。
+
 以下在项目根目录执行，`node` 需已安装。Windows 示例可在普通 PowerShell 5.1 中使用，路径参数可加引号；不依赖 `pwsh`、`rg` 或 npm。退出码：0=命令成功（plan 仍是未执行）；1=校验不通过或合成案例失败/缺证；2=参数、输入或输出错误。**CLI 退出 0 不等于模型质量通过。**
 
 ```powershell

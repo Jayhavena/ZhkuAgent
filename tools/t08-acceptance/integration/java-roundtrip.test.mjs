@@ -45,7 +45,7 @@ test('actual Java export traverses the existing Node CLI with fail-closed negati
   assert.equal(created.status,0);
   const pin=sha(readFileSync(manifest));
   const common=['--root',root,'--manifest',relative(root,manifest).replaceAll('\\','/'),'--expect-manifest-sha256',pin];
-  const run=(file,destination,extra=[])=>call(['run',...common,'--dataset',dataset,'--rubric',rubric,'--mode','java-offline',
+  const run=(file,destination,extra=[])=>call(['run',...common,'--dataset',dataset,'--rubric',rubric,'--mode','java-offline','--receipt-policy','trace-only',
     '--candidate-id',process.env.T08_JAVA_EXPECTED_CANDIDATE,'--source-sha',process.env.T08_JAVA_EXPECTED_SOURCE,
     '--case-id','java-offline-runner-pass','--java-export',relative(root,file).replaceAll('\\','/'),'--out',destination,...extra]);
   const result=resolve(out,'valid-result.json');
@@ -102,7 +102,7 @@ test('actual Java export traverses the existing Node CLI with fail-closed negati
   await t.test('wrong manifest pin cannot produce a successful result',()=>{
     const destination=resolve(out,'wrong-pin-result.json');
     const args=['run',...common];args[args.indexOf('--expect-manifest-sha256')+1]='0'.repeat(64);
-    const child=call([...args,'--dataset',dataset,'--rubric',rubric,'--mode','java-offline','--candidate-id',doc.candidateId,
+    const child=call([...args,'--dataset',dataset,'--rubric',rubric,'--mode','java-offline','--receipt-policy','trace-only','--candidate-id',doc.candidateId,
       '--source-sha',doc.sourceSha,'--case-id',doc.caseId,'--java-export',relative(root,input).replaceAll('\\','/'),'--out',destination]);
     assert.equal(child.status,1);assert.equal(JSON.parse(child.stdout).ok,false);assert.ok(!existsSync(destination));
   });

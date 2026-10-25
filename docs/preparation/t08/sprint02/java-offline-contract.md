@@ -30,4 +30,4 @@ header绑定candidateId、sourceSha、caseId、原始dataset字节SHA-256；sour
 
 结果含claims/evidence时，必须至少存在一次成功的verified-read观察；先失败后成功的合法恢复仍可通过，只有失败观察不能支撑完整结果。错误码采用确切白名单，任意同前缀异常不成为可输出的安全码。
 
-TaskStore、RunTrace、Dispatcher和P1隐私生产实现保持不变。导出测试类新增junction反例后共有3项JUnit测试；后续DSH控制器的固定2项测试计数必须另行版本化适配，本批不修改其协议。既有6个数据库初始化错误仍标记未验证。DSH摘要回执、本地Ed25519签名回执是其他协议，本桥接不建立可信执行回执；签名控制器仍受ISOLATION_REQUIRED阻塞。
+TaskStore、RunTrace、Dispatcher和P1隐私生产实现保持不变。导出测试类新增junction反例后共有3项JUnit测试；P2-C已以DSH控制器v1b明确接入3项语义，v1a的2项仅供旧格式检查，见execution-receipt-v1.md。CLI默认要求普通离线回执，历史纯导入须显式--receipt-policy trace-only，不能冒充闭环。既有6个数据库初始化错误仍标记未验证。本桥接不建立可信执行链；签名控制器仍受ISOLATION_REQUIRED阻塞。
