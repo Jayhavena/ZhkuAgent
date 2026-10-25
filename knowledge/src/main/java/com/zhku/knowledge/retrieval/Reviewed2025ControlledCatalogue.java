@@ -51,9 +51,28 @@ public class Reviewed2025ControlledCatalogue implements AutoCloseable {
         Path semanticSnapshot=root.resolve("docs/evidence/rule-check-refactor/2026-10-09/b02-semantic-review-01/presented-semantic-draft.json");
         require(semanticHuman.path("authority").asText().equals("DIRECT_USER_MESSAGE")&&sha(readBytes(semanticSnapshot)).equals(semanticHuman.path("reviewedDraftSha256").asText()),"缺少可追溯语义确认");
         reviewedSemantics=read(semanticSnapshot);
-        Path pdf=root.resolveSibling("SuperAgent-zhkuagent-mvp").resolve("data/raw/2025版学生手册2025.9.2.pdf");
+        Path pdf=handbookPdf(root);
         require(sha(readBytes(pdf)).equals(bundle.path("sourceFileSha256").asText()),"指定PDF原件变化");
         validate();
+    }
+
+    /**
+     * 2026-10-24目录迁移把数据根从"仓库同级目录"移入仓库内 worktrees/projects。
+     * 解析顺序：显式属性 zhku.t06.handbookPdf（绝对路径，供其他机器布局）→
+     * 旧同级布局 SuperAgent-zhkuagent-mvp → 沿祖先回溯迁移布局
+     * worktrees/projects/SuperAgent-zhkuagent-mvp。内容指纹仍由构造器校验，定位方式不放宽任何验证。
+     */
+    static Path handbookPdf(Path root) {
+        String explicit=System.getProperty("zhku.t06.handbookPdf");
+        if(explicit!=null&&!explicit.isBlank())return Path.of(explicit).toAbsolutePath().normalize();
+        String file="data/raw/2025版学生手册2025.9.2.pdf";
+        Path legacy=root.resolveSibling("SuperAgent-zhkuagent-mvp").resolve(file);
+        if(Files.isRegularFile(legacy))return legacy;
+        for(Path base=root;base!=null;base=base.getParent()){
+            Path migrated=base.resolve("worktrees").resolve("projects").resolve("SuperAgent-zhkuagent-mvp").resolve(file);
+            if(Files.isRegularFile(migrated))return migrated;
+        }
+        return legacy;
     }
 
     void validate() {

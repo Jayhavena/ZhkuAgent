@@ -75,7 +75,10 @@ $saved=@{};foreach($name in $names){$saved[$name]=[Environment]::GetEnvironmentV
 $container='zhku-rulecheck-start-'+[guid]::NewGuid().ToString('N').Substring(0,12)
 $owned=$false;$hostProcess=$null;$resources=$true;$passed=$false;$failure=$null;$hostRuns=0
 $dbSecret=[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(18))
-$password=if($Smoke){'Synthetic-'+[guid]::NewGuid().ToString()}else{
+$password=if($Smoke){'Synthetic-'+[guid]::NewGuid().ToString()}elseif($env:ZHKU_RULECHECK_STUDENT_PASSWORD){
+    # 与模拟演示启动器同款约定：进程环境提供16～64位密码，绝不作为命令行参数；交互提示仍是默认路径。
+    $env:ZHKU_RULECHECK_STUDENT_PASSWORD
+}else{
     $secure=Read-Host '为本次临时学生账号设置密码（16～64位；隐藏输入）' -AsSecureString
     $buffer=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
     try{[Runtime.InteropServices.Marshal]::PtrToStringBSTR($buffer)}finally{[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($buffer);$secure.Dispose()}
