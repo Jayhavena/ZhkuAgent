@@ -1,51 +1,82 @@
-# 真实来源检索 v1：资格与运行路径核查
+# 真实来源检索 v1：资格、词法、向量与 RRF 诊断
 
-状态：**部分完成（DIRECT_PATH_PROBES_COMPLETE / HYBRID_INDEX_BLOCKED）**。本报告不把专用关键词查询结果冒充为混合 RAG Recall@K / MRR。
+状态：**REAL_SOURCE_RETRIEVAL_DIAGNOSTIC_COMPLETE / FORMAL_METRICS_BLOCKED**。真实向量与混合检索已运行；由于 v1 金标准的来源资格、条款定位和多证据绑定尚不完整，不汇总正式 Recall@K / MRR。
 
-## 1. 执行方式与安全边界
+## 1. 冻结数据集
 
-- 数据来源：原有 ZhkuAgent PostgreSQL 持久化卷 `zhkuagent_zhkuagent_postgres_data` 的隔离副本。
-- 原始数据库容器 `zhkuagent-postgres` 保持停止；启动失败的原因是其 Docker bind mount 指向已不存在的旧路径 `D:\\alldesk\\Projects\\ZhkuAgent\\knowledge\\infra\\init\\001-enable-pgvector.sql`。
-- 没有修复或重建原容器。将原卷只读挂载并复制到临时卷；文件数量 1,422 对 1,422，PostgreSQL `global/pg_control` SHA-256 相同。目录统计字节数相差 4,096，因此不声称整卷逐字节相同。
-- 临时副本使用相同 PostgreSQL 镜像启动在回环端口 55441。查询连接强制 `readOnly=true`、关闭自动提交并执行 `SET TRANSACTION READ ONLY`；没有迁移、发布、索引写入或应用数据写入。
-- 没有调用 Chat/Embedding 供应商；模型调用 0，应用数据写入 0。
-- 临时探针调用项目现有 `ReviewedKnowledgePublisher.searchPublished/searchStudentVisiblePublished`、`JdbcCreditLimitEvidenceFinder` 和 `JdbcElectiveRetakeEvidenceFinder`。检索词是从金标准证据提取的关键词短语，不是将自然语言问题交给已建索引的排序检索器。
-- Maven 结果：`RealSourceRetrievalProbeTest` 1 个测试通过，0 failures / 0 errors。它验证的是下面的直接检索路径与资格边界，不代表 RAG 评测通过。
+- 数据集：`docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v1/cases.json`
+- SHA-256：`bc9e5a8088540577b0deb6c8aaab984497144028e91bf72cb9b99dcc402ec223`
+- 5 条开发集用例，覆盖第 4、5、8、10、11、18 条；未修改 v1 问题或金标准。
+- 来源快照：《2025版学生手册2025.9.2.pdf》，SHA-256 为 `dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653`。当前学年适用性仍为 UNKNOWN，官方线上附件字节匹配尚未验证。
+- 用例为项目负责人自审、非盲测、非留出集；结果用于开发诊断，不代表生产质量估计。
 
-## 2. 被测库前置条件
+## 2. 隔离环境与安全边界
 
-只读快照中的 `knowledge_source` 与 `knowledge_chunk` 有真实策展资料，但：
+- 原数据库容器 `zhkuagent-postgres` 保持停止，原卷 `zhkuagent_zhkuagent_postgres_data` 未修改。
+- 原容器启动问题来自旧 bind mount：`D:\\alldesk\\Projects\\ZhkuAgent\\knowledge\\infra\\init\\001-enable-pgvector.sql` 当前是目录而非普通文件；实际 SQL 文件位于 mainline 工作树。没有修复或重建原容器。
+- 原卷只读复制到隔离卷 `zhkuagent_eval_v1_data_20261026`，容器 `zhkuagent-eval-v1` 使用 PostgreSQL 16 / pgvector，端口绑定 `127.0.0.1:55441)。复制前后各 1,422 个文件，`global/pg_control` SHA-256 相同；未声称整个卷逐字节完全相同。
+- 向量索引的所有写入仅发生于隔离副本。真实检索评测期间，数据库连接强制只读事务，数据库写入 0。
+- API key 只从已有进程环境读取，没有输出密钥值，也未写入命令参数、文件或日志。没有调用聊天模型；本轮 8 次片段向量化调用 + 5 次查询向量化调用。
 
-- `embedding_profile`：0 条
-- `retrieval_index_entry`：0 条
-- 当前本机 RAG 配置未显式开启（代码约定为默认关闭）。
+## 3. 真实语料资格与索引
 
-因此，当前**无法运行 v1 规定的通用混合检索评测，也不能计算 Recall@K 或 MRR**。缺少索引不应记作 0 分；它是评测前置条件未满足。此次仅对已存在的直接关键词检索和专用证据查询做诊断。
+原数据库快照共 6 个 source rows、17 个 chunks。当前资格标记下，8 个片段合格、9 个排除：
 
-## 3. 五条用例结果
+| knowledge_scope | 合格片段数 |
+| --- | ---: |
+| PUBLIC_ELECTIVE | 5 |
+| PUBLIC_ELECTIVE_CREDIT_LIMIT | 1 |
+| ELECTIVE_RETAKE | 2 |
 
-| 用例 | 结果 | 数据库绑定 / 资格 | 解释 |
+新向量 profile 为 `dashscope-text-embedding-v4-1024`，配置为 `text-embedding-v4`、1024 维，切分版本 `real-source-embedding-v1-20261026`。3 个索引运行均 COMPLETED，分别索引 5、1、2 个片段；8 条 embedding 均非空，不合格片段进入索引数为 0。该 profile 保持 BUILDING，仅供离线评测读取，没有激活线上 RAG。
+
+词法对照使用隔离库中既有的 `real-source-lexical-only-v1-20261026` profile / `real-source-lexical-baseline-v1`。两路引用同一批 chunk ID，但各自使用独立 profile 和索引运行。
+
+## 4. 检索诊断
+
+每条冻结问题分别运行两种范围模式：
+
+- `ALL_ELIGIBLE_SCOPES`：不限制知识范围，但仍严格执行发布、学生可见和分享权过滤；
+- `PUBLIC_ELECTIVE`：模拟当前预览配置的范围。
+
+每种模式对照三条路径：中文 Bigram 词法、余弦向量、RRF 混合。RRF 使用 (k=60)，每路候选上限 8，最终 Top 5。五个问题各生成一次查询向量，并在两种范围模式之间复用缓存。
+
+| 用例 | 全部范围结果 | PUBLIC_ELECTIVE 结果 | 主要发现 |
 | --- | --- | --- | --- |
-| RSR-01 | 直接关键词命中 | source `6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05`，chunk `55815778-3038-33cb-9a23-7b1ed5efed4f`；PUBLISHED、STUDENT_VISIBLE、分享权已确认；范围 `PUBLIC_ELECTIVE` | 命中 32 学时规则；定位是第 5—6 条，且数据库正文是策展摘要，不是冻结金标准的逐字第 5 条原文 |
-| RSR-02 | 内部命中、学生端正确排除 | source `4a7c1e93-2f6b-4d18-9b05-3c8e7a1f5d42`，chunk `39af6bf7-0ce5-3ffa-8d35-f0ee1c88ea26`；PUBLISHED 但 INTERNAL_ONLY、分享权未确认 | 内部关键词查询命中 1 条；学生可见查询命中 0 条。不能作为学生端可回答用例计分 |
-| RSR-03 | 内容命中、定位不充分 | source `f4d0b0a0-c78a-4c7a-94e0-9b2942d0b8f5`，chunk `e2dc2c7a-ce97-32db-9506-b7c29d2a15bf`；PUBLISHED、STUDENT_VISIBLE、分享权已确认；范围 `PUBLIC_ELECTIVE_CREDIT_LIMIT` | 专用查询命中 4 学分上限；定位合并第 8、10 条，page_number=76，无法单独绑定第 10 条的精确原文位置 |
-| RSR-04 | 直接关键词命中 | source `6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05`，chunk `b2213ca7-c40c-3054-ad75-fd2a058c7ade`；PUBLISHED、STUDENT_VISIBLE、分享权已确认；范围 `PUBLIC_ELECTIVE` | 定位到 PDF 第 77 页第 11 条；内容覆盖相近课程和已合格课程不得重复两项限制，但仍是策展正文，不是逐字金标准 |
-| RSR-05 | 证据存在，跨范围组合与澄清流程未验证 | 第 4 条：source `6b2f...` / chunk `ac78ed6c-5147-32a6-8297-c4c7967a9d1e`，范围 `PUBLIC_ELECTIVE`；第 18 条：source `72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14` / chunks `06766d1e-2f83-3f8d-9a1d-1b66b2700a06` 与 `b3cd386d-49fc-3224-8b3e-533f89dea106`，范围 `ELECTIVE_RETAKE`；均已发布、学生可见且分享权已确认 | 类别证据和两种重修分支分别可查询；它们分属不同知识范围。此次未验证 Agent 会否先澄清课程类别，也未证明单次通用检索会同时召回全部必要证据 |
+| RSR-01 | 目标 chunk：词法第 2、向量第 1、RRF 第 1 | 同左 | 向量/RRF 改善目标排名，但 chunk locator 覆盖第 5—6 条，不能作为精确第 5 条绑定 |
+| RSR-02 | 内部目标不返回 | 内部目标不返回 | 当前没有合格的学生可见第 8 条证据；作为权限排除检查，不计正向召回分 |
+| RSR-03 | 目标内容三路均第 1 | 目标不可见 | 当前范围与目标 chunk 的 knowledge_scope 不一致；locator/page 仍不准确 |
+| RSR-04 | 目标 chunk 三路均第 1 | 同左 | 目标条款命中稳定，locator 较精确；正文仍是策展摘要 |
+| RSR-05 | 词法证据不完整、向量完整、RRF 不完整 | 三路均不完整 | 向量 Top 5 可包含三组必要证据；RRF Top 5 漏掉第 4 条类别证据；单一范围无法包含专业重修分支 |
 
-上述每个目标 chunk 的 `retrieval_index_entry` 数量均为 0。
+完整排名、chunk/source ID、scope、页码、locator 和派生检查见：
 
-## 4. 影响 v1 解释的发现
+- `embedding-hybrid-results.json`：真实向量与 RRF 对照结果。
+- `embedding-hybrid-analysis.md`：本阶段结论和逐例分析。
+- `lexical-baseline-results.json`：之前执行的纯词法基线。
+- `source-binding-audit.md`：来源、片段资格和原文定位核查。
+- `results.json`：更早的直接关键词/专用证据路径探针；该文件记录的是历史阶段，不是本轮混合检索结果。
 
-1. v1 是 5 条开发样本，涉及 6 个不同条款编号（第 4、5、8、10、11、18 条）；它们覆盖的知识范围并不相同。
-2. RSR-02 的预期状态是 `ANSWERED`，但它的必要证据目前明确属于内部资料。若评估学生可见能力，该题应作为权限/范围排除案例，而不能作为普通答案召回题。
-3. RSR-03 的学生可见证据能够支持“每学期 4 学分”这一内容，但其定位把第 8、10 条合并，不能满足第 10 条独立精确定位的金标准。
-4. RSR-05 需要跨 `PUBLIC_ELECTIVE` 与 `ELECTIVE_RETAKE` 两个范围。用单一范围的通用检索器不能假设会自动召回两者；澄清行为与多范围证据收集应作为独立验收点。
-5. 当前资料片段主要是经策展的摘要或按业务分支拆分的文本，不总是金标准中的逐字条文。因此“找到语义相关摘要”与“逐字原文、条款、页码准确绑定”必须分别评分。
+Maven 验收：`RealSourceHybridEmbeddingBaselineTest` 1 passed / 0 failures / 0 errors。临时测试源码及构建报告在本轮结束时清理，冻结数据集保持原样。
 
-## 5. 结论与下一步
+## 5. 为什么没有汇总 Recall@5 / MRR
 
-- 真实数据库的来源/片段身份及学生可见资格已完成只读核对。
-- 当前直接查询路径的五条诊断已执行；2 条直接命中、1 条内部命中但学生端正确排除、2 条部分完成。
-- 通用混合检索评测仍被 **0 个 profile / 0 条 index entry** 阻断；没有产生可报告的 Recall@K / MRR。
-- 下一步应先在隔离环境中明确目标检索范围、建立可追溯的真实来源到 chunk 的逐条绑定，并准备专用评测索引；不要把内部参考资料放入学生可见索引来凑齐五题。
-- v1 保持不变。后续扩充应另建 v2，并把学生可见召回、内部资料排除、多范围证据与澄清、逐字引用定位分成不同评测维度。
+1. RSR-02 的正向金标准指向 INTERNAL_ONLY、分享权未确认的证据；
+2. RSR-03 的第 10 条 locator/page 与目标绑定不准确，且默认范围不包含该 chunk；
+3. RSR-01 的目标 chunk 覆盖多个条款；
+4. RSR-05 的金标准需要“课程类别 + 公共重修分支 + 专业重修分支”三组必要证据，不能只检查一个第 18 条 locator；
+5. 5 条样本是开发集、非盲测、自审样本。
+
+把这些问题直接折算为整体召回率，会混淆检索质量与金标准/资格错误。当前只报告逐例排名、权限排除和证据集合完整性。
+
+## 6. 下一阶段门槛
+
+优先建立新版本 v2 金标准，保持 v1 冻结：
+
+- 修正 RSR-01、RSR-03 的条款级 locator 与页码绑定；
+- 将 RSR-02 变为权限排除测试，或补充经正式审核的学生可见证据；
+- 明确 RSR-05 三组必要证据与先澄清课程类别的验收条件；
+- 建立原始文件指纹到 source/chunk 的机器可核验绑定；
+- 扩充覆盖多知识范围、同义问法、边界问题、跨范围证据、过期/归档和权限排除的真实用例，再由独立复核确认后计算正式指标。
+
+当前结论：向量检索在部分问题上改善了目标排名，但 RSR-05 证明 RRF Top 5 不保证保留完整证据集合。先修复金标准与来源绑定，再评估整体算法优劣。

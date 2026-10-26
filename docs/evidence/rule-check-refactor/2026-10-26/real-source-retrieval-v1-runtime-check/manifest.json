@@ -1,12 +1,12 @@
 {
     "manifestVersion":  "v1",
-    "status":  "PARTIAL_DIRECT_PATH_PROBES_COMPLETE_HYBRID_INDEX_BLOCKED",
+    "status":  "REAL_SOURCE_EMBEDDING_HYBRID_DIAGNOSTIC_COMPLETE_FORMAL_METRICS_BLOCKED",
     "verifiedAt":  "2026-10-26",
     "reportPath":  "docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v1-runtime-check",
     "artifacts":  {
                       "readme":  {
                                      "path":  "README.md",
-                                     "sha256":  "8b696e5b86e95efda7a9f9feeb28125da6e899b2769a67e8ed019fc9675eb3b5"
+                                     "sha256":  "86ce3dc21e5038a9dbb15a8e54d6cbc1fed17938bd41d67e9ffe8545d9d604cf"
                                  },
                       "results":  {
                                       "path":  "results.json",
@@ -20,7 +20,7 @@
                                                },
                       "sourceBindingAudit":  {
                                                  "path":  "source-binding-audit.md",
-                                                 "sha256":  "5eaba546114337bd3ac7ea733497a1329ea144bbb344ae247936741bddffb86b"
+                                                 "sha256":  "14f10c9b540b8e0a49bcc6ad3924b8c6fb7d1f56fff7e219ae331e910ac4df59"
                                              },
                       "lexicalBaselineResults":  {
                                                      "path":  "lexical-baseline-results.json",
@@ -30,7 +30,21 @@
                                                         "path":  "knowledge/src/test/java/com/zhku/knowledge/retrieval/RealCorpusLexicalBaselineTest.java",
                                                         "sha256":  "7f3d5cc47ae45257ac7d51ecd93aaffa78cde911411938c228ed7dcebf44691d",
                                                         "retained":  false
-                                                    }
+                                                    },
+                      "embeddingHybridResults":  {
+                                                     "path":  "embedding-hybrid-results.json",
+                                                     "sha256":  "2d22e9cfccca620342ef61b07439ccdcf540d9b4fd37f57c61473445c9b7b91c"
+                                                 },
+                      "embeddingHybridAnalysis":  {
+                                                      "path":  "embedding-hybrid-analysis.md",
+                                                      "sha256":  "eb413859eeb9b5e9f81efb1e1a85764e03fbf79adcf164490ab3bf20cea87c0c"
+                                                  },
+                      "hybridBaselineTestSource":  {
+                                                       "path":  "knowledge/src/test/java/com/zhku/knowledge/retrieval/RealSourceHybridEmbeddingBaselineTest.java",
+                                                       "sha256":  "f825bcd0b9aa1f1a2e70e2b469e9def210390282db391676eba7c6db0257aabd",
+                                                       "retained":  false,
+                                                       "note":  "Temporary read-only retrieval evaluation test; removed after successful execution."
+                                                   }
                   },
     "frozenDataset":  {
                           "path":  "docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v1/cases.json",
@@ -72,7 +86,7 @@
                    "recallAtKComputed":  false,
                    "mrrComputed":  false,
                    "modelCalls":  0,
-                   "embeddingApiCalls":  0,
+                   "embeddingApiCalls":  13,
                    "applicationDataWrites":  0,
                    "migrationsRun":  false,
                    "temporaryProbeSourceRemoved":  true,
@@ -80,16 +94,30 @@
                    "sourceBindingAuditWritten":  true,
                    "lexicalBaselineExecuted":  true,
                    "lexicalBaselineTestSourceRemoved":  true,
-                   "hybridRetrievalIndexPresent":  false
+                   "embeddingIndexBuildCompleted":  true,
+                   "hybridRetrievalTestCompleted":  true,
+                   "hybridRetrievalTestSourceRemoved":  true,
+                   "hybridRetrievalIndexPresent":  true,
+                   "queryVectorsCachedAcrossScopeModes":  true,
+                   "formalRecallAtKComputed":  false,
+                   "formalMrrComputed":  false,
+                   "queryEmbeddingClientInvocations":  5,
+                   "embeddingClientInvocationsTotal":  13,
+                   "retrievalEvaluationDatabaseWrites":  0,
+                   "indexWritesConfinedToIsolatedDatabase":  true,
+                   "persistentEvaluationEnvironmentRetained":  true,
+                   "isolatedVectorEntriesCreated":  8,
+                   "isolatedIndexRunsCompleted":  3,
+                   "originalDatabaseModified":  false,
+                   "productionRagEnabled":  false
                },
-    "blockingReason":  "The snapshot contains zero embedding_profile rows and zero retrieval_index_entry rows; the current generic hybrid retrieval index is not built. Direct keyword/specialized evidence probes are diagnostic results, not Recall@K/MRR for the frozen v1 dataset.",
+    "blockingReason":  "Real lexical, vector, and RRF diagnostics completed on the isolated eligible corpus. Formal Recall@K/MRR remain blocked by the frozen v1 gold-set qualification, exact locator binding, and multi-evidence contract gaps.",
     "freezeRule":  "The original v1 dataset remains unchanged. Any change to questions, evidence mappings, or expected status must be made in a new dataset version.",
     "persistentEvaluationEnvironment":  {
                                             "container":  "zhkuagent-eval-v1",
                                             "containerId":  "f09a9b8c37bccf3aa3080fb386ed3d97c09d47e30df8d951a1aee958b0aeb269",
                                             "image":  "pgvector/pgvector:0.8.6-pg16-bookworm",
-                                            "containerStateAtReport":  "exited_cleanly_after_test",
-                                            "exitCode":  0,
+                                            "containerStateAtReport":  "running",
                                             "restartPolicy":  "no",
                                             "restartCommand":  "docker start zhkuagent-eval-v1",
                                             "hostEndpoint":  "127.0.0.1:55441",
@@ -113,9 +141,22 @@
                                             "lexicalOnlyProfile":  "real-source-lexical-only-v1-20261026",
                                             "lexicalOnlyProfileStatus":  "ACTIVE_ISOLATED_DIAGNOSTIC",
                                             "lexicalIndexEntries":  8,
-                                            "nullEmbeddings":  8,
-                                            "hybridIndexPresent":  false,
-                                            "modelCalls":  0,
-                                            "embeddingApiCalls":  0
+                                            "lexicalNullEmbeddings":  8,
+                                            "vectorProfile":  "dashscope-text-embedding-v4-1024",
+                                            "vectorProfileStatus":  "BUILDING",
+                                            "vectorModel":  "text-embedding-v4",
+                                            "vectorDimensions":  1024,
+                                            "vectorChunkingVersion":  "real-source-embedding-v1-20261026",
+                                            "vectorCompletedRuns":  3,
+                                            "vectorIndexEntries":  8,
+                                            "vectorEntriesWithEmbeddings":  8,
+                                            "vectorNullEmbeddings":  0,
+                                            "queryEmbeddingClientInvocations":  5,
+                                            "embeddingClientInvocationsTotal":  13,
+                                            "hybridIndexPresent":  true,
+                                            "productionRagEnabled":  false,
+                                            "indexWritesConfinedToIsolatedDatabase":  true,
+                                            "retrievalEvaluationDatabaseWrites":  0,
+                                            "modelCalls":  0
                                         }
 }

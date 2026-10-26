@@ -1,0 +1,1266 @@
+{
+  "reportVersion" : "1",
+  "status" : "DIAGNOSTIC_REAL_EMBEDDING_AND_RRF_BASELINE",
+  "verifiedAt" : "2026-10-26",
+  "frozenDataset" : {
+    "path" : "docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v1/cases.json",
+    "modified" : false,
+    "caseCount" : 5,
+    "sha256" : "bc9e5a8088540577b0deb6c8aaab984497144028e91bf72cb9b99dcc402ec223"
+  },
+  "environment" : {
+    "isolatedContainer" : "zhkuagent-eval-v1",
+    "isolatedVolume" : "zhkuagent_eval_v1_data_20261026",
+    "originalContainer" : "zhkuagent-postgres",
+    "originalVolume" : "zhkuagent_zhkuagent_postgres_data",
+    "databaseWritesDuringEvaluation" : 0,
+    "modelCalls" : 0,
+    "embeddingModel" : "text-embedding-v4",
+    "embeddingDimensions" : 1024,
+    "queryEmbeddingClientInvocations" : 5,
+    "uniqueQueryTexts" : 5,
+    "queryVectorsCachedAcrossScopeModes" : true,
+    "profileStatusDuringEvaluation" : "BUILDING",
+    "hybridAlgorithm" : "RRF_K=60",
+    "candidateLimitPerPath" : 8,
+    "resultLimit" : 5
+  },
+  "eligibleChunkScopes" : {
+    "06766d1e-2f83-3f8d-9a1d-1b66b2700a06" : "ELECTIVE_RETAKE",
+    "357797d7-21f1-3fa4-942b-120f6bcc3f4a" : "PUBLIC_ELECTIVE",
+    "55815778-3038-33cb-9a23-7b1ed5efed4f" : "PUBLIC_ELECTIVE",
+    "8760f9a1-27c4-3fd3-9871-9209e2a398f0" : "PUBLIC_ELECTIVE",
+    "ac78ed6c-5147-32a6-8297-c4c7967a9d1e" : "PUBLIC_ELECTIVE",
+    "b2213ca7-c40c-3054-ad75-fd2a058c7ade" : "PUBLIC_ELECTIVE",
+    "b3cd386d-49fc-3224-8b3e-533f89dea106" : "ELECTIVE_RETAKE",
+    "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf" : "PUBLIC_ELECTIVE_CREDIT_LIMIT"
+  },
+  "cases" : [ {
+    "caseId" : "RSR-01",
+    "question" : "公共选修课的学时上限是什么？",
+    "allEligibleScopes" : {
+      "lexical" : [ {
+        "rank" : 1,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+        "sourceId" : "f4d0b0a0-c78a-4c7a-94e0-9b2942d0b8f5",
+        "knowledgeScope" : "PUBLIC_ELECTIVE_CREDIT_LIMIT",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76—77 页，第 8、10 条"
+      } ],
+      "vector" : [ {
+        "rank" : 1,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+        "sourceId" : "f4d0b0a0-c78a-4c7a-94e0-9b2942d0b8f5",
+        "knowledgeScope" : "PUBLIC_ELECTIVE_CREDIT_LIMIT",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76—77 页，第 8、10 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      } ],
+      "hybridRrf" : [ {
+        "rank" : 1,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+        "sourceId" : "f4d0b0a0-c78a-4c7a-94e0-9b2942d0b8f5",
+        "knowledgeScope" : "PUBLIC_ELECTIVE_CREDIT_LIMIT",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76—77 页，第 8、10 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      } ],
+      "hybridAvailability" : {
+        "fullyDegraded" : false,
+        "lexicalAvailable" : true,
+        "vectorAvailable" : true
+      }
+    },
+    "configuredPublicElective" : {
+      "lexical" : [ {
+        "rank" : 1,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      } ],
+      "vector" : [ {
+        "rank" : 1,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      } ],
+      "hybridRrf" : [ {
+        "rank" : 1,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      } ],
+      "hybridAvailability" : {
+        "fullyDegraded" : false,
+        "lexicalAvailable" : true,
+        "vectorAvailable" : true
+      }
+    },
+    "derived" : {
+      "allScopes" : {
+        "article5TargetRank" : 2,
+        "article5VectorRank" : 1,
+        "article5HybridRank" : 1
+      },
+      "configuredPublicElective" : {
+        "article5TargetRank" : 2,
+        "article5VectorRank" : 1,
+        "article5HybridRank" : 1
+      }
+    }
+  }, {
+    "caseId" : "RSR-02",
+    "question" : "网络公选课的比例规则，分母是什么？",
+    "allEligibleScopes" : {
+      "lexical" : [ {
+        "rank" : 1,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+        "sourceId" : "f4d0b0a0-c78a-4c7a-94e0-9b2942d0b8f5",
+        "knowledgeScope" : "PUBLIC_ELECTIVE_CREDIT_LIMIT",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76—77 页，第 8、10 条"
+      } ],
+      "vector" : [ {
+        "rank" : 1,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+        "sourceId" : "f4d0b0a0-c78a-4c7a-94e0-9b2942d0b8f5",
+        "knowledgeScope" : "PUBLIC_ELECTIVE_CREDIT_LIMIT",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76—77 页，第 8、10 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      } ],
+      "hybridRrf" : [ {
+        "rank" : 1,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+        "sourceId" : "f4d0b0a0-c78a-4c7a-94e0-9b2942d0b8f5",
+        "knowledgeScope" : "PUBLIC_ELECTIVE_CREDIT_LIMIT",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76—77 页，第 8、10 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      } ],
+      "hybridAvailability" : {
+        "fullyDegraded" : false,
+        "lexicalAvailable" : true,
+        "vectorAvailable" : true
+      }
+    },
+    "configuredPublicElective" : {
+      "lexical" : [ {
+        "rank" : 1,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      } ],
+      "vector" : [ {
+        "rank" : 1,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      } ],
+      "hybridRrf" : [ {
+        "rank" : 1,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      } ],
+      "hybridAvailability" : {
+        "fullyDegraded" : false,
+        "lexicalAvailable" : true,
+        "vectorAvailable" : true
+      }
+    },
+    "derived" : {
+      "allScopes" : {
+        "internalOnlyChunkReturned" : false,
+        "internalOnlySourceReturned" : false,
+        "positiveGoldScorable" : false
+      },
+      "configuredPublicElective" : {
+        "internalOnlyChunkReturned" : false,
+        "internalOnlySourceReturned" : false,
+        "positiveGoldScorable" : false
+      }
+    }
+  }, {
+    "caseId" : "RSR-03",
+    "question" : "一学期最多选多少公共选修学分？",
+    "allEligibleScopes" : {
+      "lexical" : [ {
+        "rank" : 1,
+        "chunkId" : "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+        "sourceId" : "f4d0b0a0-c78a-4c7a-94e0-9b2942d0b8f5",
+        "knowledgeScope" : "PUBLIC_ELECTIVE_CREDIT_LIMIT",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76—77 页，第 8、10 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "b3cd386d-49fc-3224-8b3e-533f89dea106",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      } ],
+      "vector" : [ {
+        "rank" : 1,
+        "chunkId" : "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+        "sourceId" : "f4d0b0a0-c78a-4c7a-94e0-9b2942d0b8f5",
+        "knowledgeScope" : "PUBLIC_ELECTIVE_CREDIT_LIMIT",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76—77 页，第 8、10 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      } ],
+      "hybridRrf" : [ {
+        "rank" : 1,
+        "chunkId" : "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+        "sourceId" : "f4d0b0a0-c78a-4c7a-94e0-9b2942d0b8f5",
+        "knowledgeScope" : "PUBLIC_ELECTIVE_CREDIT_LIMIT",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76—77 页，第 8、10 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      } ],
+      "hybridAvailability" : {
+        "fullyDegraded" : false,
+        "lexicalAvailable" : true,
+        "vectorAvailable" : true
+      }
+    },
+    "configuredPublicElective" : {
+      "lexical" : [ {
+        "rank" : 1,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      } ],
+      "vector" : [ {
+        "rank" : 1,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      } ],
+      "hybridRrf" : [ {
+        "rank" : 1,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      } ],
+      "hybridAvailability" : {
+        "fullyDegraded" : false,
+        "lexicalAvailable" : true,
+        "vectorAvailable" : true
+      }
+    },
+    "derived" : {
+      "allScopes" : {
+        "article10ContentRank" : 1,
+        "article10VectorRank" : 1,
+        "article10HybridRank" : 1,
+        "strictLocatorBinding" : "KNOWN_MISMATCH"
+      },
+      "configuredPublicElective" : {
+        "article10ContentRank" : null,
+        "article10VectorRank" : null,
+        "article10HybridRank" : null,
+        "strictLocatorBinding" : "KNOWN_MISMATCH"
+      }
+    }
+  }, {
+    "caseId" : "RSR-04",
+    "question" : "已经合格的公选课，或与专业计划相近的课，可以再选吗？",
+    "allEligibleScopes" : {
+      "lexical" : [ {
+        "rank" : 1,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "b3cd386d-49fc-3224-8b3e-533f89dea106",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      } ],
+      "vector" : [ {
+        "rank" : 1,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "b3cd386d-49fc-3224-8b3e-533f89dea106",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      } ],
+      "hybridRrf" : [ {
+        "rank" : 1,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "b3cd386d-49fc-3224-8b3e-533f89dea106",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      } ],
+      "hybridAvailability" : {
+        "fullyDegraded" : false,
+        "lexicalAvailable" : true,
+        "vectorAvailable" : true
+      }
+    },
+    "configuredPublicElective" : {
+      "lexical" : [ {
+        "rank" : 1,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      } ],
+      "vector" : [ {
+        "rank" : 1,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      } ],
+      "hybridRrf" : [ {
+        "rank" : 1,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      } ],
+      "hybridAvailability" : {
+        "fullyDegraded" : false,
+        "lexicalAvailable" : true,
+        "vectorAvailable" : true
+      }
+    },
+    "derived" : {
+      "allScopes" : {
+        "article11TargetRank" : 1,
+        "article11VectorRank" : 1,
+        "article11HybridRank" : 1
+      },
+      "configuredPublicElective" : {
+        "article11TargetRank" : 1,
+        "article11VectorRank" : 1,
+        "article11HybridRank" : 1
+      }
+    }
+  }, {
+    "caseId" : "RSR-05",
+    "question" : "我说的是选修课，但没说是哪一类，能判断缓考和重修吗？",
+    "allEligibleScopes" : {
+      "lexical" : [ {
+        "rank" : 1,
+        "chunkId" : "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "b3cd386d-49fc-3224-8b3e-533f89dea106",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+        "sourceId" : "f4d0b0a0-c78a-4c7a-94e0-9b2942d0b8f5",
+        "knowledgeScope" : "PUBLIC_ELECTIVE_CREDIT_LIMIT",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76—77 页，第 8、10 条"
+      } ],
+      "vector" : [ {
+        "rank" : 1,
+        "chunkId" : "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "b3cd386d-49fc-3224-8b3e-533f89dea106",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      } ],
+      "hybridRrf" : [ {
+        "rank" : 1,
+        "chunkId" : "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "b3cd386d-49fc-3224-8b3e-533f89dea106",
+        "sourceId" : "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+        "knowledgeScope" : "ELECTIVE_RETAKE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 18 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      } ],
+      "hybridAvailability" : {
+        "fullyDegraded" : false,
+        "lexicalAvailable" : true,
+        "vectorAvailable" : true
+      }
+    },
+    "configuredPublicElective" : {
+      "lexical" : [ {
+        "rank" : 1,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      } ],
+      "vector" : [ {
+        "rank" : 1,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      } ],
+      "hybridRrf" : [ {
+        "rank" : 1,
+        "chunkId" : "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 9、13 条"
+      }, {
+        "rank" : 2,
+        "chunkId" : "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 14—15、18 条"
+      }, {
+        "rank" : 3,
+        "chunkId" : "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 77,
+        "sourceLocator" : "PDF 第 77 页，第 11 条"
+      }, {
+        "rank" : 4,
+        "chunkId" : "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 2、4 条"
+      }, {
+        "rank" : 5,
+        "chunkId" : "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "sourceId" : "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+        "knowledgeScope" : "PUBLIC_ELECTIVE",
+        "pageNumber" : 76,
+        "sourceLocator" : "PDF 第 76 页，第 5—6 条"
+      } ],
+      "hybridAvailability" : {
+        "fullyDegraded" : false,
+        "lexicalAvailable" : true,
+        "vectorAvailable" : true
+      }
+    },
+    "derived" : {
+      "allScopes" : {
+        "requiredEvidenceSetComplete" : false,
+        "vectorRequiredEvidenceSetComplete" : true,
+        "hybridRequiredEvidenceSetComplete" : false,
+        "requiredGroups" : [ "article4_course_category", "article18_public_elective_branch", "article18_professional_elective_branch" ]
+      },
+      "configuredPublicElective" : {
+        "requiredEvidenceSetComplete" : false,
+        "vectorRequiredEvidenceSetComplete" : false,
+        "hybridRequiredEvidenceSetComplete" : false,
+        "requiredGroups" : [ "article4_course_category", "article18_public_elective_branch", "article18_professional_elective_branch" ]
+      }
+    }
+  } ],
+  "metrics" : {
+    "reason" : "The frozen v1 gold set has unresolved source qualification and locator binding for RSR-02/03 and an incomplete multi-evidence contract for RSR-05. Per-case ranks are diagnostic only.",
+    "mrr" : "NOT_AGGREGATED",
+    "recallAt5" : "NOT_AGGREGATED"
+  }
+}
