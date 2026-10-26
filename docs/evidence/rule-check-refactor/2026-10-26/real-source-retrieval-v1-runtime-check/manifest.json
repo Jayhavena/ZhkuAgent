@@ -1,71 +1,121 @@
 {
-  "manifestVersion": "v1",
-  "status": "PARTIAL_DIRECT_PATH_PROBES_COMPLETE_HYBRID_INDEX_BLOCKED",
-  "verifiedAt": "2026-10-26",
-  "reportPath": "docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v1-runtime-check",
-  "artifacts": {
-    "readme": {
-      "path": "README.md",
-      "sha256": "8b696e5b86e95efda7a9f9feeb28125da6e899b2769a67e8ed019fc9675eb3b5"
-    },
-    "results": {
-      "path": "results.json",
-      "sha256": "b942852b64e4bf446e18c9a20a717ce3ae7fc061a2ff57e24a5ff4851270683d"
-    },
-    "temporaryProbeSource": {
-      "path": "knowledge/src/test/java/com/zhku/knowledge/eval/RealSourceRetrievalProbeTest.java",
-      "sha256": "5c11012be34f9aee47fce0190d968a3dfdf87ce82c4686ba4ff86a8d692ef0ae",
-      "retained": false,
-      "note": "Temporary read-only probe source was removed after successful execution; its hash is retained for audit identity."
-    }
-  },
-  "frozenDataset": {
-    "path": "docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v1/cases.json",
-    "sha256": "bc9e5a8088540577b0deb6c8aaab984497144028e91bf72cb9b99dcc402ec223",
-    "manifestPath": "docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v1/manifest.json",
-    "manifestSha256": "d4f0ce092365d131f427e3f0beb19f1a802c68fbac5717776f7a923707f533a8",
-    "commit": "143d2e9b830d408bb6c936e89c03861160cabfbf"
-  },
-  "sourceDocument": {
-    "title": "2025版学生手册2025.9.2.pdf",
-    "sha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
-    "byteLength": 5526012,
-    "currentAcademicYearApplicability": "UNKNOWN"
-  },
-  "databaseSnapshot": {
-    "originalContainer": "zhkuagent-postgres",
-    "originalContainerRemainedStopped": true,
-    "originalContainerConfigurationModified": false,
-    "originalVolume": "zhkuagent_zhkuagent_postgres_data",
-    "originalVolumeMountedReadOnlyDuringCopy": true,
-    "originalVolumeRetained": true,
-    "temporaryVolume": "zhkuagent_eval_snapshot_20261026",
-    "temporaryVolumeRemoved": true,
-    "temporaryContainer": "zhkuagent-real-eval-snapshot-20261026",
-    "temporaryContainerRemoved": true,
-    "sourceFiles": 1422,
-    "copiedFiles": 1422,
-    "sourcePgControlSha256": "9e66b6c7f3dbe4cd5ecca2899bd80a08209a8dc1fe867fd8e591630aca1cd6b1",
-    "copiedPgControlSha256": "9e66b6c7f3dbe4cd5ecca2899bd80a08209a8dc1fe867fd8e591630aca1cd6b1",
-    "fullVolumeByteIdentityClaimed": false
-  },
-  "checks": {
-    "databaseSnapshotReadOnlyQueriesCompleted": true,
-    "directPublishedKeywordPathsExecuted": true,
-    "internalVsStudentVisibilityCompared": true,
-    "specializedCreditLimitFinderExecuted": true,
-    "specializedRetakeFinderExecuted": true,
-    "temporaryProbeTestPassed": true,
-    "hybridRetrievalIndexPresent": false,
-    "recallAtKComputed": false,
-    "mrrComputed": false,
-    "modelCalls": 0,
-    "embeddingApiCalls": 0,
-    "applicationDataWrites": 0,
-    "migrationsRun": false,
-    "temporaryProbeSourceRemoved": true,
-    "temporaryResourcesRemoved": true
-  },
-  "blockingReason": "The snapshot contains zero embedding_profile rows and zero retrieval_index_entry rows; the current generic hybrid retrieval index is not built. Direct keyword/specialized evidence probes are diagnostic results, not Recall@K/MRR for the frozen v1 dataset.",
-  "freezeRule": "The original v1 dataset remains unchanged. Any change to questions, evidence mappings, or expected status must be made in a new dataset version."
+    "manifestVersion":  "v1",
+    "status":  "PARTIAL_DIRECT_PATH_PROBES_COMPLETE_HYBRID_INDEX_BLOCKED",
+    "verifiedAt":  "2026-10-26",
+    "reportPath":  "docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v1-runtime-check",
+    "artifacts":  {
+                      "readme":  {
+                                     "path":  "README.md",
+                                     "sha256":  "8b696e5b86e95efda7a9f9feeb28125da6e899b2769a67e8ed019fc9675eb3b5"
+                                 },
+                      "results":  {
+                                      "path":  "results.json",
+                                      "sha256":  "b942852b64e4bf446e18c9a20a717ce3ae7fc061a2ff57e24a5ff4851270683d"
+                                  },
+                      "temporaryProbeSource":  {
+                                                   "path":  "knowledge/src/test/java/com/zhku/knowledge/eval/RealSourceRetrievalProbeTest.java",
+                                                   "sha256":  "5c11012be34f9aee47fce0190d968a3dfdf87ce82c4686ba4ff86a8d692ef0ae",
+                                                   "retained":  false,
+                                                   "note":  "Temporary read-only probe source was removed after successful execution; its hash is retained for audit identity."
+                                               },
+                      "sourceBindingAudit":  {
+                                                 "path":  "source-binding-audit.md",
+                                                 "sha256":  "5eaba546114337bd3ac7ea733497a1329ea144bbb344ae247936741bddffb86b"
+                                             },
+                      "lexicalBaselineResults":  {
+                                                     "path":  "lexical-baseline-results.json",
+                                                     "sha256":  "a797b7d40dfd35f69e2832f475fa23335d24da7f81990ebb4d36d3bc84202b25"
+                                                 },
+                      "lexicalBaselineTestSource":  {
+                                                        "path":  "knowledge/src/test/java/com/zhku/knowledge/retrieval/RealCorpusLexicalBaselineTest.java",
+                                                        "sha256":  "7f3d5cc47ae45257ac7d51ecd93aaffa78cde911411938c228ed7dcebf44691d",
+                                                        "retained":  false
+                                                    }
+                  },
+    "frozenDataset":  {
+                          "path":  "docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v1/cases.json",
+                          "sha256":  "bc9e5a8088540577b0deb6c8aaab984497144028e91bf72cb9b99dcc402ec223",
+                          "manifestPath":  "docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v1/manifest.json",
+                          "manifestSha256":  "d4f0ce092365d131f427e3f0beb19f1a802c68fbac5717776f7a923707f533a8",
+                          "commit":  "143d2e9b830d408bb6c936e89c03861160cabfbf"
+                      },
+    "sourceDocument":  {
+                           "title":  "2025版学生手册2025.9.2.pdf",
+                           "sha256":  "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
+                           "byteLength":  5526012,
+                           "currentAcademicYearApplicability":  "UNKNOWN"
+                       },
+    "databaseSnapshot":  {
+                             "originalContainer":  "zhkuagent-postgres",
+                             "originalContainerRemainedStopped":  true,
+                             "originalContainerConfigurationModified":  false,
+                             "originalVolume":  "zhkuagent_zhkuagent_postgres_data",
+                             "originalVolumeMountedReadOnlyDuringCopy":  true,
+                             "originalVolumeRetained":  true,
+                             "temporaryVolume":  "zhkuagent_eval_snapshot_20261026",
+                             "temporaryVolumeRemoved":  true,
+                             "temporaryContainer":  "zhkuagent-real-eval-snapshot-20261026",
+                             "temporaryContainerRemoved":  true,
+                             "sourceFiles":  1422,
+                             "copiedFiles":  1422,
+                             "sourcePgControlSha256":  "9e66b6c7f3dbe4cd5ecca2899bd80a08209a8dc1fe867fd8e591630aca1cd6b1",
+                             "copiedPgControlSha256":  "9e66b6c7f3dbe4cd5ecca2899bd80a08209a8dc1fe867fd8e591630aca1cd6b1",
+                             "fullVolumeByteIdentityClaimed":  false
+                         },
+    "checks":  {
+                   "databaseSnapshotReadOnlyQueriesCompleted":  true,
+                   "directPublishedKeywordPathsExecuted":  true,
+                   "internalVsStudentVisibilityCompared":  true,
+                   "specializedCreditLimitFinderExecuted":  true,
+                   "specializedRetakeFinderExecuted":  true,
+                   "temporaryProbeTestPassed":  true,
+                   "recallAtKComputed":  false,
+                   "mrrComputed":  false,
+                   "modelCalls":  0,
+                   "embeddingApiCalls":  0,
+                   "applicationDataWrites":  0,
+                   "migrationsRun":  false,
+                   "temporaryProbeSourceRemoved":  true,
+                   "temporaryResourcesRemoved":  true,
+                   "sourceBindingAuditWritten":  true,
+                   "lexicalBaselineExecuted":  true,
+                   "lexicalBaselineTestSourceRemoved":  true,
+                   "hybridRetrievalIndexPresent":  false
+               },
+    "blockingReason":  "The snapshot contains zero embedding_profile rows and zero retrieval_index_entry rows; the current generic hybrid retrieval index is not built. Direct keyword/specialized evidence probes are diagnostic results, not Recall@K/MRR for the frozen v1 dataset.",
+    "freezeRule":  "The original v1 dataset remains unchanged. Any change to questions, evidence mappings, or expected status must be made in a new dataset version.",
+    "persistentEvaluationEnvironment":  {
+                                            "container":  "zhkuagent-eval-v1",
+                                            "containerId":  "f09a9b8c37bccf3aa3080fb386ed3d97c09d47e30df8d951a1aee958b0aeb269",
+                                            "image":  "pgvector/pgvector:0.8.6-pg16-bookworm",
+                                            "containerStateAtReport":  "exited_cleanly_after_test",
+                                            "exitCode":  0,
+                                            "restartPolicy":  "no",
+                                            "restartCommand":  "docker start zhkuagent-eval-v1",
+                                            "hostEndpoint":  "127.0.0.1:55441",
+                                            "volume":  "zhkuagent_eval_v1_data_20261026",
+                                            "sourceVolume":  "zhkuagent_zhkuagent_postgres_data",
+                                            "sourceVolumeMountedReadOnlyDuringCopy":  true,
+                                            "sourceVolumeModified":  false,
+                                            "sourceContainerModified":  false,
+                                            "bindMounts":  [
+
+                                                           ],
+                                            "sourceFiles":  1422,
+                                            "copiedFiles":  1422,
+                                            "sourcePgControlSha256":  "9e66b6c7f3dbe4cd5ecca2899bd80a08209a8dc1fe867fd8e591630aca1cd6b1",
+                                            "copiedPgControlSha256":  "9e66b6c7f3dbe4cd5ecca2899bd80a08209a8dc1fe867fd8e591630aca1cd6b1",
+                                            "pgvectorExtensionPresent":  true,
+                                            "databaseName":  "zhkuagent",
+                                            "sourceRows":  6,
+                                            "chunkRows":  17,
+                                            "studentEligibleChunks":  8,
+                                            "lexicalOnlyProfile":  "real-source-lexical-only-v1-20261026",
+                                            "lexicalOnlyProfileStatus":  "ACTIVE_ISOLATED_DIAGNOSTIC",
+                                            "lexicalIndexEntries":  8,
+                                            "nullEmbeddings":  8,
+                                            "hybridIndexPresent":  false,
+                                            "modelCalls":  0,
+                                            "embeddingApiCalls":  0
+                                        }
 }

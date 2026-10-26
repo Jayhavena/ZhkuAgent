@@ -1,0 +1,218 @@
+{
+  "reportVersion": "1",
+  "status": "DIAGNOSTIC_LEXICAL_BASELINE_ONLY",
+  "verifiedAt": "2026-10-26",
+  "frozenDataset": {
+    "path": "docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v1/cases.json",
+    "sha256": "bc9e5a8088540577b0deb6c8aaab984497144028e91bf72cb9b99dcc402ec223",
+    "caseCount": 5,
+    "modified": false
+  },
+  "environment": {
+    "isolatedContainer": "zhkuagent-eval-v1",
+    "isolatedVolume": "zhkuagent_eval_v1_data_20261026",
+    "hostEndpoint": "127.0.0.1:55441",
+    "postgres": "16",
+    "pgvectorExtensionPresent": true,
+    "originalContainer": "zhkuagent-postgres",
+    "originalContainerState": "exited",
+    "originalVolume": "zhkuagent_zhkuagent_postgres_data",
+    "originalVolumeChanged": false,
+    "sourcePdfSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
+    "sourceRows": 6,
+    "chunkRows": 17,
+    "eligibleChunksByScope": {
+      "PUBLIC_ELECTIVE": 5,
+      "PUBLIC_ELECTIVE_CREDIT_LIMIT": 1,
+      "ELECTIVE_RETAKE": 2
+    },
+    "ineligibleChunks": 9,
+    "sourceUrlEmptyRows": 6,
+    "sourcePdfHashColumnPresent": false,
+    "currentAcademicYearApplicability": "UNKNOWN"
+  },
+  "lexicalIndex": {
+    "profileId": "real-source-lexical-only-v1-20261026",
+    "provider": "NONE",
+    "model": "LEXICAL_ONLY_NO_EMBEDDINGS",
+    "chunkingVersion": "real-source-lexical-baseline-v1",
+    "runId": "c7ab3c68-5b44-4e87-9a1e-31b4e9d00001",
+    "indexedEntries": 8,
+    "entriesWithNullEmbedding": 8,
+    "scopesIncluded": [
+      "PUBLIC_ELECTIVE",
+      "PUBLIC_ELECTIVE_CREDIT_LIMIT",
+      "ELECTIVE_RETAKE"
+    ],
+    "finalProfileStatus": "ACTIVE_ISOLATED_DIAGNOSTIC",
+    "purpose": "Isolated offline lexical diagnostic only; not a vector or hybrid index."
+  },
+  "execution": {
+    "testClass": "com.zhku.knowledge.retrieval.RealCorpusLexicalBaselineTest",
+    "testsRun": 1,
+    "failures": 0,
+    "errors": 0,
+    "buildStatus": "SUCCESS",
+    "retrievalQueries": 10,
+    "distinctFrozenCases": 5,
+    "scopeModes": [
+      "ALL_ELIGIBLE_SCOPES",
+      "CONFIGURED_PUBLIC_ELECTIVE"
+    ],
+    "modelCalls": 0,
+    "embeddingApiCalls": 0,
+    "retrievalTestDatabaseWrites": 0,
+    "indexSetupWritesWereConfinedToIsolatedDatabase": true,
+    "testSourceRetained": false,
+    "note": "Uses the explicit ChineseBigramLexicalRanker evaluation path over real eligible database chunks. The configured-scope mode is a diagnostic simulation; local-preview RAG remains disabled."
+  },
+  "rankings": [
+    {
+      "caseId": "RSR-01",
+      "question": "公共选修课的学时上限是什么？",
+      "expectedLocator": "handbook-2025-article-5",
+      "targetChunkIds": [
+        "55815778-3038-33cb-9a23-7b1ed5efed4f"
+      ],
+      "allEligibleScopesTop5": [
+        "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+        "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf"
+      ],
+      "configuredPublicElectiveTop5": [
+        "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "b2213ca7-c40c-3054-ad75-fd2a058c7ade"
+      ],
+      "targetRankAllEligibleScopes": 2,
+      "targetRankConfiguredPublicElective": 2,
+      "bindingStatus": "CONTENT_HIT_LOCATOR_TOO_BROAD",
+      "note": "Chunk is student-eligible, but locator says physical page 76, articles 5–6 rather than isolating article 5."
+    },
+    {
+      "caseId": "RSR-02",
+      "question": "网络公选课的比例规则，分母是什么？",
+      "expectedLocator": "handbook-2025-article-8",
+      "internalOnlyChunkId": "39af6bf7-0ce5-3ffa-8d35-f0ee1c88ea26",
+      "internalOnlySourceId": "4a7c1e93-2f6b-4d18-9b05-3c8e7a1f5d42",
+      "allEligibleScopesTop5": [
+        "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf"
+      ],
+      "configuredPublicElectiveTop5": [
+        "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "357797d7-21f1-3fa4-942b-120f6bcc3f4a"
+      ],
+      "eligibleGoldEvidencePresent": false,
+      "internalChunkExcludedFromIndex": true,
+      "bindingStatus": "NOT_SCORABLE_AS_POSITIVE_STUDENT_RETRIEVAL_CASE",
+      "note": "The expected Article 8 evidence exists only in INTERNAL_ONLY / sharing-rights-unconfirmed content. A zero hit is correct for the student-visible path; v1's ANSWERED label conflicts with corpus qualification."
+    },
+    {
+      "caseId": "RSR-03",
+      "question": "一学期最多选多少公共选修学分？",
+      "expectedLocator": "handbook-2025-article-10",
+      "targetChunkId": "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+      "allEligibleScopesTop5": [
+        "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+        "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "b3cd386d-49fc-3224-8b3e-533f89dea106"
+      ],
+      "configuredPublicElectiveTop5": [
+        "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "b2213ca7-c40c-3054-ad75-fd2a058c7ade"
+      ],
+      "targetRankAllEligibleScopes": 1,
+      "targetRankConfiguredPublicElective": null,
+      "bindingStatus": "CONTENT_HIT_BUT_LOCATOR_AND_SCOPE_MISMATCH",
+      "note": "Chunk is eligible under PUBLIC_ELECTIVE_CREDIT_LIMIT, but app config uses PUBLIC_ELECTIVE. Database page_number is 76 and locator says pages 76–77 / articles 8 and 10; the source PDF places Article 10 on physical page 77."
+    },
+    {
+      "caseId": "RSR-04",
+      "question": "已经合格的公选课，或与专业计划相近的课，可以再选吗？",
+      "expectedLocator": "handbook-2025-article-11",
+      "targetChunkId": "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+      "allEligibleScopesTop5": [
+        "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "b3cd386d-49fc-3224-8b3e-533f89dea106"
+      ],
+      "configuredPublicElectiveTop5": [
+        "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+        "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "55815778-3038-33cb-9a23-7b1ed5efed4f"
+      ],
+      "targetRankAllEligibleScopes": 1,
+      "targetRankConfiguredPublicElective": 1,
+      "bindingStatus": "PASS_LEXICAL_RETRIEVAL_DIAGNOSTIC",
+      "note": "Student-eligible chunk locator is physical page 77, Article 11, and content covers both prohibitions."
+    },
+    {
+      "caseId": "RSR-05",
+      "question": "我说的是选修课，但没说是哪一类，能判断缓考和重修吗？",
+      "expectedLocators": [
+        "handbook-2025-article-4",
+        "handbook-2025-article-18"
+      ],
+      "requiredChunkGroups": {
+        "article4Category": [
+          "ac78ed6c-5147-32a6-8297-c4c7967a9d1e"
+        ],
+        "publicRetakeBranch": [
+          "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+          "8760f9a1-27c4-3fd3-9871-9209e2a398f0"
+        ],
+        "professionalRetakeBranch": [
+          "b3cd386d-49fc-3224-8b3e-533f89dea106"
+        ]
+      },
+      "allEligibleScopesTop5": [
+        "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+        "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "b3cd386d-49fc-3224-8b3e-533f89dea106",
+        "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf"
+      ],
+      "configuredPublicElectiveTop5": [
+        "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+        "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+        "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+        "55815778-3038-33cb-9a23-7b1ed5efed4f",
+        "b2213ca7-c40c-3054-ad75-fd2a058c7ade"
+      ],
+      "article4RankAllEligibleScopes": null,
+      "article4RankConfiguredPublicElective": 3,
+      "publicRetakeRankAllEligibleScopes": 1,
+      "publicRetakeRankConfiguredPublicElective": 1,
+      "professionalRetakeRankAllEligibleScopes": 3,
+      "professionalRetakeRankConfiguredPublicElective": null,
+      "completeEvidenceSetAllEligibleScopes": false,
+      "completeEvidenceSetConfiguredPublicElective": false,
+      "bindingStatus": "INCOMPLETE_EVIDENCE_AT_TOP5",
+      "note": "All-scope search finds both Article 18 branches but misses Article 4 in top 5. PUBLIC_ELECTIVE scope finds Article 4 and public branch but excludes the professional-retake chunk in ELECTIVE_RETAKE."
+    }
+  ],
+  "metrics": {
+    "recallAt5": null,
+    "mrr": null,
+    "reason": "The frozen v1 positive gold set is not fully qualified against student-visible corpus: RSR-02's gold is intentionally internal-only, RSR-03's target locator/page is too broad and its scope differs from configured PUBLIC_ELECTIVE, and RSR-05's locator-level gold under-specifies the separate public/professional evidence branches. Per-case ranks are diagnostic only."
+  }
+}
