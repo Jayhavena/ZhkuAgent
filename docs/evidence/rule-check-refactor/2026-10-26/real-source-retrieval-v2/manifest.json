@@ -1,0 +1,48 @@
+{
+    "schemaVersion":  1,
+    "datasetId":  "zhkuagent-real-source-retrieval",
+    "datasetVersion":  "v2.0.0-rc1",
+    "status":  "CANDIDATE_PENDING_INDEPENDENT_REVIEW",
+    "generatedAt":  "2026-10-26",
+    "corpusFingerprint":  "4fd00ba1c8154fa7f4389cde6b64fe7276b5ce36ae05a6c87224ee9d465980f0",
+    "sourceSnapshotSha256":  "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
+    "frozenV1DatasetSha256":  "bc9e5a8088540577b0deb6c8aaab984497144028e91bf72cb9b99dcc402ec223",
+    "counts":  {
+                   "totalCases":  18,
+                   "positiveRetrievalCases":  15,
+                   "authorizationExclusionCases":  1,
+                   "scopeContractCases":  2,
+                   "corpusChunks":  17,
+                   "eligibleChunks":  8,
+                   "excludedChunks":  9
+               },
+    "artifacts":  {
+                      "casesSha256":  "27a14c37965450e675f5cbc24cbdb741e15d1b682765c1a4921a99588701f442",
+                      "corpusSnapshotSha256":  "0724e24e4c2bf2283a08294b34cbd1c7b75c24635269ead40b1ad1656bad8838",
+                      "readmeSha256":  "84d9921dcf12675f88f306e51a2e8e4a7d840f95dd8ce2eff56c103554d63a85",
+                      "validatorSha256":  "99cfe95199820be4d484cca85886c81ecac4d8711108288e886ebf9b4898d4bc",
+                      "scorerSha256":  "bab8b8c74cc81d30e3d9798bd8db4307540ac4d75cd38cdfd0ca31475387e069"
+                  },
+    "validation":  {
+                       "script":  "validate-v2.ps1",
+                       "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File .\\validate-v2.ps1",
+                       "lastRun":  "2026-10-26",
+                       "result":  "PASS",
+                       "networkCalls":  0,
+                       "databaseWrites":  0,
+                       "modelCalls":  0,
+                       "scorerSelfTest":  "PASS",
+                       "scorerSelfTestExpectedMetrics":  "All three algorithms: Recall@5=1, MRR=1, CompleteEvidenceSetRate@5=1, all gates zero on controlled fixture.",
+                       "v2RetrievalComparisonExecuted":  false,
+                       "embeddingApiCallsForV2":  0,
+                       "scorerNegativeGateTest":  "PASS",
+                       "scorerNegativeGateTestDetails":  "Deliberately injected one restricted chunk leak and one out-of-scope chunk; both were detected. Temporary fixture removed."
+                   },
+    "limitations":  [
+                        "Candidate development set; not independently reviewed or blind.",
+                        "Only eight eligible chunks; not representative of production-wide retrieval.",
+                        "Original PDF is not present in repository; database source-to-PDF binding remains unverified.",
+                        "Strict locator accuracy is disabled; article 9 wording requires original-PDF verification.",
+                        "Permission exclusion case requires a dedicated non-sensitive fixture to exercise filter rejection against excluded candidates."
+                    ]
+}

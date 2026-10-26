@@ -1,0 +1,560 @@
+{
+  "schemaVersion": 2,
+  "datasetId": "zhkuagent-real-source-retrieval",
+  "datasetVersion": "v2.0.0-rc1",
+  "createdAt": "2026-10-26",
+  "status": "CANDIDATE_PENDING_INDEPENDENT_REVIEW",
+  "evaluationLayer": "RETRIEVAL",
+  "purpose": "Controlled development comparison of lexical, vector, and RRF retrieval over the same frozen set of eligible real-corpus chunks.",
+  "sourceSnapshot": {
+    "documentId": "handbook-2025.9.2",
+    "documentTitle": "2025版学生手册2025.9.2.pdf",
+    "regulationTitle": "《仲恺农业工程学院选修课程管理办法》",
+    "documentNumber": "仲字〔2021〕65号",
+    "sha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
+    "byteLength": 5526012,
+    "pageCount": 339,
+    "physicalPagesUsed": [76, 77],
+    "printedPagesUsed": [64, 65],
+    "currentAcademicYearApplicability": "UNKNOWN",
+    "officialOnlineAttachmentByteMatch": "NOT_VERIFIED",
+    "databaseSourceToPdfBinding": "UNVERIFIED"
+  },
+  "corpusSnapshot": {
+    "path": "corpus-snapshot.json",
+    "corpusFingerprintAlgorithm": "SHA-256",
+    "corpusFingerprint": "4fd00ba1c8154fa7f4389cde6b64fe7276b5ce36ae05a6c87224ee9d465980f0",
+    "totalDatabaseChunks": 17,
+    "eligibleChunks": 8,
+    "excludedChunks": 9,
+    "eligibleCandidatePool": "Only chunks satisfying PUBLISHED + STUDENT_VISIBLE + sharing_rights_confirmed=true.",
+    "sourceBindingCaveat": "The fingerprint binds current database chunk/source metadata and content checksums. It does not prove the database source rows were imported from the cited PDF; source_url is empty and the original PDF is not present in this repository."
+  },
+  "setPolicy": {
+    "samplingStatus": "TARGETED_COVERAGE_OF_CURRENT_ELIGIBLE_CORPUS",
+    "caseQuestionOrigin": "AI_DRAFTED_FROM_EXISTING_REAL_CHUNK_CONTENT",
+    "studentLogsUsed": false,
+    "blind": false,
+    "reportHoldout": false,
+    "independentSecondReviewer": false,
+    "annotationStatus": "PROVISIONAL_REQUIRES_HUMAN_AND_INDEPENDENT_REVIEW",
+    "splitPolicy": "All scored retrieval cases remain in DEVELOPMENT. Do not randomly split paraphrases from the same queryFamily across train/dev/test.",
+    "generalizationLimit": "Eight eligible chunks are a small diagnostic corpus. This set can compare algorithm behavior on this snapshot, but cannot estimate production-wide retrieval quality."
+  },
+  "retrievalProtocol": {
+    "primaryScopeMode": "ALL_ELIGIBLE_STUDENT_VISIBLE",
+    "secondaryScopeMode": "CONFIGURED_PUBLIC_ELECTIVE",
+    "candidatePoolMustBeIdenticalAcrossAlgorithms": true,
+    "candidatePoolFingerprint": "4fd00ba1c8154fa7f4389cde6b64fe7276b5ce36ae05a6c87224ee9d465980f0",
+    "eligibleChunkIdSetSha256": "a9a21f6b878ac932d5994195cd052e4efdfcf5d64b0eeb8831818c23be9855eb",
+    "fixedEvidenceUnit": "existing database chunk identified by chunkId + contentChecksum",
+    "rechunkingDuringAlgorithmComparison": false,
+    "resultLimitK": 5,
+    "candidateLimitPerPath": 8,
+    "rrfK": 60,
+    "retrieversToCompare": ["LEXICAL", "VECTOR", "RRF_HYBRID"],
+    "eligibilityRule": "publication_status=PUBLISHED AND visibility_scope=STUDENT_VISIBLE AND sharing_rights_confirmed=true",
+    "indexingRule": "Use only the eight eligible chunks in corpus-snapshot.json for external Embedding calls. Never send excluded/internal/archived chunk content to an Embedding provider.",
+    "indexSnapshots": {
+      "lexical": {
+        "profileId": "real-source-lexical-only-v1-20261026",
+        "profileStatus": "ACTIVE_ISOLATED_DIAGNOSTIC",
+        "provider": "NONE",
+        "model": "LEXICAL_ONLY_NO_EMBEDDINGS",
+        "dimensions": 1,
+        "chunkingVersion": "real-source-lexical-baseline-v1",
+        "entryCount": 8,
+        "entriesWithVectors": 0
+      },
+      "vector": {
+        "profileId": "dashscope-text-embedding-v4-1024",
+        "profileStatus": "BUILDING",
+        "provider": "dashscope",
+        "model": "text-embedding-v4",
+        "dimensions": 1024,
+        "chunkingVersion": "real-source-embedding-v1-20261026",
+        "entryCount": 8,
+        "entriesWithVectors": 8
+      },
+      "sameChunkIdSetVerified": true,
+      "verificationMethod": "Read-only query of isolated evaluation database on 2026-10-26; both profiles have the same eight distinct chunk IDs listed in eligibleChunkIdSetSha256."
+    },
+    "runModesMustBeReportedSeparately": true
+  },
+  "metricContract": {
+    "primary": ["Recall@5", "MRR"],
+    "completeness": ["CompleteEvidenceSetRate@5"],
+    "securityAndScopeGates": ["ForbiddenChunkLeakCount", "ScopeViolationCount"],
+    "recallDenominator": "Number of distinct required eligible chunkIds in each POSITIVE_RETRIEVAL case.",
+    "mrrDefinition": "Reciprocal rank of the first required chunk hit; supplementary for multi-evidence cases.",
+    "completeEvidenceSetDefinition": "A case passes only if every requiredEvidence.chunkId appears in Top 5.",
+    "securityAndScopeCasesCountTowardRecall": false,
+    "strictLocatorAccuracyAvailable": false,
+    "strictLocatorAccuracyReason": "The database source-to-PDF binding is not independently verifiable, and some chunks span multiple articles or have known locator/page mismatch.",
+    "doNotCombineWithSyntheticCorpusScores": true,
+    "doNotUseDevelopmentScoresAsProductionQualityClaims": true
+  },
+  "globalRetrievalGates": {
+    "everyReturnedChunkMustExistInCorpusSnapshot": true,
+    "everyReturnedChunkMustBeEligibleForStudentRetrieval": true,
+    "everyReturnedChunkMustMatchSnapshotContentChecksum": true,
+    "forbiddenChunkIds": [
+      "39af6bf7-0ce5-3ffa-8d35-f0ee1c88ea26",
+      "45509ad4-cc9e-3187-ac3f-904169342088",
+      "51caa285-3290-3aa4-ba35-cebaee4765ee",
+      "b6d639d7-c6dc-3854-8691-4a8f5ee18e35",
+      "bfc598f0-54fb-32e0-9a5d-2c5886b59fbf",
+      "270795fa-4652-35b5-95e4-fd83ee7d1eb0",
+      "91ed2702-d849-305e-8cf7-c796cd096ad2",
+      "cf813efd-05f9-35b9-8d1b-f2341122cbb1",
+      "ebfbca01-42c5-30f7-a565-dcc73614a638"
+    ],
+    "gateResultMustBeReportedSeparatelyFromRetrievalMetrics": true
+  },
+  "cases": [
+    {
+      "caseId": "RSV2-RET-001",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-5-hours",
+      "question": "公共选修课授课时间原则上是多少学时，最多不超过多少？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "55815778-3038-33cb-9a23-7b1ed5efed4f",
+          "sourceId": "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+          "contentChecksum": "F03C35C5EA06D64907B5A384DF13E74DAF18A8469EB53B5A18C6E33D36F38494",
+          "knowledgeScope": "PUBLIC_ELECTIVE",
+          "pageNumber": 76,
+          "sourceLocator": "PDF 第 76 页，第 5—6 条",
+          "articleNumbers": [5],
+          "locatorGranularity": "MULTI_ARTICLE_CHUNK"
+        }
+      ],
+      "expectedFacts": ["公共选修课授课时间原则上为16学时", "最多不超过32学时"],
+      "criticalConstraints": ["必须保留“原则上”限定", "单位是学时，不是学分"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-002",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-6-opening-enrollment",
+      "question": "校内公选课一般要达到多少选课人数才开课？少于多少人不开？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "55815778-3038-33cb-9a23-7b1ed5efed4f",
+          "sourceId": "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+          "contentChecksum": "F03C35C5EA06D64907B5A384DF13E74DAF18A8469EB53B5A18C6E33D36F38494",
+          "knowledgeScope": "PUBLIC_ELECTIVE",
+          "pageNumber": 76,
+          "sourceLocator": "PDF 第 76 页，第 5—6 条",
+          "articleNumbers": [6],
+          "locatorGranularity": "MULTI_ARTICLE_CHUNK"
+        }
+      ],
+      "expectedFacts": ["选课人数一般要求30—150人", "低于30人不予开课"],
+      "criticalConstraints": ["保留“一般”限定", "不得把人数门槛改写为学分或学时"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-003",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-4-course-categories",
+      "question": "学校的选修课程分为哪两类？公共选修课又包括哪些类型？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+          "sourceId": "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+          "contentChecksum": "82DD936979EEA8272D7D716A35758D4A468186377C5C1B9CA4D044300659CE62",
+          "knowledgeScope": "PUBLIC_ELECTIVE",
+          "pageNumber": 76,
+          "sourceLocator": "PDF 第 76 页，第 2、4 条",
+          "articleNumbers": [4],
+          "locatorGranularity": "MULTI_ARTICLE_CHUNK"
+        }
+      ],
+      "expectedFacts": ["选修课程分为专业选修课和公共选修课", "公共选修课包括校内公选课和网络公选课"],
+      "criticalConstraints": ["不能把专业选修课和公共选修课混为一类", "不能遗漏网络公选课这一子类"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-004",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-10-credit-limit",
+      "question": "按这份2025版文本，每学期公共选修课最多修多少学分？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE_AND_VERSION_CAVEAT",
+      "requiredEvidence": [
+        {
+          "chunkId": "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+          "sourceId": "f4d0b0a0-c78a-4c7a-94e0-9b2942d0b8f5",
+          "contentChecksum": "78F0FEA7B9927618E899FEE4E58790AACDD4A60206640E6EB6F1F0843D86E4A3",
+          "knowledgeScope": "PUBLIC_ELECTIVE_CREDIT_LIMIT",
+          "pageNumber": 76,
+          "sourceLocator": "PDF 第 76—77 页，第 8、10 条",
+          "articleNumbers": [10],
+          "locatorGranularity": "KNOWN_PAGE_AND_ARTICLE_BINDING_MISMATCH"
+        }
+      ],
+      "expectedFacts": ["每学期公共选修课最高不得超过4学分"],
+      "criticalConstraints": ["必须保留“每学期”范围", "不能改写为毕业总学分上限", "不得声称该2025文本已确认适用于当前学年"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-005",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-13-selection-notice",
+      "question": "公共选修课的选课、退选、补选和改选应按照什么办理？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "357797d7-21f1-3fa4-942b-120f6bcc3f4a",
+          "sourceId": "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+          "contentChecksum": "74418E28816F36A869988C513C2A7915BBFB2468A58DBE077B855F4703B2DB5C",
+          "knowledgeScope": "PUBLIC_ELECTIVE",
+          "pageNumber": 77,
+          "sourceLocator": "PDF 第 77 页，第 9、13 条",
+          "articleNumbers": [13],
+          "locatorGranularity": "MULTI_ARTICLE_CHUNK"
+        }
+      ],
+      "expectedFacts": ["选课、退选、补选和改选应按照每学期《课程选课工作通知》办理"],
+      "criticalConstraints": ["不能自行编造当期通知中的具体日期", "不能把通用办法当作当前学期通知"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-006",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-11-similar-course",
+      "question": "能不能选修与本专业教学计划相同或相近的课程？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+          "sourceId": "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+          "contentChecksum": "BE2BA544CDB3A5D98183EF92CF1A70B6C1CA6CCAB97311C0A41CFA3891034DA3",
+          "knowledgeScope": "PUBLIC_ELECTIVE",
+          "pageNumber": 77,
+          "sourceLocator": "PDF 第 77 页，第 11 条",
+          "articleNumbers": [11],
+          "locatorGranularity": "ARTICLE_LEVEL_LABEL_DATABASE_PDF_BINDING_UNVERIFIED"
+        }
+      ],
+      "expectedFacts": ["不得选修与本专业教学计划相同或相近的课程"],
+      "criticalConstraints": ["不能仅回答“相同课程”而漏掉“相近课程”"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-007",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-11-repeat-passed-course",
+      "question": "已经考核合格的课程还可以重复修读吗？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "b2213ca7-c40c-3054-ad75-fd2a058c7ade",
+          "sourceId": "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+          "contentChecksum": "BE2BA544CDB3A5D98183EF92CF1A70B6C1CA6CCAB97311C0A41CFA3891034DA3",
+          "knowledgeScope": "PUBLIC_ELECTIVE",
+          "pageNumber": 77,
+          "sourceLocator": "PDF 第 77 页，第 11 条",
+          "articleNumbers": [11],
+          "locatorGranularity": "ARTICLE_LEVEL_LABEL_DATABASE_PDF_BINDING_UNVERIFIED"
+        }
+      ],
+      "expectedFacts": ["已考核合格的课程不得重复修读"],
+      "criticalConstraints": ["不能把重复修读规则误述为所有不及格课程都不能重修"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-008",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-18-public-elective-retake",
+      "question": "公共选修课成绩不合格后，学校安排重修吗？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+          "sourceId": "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+          "contentChecksum": "374D587AC82A0BDE78BD3FBD6F63D99036E656C2CC7AE27B9E0648C471130576",
+          "knowledgeScope": "ELECTIVE_RETAKE",
+          "pageNumber": 77,
+          "sourceLocator": "PDF 第 77 页，第 18 条",
+          "articleNumbers": [18],
+          "locatorGranularity": "ARTICLE_LEVEL_LABEL_DATABASE_PDF_BINDING_UNVERIFIED"
+        }
+      ],
+      "expectedFacts": ["公共选修课成绩不合格者不安排重修"],
+      "criticalConstraints": ["不得与专业选修课规则混淆"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-009",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-18-public-elective-deferral",
+      "question": "公共选修课可以办理缓考吗？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+          "sourceId": "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+          "contentChecksum": "374D587AC82A0BDE78BD3FBD6F63D99036E656C2CC7AE27B9E0648C471130576",
+          "knowledgeScope": "ELECTIVE_RETAKE",
+          "pageNumber": 77,
+          "sourceLocator": "PDF 第 77 页，第 18 条",
+          "articleNumbers": [18],
+          "locatorGranularity": "ARTICLE_LEVEL_LABEL_DATABASE_PDF_BINDING_UNVERIFIED"
+        }
+      ],
+      "expectedFacts": ["公共选修课不办理缓考"],
+      "criticalConstraints": ["不能将“不办理缓考”误写为“缓考后自动重修”"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-010",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-18-professional-elective-retake",
+      "question": "专业选修课成绩不合格，可以申请重修学习吗？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "b3cd386d-49fc-3224-8b3e-533f89dea106",
+          "sourceId": "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+          "contentChecksum": "F2C7C7BCA8618006B1B31E2236F168645E62D7848E7C1D67D7B1B99FF8BF586E",
+          "knowledgeScope": "ELECTIVE_RETAKE",
+          "pageNumber": 77,
+          "sourceLocator": "PDF 第 77 页，第 18 条",
+          "articleNumbers": [18],
+          "locatorGranularity": "ARTICLE_LEVEL_LABEL_DATABASE_PDF_BINDING_UNVERIFIED"
+        }
+      ],
+      "expectedFacts": ["专业选修课成绩不合格者可申请重修学习"],
+      "criticalConstraints": ["必须保留“可申请”，不得改写为自动重修或保证获批"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-011",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-15-absence-threshold",
+      "question": "缺课累计超过该门课程学期总学时数的30%，会有什么后果？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+          "sourceId": "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+          "contentChecksum": "5489F63B518E5BB787F123404AD718766F635CAD007D2DBA57DA39D675DBA803",
+          "knowledgeScope": "PUBLIC_ELECTIVE",
+          "pageNumber": 77,
+          "sourceLocator": "PDF 第 77 页，第 14—15、18 条",
+          "articleNumbers": [15],
+          "locatorGranularity": "MULTI_ARTICLE_CHUNK"
+        }
+      ],
+      "expectedFacts": ["平时成绩评定为不及格", "不允许参加课终考核", "课程成绩按0分登记"],
+      "criticalConstraints": ["阈值是超过30%，不是达到30%", "不得遗漏不允许参加课终考核这一后果"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-012",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-14-unprocessed-withdrawal",
+      "question": "选课结束后没有正式办理退选或改选手续，也不参加学习和考核，成绩如何记？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "8760f9a1-27c4-3fd3-9871-9209e2a398f0",
+          "sourceId": "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+          "contentChecksum": "5489F63B518E5BB787F123404AD718766F635CAD007D2DBA57DA39D675DBA803",
+          "knowledgeScope": "PUBLIC_ELECTIVE",
+          "pageNumber": 77,
+          "sourceLocator": "PDF 第 77 页，第 14—15、18 条",
+          "articleNumbers": [14],
+          "locatorGranularity": "MULTI_ARTICLE_CHUNK"
+        }
+      ],
+      "expectedFacts": ["成绩按0分记入学生成绩单"],
+      "criticalConstraints": ["条件包括未正式办理退选或改选且不参加学习和考核", "不得脱离条件概括为所有缺考都记0分"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-013",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-18-public-vs-professional-retake",
+      "question": "公共选修课和专业选修课成绩不合格后的处理分别是什么？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+          "sourceId": "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+          "contentChecksum": "374D587AC82A0BDE78BD3FBD6F63D99036E656C2CC7AE27B9E0648C471130576",
+          "knowledgeScope": "ELECTIVE_RETAKE",
+          "pageNumber": 77,
+          "sourceLocator": "PDF 第 77 页，第 18 条",
+          "articleNumbers": [18],
+          "locatorGranularity": "ARTICLE_LEVEL_LABEL_DATABASE_PDF_BINDING_UNVERIFIED"
+        },
+        {
+          "chunkId": "b3cd386d-49fc-3224-8b3e-533f89dea106",
+          "sourceId": "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+          "contentChecksum": "F2C7C7BCA8618006B1B31E2236F168645E62D7848E7C1D67D7B1B99FF8BF586E",
+          "knowledgeScope": "ELECTIVE_RETAKE",
+          "pageNumber": 77,
+          "sourceLocator": "PDF 第 77 页，第 18 条",
+          "articleNumbers": [18],
+          "locatorGranularity": "ARTICLE_LEVEL_LABEL_DATABASE_PDF_BINDING_UNVERIFIED"
+        }
+      ],
+      "expectedFacts": ["公共选修课成绩不合格者不安排重修", "专业选修课成绩不合格者可申请重修学习"],
+      "criticalConstraints": ["两个分支都必须有证据", "不得把公共选修课规则套用到专业选修课"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-014",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-4-and-18-category-plus-retake",
+      "question": "学校选修课分哪两类？这两类课程成绩不合格后分别怎么处理？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+          "sourceId": "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+          "contentChecksum": "82DD936979EEA8272D7D716A35758D4A468186377C5C1B9CA4D044300659CE62",
+          "knowledgeScope": "PUBLIC_ELECTIVE",
+          "pageNumber": 76,
+          "sourceLocator": "PDF 第 76 页，第 2、4 条",
+          "articleNumbers": [4],
+          "locatorGranularity": "MULTI_ARTICLE_CHUNK"
+        },
+        {
+          "chunkId": "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+          "sourceId": "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+          "contentChecksum": "374D587AC82A0BDE78BD3FBD6F63D99036E656C2CC7AE27B9E0648C471130576",
+          "knowledgeScope": "ELECTIVE_RETAKE",
+          "pageNumber": 77,
+          "sourceLocator": "PDF 第 77 页，第 18 条",
+          "articleNumbers": [18],
+          "locatorGranularity": "ARTICLE_LEVEL_LABEL_DATABASE_PDF_BINDING_UNVERIFIED"
+        },
+        {
+          "chunkId": "b3cd386d-49fc-3224-8b3e-533f89dea106",
+          "sourceId": "72e1a0a5-4c9e-4f86-b5fd-2fe2a3957c14",
+          "contentChecksum": "F2C7C7BCA8618006B1B31E2236F168645E62D7848E7C1D67D7B1B99FF8BF586E",
+          "knowledgeScope": "ELECTIVE_RETAKE",
+          "pageNumber": 77,
+          "sourceLocator": "PDF 第 77 页，第 18 条",
+          "articleNumbers": [18],
+          "locatorGranularity": "ARTICLE_LEVEL_LABEL_DATABASE_PDF_BINDING_UNVERIFIED"
+        }
+      ],
+      "expectedFacts": ["选修课程分为专业选修课和公共选修课", "公共选修课成绩不合格者不安排重修", "专业选修课成绩不合格者可申请重修学习"],
+      "criticalConstraints": ["三组必要证据必须全部召回", "不得把两个分支合并成同一结论"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-RET-015",
+      "caseClass": "POSITIVE_RETRIEVAL",
+      "split": "DEVELOPMENT",
+      "queryFamily": "article-4-course-categories",
+      "question": "公共选修课包括校内公选课和哪些其他类型？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "requiredEvidence": [
+        {
+          "chunkId": "ac78ed6c-5147-32a6-8297-c4c7967a9d1e",
+          "sourceId": "6b2f4c18-0d5a-4e73-9a41-7c1e8f2b6d05",
+          "contentChecksum": "82DD936979EEA8272D7D716A35758D4A468186377C5C1B9CA4D044300659CE62",
+          "knowledgeScope": "PUBLIC_ELECTIVE",
+          "pageNumber": 76,
+          "sourceLocator": "PDF 第 76 页，第 2、4 条",
+          "articleNumbers": [4],
+          "locatorGranularity": "MULTI_ARTICLE_CHUNK"
+        }
+      ],
+      "expectedFacts": ["公共选修课包括校内公选课和网络公选课"],
+      "criticalConstraints": ["不得遗漏网络公选课"],
+      "scoring": {"recallAt5": true, "mrr": true, "completeEvidenceSetAt5": true, "strictLocatorAccuracy": false}
+    },
+    {
+      "caseId": "RSV2-AUTH-001",
+      "caseClass": "AUTHORIZATION_EXCLUSION",
+      "split": "DEVELOPMENT_GATE_ONLY",
+      "queryFamily": "article-8-restricted-ratio-evidence",
+      "question": "网络公选课比例规则的分母是什么？",
+      "expectedDisposition": "NO_ELIGIBLE_EVIDENCE_DO_NOT_ANSWER_FROM_RESTRICTED_SOURCES",
+      "requiredEvidence": [],
+      "restrictedCandidateChunkIds": [
+        "39af6bf7-0ce5-3ffa-8d35-f0ee1c88ea26",
+        "51caa285-3290-3aa4-ba35-cebaee4765ee"
+      ],
+      "mustNotReturnChunkIds": [
+        "39af6bf7-0ce5-3ffa-8d35-f0ee1c88ea26",
+        "45509ad4-cc9e-3187-ac3f-904169342088",
+        "51caa285-3290-3aa4-ba35-cebaee4765ee",
+        "b6d639d7-c6dc-3854-8691-4a8f5ee18e35",
+        "bfc598f0-54fb-32e0-9a5d-2c5886b59fbf",
+        "270795fa-4652-35b5-95e4-fd83ee7d1eb0",
+        "91ed2702-d849-305e-8cf7-c796cd096ad2",
+        "cf813efd-05f9-35b9-8d1b-f2341122cbb1",
+        "ebfbca01-42c5-30f7-a565-dcc73614a638"
+      ],
+      "scoring": {"recallAt5": false, "mrr": false, "completeEvidenceSetAt5": false, "strictLocatorAccuracy": false, "countAsSecurityGate": true},
+      "executionCaveat": "The current real-corpus retrieval index intentionally contains only the eight eligible chunks. This case must not be presented as an end-to-end filter test unless a separate isolated fixture includes excluded metadata rows without sending restricted text to an external Embedding provider."
+    },
+    {
+      "caseId": "RSV2-SCOPE-001",
+      "caseClass": "SCOPE_CONTRACT",
+      "split": "DEVELOPMENT_GATE_ONLY",
+      "queryFamily": "configured-public-elective-scope-credit-limit",
+      "question": "每学期公共选修课最高修读多少学分？",
+      "requiredScope": "PUBLIC_ELECTIVE",
+      "expectedDisposition": "DO_NOT_ANSWER_FROM_OUT_OF_SCOPE_EVIDENCE",
+      "requiredEvidence": [],
+      "mustNotReturnChunkIds": ["e2dc2c7a-ce97-32db-9506-b7c29d2a15bf"],
+      "outOfScopeEvidence": [
+        {
+          "chunkId": "e2dc2c7a-ce97-32db-9506-b7c29d2a15bf",
+          "knowledgeScope": "PUBLIC_ELECTIVE_CREDIT_LIMIT"
+        }
+      ],
+      "scoring": {"recallAt5": false, "mrr": false, "completeEvidenceSetAt5": false, "strictLocatorAccuracy": false, "countAsScopeGate": true}
+    },
+    {
+      "caseId": "RSV2-SCOPE-002",
+      "caseClass": "SCOPE_CONTRACT",
+      "split": "DEVELOPMENT_GATE_ONLY",
+      "queryFamily": "configured-public-elective-scope-professional-retake",
+      "question": "专业选修课成绩不合格后能否申请重修学习？",
+      "requiredScope": "PUBLIC_ELECTIVE",
+      "expectedDisposition": "DO_NOT_ANSWER_FROM_OUT_OF_SCOPE_EVIDENCE",
+      "requiredEvidence": [],
+      "mustNotReturnChunkIds": [
+        "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+        "b3cd386d-49fc-3224-8b3e-533f89dea106"
+      ],
+      "outOfScopeEvidence": [
+        {
+          "chunkId": "06766d1e-2f83-3f8d-9a1d-1b66b2700a06",
+          "knowledgeScope": "ELECTIVE_RETAKE"
+        },
+        {
+          "chunkId": "b3cd386d-49fc-3224-8b3e-533f89dea106",
+          "knowledgeScope": "ELECTIVE_RETAKE"
+        }
+      ],
+      "scoring": {"recallAt5": false, "mrr": false, "completeEvidenceSetAt5": false, "strictLocatorAccuracy": false, "countAsScopeGate": true}
+    }
+  ]
+}
