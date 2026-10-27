@@ -69,10 +69,13 @@ final class RuleAgentThreeQuestionPackage {
                 .divide(BigDecimal.valueOf(1000000));
     }
     private static ObjectNode definition(Path root, Path assets, String id) throws Exception {
-        root = root.toRealPath(); assets = assets.toRealPath();
+        root = root.toRealPath();
+        JsonNode executionPlan = plan(root);
+        // Prepare/Verify 同样先拒绝过期报价，不能先访问资产或生成一个已失效的包。
+        tariff(executionPlan, Clock.systemUTC());
+        assets = assets.toRealPath();
         var pack = JSON.createObjectNode().put("purpose", PURPOSE).put("authorizationStatus", "NOT_AUTHORIZED")
                 .put("batchId", id).put("previousAuthorization", "CLOSED_NOT_REUSED").put("codeRoot", root.toString()).put("assetsRoot", assets.toString());
-        JsonNode executionPlan = plan(root);
         boolean single = e02Profile();
         if (single) {
             pack.put("purpose", RuleAgentE02Policy.PURPOSE);

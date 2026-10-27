@@ -1,5 +1,5 @@
 #requires -Version 7.0
-<# 仅测试classpath入口；默认Prepare不读模型凭证、不建数据库。Live必须另获本包SHA/16.10元授权。 #>
+<# 仅测试classpath入口；默认Prepare不读模型凭证、不建数据库。Live必须另获本包SHA、对应档位硬帽及新授权编号。 #>
 param(
  [ValidateSet('Prepare','Verify','Assembly','Live','PageFixture')][string]$Operation='Prepare',
  [ValidateSet('Three','E02')][string]$Profile='Three',
@@ -13,9 +13,17 @@ param(
  [string]$ApprovedSha256,
  [string]$ApprovedBudgetRmb,
  [string]$AuthorizationId,
- [ValidateRange(1024,65535)][int]$DatabasePort=55527
+ [ValidateRange(1024,65535)][int]$DatabasePort=55527,
+ [string]$HandbookPdf
 )
 $ErrorActionPreference='Stop'
+# 档位硬帽必须在路径、端口和凭证操作前一致，避免误把三题额度用于 E02。
+$expectedHardBudgetRmb=if($Profile -eq 'E02'){'4.02'}else{'16.10'}
+if($HardBudgetRmb -ne $expectedHardBudgetRmb){throw "档位与硬预算不匹配：$Profile 仅允许 $expectedHardBudgetRmb 元"}
+# 无授权的 Live 在资源和凭证边界前失败，不能先触碰旧包或数据库。
+if($Operation-eq 'Live'){
+ if($PackageSha256-notmatch '\A[a-f0-9]{64}\z'-or $ApprovedSha256-ne $PackageSha256-or $ApprovedBudgetRmb-ne $HardBudgetRmb-or $AuthorizationId-notmatch '\A[A-Za-z0-9._-]{1,128}\z'-or $AuthorizationId-eq 'LOCAL_TEST_ONLY'){throw "Live须先获本包SHA、$HardBudgetRmb元硬预算及新授权编号的明确人工授权"}
+}
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 # ONLINE页面预检只能附着零执行Assembly；绝不借此打开Live或沿用旧三题授权。
 if($PageProxyPort -ne 0){
@@ -38,18 +46,16 @@ if($Operation -eq 'PageFixture'){
 if(!$AssetsRoot -or !$BatchDirectory){throw '非页面操作仍须显式AssetsRoot和BatchDirectory'}
 $assets=(Resolve-Path -LiteralPath $AssetsRoot).Path
 # E02 单题与三题各自独立证据根：不共用批次目录，也不续用旧授权。
-$evidence=(Join-Path $root ($(if($Profile-eq 'E02'){'docs/evidence/rule-check-refactor/2026-10-27/e02-single-page-live'}else{'docs/evidence/rule-check-refactor/2026-10-26/three-question-online-prepare'})))
+$evidence=(Join-Path $root ($(if($Profile-eq 'E02'){'docs/evidence/rule-check-refactor/2026-10-28/e02-single-page-live'}else{'docs/evidence/rule-check-refactor/2026-10-26/three-question-online-prepare'})))
 $batch=[IO.Path]::GetFullPath($BatchDirectory)
 if(!$batch.StartsWith($evidence+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw '本批只允许独立证据目录内的子目录'}
 if($Operation-eq 'Prepare'){
  if(Test-Path -LiteralPath $batch){throw '不覆盖已有批次；另建新目录'}
  [void][IO.Directory]::CreateDirectory((Split-Path -Parent $batch))
 }else{
- if(!(Test-Path -LiteralPath (Join-Path $batch 'request-package.json') -PathType Leaf)-or $PackageSha256-notmatch '^[a-f0-9]{64}$'){throw '须显式提供已有包与完整SHA'}
+ if(!(Test-Path -LiteralPath (Join-Path $batch 'request-package.json') -PathType Leaf)-or $PackageSha256-notmatch '\A[a-f0-9]{64}\z'){throw '须显式提供已有包与完整SHA'}
 }
-if($Operation-eq 'Live'){
- if($ApprovedSha256-ne $PackageSha256-or $ApprovedBudgetRmb-ne $HardBudgetRmb-or $AuthorizationId-notmatch '^[A-Za-z0-9._-]{1,128}$'-or $AuthorizationId-eq 'LOCAL_TEST_ONLY'){throw "Live须先获本包SHA、$HardBudgetRmb元硬预算及新授权编号的明确人工授权"}
-}
+
 $env:ZHKU_DB_URL=$null
 # 旧批次/旧回放变量不继承，ONLINE不准自动落回旧资产。
 foreach($name in @('ZHKU_RULECHECK_TASK_BATCH_DIRECTORY','ZHKU_RULECHECK_TASK_PACKAGE_SHA256','ZHKU_RULECHECK_TASK_SUMMARY_SHA256','ZHKU_RULE_AGENT_AUTHORIZATION_ID','ZHKU_RULE_AGENT_MODE','DASHSCOPE_API_KEY','ZHKU_DB_PASSWORD')){Remove-Item -LiteralPath "Env:\$name" -ErrorAction SilentlyContinue}
@@ -80,6 +86,8 @@ function Invoke-Maven([string]$op,[int]$timeout){
  $args=@('-o','-pl','knowledge','-am','-DfailIfNoTests=false','-Dsurefire.failIfNoSpecifiedTests=false','-Dtest=RuleAgentThreeQuestionHostTest',"-Dzhku.three.operation=$($op.ToLowerInvariant())","-Dzhku.three.codeRoot=$root","-Dzhku.t06.root=$assets","-Dzhku.three.batch=$batch")
  # E02 单题计划与三题计划互不复用：缺省即 Three，显式才切 E02。
  if($Profile-eq 'E02'){$args+='-Dzhku.three.profile=E02'}
+ # 只转发显式指定的手册位置；不在启动器读取文件或默认沿用旧源码目录。
+ if($HandbookPdf){$args+="-Dzhku.t06.handbookPdf=$HandbookPdf"}
  if($PackageSha256){$args+="-Dzhku.three.sha256=$PackageSha256"}
  if($op -eq 'Assembly' -and $PageProxyPort -ne 0){$args+="-Dzhku.three.pageProxyPort=$PageProxyPort"}
  if($op-eq 'Live'){$args+=@("-Dzhku.three.approvedSha256=$ApprovedSha256","-Dzhku.three.approvedBudgetRmb=$ApprovedBudgetRmb","-Dzhku.three.authorizationId=$AuthorizationId")}

@@ -357,7 +357,8 @@ class RuleAgentThreeQuestionHostTest {
         if (value.isArray()) { ArrayNode safe = JSON.createArrayNode(); value.forEach(e -> safe.add(redact(e))); return safe; }
         return value;
     }
-    private static synchronized void audit(RuleAgentProvider.Trace trace) {
+    // 包可见只为回环 Provider 专项测试复用实际发送闸门；不新增运行入口或跳过审包。
+    static synchronized void audit(RuleAgentProvider.Trace trace) {
         if (trace.phase() == RuleAgentProvider.Phase.BEGIN) {
             // 预算/审包必须先于任何网络外发；这里失败必须抛出以阻断发送。
             try {
@@ -390,7 +391,7 @@ class RuleAgentThreeQuestionHostTest {
             stopped = true; failScope(); throw new IllegalStateException("HOST_USAGE_INVALID：用量未知或越界，保留全额预留并停止");
         }
     }
-    private static synchronized void exchange(RuleAgentProvider.Exchange exchange) {
+    static synchronized void exchange(RuleAgentProvider.Exchange exchange) {
         try {
             if (exchange.direction() == RuleAgentProvider.Direction.REQUEST) {
                 JsonNode wire = JSON.readTree(exchange.body());
