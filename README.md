@@ -92,7 +92,7 @@ scripts/         本机构建、启动、凭证脚本
 | [docs/design/](docs/design/) | 架构与契约设计 |
 | [docs/decisions/](docs/decisions/) | 关键决策记录 |
 | [docs/manual/](docs/manual/) | 本机启动与演示手册 |
-| [docs/tutorials/](docs/tutorials/) | 模块迁移与实现过程说明 |
+| [docs/zhkuagent/](docs/zhkuagent/) | 项目状态、范围与产品交付说明 |
 
 ## 来源与许可
 

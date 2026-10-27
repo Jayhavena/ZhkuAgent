@@ -14,9 +14,8 @@
 | `reviews/` | 评审结论，如 obs 接口冻结评审、日志策略校验 |
 | `manual/` | 怎么跑起来：本机 Nginx 预览、受控校园网页演示 |
 | `releases/` | 版本说明与工程冻结：`v0.1.0-rc.1-engineering-freeze.md` |
-| `tutorials/` | 教学向文档：Git 操作说明、复盘导读、开发提示词草稿 |
 | `product/` | 产品语义与规则评审材料（rule-check 各批次） |
-| `career/` | 求职相关：导学、面经、项目完整梳理。**不是项目技术文档** |
+| `preparation/` | 各批次验收准备：验收矩阵、评分规则、证据格式与校验工具 |
 | `design-references/` | 设计参考素材与 home 改版方案 |
 | `retrospectives/` | 复盘：如 Agent 运行时生命周期问题 |
 
@@ -27,7 +26,6 @@
 | `evidence/` | **5400 个文件 / 78.5 MB**。按里程碑与日期归档的执行证据：json 报告 2366、xml 1504、log 587、md 337。查证某个历史结论时才需要进来 |
 | `agent/` | 迁移前的 README，历史留档 |
 | `project/` | 交接记录（handoffs） |
-| `preparation/` | 各批次验收准备（m1-02、m1-04a、t08） |
 
 ## 约定
 
