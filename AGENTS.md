@@ -24,3 +24,17 @@
 - 用户于2026-10-13授权本项目后续按该规则自动保存本地提交，不再逐次询问；push、PR、标签、部署和历史改写不在此授权内。
 - 只暂存本任务及必要依赖的明确文件清单，不混入既有无关改动、凭证、数据库、整本PDF、构建产物或临时恢复包。验收未通过不得标成完成提交。
 - 提交记录说明问题、实现、实际验证、未验证范围和恢复方式；源码与验收身份须一致。工程检查点不等于产品上线或收益达标。
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues in this repo, driven by the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five-role vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+single-context. See `docs/agents/domain.md`.
