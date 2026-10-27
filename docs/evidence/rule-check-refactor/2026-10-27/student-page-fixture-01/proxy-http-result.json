@@ -1,0 +1,414 @@
+{
+  "checks" : [ "built /rules HTTP 200", "anonymous 401", "wrong synthetic input 401", "maintainer 403", "CSRF 403", "idempotency 202/409", "same-student different-session 404", "ACTIVE -> WAITING_USER -> RESOLVED", "stale version 409", "original 200/404", "data gap without claim", "FAILED", "cancel STOPPED", "logout invalidates task" ],
+  "proxyPort" : 5174,
+  "exchanges" : [ {
+    "status" : 401,
+    "method" : "GET",
+    "route" : "/tasks/capabilities"
+  }, {
+    "status" : 403,
+    "method" : "GET",
+    "route" : "/tasks/capabilities"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/capabilities"
+  }, {
+    "status" : 403,
+    "method" : "POST",
+    "route" : "/tasks"
+  }, {
+    "status" : 202,
+    "method" : "POST",
+    "route" : "/tasks"
+  }, {
+    "status" : 202,
+    "method" : "POST",
+    "route" : "/tasks"
+  }, {
+    "status" : 409,
+    "method" : "POST",
+    "route" : "/tasks"
+  }, {
+    "status" : 404,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 404,
+    "method" : "GET",
+    "route" : "/tasks/requests/CREATE/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 409,
+    "method" : "POST",
+    "route" : "/tasks/{opaque}/messages"
+  }, {
+    "status" : 202,
+    "method" : "POST",
+    "route" : "/tasks/{opaque}/messages"
+  }, {
+    "status" : 202,
+    "method" : "POST",
+    "route" : "/tasks/{opaque}/messages"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}/originals/{opaque}"
+  }, {
+    "status" : 404,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}/originals/{opaque}"
+  }, {
+    "status" : 202,
+    "method" : "POST",
+    "route" : "/tasks"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 202,
+    "method" : "POST",
+    "route" : "/tasks"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 202,
+    "method" : "POST",
+    "route" : "/tasks"
+  }, {
+    "status" : 202,
+    "method" : "POST",
+    "route" : "/tasks/{opaque}/cancel"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 200,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  }, {
+    "status" : 404,
+    "method" : "GET",
+    "route" : "/tasks/{opaque}"
+  } ],
+  "mode" : "TEST_SIMULATION_NO_PROVIDER",
+  "providerCalls" : 0,
+  "browserExecuted" : false,
+  "httpPassed" : true,
+  "databaseCalls" : 0
+}

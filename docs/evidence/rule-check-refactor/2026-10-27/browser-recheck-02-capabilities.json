@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-27",
+  "timeZone": "Asia/Shanghai",
+  "scope": "EXISTING_LOCAL_BROWSER_CONTROL_RECHECK_NO_INSTALL",
+  "result": "BLOCKED_NO_AVAILABLE_INJECTED_LOCAL_BROWSER_CONTROLLER",
+  "installedBrowsers": {
+    "chrome": {"executable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", "exists": true, "running": true},
+    "edge": {"executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", "exists": true, "running": true}
+  },
+  "browserSkill": {
+    "ownedSessions": [],
+    "cliOnPath": false,
+    "checkedFallbackLocations": {"userCargoBin": false, "localProgramsBrowserSkill": false},
+    "attemptedTool": "bsk_session(action=start, url=about:blank)",
+    "error": "Error: the bsk CLI (\"bsk\") was not found. BrowserSkill must be installed and on PATH for browser tools to work — install it from https://github.com/Tencent/BrowserSkill (see the README install script or `cargo install`), then retry.",
+    "sessionCreated": false
+  },
+  "builtInBrowser": {
+    "attemptedTool": "dsh_browser_session()",
+    "registeredProvider": "electron",
+    "electronPathConfigured": false,
+    "error": "Error: browser provider(s) electron are registered but report themselves unavailable — for dsh-builtin-browser this means no spawnable Electron binary was found; run `npx install-electron` in the active profile or set ELECTRON_PATH",
+    "sessionCreated": false
+  },
+  "projectLocalNodeResolution": {
+    "workingDirectory": "agent/frontend",
+    "playwright": "NOT_RESOLVABLE",
+    "playwright-core": "NOT_RESOLVABLE",
+    "@playwright/test": "NOT_RESOLVABLE",
+    "puppeteer": "NOT_RESOLVABLE",
+    "puppeteer-core": "NOT_RESOLVABLE",
+    "selenium-webdriver": "NOT_RESOLVABLE"
+  },
+  "existingProjectBrowserInfrastructure": {
+    "controlledBrowserFixture": "HTTP fixture server, not a browser controller",
+    "reviewedStudentBrowserProxy": "HTTP proxy, not a browser controller",
+    "historicalBrowserAttachProxy": "HTTP attach proxy, not Chrome DevTools browser automation",
+    "reusablePageFixtureLauncherReviewed": true,
+    "launcherOperation": "PageFixture",
+    "launcherExecutedThisRecheck": false
+  },
+  "execution": {
+    "browserLoginPerformed": false,
+    "browserQuestionSubmitted": false,
+    "browserFinalDomVerified": false,
+    "browserConsoleInspected": false,
+    "browserNetworkCaptured": false,
+    "screenshots": [],
+    "browserNetworkArtifacts": [],
+    "paidModelCalls": 0,
+    "embeddingCalls": 0,
+    "productionDatabaseOperations": 0,
+    "persistentResourcesCreated": false,
+    "pageServerStarted": false,
+    "pageFixtureHostStarted": false,
+    "packagesInstalled": false,
+    "userBrowserProcessesStopped": false,
+    "credentialsCookiesOrTokensCaptured": false
+  },
+  "limits": [
+    "Existing Chrome processes are not proof of an agent-accessible automation session.",
+    "The dependency check is project-local resolution, not an exhaustive claim about every installed package on this computer.",
+    "The standalone Java HTTP regression is an in-process-lived synthetic fixture with no browser; it must not be counted as browser acceptance.",
+    "BrowserSkill needs bsk for its supplied tools; bsk is not a universal requirement for all browser automation. The independent built-in browser was also attempted and unavailable.",
+    "No installation or controller reconfiguration was attempted; no cloud browser or synthetic screenshot was substituted."
+  ]
+}

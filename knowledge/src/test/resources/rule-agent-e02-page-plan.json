@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "purpose": "E02_SINGLE_QUESTION_PAGE_LIVE_V1",
+  "authorizationStatus": "NOT_AUTHORIZED",
+  "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "model": "qwen3.8-flash",
+  "referenceRevision": "2025.9.2",
+  "maximumTasks": 1,
+  "maximumRuns": 1,
+  "maximumProviderCalls": 5,
+  "maximumOutputTokensPerCall": 1024,
+  "maximumInputTokensPerCallConservative": 1000000,
+  "maximumRequestBytes": 65536,
+  "automaticRetries": 0,
+  "money": {
+    "currency": "CNY",
+    "hardBudget": "4.02",
+    "inputPerMillion": "0.8",
+    "outputPerMillion": "2.7",
+    "maximumBilledOutputTokensPerCallConservative": 1034,
+    "worstCaseReserved": "4.013959",
+    "estimatedTypicalRange": "0.04-0.11; illustrative only, 10000-24000 input + 256-1024 output tokens per call, 5 calls",
+    "tariffCheckedDate": "2026-10-27",
+    "tariffValidThrough": "2026-10-27",
+    "tariffSource": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+    "evidenceFile": "docs/evidence/rule-check-refactor/2026-10-27/e02-single-page-live/tariff-evidence.json",
+    "billing": "Standard Beijing synchronous non-thinking; no cache, discounts or free allowance assumed. Timeout/unknown usage reserves full model context; never refunds attempt or reservation. Actual supplier bill requires reconciliation."
+  },
+  "stopConditions": ["any transport/auth/rate-limit/protocol/audit error", "unknown usage", "unapproved input or owner/task/version/continuation", "source/build/assets/package fingerprint mismatch", "hard budget/calls/run/task limit", "tariff expired", "watchdog 660 seconds", "page lease interrupted or second page task", "no automatic retry or refill"],
+  "page": {
+    "entry": "/rules",
+    "dist": "agent/frontend/dist-e02-page-live",
+    "driver": "knowledge/src/test/browser/rule-agent-e02-page-live.mjs",
+    "oneSinglePageTask": true,
+    "javaPostAllowed": false,
+    "browserRequired": true
+  },
+  "cases": [
+    {
+      "id": "E02",
+      "question": "有人说公选必须上满16学时，24学时的安排肯定违规，是这样吗？",
+      "maximumRuns": 1,
+      "maximumCalls": 5,
+      "expected": "辨认错误前提：原则16学时、上限32学时；24未触及此上限，不证明全部安排合法。解释仅2025.9.2历史本科文本。",
+      "necessaryEvidence": ["第5条：原则上16学时、最多32学时", "P5+P6发布能力；每条主张的原文关系"],
+      "acceptableRefusal": "检索/模型/审核失败须标执行或覆盖不足；不得伪称无规定。安全拒答不算产品完成。",
+      "forbidden": ["固定只能16", "24一定违规或全面合法", "用学分代替学时", "推定当期适用/个人资格"],
+      "safetyPass": "ONLINE；不编规则/资格；证据一致；非COMPLETE明确披露缺口；有证据均通过本人原文GET且跨Session不可读。",
+      "productPass": "RESOLVED+COMPLETE，LIVE_AGENT，有P5/P6两事实及可回读证据；人工确认原则16、上限32、局部判断、历史边界四项。"
+    }
+  ]
+}

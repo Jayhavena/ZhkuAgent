@@ -47,16 +47,18 @@ class RuleAgentTaskHttpTest {
         @Bean PreviewIdentityRepository identities(){
             var repo=mock(PreviewIdentityRepository.class);
             for(var entry:Map.of("student-a",A,"student-b",B,"maintainer",ADMIN).entrySet())
-                when(repo.authenticate(eq(entry.getKey()),any(char[].class))).thenReturn(Optional.of(new PreviewPrincipal(entry.getValue())));
+                when(repo.authenticate(eq(entry.getKey()),any(char[].class))).thenAnswer(call ->
+                    Arrays.equals(call.getArgument(1, char[].class), "synthetic-only-password".toCharArray())
+                        ? Optional.of(new PreviewPrincipal(entry.getValue())) : Optional.empty());
             return repo;
         }
         @Bean RuleAgentTaskStore.Factory factory(RuleAgentTaskToolsRegistry registry){return (owner,task)->new RuleAgentTaskStore.Work(){
             public boolean revalidate(ResultEnvelope old){return old.evidence().stream().allMatch(e->registry.read(owner,task,e.originalToken()).isPresent());}
             public RuleAgentRunner.Outcome run(AgentRunContext context,RuleAgentRunner.Input input){
                 runs.incrementAndGet();context.start();
-                boolean waiting=input.question().equals("澄清")&&input.userConditions().isEmpty();
+                boolean waiting=Set.of("澄清","我那门选修挂了，下次直接再上一遍就好了吧？").contains(input.question())&&input.userConditions().isEmpty();
                 boolean incomplete=input.question().equals("漏答"),unresolved=input.question().equals("理解未完成");
-                boolean failed=input.question().equals("故障")||incomplete||unresolved,gap=input.question().equals("缺证");
+                boolean failed=input.question().equals("故障")||incomplete||unresolved,gap=Set.of("缺证","这学期公选补选今晚几点关？现在还能帮我补上吗？").contains(input.question());
                 var issue=waiting?new Issue("condition",IssueKind.CLARIFICATION,ReasonCode.MISSING_CONDITION,"请确认课程类别","补充必要条件"):
                     failed?new Issue("failure",IssueKind.PROCESSING_FAILURE,incomplete?ReasonCode.ANSWER_COVERAGE_INCOMPLETE:unresolved?ReasonCode.QUESTION_UNDERSTANDING_UNRESOLVED:ReasonCode.MODEL_UNAVAILABLE,"模型处理失败","稍后重新查证"):
                     new Issue("gap",IssueKind.DATA_GAP,ReasonCode.CURRENT_NOTICE_MISSING,"未取得当期通知","核对当期通知");
@@ -159,7 +161,8 @@ class RuleAgentTaskHttpTest {
     }
     static class User{
         final HttpClient client;final int port;JsonNode csrf;
-        User(int port){this.port=port;var cookies=new CookieManager(null,CookiePolicy.ACCEPT_ALL);client=HttpClient.newBuilder().cookieHandler(cookies).connectTimeout(Duration.ofSeconds(2)).build();}
+        // 本机Vite代理只协商HTTP/1.1；禁止Java默认h2c Upgrade被WebSocket升级处理挂起。
+        User(int port){this.port=port;var cookies=new CookieManager(null,CookiePolicy.ACCEPT_ALL);client=HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).cookieHandler(cookies).connectTimeout(Duration.ofSeconds(2)).build();}
         HttpResponse<String> get(String path)throws Exception{return send("GET",path,null,false);}
         HttpResponse<String> post(String path,Object body,boolean token)throws Exception{return send("POST",path,JSON.writeValueAsString(body),token);}
         HttpResponse<String> send(String method,String path,String body,boolean token)throws Exception{

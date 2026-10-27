@@ -23,6 +23,7 @@ public final class RulePublicationProtocol {
         root.put("additionalFieldsAllowed",false);
         root.put("spanCoordinates","DemandSpan只填subquestionId与excerpt：excerpt必须逐字复制该问题原text中一段连续原文（不改写、不翻译、不省略号、不从工具原文截取）；宿主取excerpt在原text中的首次出现为需求跨度（UTF-16左闭右开），模型不输出也不数坐标。");
         root.put("conditionalBranches","已识别意图但缺少一个审核条件时，按conditions的每个可行值分别声明IDENTIFIED需求，可共用原始跨度；具体subject/CORE绑定须匹配能力。分支不是用户已声明条件。真正未知保留unresolvedDemands，不截断分支以满足容量。");
+        root.put("recognitionDimensionInvariant","IDENTIFIED表示已经确定且在审核能力内：dimension不得为UNKNOWN，subject不得为UNSPECIFIED。遇到当期实时通知、教务系统操作或其他无法支持的需求，不得使用IDENTIFIED+UNKNOWN，也不得把历史规则当实时事实；未知维度使用UNCLASSIFIED和UNKNOWN，并在unresolvedDemands写明UNSUPPORTED_DIMENSION，且不得给该未知需求绑定CORE事实。无法判断范围时使用AMBIGUOUS或unresolvedDemands，不编造审核能力。");
         root.put("conditionIdForm",CONDITION_ID_FORM);
         var records=root.putObject("records");
         for(Class<?> type:List.of(SemanticAssessment.class,Requirement.class,DemandSpan.class,SemanticBinding.class,UnresolvedDemand.class)) {

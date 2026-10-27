@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "sampleDate": "2026-10-26 Asia/Shanghai",
+  "workingTree": "D:\\alldesk\\Projects\\ZhkuAgent\\worktrees\\integration\\mainline",
+  "head": "245880b6b8a62e2bdef69dcb8d6721f72164ceef",
+  "branch": "integration/zhkuagent-mainline-20261024",
+  "externalModelCallsThisAudit": 0,
+  "databaseCommandsThisAudit": 0,
+  "databaseWritesThisAudit": 0,
+  "onlineEvalCasesExecuted": 0,
+  "onlineEvalCasesDesigned": 18,
+  "qualification": "Explicit source-reviewed test whitelist; not a packet-capture assertion. Maven offline prevents dependency downloads, not arbitrary test network I/O. No HTTP/provider/DB tests were selected.",
+  "java": {
+    "command": "& 'D:\\Software\\Maven\\apache-maven-3.9.15\\bin\\mvn.cmd' -o -pl knowledge -am '-DfailIfNoTests=false' '-Dsurefire.failIfNoSpecifiedTests=false' '-Dtest=RuleAgentContractTest,RuleAgentEvidenceToolsTest,RuleAgentRunnerTest,RulePublicationGateTest,RulePublicationSpanExcerptTest,RuleAgentTaskStoreTest#duplicateCreateAndLostResponseLookupReturnSameRun+clarificationResumesSameTaskNewRunWithoutRepeatingKnownCondition+concurrentRepliesAcceptOnlyOneVersion+foreignSessionWrongTokenAndExpiredTokenCannotResume+changedGoalNeedsNewTaskAndAmbiguousReplyNeedsConfirmation+withdrawnEvidenceStopsContinuationWithoutMoreDecisions+queuedCancellationProducesNoModelAttemptsAndHasIdempotentReceipt+boundedCapacityAndNewStoreReportUnavailableInsteadOfHistory' test",
+    "processEnvironmentPreparation": "Remove inherited DASHSCOPE_API_KEY and ZHKU_DB_PASSWORD in the child process only; no key value inspected or printed.",
+    "completedAt": "2026-10-26T22:11:19+08:00",
+    "exitCode": 0,
+    "tests": 71,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": [
+      {"class": "RuleAgentContractTest", "tests": 7},
+      {"class": "RuleAgentEvidenceToolsTest", "tests": 12},
+      {"class": "RuleAgentRunnerTest", "tests": 22},
+      {"class": "RuleAgentTaskStoreTest", "tests": 8, "selection": "Named methods only, not entire class"},
+      {"class": "RulePublicationGateTest", "tests": 15},
+      {"class": "RulePublicationSpanExcerptTest", "tests": 7}
+    ],
+    "sideEffects": "Ignored Maven target outputs and local audit log; no business-source edits; no database operations.",
+    "log": "offline-java.log"
+  },
+  "frontend": {
+    "command": "node --test agent/frontend/tests/rule-agent-contract.test.mjs agent/frontend/tests/rule-task-workflow.test.mjs",
+    "exitCode": 0,
+    "tests": 55,
+    "pass": 55,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 1773.5118,
+    "transport": "Fixtures and fake client/fetchImpl/schedule only; no real HTTP server or browser",
+    "log": "offline-frontend.log"
+  },
+  "rc2AssetValidation": {
+    "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v2-rc2/validate-v2-rc2.ps1",
+    "startedAt": "2026-10-26T22:14:41.9800205+08:00",
+    "passChecks": 12,
+    "exitCode": 0,
+    "manifestRepair": "Only validation.result, validation.assetValidation, validation.lastRun corrected. Candidate and independentReview remain pending.",
+    "log": "rc2-validation.log"
+  },
+  "existingExtraReplay": {
+    "rerunDuringThisAudit": false,
+    "earlierJUnitTests": 1,
+    "earlierExitCode": 0,
+    "semanticOutputComparison": "PASS after normalizing generatedAt (including execution.generatedAt) and derived inputResultsSha256 only",
+    "temporarySourceHarnessRemaining": false,
+    "temporaryCompiledHarnessRemaining": false,
+    "temporaryReplayDirectoryRemaining": false,
+    "details": "rc2-replay-closeout.json"
+  },
+  "git": {
+    "trackedDiffEmpty": true,
+    "stagedDiffEmpty": true,
+    "untrackedDirectoryCount": 3,
+    "preExistingUntracked": [
+      "docs/evidence/rule-check-refactor/2026-10-26/real-source-retrieval-v2-rc2/",
+      "docs/evidence/rule-check-refactor/eval-retrieval-baseline-20261026/"
+    ],
+    "newAuditDirectory": "docs/evidence/rule-check-refactor/2026-10-26/real-question-agent-readiness/",
+    "commitCreated": false,
+    "pushed": false
+  },
+  "notProven": [
+    "Natural-language online E2E success on these 18 cases",
+    "Current deployed page execution mode and live database qualification",
+    "2026 official current-policy applicability",
+    "Open-ended multi-turn correction, provider latency and actual billing",
+    "Completeness of model-discovered natural-language requirements"
+  ]
+}

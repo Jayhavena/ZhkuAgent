@@ -14,10 +14,15 @@ import com.zhku.knowledge.ruleagent.RuleAgentTaskStore;
 @Timeout(600)
 class RuleAgentTaskBrowserHttpTest {
     @Test void explicitSyntheticBrowserLeaseAndOwnedResourceExit()throws Exception{
+        Assumptions.assumeTrue(Boolean.getBoolean("zhku.t07.browserLease"), "浏览器宿主必须显式开启，普通回归不监听端口");
+        runFixture();
+    }
+    static void runFixture()throws Exception{
+        if (!Boolean.getBoolean("zhku.t07.browserLease")) throw new IllegalArgumentException("页面夹具须显式租约");
         RuleAgentTaskHttpTest.queue.clear();RuleAgentTaskHttpTest.originalCurrent.set(true);
         var app=new SpringApplication(RuleAgentTaskHttpTest.App.class);app.setAdditionalProfiles("zhku-rule-check-preview");
         var settings=new HashMap<String,Object>();
-        settings.put("server.port","0");settings.put("server.address","127.0.0.1");settings.put("server.servlet.context-path","/api");
+        settings.put("server.port",System.getProperty("zhku.t07.port","0"));settings.put("server.address","127.0.0.1");settings.put("server.servlet.context-path","/api");
         settings.put("server.servlet.session.timeout","15m");settings.put("server.servlet.session.persistent","false");settings.put("server.servlet.session.tracking-modes","cookie");
         settings.put("server.servlet.session.cookie.name","ZHKU_RULE_CHECK_SESSION");settings.put("server.servlet.session.cookie.path",RuleAgentTaskHttpTest.P);
         settings.put("server.servlet.session.cookie.http-only","true");settings.put("server.servlet.session.cookie.secure","false");settings.put("server.servlet.session.cookie.same-site","strict");
@@ -26,7 +31,10 @@ class RuleAgentTaskBrowserHttpTest {
         var stop=new AtomicBoolean();
         Thread worker=new Thread(()->{while(!stop.get()){try{var job=RuleAgentTaskHttpTest.queue.poll(100,TimeUnit.MILLISECONDS);if(job!=null){try{Thread.sleep(1800);}catch(InterruptedException ignored){}job.run();}}catch(InterruptedException ignored){}}},"zhku-t07-browser-synthetic");
         Path evidence=Path.of(System.getProperty("zhku.rulecheck.evidenceDir"));int port;
-        try(var context=(ServletWebServerApplicationContext)app.run()){
+        try(var context=(ServletWebServerApplicationContext)app.run("--server.port="+System.getProperty("zhku.t07.port","0"), "--server.address=127.0.0.1", "--zhku.rule-agent-http.online-enabled=false")){
+            // 显式证明此分支未装配真实供应商、在线工厂或数据库；不通过读取凭据来推断零收费。
+            assertThat(context.getBeansOfType(com.zhku.knowledge.ruleagent.RuleAgentOnlineFactory.class)).isEmpty();
+            assertThat(context.getBeansOfType(javax.sql.DataSource.class)).isEmpty();
             port=context.getWebServer().getPort();worker.start();
             try{
                 if(Boolean.getBoolean("zhku.t07.browserLease")){

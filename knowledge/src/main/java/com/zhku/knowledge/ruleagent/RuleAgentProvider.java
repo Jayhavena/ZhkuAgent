@@ -85,6 +85,8 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         只将input中实际已读且能力匹配的事实绑定到需求；辅助例外不能充当主需求的CORE依据。
         必要条件只列当前需求确实依赖的 when 键，已知条件不能重复追问。
         %s
+        IDENTIFIED只用于已识别且能力支持的需求，此时dimension禁止UNKNOWN、subject禁止UNSPECIFIED。
+        实时通知时间、代办系统操作等未支持的需求不能标IDENTIFIED+UNKNOWN，更不能用历史条款CORE绑定充当实时事实；请用UNKNOWN+UNCLASSIFIED并在unresolvedDemands保留UNSUPPORTED_DIMENSION。
         无法确定理解时保留unresolvedDemands或未识别需求，不凭常识补规则或自称完整回答。
         仅解释审核版本的规则含义，不推定个人资格或现行适用性。不接收提议者自报相关性/完整性。
         """.formatted(RulePublicationProtocol.CONDITION_ID_FORM);

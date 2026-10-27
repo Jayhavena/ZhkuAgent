@@ -1,0 +1,163 @@
+{
+    "schemaVersion":  1,
+    "caseId":  "E13",
+    "source":  "batch-01/provider-exchanges.jsonl:PUBLICATION_REVIEW; request/response bodies otherwise excluded",
+    "responseBodySha256":  "f757792d2b5fdd9885424e8c116850aa124295945a5a95be04c3d6650e34d926",
+    "reviewInputSnapshotSha256":  "2d8edb6e60497a41368e62cb4b3a97424e2eb12531ddb9327197f2c009c7820c",
+    "input":  {
+                  "protocolRevision":  "RULE_PUBLICATION_REVIEW_02",
+                  "capabilityVersion":  "REVIEWED_FACT_CAPABILITY_01",
+                  "inputFingerprint":  "3975443dbeb3c388560641714020e40c6fb3d4ade35579a33a84f18f6eff6358",
+                  "questions":  [
+                                    {
+                                        "id":  "q1",
+                                        "text":  "这学期公选补选今晚几点关？现在还能帮我补上吗？"
+                                    }
+                                ],
+                  "userConditions":  {
+
+                                     },
+                  "facts":  [
+                                {
+                                    "id":  "S02/GENERAL:elective-category-distinction",
+                                    "ruleId":  "S02/GENERAL",
+                                    "text":  "学校选修课分为专业选修课和公共选修课。",
+                                    "when":  {
+
+                                             },
+                                    "quotes":  [
+                                                   {
+                                                       "revision":  "2025.9.2",
+                                                       "quote":  "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                                                   }
+                                               ]
+                                },
+                                {
+                                    "id":  "S02/GENERAL:public-course-subcategories",
+                                    "ruleId":  "S02/GENERAL",
+                                    "text":  "公共选修课包括校内公选课和网络公选课。",
+                                    "when":  {
+
+                                             },
+                                    "quotes":  [
+                                                   {
+                                                       "revision":  "2025.9.2",
+                                                       "quote":  "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                                                   }
+                                               ]
+                                },
+                                {
+                                    "id":  "S06/GENERAL:online-selection-plan",
+                                    "ruleId":  "S06/GENERAL",
+                                    "text":  "学生应根据教务处公布的公共选修课开课计划，在规定时间内完成网上选课。",
+                                    "when":  {
+
+                                             },
+                                    "quotes":  [
+                                                   {
+                                                       "revision":  "2025.9.2",
+                                                       "quote":  "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。"
+                                                   }
+                                               ]
+                                },
+                                {
+                                    "id":  "S06/GENERAL:unenrolled-assessment-disjunction",
+                                    "ruleId":  "S06/GENERAL",
+                                    "text":  "未经选课者，不得参加课程考核或考核成绩无效。",
+                                    "when":  {
+
+                                             },
+                                    "quotes":  [
+                                                   {
+                                                       "revision":  "2025.9.2",
+                                                       "quote":  "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。"
+                                                   }
+                                               ]
+                                },
+                                {
+                                    "id":  "T02/ARTICLE4:professional-elective-study-arrangement",
+                                    "ruleId":  "T02/ARTICLE4",
+                                    "text":  "专业选修课列入教学计划，要求在规定学期内修读。",
+                                    "when":  {
+
+                                             },
+                                    "quotes":  [
+                                                   {
+                                                       "revision":  "2025.9.2",
+                                                       "quote":  "专业选修课\n列入教学计划要求在规定学期内修读"
+                                                   }
+                                               ]
+                                },
+                                {
+                                    "id":  "T02/ARTICLE4:public-elective-self-selection",
+                                    "ruleId":  "T02/ARTICLE4",
+                                    "text":  "公共选修课包括校内公选课和网络公选课，学生自行选课修读。",
+                                    "when":  {
+
+                                             },
+                                    "quotes":  [
+                                                   {
+                                                       "revision":  "2025.9.2",
+                                                       "quote":  "公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+                                                   }
+                                               ]
+                                }
+                            ],
+                  "capabilities":  {
+                                       "T02/ARTICLE4:public-elective-self-selection":  {
+                                                                                           "factId":  "T02/ARTICLE4:public-elective-self-selection",
+                                                                                           "dimension":  "STUDY_ARRANGEMENT",
+                                                                                           "subject":  "PUBLIC_ELECTIVE",
+                                                                                           "allowedRoles":  [
+                                                                                                                "CORE"
+                                                                                                            ],
+                                                                                           "auxiliaryDimensions":  [
+
+                                                                                                                   ],
+                                                                                           "sourceFingerprint":  "8f9e3889cd03b162282f628a8a72ef651d012bafd01e7f280c0c8e343640dd42"
+                                                                                       },
+                                       "S02/GENERAL:public-course-subcategories":  {
+                                                                                       "factId":  "S02/GENERAL:public-course-subcategories",
+                                                                                       "dimension":  "CATEGORY",
+                                                                                       "subject":  "PUBLIC_ELECTIVE",
+                                                                                       "allowedRoles":  [
+                                                                                                            "CORE"
+                                                                                                        ],
+                                                                                       "auxiliaryDimensions":  [
+
+                                                                                                               ],
+                                                                                       "sourceFingerprint":  "a5f2939e289bb7c35371ee7442c24331c3adcd609e674d7c85f270b88b98a21d"
+                                                                                   },
+                                       "S02/GENERAL:elective-category-distinction":  {
+                                                                                         "factId":  "S02/GENERAL:elective-category-distinction",
+                                                                                         "dimension":  "CATEGORY",
+                                                                                         "subject":  "GENERAL_UNDERGRADUATE",
+                                                                                         "allowedRoles":  [
+                                                                                                              "CORE"
+                                                                                                          ],
+                                                                                         "auxiliaryDimensions":  [
+
+                                                                                                                 ],
+                                                                                         "sourceFingerprint":  "206c3f39a8c9e5dc702f7390c3e6d85f7995706c7f2a1a71c0b3691788a97692"
+                                                                                     },
+                                       "T02/ARTICLE4:professional-elective-study-arrangement":  {
+                                                                                                    "factId":  "T02/ARTICLE4:professional-elective-study-arrangement",
+                                                                                                    "dimension":  "STUDY_ARRANGEMENT",
+                                                                                                    "subject":  "PROFESSIONAL_ELECTIVE",
+                                                                                                    "allowedRoles":  [
+                                                                                                                         "CORE"
+                                                                                                                     ],
+                                                                                                    "auxiliaryDimensions":  [
+
+                                                                                                                            ],
+                                                                                                    "sourceFingerprint":  "da760500a22f5e5acd3be9e737c1e0fffd4814a8b5393984b67446287230e416"
+                                                                                                }
+                                   },
+                  "conditions":  [
+
+                                 ]
+              },
+    "rawReviewContent":  "{\n  \"protocolRevision\": \"RULE_PUBLICATION_REVIEW_02\",\n  \"inputFingerprint\": \"3975443dbeb3c388560641714020e40c6fb3d4ade35579a33a84f18f6eff6358\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"span\": {\n        \"subquestionId\": \"q1\",\n        \"excerpt\": \"这学期公选补选今晚几点关？\"\n      },\n      \"dimension\": \"UNKNOWN\",\n      \"subject\": \"PUBLIC_ELECTIVE\",\n      \"recognition\": \"IDENTIFIED\",\n      \"necessaryConditionIds\": []\n    },\n    {\n      \"id\": \"r2\",\n      \"span\": {\n        \"subquestionId\": \"q1\",\n        \"excerpt\": \"现在还能帮我补上吗？\"\n      },\n      \"dimension\": \"STUDY_ARRANGEMENT\",\n      \"subject\": \"PUBLIC_ELECTIVE\",\n      \"recognition\": \"IDENTIFIED\",\n      \"necessaryConditionIds\": []\n    }\n  ],\n  \"bindings\": [\n    {\n      \"requirementId\": \"r2\",\n      \"factId\": \"T02/ARTICLE4:public-elective-self-selection\",\n      \"role\": \"CORE\"\n    },\n    {\n      \"requirementId\": \"r2\",\n      \"factId\": \"S06/GENERAL:online-selection-plan\",\n      \"role\": \"CORE\"\n    }\n  ],\n  \"unresolvedDemands\": [\n    {\n      \"span\": {\n        \"subquestionId\": \"q1\",\n        \"excerpt\": \"这学期公选补选今晚几点关？\"\n      },\n      \"reason\": \"UNSUPPORTED_DIMENSION\"\n    }\n  ]\n}",
+    "observedValidationStage":  "REVIEW_JSON",
+    "observedValidationCode":  "REVIEW_JSON_INVALID"
+}

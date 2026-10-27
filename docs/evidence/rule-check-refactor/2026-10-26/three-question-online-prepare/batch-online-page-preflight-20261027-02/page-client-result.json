@@ -1,0 +1,229 @@
+{
+  "mode": "ONLINE_ASSEMBLY_PAGE_PREFLIGHT_NO_MODEL",
+  "passed": true,
+  "browserExecuted": false,
+  "actualPageApiClientUsed": true,
+  "proxyPort": 5174,
+  "backendPort": 28831,
+  "failureType": null,
+  "checks": [
+    "actual student build /rules 200",
+    "real DB-backed identity/session: anonymous 401, wrong login 401, USER 200, maintainer 403",
+    "actual API Client accepted5/snapshot11/execution6 strict validators; ACTIVE without model",
+    "CSRF 403; extra owner field 400; idempotency 202/409; same-student other-session 404",
+    "messages while ACTIVE 409; stale cancel 409; owner cancel 202 duplicate; actual STOPPED with zero attempts",
+    "logout/relogin cannot access prior-session task; unpublished original 404"
+  ],
+  "exchanges": [
+    {
+      "method": "GET",
+      "route": "/rules",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/tasks/capabilities",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/auth/login",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/tasks/capabilities",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/tasks/capabilities",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/tasks",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/tasks/requests/CREATE/{opaque}",
+      "status": 404
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/tasks",
+      "status": 400
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/tasks",
+      "status": 202
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/tasks",
+      "status": 202
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/tasks",
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/tasks/requests/CREATE/{opaque}",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/tasks/{opaque}",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/tasks/requests/CREATE/{opaque}",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/tasks/{opaque}",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/tasks/{opaque}/originals/{opaque}",
+      "status": 404
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/tasks/{opaque}/messages",
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/tasks/{opaque}/cancel",
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/tasks/{opaque}/cancel",
+      "status": 404
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/tasks/{opaque}/cancel",
+      "status": 202
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/tasks/{opaque}/cancel",
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/tasks/{opaque}",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/tasks/{opaque}",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/auth/logout",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/zhku/controlled-preview/v2/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/zhku/controlled-preview/v2/tasks/{opaque}",
+      "status": 404
+    }
+  ]
+}
