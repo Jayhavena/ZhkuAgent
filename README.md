@@ -8,6 +8,20 @@
 
 下文的“当前”、测试数字及功能收口均按对应历史阶段理解；旧学分网页验收不等于新规则 Agent 或学生收益验收。
 
+## 仓库结构
+
+| 路径 | 内容 | 说明 |
+| --- | --- | --- |
+| `agent-runtime/` | 共享运行时：Run/Snapshot、ToolCall、Event、RuntimeError | 公共库，无独立入口 |
+| `agent/` | 通用 Agent、独立主循环、前端与工具 | Maven 模块 |
+| `knowledge/` | 资料治理、审核发布、问答与校园学分 Agent | Maven 模块 |
+| `docs/` | 设计、决策、计划、教程，以及历史证据归档 | 索引见 [docs/README.md](docs/README.md) |
+| `tools/` | 按任务建立的验收脚本：`t08-acceptance/`、`m1-02/`、`sprint01/` | 任务型，非产品代码 |
+| `scripts/` | 本机启动与校验脚本 | — |
+| `AGENTS.md` | 给 AI 协作者的仓库注释与提交约定 | — |
+
+> `docs/evidence/` 下的 5400 个文件（78 MB，json/xml/log 为主）是**历史执行证据**，既不是源码也不是当前设计。点进 `docs/` 之前先看 [docs/README.md](docs/README.md)，能省掉大半困惑。
+
 ## 历史受控学分网页阶段（2026-10-05—06）
 
 **当前受控校园网页版本已获用户确认：P4 人工功能验收通过，功能开发收口。** 本机 Nginx 下可登录、提交学分任务、查询本人历史和进行重修澄清；[一键启动与短演示](docs/manual/controlled-campus-web-demo.md)。P1 固定真实模型12/12、P4定向回归227项及校园真库11项、后续页面整理36项前端测试有各自执行证据；[人工确认与最终收尾](docs/evidence/controlled-web-demo/2026-10-06/p4/final-closeout/manual-acceptance.md)区分用户报告、自动测试及当前演示退出状态。本次文档收尾没有重跑这些测试，不宣称生产部署或全部浏览器质量检查通过。下文4A/3B的替身说明及计数仅对应历史时点。
