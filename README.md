@@ -13,10 +13,10 @@
 | 路径 | 内容 | 说明 |
 | --- | --- | --- |
 | `agent-runtime/` | 共享运行时：Run/Snapshot、ToolCall、Event、RuntimeError | 公共库，无独立入口 |
-| `agent/` | 通用 Agent、独立主循环、前端与工具 | Maven 模块 |
+| `agent/` | 通用 Agent、独立主循环、内置工具、规则查证前端 | Maven 模块，前端独立 npm 构建 |
 | `knowledge/` | 资料治理、审核发布、问答与校园学分 Agent | Maven 模块 |
 | `docs/` | 设计、决策、计划、教程，以及历史证据归档 | 索引见 [docs/README.md](docs/README.md) |
-| `tools/` | 按任务建立的验收脚本：`t08-acceptance/`、`m1-02/`、`sprint01/` | 任务型，非产品代码 |
+| `tools/` | 独立小工程与任务型验收脚本：`image-search-mcp/`（图片搜索 MCP，自带构建）、`t08-acceptance/`、`m1-02/`、`sprint01/` | 不在 Maven reactor 内 |
 | `scripts/` | 本机启动与校验脚本 | — |
 | `AGENTS.md` | 给 AI 协作者的仓库注释与提交约定 | — |
 
