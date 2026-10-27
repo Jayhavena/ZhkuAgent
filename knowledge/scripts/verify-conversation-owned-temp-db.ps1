@@ -16,7 +16,7 @@ if(Test-Path -LiteralPath $leasePath){
     $oldLease=Get-Content -Raw -LiteralPath $leasePath|ConvertFrom-Json
     if($oldLease.status -eq 'ACTIVE'){throw '全局lease仍被占用'}
 }
-if((Get-Content -Raw -LiteralPath $boardPath) -match '\| lease \| \*\*ACTIVE'){throw 'BOARD已有ACTIVE lease'}
+if((Test-Path -LiteralPath $boardPath) -and (Get-Content -Raw -LiteralPath $boardPath) -match '\| lease \| \*\*ACTIVE'){throw 'BOARD已有ACTIVE lease'}
 if($Port -eq 54329){throw '拒绝演示库端口'}
 $selected=@($Tests.Split(',')|Where-Object{$_}|ForEach-Object{$_.Trim()})
 if($Mode -ne 'build' -and !$selected.Count){throw '测试必须显式选类'}
@@ -47,6 +47,7 @@ function Snapshot {
     })
 }
 function BoardLease([string]$text){
+    if(-not (Test-Path -LiteralPath $boardPath)){return}
     $board=Get-Content -Raw -LiteralPath $boardPath
     [regex]::Replace($board,'(?m)^\| lease \|.*$',('| lease | '+$text+' |'))|Set-Content -Encoding utf8 -LiteralPath $boardPath
 }
