@@ -1,107 +1,103 @@
-# 仲园 Agent（ZhkuAgent）
+# ZhkuAgent · 校园资料查证 Agent
 
-**当前进度（2026-10-18）：规则查证 Agent 已形成分支工程成果，正在等待统一集成与整链验收收口。** T00—T04 基础与 T07 学生入口已进入主线；T05 真实模型工程验收在独立分支通过，T06 真实身份/资料/HTTP/代理的模拟决策验收已完成，但两条线的后续成果尚未合入。T08 正式在线质量、T09 学生/PDF 对照和 T10 最终冻结均未完成，不能宣称产品目标已经达成。
+面向仲恺校园公开资料（培养方案、学分规则、教务通知）的检索与查证系统。用户用自然语言提问，Agent 检索本地资料库、给出**带出处的回答**；证据不足或资料已撤回时转人工核实，不凭记忆作答。
 
-- [项目全貌与当前进度](docs/zhkuagent/2026-10-18-project-status.md)：模块、历史成果、T00—T10、分支差距与证据边界。
-- [当前实施计划](docs/superpowers/plans/2026-10-18-project-integration-and-closeout-plan.md)：先整合 T05/T06 与学生入口并复验同版本整链，再做 T08 → T09 → T10。
-- [离线规则回放启动](docs/manual/nginx-local-preview.md#启动和停止)：10 月 17 日已修复回放同步后端与异步页面配错问题，必须搭配 `replay` 前端；该演示没有实时模型调用。
-
-下文的“当前”、测试数字及功能收口均按对应历史阶段理解；旧学分网页验收不等于新规则 Agent 或学生收益验收。
-
-## 仓库结构
-
-| 路径 | 内容 | 说明 |
-| --- | --- | --- |
-| `agent-runtime/` | 共享运行时：Run/Snapshot、ToolCall、Event、RuntimeError | 公共库，无独立入口 |
-| `agent/` | 通用 Agent、独立主循环、内置工具、规则查证前端 | Maven 模块，前端独立 npm 构建 |
-| `knowledge/` | 资料治理、审核发布、问答与校园学分 Agent | Maven 模块 |
-| `docs/` | 设计、决策、计划、教程，以及历史证据归档 | 索引见 [docs/README.md](docs/README.md) |
-| `tools/` | 独立小工程与任务型验收脚本：`image-search-mcp/`（图片搜索 MCP，自带构建）、`t08-acceptance/`、`m1-02/`、`sprint01/` | 不在 Maven reactor 内 |
-| `scripts/` | 本机启动与校验脚本 | — |
-| `AGENTS.md` | 给 AI 协作者的仓库注释与提交约定 | — |
-
-> `docs/evidence/` 下的 5400 个文件（78 MB，json/xml/log 为主）是**历史执行证据**，既不是源码也不是当前设计。点进 `docs/` 之前先看 [docs/README.md](docs/README.md)，能省掉大半困惑。
-
-## 历史受控学分网页阶段（2026-10-05—06）
-
-**当前受控校园网页版本已获用户确认：P4 人工功能验收通过，功能开发收口。** 本机 Nginx 下可登录、提交学分任务、查询本人历史和进行重修澄清；[一键启动与短演示](docs/manual/controlled-campus-web-demo.md)。P1 固定真实模型12/12、P4定向回归227项及校园真库11项、后续页面整理36项前端测试有各自执行证据；[人工确认与最终收尾](docs/evidence/controlled-web-demo/2026-10-06/p4/final-closeout/manual-acceptance.md)区分用户报告、自动测试及当前演示退出状态。本次文档收尾没有重跑这些测试，不宣称生产部署或全部浏览器质量检查通过。下文4A/3B的替身说明及计数仅对应历史时点。
-
-当前 **4A＋3B 已验收**，见 [整合核验](docs/evidence/milestone-4a/2026-10-05/A/20-4a-3b-integration-review.md)。Session 恢复仅限本人重修澄清控制状态，不恢复完整聊天记录或自动续跑 Run。项目面向校园资料维护者和本机演示开发者：根据用户提供的虚构公共选修课计算合计，核对已发布的学分上限及出处，证据不足时转人工核实。
-
-**Milestone 4A 本机受控身份与 Run 归属入口**的独立验收见 [4A 历史记录（V19 时点）](docs/evidence/milestone-4a/2026-10-05/A/18-4a-acceptance.md)，后续会话验收见 [3B 记录](docs/evidence/milestone-3b/2026-10-05/B/07-3b-acceptance.md)。合成 USER A/B 只能访问自己的 Run 和历史；MAINTAINER 不继承 USER 权限。实际回环 HTTP、不同 PID、旧 Cookie 失效和归属隔离已验证，该阶段模型为 src/test 替身。原单人匿名入口独立保留；两个模式不可混用，也不能通过隧道或代理变成生产多用户服务。当时尚未提交，后续已有本地工程检查点；实际身份见[当前项目状态](docs/zhkuagent/2026-10-18-project-status.md)。
-
-前一版 [2026-10-04 三批收口](docs/evidence/single-session/2026-10-04/r22/README.md) 的去重407项及 [4A/V19 测试报告](docs/evidence/milestone-4a/2026-10-05/A/17-final-test-report.md)保留为各自时点的历史结果。当前命令、计数与去重来源见 [3B 最终测试报告](docs/evidence/milestone-3b/2026-10-05/B/08-final-test-report.md)，相关覆盖去重591项，不代表全仓测试。真实SDK对接合成服务端只验证传输协议，不等于真实供应商验证。
-
-## 三个模块，两个应用
-
-| 目录 | 职责 | 启动方式 |
-| --- | --- | --- |
-| `agent-runtime/` | 共享任务生命周期、Run/Snapshot、ToolCall、Event、RuntimeError | 公共库，无独立服务入口 |
-| `agent/` | 通用 Agent、独立主循环、原前端与工具 | 见 [Agent README](agent/README.md)；模型服务不在本阶段验收范围 |
-| `knowledge/` | 资料治理、审核发布、问答与校园学分 Agent 独立主循环 | 见 [Knowledge README](knowledge/README.md) |
-
-两个应用分别依赖 `agent-runtime`，不互相依赖。校园政策、证据、资料可见性、工具白名单、调用顺序和转人工规则保留在 knowledge；共享 Runtime 不处理校园业务。两个应用均有模型相关依赖，数据库迁移资源各自隔离。
-
-## 构建与入口
-
-Maven 项目坐标统一使用 `com.zhku`：父项目 `com.zhku:zhku-agent`，模块为 `agent-runtime`、`agent`、`knowledge`，独立图片工具为 `com.zhku:image-search`。当前候选版本为 `0.1.0-rc.1`，制品路径与启动器同步更新。A10工程门禁已关闭，完整冻结验收及真实资料边界见 [工程冻结说明](docs/releases/v0.1.0-rc.1-engineering-freeze.md)；[原候选快照](docs/releases/v0.1.0-rc.1/README.md)保留。模块构建请从根目录使用 `-pl ... -am`，不要引用旧的 `com.yupi` 本地缓存。项目范围、非校园内容及保留建议见 [内容盘点](docs/zhkuagent/2026-10-06-项目范围与非校园内容盘点.md)。
-
-在仓库根目录的 PowerShell 中使用 JDK 21；首次构建可能需要下载 Maven 和依赖：
-
-```powershell
-$mavenRepo = Join-Path $env:USERPROFILE '.m2/repository'
-.\mvnw.cmd "-Dmaven.repo.local=$mavenRepo" -DskipTests package
-# 分别构建应用及共享依赖：
-.\mvnw.cmd "-Dmaven.repo.local=$mavenRepo" -pl knowledge -am -DskipTests package
-.\mvnw.cmd "-Dmaven.repo.local=$mavenRepo" -pl agent -am -DskipTests package
+```
+用户提问 → 规则查证 Agent → 检索知识库（向量 + 关键词） → 引用原文出处 → 回答 / 转人工
 ```
 
-打包成功只证明构建，不证明模型、数据库或网络服务可用。knowledge 本机预览默认 8123、管理入口 8124；通用 Agent 并行启动示例使用 18123，避免端口冲突。实际 knowledge 网络地址包含 `/api` 前缀。当前受控网页与真实校园模型由专用演示启动器启用；上述构建命令不会启动它们。RAG和通用Agent模型服务不在本版网页演示范围。
+## 能做什么
 
-历史构建曾遇默认缓存权限问题；上述命令显式选择用户目录缓存，不修改系统设置或构建文件。当前验收使用缓存wrapper3.9.9及安装版3.9.15，实际参数和失败/重试记录见本版本报告。
+- **规则查证**：回答学分构成、课程替代、重修与毕业要求等问题，每个结论都附资料版本与页码。
+- **资料治理**：文档入库、分块、向量化、审核发布、下架撤回，回答时按当前发布状态判定能否展示。
+- **可追溯执行**：每次运行留下 Run 快照（步骤、工具调用、检索结果），可回放、可核查、可归档。
+- **多轮澄清**：信息不足时主动追问；本人历史会话跨进程可恢复（受控模式）。
 
-## 当前状态与演示导航
+## 不做什么
 
-| 文档 | 用途 |
+- 不推断个人选课资格，不访问真实教务系统，不代办校园事务。
+- 不保证模型端到端自主完成；结论以资料原文为准，模型只做组织与引用。
+- 定位是本机 / 单机部署的演示与教学项目，不是生产级多租户服务。
+
+## 架构
+
+```
+                    ┌──────────────────┐
+        ┌───────────┤  agent-runtime   │  共享 Run / Snapshot / ToolCall / Event / RuntimeError
+        │           └──────────────────┘
+        │                    │
+   ┌────▼─────┐        ┌─────▼──────┐
+   │  agent   │        │  knowledge │
+   │ 通用 Agent│        │ 查证 / 知识库│
+   └──────────┘        └────────────┘
+```
+
+| 模块 | 职责 |
 | --- | --- |
-| [4A 验收与限制](docs/evidence/milestone-4a/2026-10-05/A/18-4a-acceptance.md) | 合成账号、Run归属、真实回环HTTP及进程验收，阶段边界和回退 |
-| [4A 运行与演示](knowledge/README.md#milestone-4a本机受控身份与run归属) | 专用临时库脚本、认证路径及当前默认关闭条件 |
-| [4A 历史测试报告](docs/evidence/milestone-4a/2026-10-05/A/17-final-test-report.md) | V20激活前的4A/V19独立验收：XML、失败/修复、去重统计、构建与物理退出证据 |
-| [上一版三批验收](docs/evidence/single-session/2026-10-04/r22/README.md) | 历史测试、构建、源码差异及当时未验证项 |
-| [上一版受控演示](docs/evidence/single-session/2026-10-04/r22/02-local-demo.md) | 原Golden/不可见场景、撤回结果及进程对账路径 |
-| [R1.4传输验收](docs/evidence/single-session/2026-10-04/r14-completion/README.md)、[R1.5展示门禁验收](docs/evidence/single-session/2026-10-04/r15/README.md) | 分批RED、修复、差异、回归与资源/许可边界 |
-| [Milestone 3A 当前验收](docs/evidence/milestone-3a/05-验收记录.md) | 归档、历史、实际进程中断对账的完成范围与未验证项 |
-| [3A 实施与受控演示](docs/evidence/milestone-3a/02-实施记录.md) | 默认关闭、显式目标、只读历史、关闭与故障运维 |
-| [3A 本轮测试报告](docs/evidence/milestone-3a/04-测试报告.md) | 基线、修改后回归、真实 JDBC、实际 JVM 重启与原 Golden 分开统计 |
-| [3A 后端历史路线](docs/superpowers/plans/2026-10-03-post-3a-backend-roadmap.md) | 4A/3B/3C 已有后续成果；受限恢复、非本机入口仍不在当前收口范围 |
-| [2.5 历史状态](docs/evidence/milestone-2.5/01-当前状态.md) | 该时点实现、验证范围、限制及候选，不代表全项目最新状态 |
-| [本地预览与演示指南](docs/evidence/milestone-2.5/02-本地预览与演示指南.md) | 网页预览条件、受控 Golden Task、请求/查询/取消示例 |
-| [阶段性发布说明](docs/evidence/milestone-2.5/03-阶段性发布说明.md) | 本机候选的产品范围和兼容性说明 |
-| [本阶段范围、基线与验证](docs/evidence/milestone-2.5/04-范围基线与验证.md) | 本轮实测、历史结果、源码审计和未执行项 |
-| [Milestone 2.5 验收记录](docs/evidence/milestone-2.5/05-验收记录.md) | 文件差异、完成标准和回滚 |
-| [Milestone 2.6 后继修复与复验](docs/evidence/milestone-2.6/05-验收记录.md) | 临时库口令传递修复、本轮数据库验收和回归；保留 2.5 历史证据 |
-| [项目目录与代码索引](docs/zhkuagent/项目目录与Agent代码索引.md) | 源码导航；其中历史数字和清理语义以当前 README / 阶段验收为准 |
+| `agent-runtime/` | 运行生命周期、快照、工具调用协议、事件与统一错误类型。公共库，无独立入口。 |
+| `agent/` | 通用 Agent：主循环、内置工具（文件/终端/搜索/抓取/下载/PDF）、会话记忆、RAG 顾问链、前端。 |
+| `knowledge/` | 校园业务：资料治理与审核、向量检索、规则查证 Agent、学分核算与人工转接。 |
 
-固定验收证据：[Milestone 1A](docs/evidence/2026-10-02-milestone-1a-验收记录.md)、[Milestone 1B](docs/evidence/milestone-1b/05-验收记录.md)、[Milestone 2](docs/evidence/milestone-2/05-验收记录.md)。原 188 项相关回归包含 12 项组合测试，另有 11 项临时库验收；不是全仓库测试或真实用户效果指标。各阶段报告区分本轮与历史结果，3A 统计以新报告为准。
+两个应用都依赖 `agent-runtime`，彼此不依赖；校园规则只存在于 `knowledge`，共享层不含业务。
 
-## 数据与使用边界
+## 技术栈
 
-原匿名模式只供单人本机预览；4A受控模式提供合成账号的身份与Run归属隔离，但仍只监听回环。身份和ADMITTED同事务绑定；他人/不存在资源统一404，数据库核验失败不返回缓存正文，账号停用或revision变化使旧登录失效。3A归档与中断对账继续保留，不自动续跑。3B已验收本人重修澄清控制状态持久化与跨PID恢复；当前已有有限真实供应商样本及用户报告的本机网页功能验收，非本机/生产多人权限、完整聊天历史持久化、备份恢复和真实学生效果尚未验收。
+Java 21 · Spring Boot 3.4 · Spring AI / Spring AI Alibaba（DashScope）· PostgreSQL + pgvector · Flyway · Maven Wrapper · Vite（前端）· Docker Compose（本地数据库）
 
-展示答案时重新检查原来源许可：资料撤回、版本/范围变化或许可无法核验时，隐藏正文、来源及含定位信息的步骤，保留原执行状态；SUCCEEDED不等于当前可以展示。证据仍为REFERENCE_ONLY，不证明同版本正文不可变。校园同步模型有独立资源句柄、最多2个在途、零自动重试及有界关闭；不承诺任意永久阻塞可以在线程内硬终止。
+## 快速开始
 
-原匿名入口默认仍只有内存运行记录；4A受控入口默认关闭，启用时强制显式归档及专用数据库目标。历史状态 `ADMITTED / FINALIZED / INTERRUPTED` 与执行状态分开；历史没有 `terminated`，存储提交不证明 HTTP 送达或最终事件已发布。默认保留 7 天、最多 10,000 条，正文受来源可见性与 16 KiB 字节上限控制；单实例锁仅约束启用归档的参与者。详见 [使用与限制](docs/evidence/milestone-3a/02-实施记录.md)。
+前置：JDK 21、PowerShell、Docker Desktop（起 PostgreSQL + pgvector）、DashScope API Key。
 
-主要演示输入为虚构课程 `ART01=1.5`、`HIS02=2`；受控验收输出为 3.5 学分合计、已发布的 4 学分上限及来源。项目不推断个人选课资格、不访问真实教务成绩、不代办校园事务、不保证模型自主完成所有任务。
+```powershell
+# 1. 起数据库
+docker compose -f knowledge/infra/docker-compose.yml up -d
 
-本机数据库卷、原始 PDF、上传文件和凭证不随代码目录搬迁。`DataRoot` 指向既存资料目录，不会自动切换数据库；数据库写入验收只能使用专用临时库。2.5 记录的口令命令参数问题已在 [2.6](docs/evidence/milestone-2.6/05-验收记录.md)独立修复：2026-10-03 实测 8 项脚本检查、188 项相关回归和 11 项专用临时库验收通过，模型仍为替身。2.5 原日志及哈希保留，不改写历史结果。
+# 2. 配置凭证（只放环境变量，不写进仓库）
+$env:ZHKU_DB_PASSWORD = "<本机数据库口令>"
+$env:DASHSCOPE_API_KEY = "<你的 DashScope Key>"
 
-历史文档按其日期和基线理解；其中旧路径、M0/M1/M2 命名及独立模型冒烟不代表当前 1A/1B/2 的运行验证。旧教学技术范围见 [迁移前技术概览](docs/agent/迁移前README.md)。
+# 3. 构建（-am 会一并构建 agent-runtime）
+.\mvnw.cmd -pl knowledge -am -DskipTests package
 
-## 2026-10-05：3B业务Session验收
+# 4. 启动知识库服务
+java -jar knowledge/target/knowledge-0.1.0-rc.1.jar
+```
 
-4A之后按4A3B-C1-FROZEN完成B2～B5：活动V20与匿名NULL隔离、本人JDBC会话、重修两轮澄清、真实HTTP和两个不同PID恢复均通过。旧登录Cookie在旧PID退出后失效，同一稳定用户重新登录可继续数据库中的重修澄清控制状态；不恢复完整聊天记录或自动续跑Run。
+默认端口：知识库服务 `8123`（HTTP 接口前缀 `/api`），管理入口 `8124`；通用 Agent 示例用 `18123`，避免冲突。详细启动脚本与演示流程见 [knowledge/README.md](knowledge/README.md) 与 [本机演示手册](docs/manual/)。
 
-3B默认关闭，仅在原受控profile及显式专用目标下开启`zhku.controlled-preview.conversations.enabled=true`；身份、Flyway、Run与Session使用同一目标，最高迁移V20，不回退Memory。四个JSON接口为POST `/api/zhku/controlled-preview/v1/conversations`、GET `/{sessionId}`、POST `/{sessionId}/messages`及POST `/{sessionId}/cancel`，后两者必须显式expectedRevision；不安全请求必须CSRF，维护者无USER权限，没有列表/SSE/Run关联。
+> 打包成功只代表编译通过，不代表模型、数据库和网络可用；模型实际调用需要有效 Key 与网络。
 
-本轮相关覆盖去重591项通过，最终3B组91项和三模块打包通过，源码/资源检查完成；模型仍为合成依赖，会话模型调用0，真实供应商和生产多用户未验收。见[3B验收](docs/evidence/milestone-3b/2026-10-05/B/07-3b-acceptance.md)与[新测试报告](docs/evidence/milestone-3b/2026-10-05/B/08-final-test-report.md)。回退只关入口，保留V20及私有归属，不能让旧无NULL过滤二进制读取受控库。
+## 目录
+
+```
+agent-runtime/   共享运行时
+agent/           通用 Agent（含前端、内置工具）
+knowledge/       校园查证与知识库
+docs/            设计、决策、验收与教程（先看 docs/README.md）
+tools/           独立小工程与验收脚本（image-search-mcp、t08-acceptance…）
+scripts/         本机构建、启动、凭证脚本
+```
+
+## 开发约定
+
+- 提交遵循 [docs/git-commit-workflow.md](docs/git-commit-workflow.md)：明确结果 → 验收通过 → 核对暂存差异 → 提交。
+- 关键边界与易误用处写中文注释，说明取舍与风险，不逐行复述代码。
+- 凭证只从环境变量读取，不入库、不入日志、不写进命令。AI 协作约定见 [AGENTS.md](AGENTS.md)。
+
+## 文档
+
+| 入口 | 内容 |
+| --- | --- |
+| [docs/README.md](docs/README.md) | 文档索引，说明各目录哪些是当前有效、哪些是历史归档 |
+| [docs/design/](docs/design/) | 架构与契约设计 |
+| [docs/decisions/](docs/decisions/) | 关键决策记录 |
+| [docs/manual/](docs/manual/) | 本机启动与演示手册 |
+| [docs/tutorials/](docs/tutorials/) | 模块迁移与实现过程说明 |
+
+## 来源与许可
+
+项目起步于开源教学项目 [liyupi/yu-ai-agent](https://github.com/liyupi/yu-ai-agent) 的工程骨架（Spring Boot + Spring AI 的基础结构、MCP 与工具调用示例），在此基础上重构为校园查证 Agent：包结构、运行边界、知识库治理与检索链路均已重写。上游原项目未声明开源许可，本仓库目前为企业内部/私有仓库（private），未做对外分发；如需开源，请先补齐 LICENSE 并核对上游代码的使用范围。
+
+---
+
+版本 `0.1.0-rc.1` · 维护者：[@Jayhavena](https://github.com/Jayhavena)
