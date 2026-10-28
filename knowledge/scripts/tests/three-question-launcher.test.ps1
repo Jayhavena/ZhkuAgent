@@ -220,5 +220,49 @@ Test-Case 'PageFixture仍接受原10月27日证据根' {
 Test-Case 'PageFixture不随E02移动到10月28日证据根' {
  Assert-EvidenceDirectory @{Operation='PageFixture';PageEvidenceDirectory='D:\offline fixture\repo\docs\evidence\rule-check-refactor\2026-10-28\fixture-child'} '页面证据须位于本轮独立子目录'
 }
+Test-Case '真实本地假Maven子进程保留E02参数授权路径和退出码' {
+ # 仅在随机临时目录生成固定内容的 cmd；清除凭证环境变量，子进程不能触及真实 Maven 或模型。
+ foreach($name in @('DASHSCOPE_API_KEY','ZHKU_DB_PASSWORD')){Remove-Item -LiteralPath "Env:\$name" -ErrorAction SilentlyContinue}
+ $fixture=Join-Path ([IO.Path]::GetTempPath()) ("zhku fake's subprocess "+[guid]::NewGuid().ToString('N'))
+ New-Item -ItemType Directory -Path $fixture -ErrorAction Stop | Out-Null
+ try{
+  $mvn=Join-Path $fixture "fake maven's command.cmd"
+  $pwsh=[Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+  # cmd 的 %1 会按等号再分词，须像真实批处理那样用 %* 转发给独立进程捕获 argv。
+  $node=(Get-Command node.exe -CommandType Application -ErrorAction Stop).Source
+  $fake="@echo off`r`n`"$node`" `"%~dp0capture.js`" %*`r`nexit /b %errorlevel%`r`n"
+  [IO.File]::WriteAllText($mvn,$fake,[Text.Encoding]::ASCII)
+  [IO.File]::WriteAllText((Join-Path $fixture 'capture.js'),'for (const arg of process.argv.slice(2)) console.log(arg); process.exit(37);',[Text.Encoding]::ASCII)
+  $root=$fixture; $assets=Join-Path $fixture "assets' directory"; $batch=Join-Path $fixture "batch' directory"
+  $HandbookPdf=Join-Path $fixture "handbook's file.pdf"
+  $Profile='E02';$PageProxyPort=0;$PackageSha256='a'*64;$ApprovedSha256='a'*64
+  $ApprovedBudgetRmb='4.02';$AuthorizationId='explicit-approval-001';$secrets=@()
+  $pwsh=[Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+  $child=@($testAst.FindAll({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Invoke-Child'},$true))
+  if($child.Count -ne 1){throw '须恰有一个真实 Invoke-Child'}
+  . ([scriptblock]::Create($child[0].Extent.Text))
+  . ([scriptblock]::Create($testMavenFunctions[0].Extent.Text))
+  foreach($operation in @('Prepare','Live')){
+   $result=Invoke-Maven $operation 30
+   if($result.timedOut -or !$result.processExited -or $result.exitCode -ne 37){throw "假Maven退出码或进程状态错误：$operation exit=$($result.exitCode) timedOut=$($result.timedOut)"}
+   $arguments=@($result.stdout -split '\r?\n' | Where-Object {$_ -ne ''})
+   Assert-ContainsOnce $arguments '-o'
+   if(@($arguments | Where-Object {$_ -ceq '-Dzhku.three.profile=E02'}).Count -ne 1){throw "假Maven输出参数：$($result.stdout)；标准错误：$($result.stderr)"}
+   Assert-ContainsOnce $arguments ("-Dzhku.three.operation="+$operation.ToLowerInvariant())
+   if(@($arguments | Where-Object {$_ -ceq "-Dzhku.three.codeRoot=$root"}).Count -ne 1){throw "假Maven输出参数：$($result.stdout)；标准错误：$($result.stderr)"}
+   Assert-ContainsOnce $arguments "-Dzhku.t06.root=$assets"
+   Assert-ContainsOnce $arguments "-Dzhku.three.batch=$batch"
+   Assert-ContainsOnce $arguments "-Dzhku.t06.handbookPdf=$HandbookPdf"
+   Assert-ContainsOnce $arguments ('-Dzhku.three.sha256='+('a'*64))
+   $authorization=@($arguments | Where-Object {$_ -like '-Dzhku.three.approved*' -or $_ -like '-Dzhku.three.authorizationId=*'})
+   if($operation -eq 'Live'){
+    if($authorization.Count -ne 3){throw '假Maven须收到且仅收到三项授权参数'}
+    Assert-ContainsOnce $arguments ('-Dzhku.three.approvedSha256='+('a'*64))
+    Assert-ContainsOnce $arguments '-Dzhku.three.approvedBudgetRmb=4.02'
+    Assert-ContainsOnce $arguments '-Dzhku.three.authorizationId=explicit-approval-001'
+   }elseif($authorization.Count){throw 'Prepare不得转发授权参数'}
+  }
+ }finally{Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue}
+}
 Write-Output "LAUNCHER_TESTS total=$testTotal failed=$testFailed actualMavenRuns=0 databaseOperations=0 credentialReads=0 providerCalls=0"
 if($testFailed){exit 1}

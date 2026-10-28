@@ -273,8 +273,7 @@ class RuleAgentThreeQuestionHostTest {
             assertThat(snapshot).isNotNull();
             assertThat(snapshot.terminated()).as("页面任务须在宿主预算内到达终态").isTrue();
             assertThat(snapshot.execution().mode()).isEqualTo(Mode.ONLINE);
-            assertThat(snapshot.taskStatus()).isNotEqualTo(TaskStatus.FAILED);
-            recordOutcome("E02", JSON.valueToTree(snapshot));
+            recordE02Outcome(snapshot);
             assertThat(e02Scope.tasks()).isEqualTo(1);
             assertThat(e02Scope.runs()).isEqualTo(1);
             assertThat(calls.get()).isBetween(1, maximumCalls);
@@ -347,6 +346,12 @@ class RuleAgentThreeQuestionHostTest {
             Thread.sleep(100);
         }
         throw new IllegalStateException("任务等待超时，停止不重试");
+    }
+    static void recordE02Outcome(TaskSnapshot snapshot) throws Exception {
+        // 先保存原终态和原因码，再拒绝失败；否则失败断言会把唯一回执吞掉。
+        recordOutcome("E02", JSON.valueToTree(snapshot));
+        assertThat(snapshot.taskStatus()).as("E02失败或停止不能算通过")
+                .isNotIn(TaskStatus.FAILED, TaskStatus.STOPPED);
     }
     private static void recordOutcome(String id, JsonNode value) throws Exception {
         ObjectNode item = JSON.createObjectNode().put("caseId", id).put("safetyVerdict", "HUMAN_REVIEW_REQUIRED").put("productVerdict", "HUMAN_REVIEW_REQUIRED");
