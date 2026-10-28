@@ -47,6 +47,8 @@ class RuleAgentE02ExecutionRegressionTest {
         git("-c", "user.name=E02 offline fixture", "-c", "user.email=offline@example.invalid", "commit", "--quiet", "--allow-empty", "-m", "synthetic offline fixture only");
         Files.createDirectories(fixture.resolve("agent/frontend/dist-e02-page-live"));
         Files.writeString(fixture.resolve("agent/frontend/dist-e02-page-live/index.html"), "SYNTHETIC OFFLINE TEST ONLY");
+        Files.createDirectories(fixture.resolve("agent/frontend/dist-student"));
+        Files.writeString(fixture.resolve("agent/frontend/dist-student/index.html"), "SYNTHETIC OFFLINE TEST ONLY");
     }
     static void git(String... args) throws Exception {
         var command = new ArrayList<>(List.of("git", "-C", fixture.toString())); command.addAll(List.of(args));
@@ -54,9 +56,12 @@ class RuleAgentE02ExecutionRegressionTest {
         String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         if (!process.waitFor(10, TimeUnit.SECONDS) || process.exitValue() != 0) throw new IllegalStateException("离线合成源码夹具失败: " + output);
     }
+    String profileName() { return "E02"; }
+    String planPath() { return profileName().equals("E13") ? RuleAgentE13Policy.PLAN : RuleAgentE02Policy.PLAN; }
+    String question() { return profileName().equals("E13") ? RuleAgentE13Policy.QUESTION : RuleAgentE02Policy.QUESTION; }
     @BeforeEach void configureRealHostCallbacks() throws Exception {
-        System.setProperty("zhku.three.profile", "E02");
-        plan = (ObjectNode) RuleAgentThreeQuestionPackage.JSON.readTree(Files.readAllBytes(assets.resolve(RuleAgentE02Policy.PLAN)));
+        System.setProperty("zhku.three.profile", profileName());
+        plan = (ObjectNode) RuleAgentThreeQuestionPackage.JSON.readTree(Files.readAllBytes(assets.resolve(planPath())));
         // 时间和核价证据是明确的合成夹具；测试不能依赖当天官方价格是否已重新核对。
         String today = LocalDate.now(ZoneId.of("Asia/Shanghai")).toString();
         ((ObjectNode) plan.path("money")).put("tariffCheckedDate", today).put("tariffValidThrough", today)
@@ -76,13 +81,13 @@ class RuleAgentE02ExecutionRegressionTest {
         RuleAgentThreeQuestionHostTest.hardBudgetRmb = "4.02";
         RuleAgentThreeQuestionHostTest.maximumCalls = 5;
         RuleAgentThreeQuestionHostTest.scope = null;
-        RuleAgentThreeQuestionHostTest.e02Scope = new RuleAgentE02Scope(plan);
+        RuleAgentThreeQuestionHostTest.e02Scope = new RuleAgentE02Scope(plan, profileName());
         RuleAgentThreeQuestionHostTest.reserved = BigDecimal.ZERO;
         RuleAgentThreeQuestionHostTest.calls.set(0);
         response = RuleAgentThreeQuestionPackage.JSON.writeValueAsString(Map.of("choices", List.of(Map.of("finish_reason", "stop", "message", Map.of("content", "{\"type\":\"SEARCH_REVIEWED_RULES\",\"subquestionId\":\"q1\",\"query\":\"公共选修学时\"}"))), "usage", Map.of("prompt_tokens", 25, "completion_tokens", 12)));
     }
     void writePlan() throws Exception {
-        Path file = fixture.resolve(RuleAgentE02Policy.PLAN); Files.createDirectories(file.getParent());
+        Path file = fixture.resolve(planPath()); Files.createDirectories(file.getParent());
         Files.write(file, RuleAgentThreeQuestionPackage.JSON.writeValueAsBytes(plan));
     }
     void freezeSyntheticFixture() throws Exception {
@@ -91,7 +96,7 @@ class RuleAgentE02ExecutionRegressionTest {
     RuleAgentRunner.View view(String question) {
         return new RuleAgentRunner.View(question, List.of(new RuleAgentRunner.Question("q1", question)), Map.of(), List.of(), List.of(), List.of(), List.of(), 4, 6);
     }
-    RuleAgentRunner.View view() { return view(RuleAgentE02Policy.QUESTION); }
+    RuleAgentRunner.View view() { return view(question()); }
     RuleAgentProvider provider() throws Exception {
         if (server == null) {
             server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
@@ -147,7 +152,7 @@ class RuleAgentE02ExecutionRegressionTest {
             assertThat(message.size()).isEqualTo(2); assertThat(message.path("content").isTextual()).isTrue();
         }
         JsonNode input = RuleAgentThreeQuestionPackage.JSON.readTree(messages.get(1).path("content").asText());
-        assertThat(input.path("question").asText()).isEqualTo(RuleAgentE02Policy.QUESTION);
+        assertThat(input.path("question").asText()).isEqualTo(question());
         assertThat(requestBody.get()).doesNotContain("local-synthetic-not-a-real-key");
     }
     @AfterEach void cleanOnlyOwnedResources() throws Exception {

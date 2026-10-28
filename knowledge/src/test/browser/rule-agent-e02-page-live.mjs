@@ -87,7 +87,8 @@ export async function createBrowserLease(batch, evidenceRoot, expectedSha) {
   return {dir, root, nonce, expectedSha, leaseText, accepted:null, stopped:false};
 }
 
-export async function acceptBrowserTicket(lease) {
+export async function acceptBrowserTicket(lease, profile = 'E02') {
+  assert(['E02','E13'].includes(profile), 'Unknown single-page profile');
   assert(!lease.accepted, 'Ready ticket already accepted');
   assert.equal(await realpath(lease.dir), lease.dir, 'Batch path changed');
   assert.equal(await readFile(path.join(lease.dir, 'browser-driver-lease.json'), 'utf8'), lease.leaseText, 'Lease changed');
@@ -97,7 +98,7 @@ export async function acceptBrowserTicket(lease) {
   assert.equal(host.driverLeaseNonce, lease.nonce, 'Driver lease nonce mismatch');
   assert.equal(host.driverLeaseSchemaVersion, 1); assert.equal(host.schemaVersion, 4);
   assert.equal(host.packageSha256, lease.expectedSha, 'Package SHA mismatch');
-  assert.equal(host.profile, 'E02'); assert.equal(host.executionMode, 'ONLINE'); assert.equal(host.browserRequired, true);
+  assert.equal(host.profile, profile); assert.equal(host.executionMode, 'ONLINE'); assert.equal(host.browserRequired, true);
   assert.equal(host.maximumTasks, 1); assert.equal(host.maximumRuns, 1);
   assert.equal(host.maximumProviderCalls, 5); assert.equal(host.hardBudgetRmb, '4.02'); assert.equal(host.javaPostAllowed, false);
   assert(Number.isInteger(host.proxyPort) && host.proxyPort >= 1024 && host.proxyPort <= 65535, 'Invalid loopback proxy port');
@@ -148,7 +149,8 @@ export async function stopOwnedBrowser({chrome, profile, tempRoot}) {
   return cleanup;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+export async function runPageLive(profile = 'E02') {
+assert(['E02','E13'].includes(profile), 'Unknown single-page profile');
 
 // baseUrl 可传 '-'：由宿主写出的 browser-ready.json 里的 proxyPort 决定，
 // 这样启动器无需预先知道回环端口，也不会由外部猜一个地址。
@@ -162,7 +164,7 @@ const root = process.cwd();
 // 目录必须由调用方显式创建，避免覆盖上一轮证据。
 assert.equal((await stat(evidence)).isDirectory(), true, 'evidence directory must already exist');
 // 必须由驱动先占用新批次；此握手只防误混批，不能对抗同用户恶意进程。
-const evidenceRoot = path.join(root, 'docs/evidence/rule-check-refactor/2026-10-28/e02-single-page-live');
+const evidenceRoot = path.join(root, `docs/evidence/rule-check-refactor/2026-10-28/${profile.toLowerCase()}-single-page-live`);
 const lease = await createBrowserLease(hostDir, evidenceRoot, expectedSha);
 const save = (name, data) => writeFile(path.join(evidence, name), JSON.stringify(data, null, 2) + '\n', {flag: 'wx'});
 const exists = async file => { try { await stat(file); return true; } catch (e) { if (e.code === 'ENOENT') return false; throw e; } };
@@ -175,7 +177,8 @@ const clean = text => secrets.reduce((s, value) => s.split(value).join('[REDACTE
 let owned, cdp, session, success = false, failure = null;
 const checks = [], network = [], consoleRows = [], pendingBodies = new Set(), requests = new Map(), bodyJobs = [];
 let phase = 'SMOKE';
-let providerCalls = -1, liveResult = null;
+let providerCalls = -1, liveResult = null, finalSnapshot = null;
+const observedTaskIds = new Set();
 
 const command = (method, params = {}) => cdp.send(method, params, session);
 const evaluate = async expression => { const result = await command('Runtime.evaluate', {expression, returnByValue: true, awaitPromise: true}); if (result.exceptionDetails) throw new Error('Page evaluation failed (details not persisted)'); return result.result.value; };
@@ -194,7 +197,7 @@ try {
   await withBrowserLease(lease, async () => {
   phase = 'HOST_READY'; let host;
   // 宿主必须回显本轮 nonce 与独立给定的包 SHA，才允许接入及异常 STOP。
-  await wait(async () => { try { host = await acceptBrowserTicket(lease); return true; } catch (error) { if (error.code === 'ENOENT' || error instanceof SyntaxError) return false; throw error; } }, 'current host ready ticket', 240000);
+  await wait(async () => { try { host = await acceptBrowserTicket(lease, profile); return true; } catch (error) { if (error.code === 'ENOENT' || error instanceof SyntaxError) return false; throw error; } }, 'current host ready ticket', 240000);
   const hostBase = 'http://127.0.0.1:' + host.proxyPort;
   assert(!baseUrl || baseUrl === hostBase, 'base URL must match current host loopback proxy');
   baseUrl = hostBase;
@@ -230,6 +233,10 @@ try {
       const row = requests.get(p.requestId);
       bodyJobs.push(command('Network.getResponseBody', {requestId: p.requestId}).then(body => {
         const value = JSON.parse(body.body);
+        if (phase === `${profile}_QUESTION` && value.taskId) {
+          observedTaskIds.add(value.taskId);
+          if (value.terminated === true) finalSnapshot = value;
+        }
         if (row.route.includes('/originals/')) row.safeBody = {title: clean(value.title), revision: value.revision, contextText: clean(value.contextText)};
         else row.safeBody = {schemaVersion: value.schemaVersion, taskStatus: value.taskStatus, version: value.version, terminated: value.terminated, execution: value.execution ? {mode: value.execution.mode, modelAttemptCount: value.execution.modelAttemptCount, providerResponseReceived: value.execution.providerResponseReceived} : null, result: value.result ? {referenceRevision: value.result.referenceRevision, coverage: value.result.coverage, evidenceCount: value.result.evidence?.length, quotes: value.result.evidence?.map(e => clean(e.quote)), claims: value.result.items?.flatMap(q => q.claims?.map(c => clean(c.text)) || []), issues: value.result.items?.flatMap(q => q.issues?.map(i => ({kind: i.kind, reasonCode: i.reasonCode})) || [])} : null};
       }).catch(() => { row.safeBodyRead = 'UNAVAILABLE'; }));
@@ -255,15 +262,21 @@ try {
 
   phase = 'LOGIN'; await loginSyntheticStudent({fill, click, wait, evaluate}, fixtureSource); await checkpoint('student-login-complete');
 
-  const plan = JSON.parse(await readFile(path.join(root, 'knowledge/src/test/resources/rule-agent-e02-page-plan.json'), 'utf8'));
+  const plan = JSON.parse(await readFile(path.join(root, `knowledge/src/test/resources/rule-agent-${profile.toLowerCase()}-page-plan.json`), 'utf8'));
   const question = plan.cases[0].question;
   assert.equal(host.question, question, 'host and plan must agree on the single question');
 
-  phase = 'E02_QUESTION'; await fill('#rule-question', question); await button('查证规则'); await wait(() => has('问题已受理，正在查证。'), 'visible async progress'); await shot('02-active.png'); await checkpoint('submitted-single-question');
+  phase = `${profile}_QUESTION`; await fill('#rule-question', question); await button('查证规则'); await wait(() => has('问题已受理，正在查证。'), 'visible async progress'); await shot('02-active.png'); await checkpoint('submitted-single-question');
   // 真实模型耗时不可预估；上限按宿主租约收敛，不重试、不刷新。
   await wait(async () => { const body = await text(); return terminalMarkers.some(marker => body.includes(marker)) && !body.includes('问题已受理，正在查证。'); }, 'terminal answer state', 420000);
   const answer = await evaluate(`(()=>{const d=document.querySelector('#decision-title');const f=document.querySelector('.rule-fact h3');const q=document.querySelector('.related-evidence blockquote');const n=document.querySelector('.rule-notice');return{heading:d?d.textContent.trim():null,claim:f?f.textContent.trim():null,quote:q?q.textContent.trim():null,notice:n?n.textContent.trim():null,evidenceCount:document.querySelectorAll('.related-evidence').length,hasOriginalButton:[...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='核对原文')};})()`);
   await shot('03-answer.png'); await checkpoint('answer-rendered', answer);
+  if (profile === 'E13') {
+    await Promise.all(bodyJobs);
+    assert.equal(observedTaskIds.size, 1, 'E13 must have one coherent task');
+    assertE13Terminal(finalSnapshot, await text());
+    await checkpoint('e13-data-gap-terminal-validated', {coverage:'NONE', productVerdict:'HUMAN_REVIEW_REQUIRED'});
+  }
   if (answer.hasOriginalButton) { await button('核对原文'); await wait(() => has('原文'), 'original panel'); const original = await evaluate(`(()=>{const m=document.querySelector('#original-panel mark');return m?m.textContent.trim():null;})()`); await shot('04-original.png'); await checkpoint('original-rendered', {originalQuote: original, matchesQuote: Boolean(original && answer.quote && original.includes(answer.quote))}); }
 
   phase = 'LOGOUT'; await button('退出登录'); await wait(() => evaluate(`!!document.querySelector('#username:not(:disabled)')`), 'logout'); assert.equal(await evaluate(`document.querySelectorAll('.decision').length`), 0); await checkpoint('logout-clears-result');
@@ -278,7 +291,7 @@ try {
   providerCalls = liveResult.providerCalls;
   assert.equal(liveResult.httpChecksPassed, true);
   assert.equal(liveResult.resourcesClosed, true);
-  assert.equal(liveResult.profile, 'E02');
+  assert.equal(liveResult.profile, profile);
   assert.equal(liveResult.scopeRuns, 1);
   assert.equal(liveResult.browserTested, false, 'host must not claim browser success on the driver behalf');
   assert(providerCalls >= 1 && providerCalls <= plan.maximumProviderCalls, 'provider calls must stay inside the E02 ceiling');
@@ -287,17 +300,17 @@ try {
   await checkpoint('host-stop-network-unreachable', {scope:'TRANSPORT_ONLY', uiNegativeControlVerified:false});
 
   await Promise.all(bodyJobs);
-  assert(network.some(r => r.phase === 'E02_QUESTION' && r.safeBody?.execution?.mode === 'ONLINE'));
-  assert(network.some(r => r.phase === 'E02_QUESTION' && r.safeBody?.terminated === true));
+  assert(network.some(r => r.phase === `${profile}_QUESTION` && r.safeBody?.execution?.mode === 'ONLINE'));
+  assert(network.some(r => r.phase === `${profile}_QUESTION` && r.safeBody?.terminated === true));
   assert.equal(consoleRows.filter(r => r.type === 'runtime-exception').length, 0);
   // 单题单run：不出现第二个任务，也不出现澄清续跑消息。
-  assert.equal(network.filter(r => r.phase === 'E02_QUESTION' && r.method === 'POST' && r.route.endsWith('/tasks')).length, 1);
-  assert.equal(network.filter(r => r.phase === 'E02_QUESTION' && r.route.endsWith('/messages')).length, 0);
+  assert.equal(network.filter(r => r.phase === `${profile}_QUESTION` && r.method === 'POST' && r.route.endsWith('/tasks')).length, 1);
+  assert.equal(network.filter(r => r.phase === `${profile}_QUESTION` && r.route.endsWith('/messages')).length, 0);
   success = true; await checkpoint('browser-acceptance-complete');
   });
 } catch (error) {
   success = false;
-  failure = clean(error.message); console.error('E02_PAGE_LIVE_FAILED: ' + failure);
+  failure = clean(error.message); console.error(profile + '_PAGE_LIVE_FAILED: ' + failure);
   try { await shot('99-failure.png'); } catch {}
 } finally {
   // 仅关闭已校验的连接；兜底只结束本轮 spawn 的进程，绝不按固定端口关闭浏览器。
@@ -318,3 +331,20 @@ try {
 }
 process.exitCode = success ? 0 : 1;
 }
+
+export function assertE13Terminal(s, visibleText) {
+  assert(s && s.terminated === true && s.taskStatus === 'RESOLVED' && s.runState === 'INCOMPLETE', 'E13 must finish as honest incomplete result');
+  assert.equal(s.execution?.mode, 'ONLINE'); assert.equal(s.execution?.providerResponseReceived, true);
+  assert(s.execution.modelAttemptCount >= 1 && s.execution.modelAttemptCount <= 5);
+  assert.equal(s.continuationToken, null); assert.equal(s.result?.coverage, 'NONE');
+  assert.equal(s.result.evidence?.length, 0); assert.equal(s.result.items?.length, 1);
+  const q = s.result.items[0]; assert.equal(q.claims?.length, 0); assert.equal(q.clarification?.length, 0);
+  assert(q.issues?.length && q.issues.every(i => i.kind === 'DATA_GAP'));
+  assert(q.issues.some(i => i.reasonCode === 'UNSUPPORTED_DEMAND'));
+  assert.match(visibleText, /资料缺口/);
+  assert.match(visibleText, /当期/); assert.match(visibleText, /不作结论|无法确认|无法核实/);
+  assert.match(visibleText, /不代办|不代替你办理|没有.*权限/); assert.match(visibleText, /教务/);
+  assert(!visibleText.includes('本轮处理失败'), 'technical failure must not pass as gap');
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await runPageLive('E02');

@@ -58,7 +58,7 @@ class RuleAgentThreeQuestionHostTest {
         assets = Path.of(System.getProperty("zhku.t06.root")).toRealPath();
         batch = Path.of(System.getProperty("zhku.three.batch")).toAbsolutePath().normalize();
         plan = RuleAgentThreeQuestionPackage.plan(root);
-        single = RuleAgentThreeQuestionPackage.e02Profile();
+        single = RuleAgentThreeQuestionPackage.singlePageProfile();
         hardBudgetRmb = single ? RuleAgentE02Policy.HARD_BUDGET_RMB : "16.10";
         maximumCalls = single ? RuleAgentE02Policy.MAXIMUM_PROVIDER_CALLS : 20;
         if (operation.equals("prepare")) {
@@ -144,7 +144,7 @@ class RuleAgentThreeQuestionHostTest {
     private static void runHttpFixture() throws Exception {
         keyReads.set(0); calls.set(0); stopped = false; reserved = BigDecimal.ZERO; queue.clear(); outcomes.clear();
         scope = single ? null : new RuleAgentThreeQuestionScope(plan);
-        e02Scope = single ? new RuleAgentE02Scope(plan) : null;
+        e02Scope = single ? new RuleAgentE02Scope(plan, RuleAgentThreeQuestionPackage.profile()) : null;
         if (live) workers = Executors.newSingleThreadExecutor(r -> new Thread(r, "zhku-three-question-worker"));
         ServletWebServerApplicationContext context = null;
         int port = -1;
@@ -213,7 +213,7 @@ class RuleAgentThreeQuestionHostTest {
                         .put("browserTested", false).put("humanProductReview", live ? "REQUIRED_NOT_AUTOMATICALLY_PASSED" : "NOT_EXECUTED")
                         .put("billing", live ? "SUPPLIER_BILL_NOT_RECONCILED" : "ZERO_PROVIDER_CALLS")
                         .put("pageProxyPreflight", System.getProperty("zhku.three.pageProxyPort") != null)
-                        .put("profile", single ? "E02" : "Three")
+                        .put("profile", RuleAgentThreeQuestionPackage.profile())
                         .put("scopeRuns", single ? (e02Scope == null ? 0 : e02Scope.runs()) : (scope == null ? 0 : scope.runs()))
                         .put("remainingProviderCalls", factory == null ? -1 : factory.remainingCalls());
                 receipt.set("outcomes", JSON.valueToTree(outcomes));
@@ -364,7 +364,7 @@ class RuleAgentThreeQuestionHostTest {
 
     static ObjectNode readyTicket(int port, int proxyPort, String driverLeaseNonce) {
         return JSON.createObjectNode()
-                .put("profile", "E02").put("executionMode", "ONLINE").put("browserRequired", true)
+                .put("profile", RuleAgentThreeQuestionPackage.profile()).put("executionMode", "ONLINE").put("browserRequired", true)
                 .put("backendPort", port).put("proxyPort", proxyPort).put("schemaVersion", 4)
                 .put("question", plan.path("cases").get(0).path("question").asText())
                 .put("maximumTasks", 1).put("maximumRuns", 1)
@@ -500,7 +500,8 @@ class RuleAgentThreeQuestionHostTest {
     }
     static void recordE02Outcome(TaskSnapshot snapshot) throws Exception {
         // 先保存原终态和原因码，再拒绝失败；否则失败断言会把唯一回执吞掉。
-        recordOutcome("E02", JSON.valueToTree(snapshot));
+        recordOutcome(RuleAgentThreeQuestionPackage.e13Profile() ? "E13" : "E02", JSON.valueToTree(snapshot));
+        if (RuleAgentThreeQuestionPackage.e13Profile()) RuleAgentE13Policy.terminal(snapshot);
         assertThat(snapshot.taskStatus()).as("E02失败或停止不能算通过")
                 .isNotIn(TaskStatus.FAILED, TaskStatus.STOPPED);
     }
@@ -561,6 +562,9 @@ class RuleAgentThreeQuestionHostTest {
                 if (!(exchange.purpose() == RuleAgentProvider.Purpose.DECISION ? "json_schema" : "json_object").equals(format)) throw new IllegalStateException("决策/核验格式不匹配");
             }
             journal("provider-exchanges.jsonl", JSON.valueToTree(exchange));
+            if (RuleAgentThreeQuestionPackage.e13Profile() && exchange.purpose() == RuleAgentProvider.Purpose.PUBLICATION_REVIEW
+                    && exchange.direction() == RuleAgentProvider.Direction.RESPONSE)
+                RuleAgentE13Policy.reviewBoundary(JSON.readTree(exchange.body()));
         } catch (Exception failure) { stopped = true; failScope(); throw new IllegalStateException("正文审计失败，禁止外发"); }
     }
     private static synchronized void journal(String name, JsonNode value) throws Exception {

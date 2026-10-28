@@ -60,7 +60,7 @@ function Get-MavenInvocation {
  $batch="D:\offline fixture\batch's path"
  $PackageSha256=if($WithoutPackage){$null}else{'a'*64}
  $ApprovedSha256='a'*64
- $ApprovedBudgetRmb=if($Profile -eq 'E02'){'4.02'}else{'16.10'}
+ $ApprovedBudgetRmb=if($Profile -in @('E02','E13')){'4.02'}else{'16.10'}
  $AuthorizationId='explicit-approval-001'
  $pwsh='TEST_ONLY_POWERSHELL_BOUNDARY'
  $mvn='Invoke-TestMavenBoundary'
@@ -117,6 +117,7 @@ Test-Case 'E02实际Maven argv显式传档位且保持离线及带引号路径' 
 }
 $testProfiles=@(
  @{name='E02';budget='4.02';wrongBudget='16.10';profileArgument='-Dzhku.three.profile=E02'},
+ @{name='E13';budget='4.02';wrongBudget='16.10';profileArgument='-Dzhku.three.profile=E13'},
  @{name='Three';budget='16.10';wrongBudget='4.02';profileArgument=$null}
 )
 Test-Case '缺省档位和缺省硬帽可通过纯参数校验' {Assert-Entry @{} $null}

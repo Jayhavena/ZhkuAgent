@@ -19,15 +19,21 @@ final class RuleAgentThreeQuestionPackage {
     private RuleAgentThreeQuestionPackage() {}
     static boolean e02Profile() {
         String profile = System.getProperty("zhku.three.profile", "Three");
-        if (!Set.of("Three", "E02").contains(profile)) throw new IllegalArgumentException("未知测试执行配置");
+        if (!Set.of("Three", "E02", "E13").contains(profile)) throw new IllegalArgumentException("未知测试执行配置");
         return profile.equals("E02");
     }
+    static boolean e13Profile() { e02Profile(); return "E13".equals(System.getProperty("zhku.three.profile")); }
+    static boolean singlePageProfile() { return e02Profile() || e13Profile(); }
+    static String profile() { e02Profile(); return System.getProperty("zhku.three.profile", "Three"); }
+    static String planPath() { return e13Profile() ? RuleAgentE13Policy.PLAN : e02Profile() ? RuleAgentE02Policy.PLAN : PLAN; }
+    static String purpose() { return e13Profile() ? RuleAgentE13Policy.PURPOSE : e02Profile() ? RuleAgentE02Policy.PURPOSE : PURPOSE; }
     static JsonNode plan(Path root) throws Exception {
-        JsonNode value = JSON.readTree(Files.readAllBytes(root.resolve(e02Profile() ? RuleAgentE02Policy.PLAN : PLAN)));
+        JsonNode value = JSON.readTree(Files.readAllBytes(root.resolve(planPath())));
         if (e02Profile()) RuleAgentE02Policy.validate(value);
+        if (e13Profile()) RuleAgentE13Policy.validate(value);
         return value;
     }
-    static String planHash(Path root) throws Exception { return sha(Files.readAllBytes(root.resolve(e02Profile() ? RuleAgentE02Policy.PLAN : PLAN))); }
+    static String planHash(Path root) throws Exception { return sha(Files.readAllBytes(root.resolve(planPath()))); }
     static String sha(byte[] data) throws Exception { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(data)); }
     static String prepare(Path root, Path assets, Path batch) throws Exception {
         if (Files.exists(batch)) throw new IllegalArgumentException("拒绝覆盖或重用批次");
@@ -55,7 +61,7 @@ final class RuleAgentThreeQuestionPackage {
         ObjectNode claim = JSON.createObjectNode().put("packageSha256", hash).put("authorizationId", authorization)
                 .put("batchDirectory", batch.toRealPath().toString()).put("status", "STARTED_NONREFUNDABLE")
                 .put("startedAt", Instant.now().toString());
-        Files.write(reservations.resolve(hash + (e02Profile() ? ".e02-single-page-started.json" : ".three-question-started.json")), JSON.writeValueAsBytes(claim), StandardOpenOption.CREATE_NEW);
+        Files.write(reservations.resolve(hash + (singlePageProfile() ? "." + profile().toLowerCase(Locale.ROOT) + "-single-page-started.json" : ".three-question-started.json")), JSON.writeValueAsBytes(claim), StandardOpenOption.CREATE_NEW);
     }
     static void tariff(JsonNode plan, Clock clock) {
         LocalDate today = LocalDate.now(clock.withZone(ZoneId.of("Asia/Shanghai")));
@@ -76,15 +82,15 @@ final class RuleAgentThreeQuestionPackage {
         assets = assets.toRealPath();
         var pack = JSON.createObjectNode().put("purpose", PURPOSE).put("authorizationStatus", "NOT_AUTHORIZED")
                 .put("batchId", id).put("previousAuthorization", "CLOSED_NOT_REUSED").put("codeRoot", root.toString()).put("assetsRoot", assets.toString());
-        boolean single = e02Profile();
+        boolean single = singlePageProfile();
         if (single) {
-            pack.put("purpose", RuleAgentE02Policy.PURPOSE);
+            pack.put("purpose", purpose());
             pack.put("planSha256", planHash(root));
             Path quote = root.resolve(executionPlan.path("money").path("evidenceFile").asText()).normalize();
             if (!quote.startsWith(root)) throw new IllegalArgumentException("核价证据越界");
             pack.put("tariffEvidenceSha256", sha(Files.readAllBytes(quote)));
             var formal = pack.putObject("formalAssetsSha256");
-            for (String name : List.of(RuleAgentE02Policy.PLAN,
+            for (String name : List.of(planPath(),
                     "docs/evidence/rule-check-refactor/2026-10-26/real-question-agent-readiness/agent-e2e-eval.md",
                     "docs/product/rule-check-2025-verbatim-import-draft.json",
                     "docs/product/rule-check-2025-b02-semantic-review.json", "docs/product/rule-check-2025-b03-publication-review.json"))
@@ -110,7 +116,7 @@ final class RuleAgentThreeQuestionPackage {
             if (Files.isDirectory(path)) runtime.set(path.toString(), tree(path)); else runtime.put(path.toString(), sha(Files.readAllBytes(path)));
         }
         identity.put("javaExecutableSha256", sha(Files.readAllBytes(Path.of(System.getProperty("java.home"), "bin", "java.exe"))));
-        Path dist = root.resolve(e02Profile()
+        Path dist = root.resolve(single
                 ? plan(root).path("page").path("dist").asText()
                 : "agent/frontend/dist-student");
         if (single) {
@@ -127,11 +133,11 @@ final class RuleAgentThreeQuestionPackage {
         contract.remove(List.of("cases", "purpose", "remainingBudgetRule", "maximumTaskRunsThisBatch", "ownedProcessMillis", "executionPolicyRevision", "localExchangeRecording", "executionReadiness"));
         contract.put("maximumProviderCalls", executionPlan.path("maximumProviderCalls").asInt())
                 .put("maximumTaskRunsThisBatch", executionPlan.path("maximumRuns").asInt())
-                .put("purpose", single ? RuleAgentE02Policy.PURPOSE : PURPOSE)
+                .put("purpose", purpose())
                 .put("ownedProcessMillis", 660000)
-                .put("executionPolicyRevision", single ? "E02_ONE_TASK_ONE_RUN_FIVE_CALLS_01" : "THREE_TASKS_FOUR_RUNS_TWENTY_CALLS_01")
+                .put("executionPolicyRevision", single ? profile() + "_ONE_TASK_ONE_RUN_FIVE_CALLS_01" : "THREE_TASKS_FOUR_RUNS_TWENTY_CALLS_01")
                 .put("remainingBudgetRule", single
-                        ? "单题E02、单任务单run、最多5次调用，复用逐字PUBLIC的澄清额度为0；所有核验计费；无自动重试/续杯"
+                        ? "单题" + profile() + "、单任务单run、最多5次调用，澄清额度为0；所有核验计费；无自动重试/续杯"
                         : "3任务固定顺序E02/E04/E13；只有E04可用逐字PUBLIC续一次；每run最多5次，整批20次；所有核验计费；无自动重试/续杯")
                 .put("localExchangeRecording", "LOCAL_REQUEST_RESPONSE_AND_REVIEW_INPUT_WITH_PROVIDER_SECRET_REDACTION; NO_HEADERS_OR_LOGIN_BODY")
                 .put("executionReadiness", single
@@ -141,7 +147,7 @@ final class RuleAgentThreeQuestionPackage {
         pack.set("modelContract", contract);
         pack.put("notSent", "expectations/reference answers/owner/session/originalToken/continuationToken/credentials/source code/full PDF/real student records; API key only in TLS Authorization");
         pack.put("scope", single
-                ? "ISOLATED_TEST_CLASSPATH_E02_PAGE_ONLY; NO_PRODUCTION_OR_STUDENT_ROUTE_CHANGE; HUMAN_PRODUCT_REVIEW_REQUIRED"
+                ? "ISOLATED_TEST_CLASSPATH_" + profile() + "_PAGE_ONLY; NO_PRODUCTION_OR_STUDENT_ROUTE_CHANGE; HUMAN_PRODUCT_REVIEW_REQUIRED"
                 : "ISOLATED_TEST_CLASSPATH_HTTP_ONLY; NO_PRODUCTION_OR_STUDENT_ROUTE_CHANGE; HUMAN_PRODUCT_REVIEW_REQUIRED");
         return pack;
     }
