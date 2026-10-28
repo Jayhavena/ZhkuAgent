@@ -114,8 +114,9 @@ public final class RulePublicationContract {
             capabilities=Map.copyOf(capabilities);conditions=List.copyOf(conditions);
         }
     }
+    /** 核验器按子问题聚合覆盖结果；unsupportedDemand 区分“资料不覆盖该需求”与“尚未理解需求”。 */
     public record QuestionAssessment(Set<String> coveredRequirementIds,Set<String> uncoveredRequirementIds,
-                                     boolean demandUnresolved,boolean hasProposedIssues) {
+                                     boolean demandUnresolved,boolean unsupportedDemand,boolean hasProposedIssues) {
         public QuestionAssessment {
             coveredRequirementIds=Set.copyOf(coveredRequirementIds);
             uncoveredRequirementIds=Set.copyOf(uncoveredRequirementIds);

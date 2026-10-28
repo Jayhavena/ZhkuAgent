@@ -56,13 +56,19 @@ class RuleAgentTaskHttpTest {
             public boolean revalidate(ResultEnvelope old){return old.evidence().stream().allMatch(e->registry.read(owner,task,e.originalToken()).isPresent());}
             public RuleAgentRunner.Outcome run(AgentRunContext context,RuleAgentRunner.Input input){
                 runs.incrementAndGet();context.start();
+                // E13 跨层样本：模拟“查证正常完成、但当期资料不足且无办理能力”的真实终态，
+                // 与 RuleResultPublisher 的 unsupportedDemand 分支保持同形，供 HTTP/前端契约对照。
+                boolean insufficient=input.question().equals("今晚补选几点关？帮我补上。");
                 boolean waiting=Set.of("澄清","我那门选修挂了，下次直接再上一遍就好了吧？").contains(input.question())&&input.userConditions().isEmpty();
                 boolean incomplete=input.question().equals("漏答"),unresolved=input.question().equals("理解未完成");
                 boolean failed=input.question().equals("故障")||incomplete||unresolved,gap=Set.of("缺证","这学期公选补选今晚几点关？现在还能帮我补上吗？").contains(input.question());
-                var issue=waiting?new Issue("condition",IssueKind.CLARIFICATION,ReasonCode.MISSING_CONDITION,"请确认课程类别","补充必要条件"):
+                var issue=insufficient?new Issue("material-gap",IssueKind.DATA_GAP,ReasonCode.UNSUPPORTED_DEMAND,
+                        "当前可用的资料中没有足以确认当期截止时间的依据，无法确认今晚补选几点关闭。",
+                        "本系统没有办理补选的权限，无法代为办理；请登录教务系统或联系教务处核实当期通知。"):
+                    waiting?new Issue("condition",IssueKind.CLARIFICATION,ReasonCode.MISSING_CONDITION,"请确认课程类别","补充必要条件"):
                     failed?new Issue("failure",IssueKind.PROCESSING_FAILURE,incomplete?ReasonCode.ANSWER_COVERAGE_INCOMPLETE:unresolved?ReasonCode.QUESTION_UNDERSTANDING_UNRESOLVED:ReasonCode.MODEL_UNAVAILABLE,"模型处理失败","稍后重新查证"):
                     new Issue("gap",IssueKind.DATA_GAP,ReasonCode.CURRENT_NOTICE_MISSING,"未取得当期通知","核对当期通知");
-                boolean claim=!waiting&&(!failed||incomplete)&&!gap;
+                boolean claim=!waiting&&(!failed||incomplete)&&!gap&&!insufficient;
                 boolean partial=input.question().equals("部分")||incomplete;
                 var items=List.of(new Subquestion("q1",claim?(partial?Coverage.PARTIAL:Coverage.COMPLETE):Coverage.NONE,
                     claim?List.of(new Claim("answer","fixture-fact","合成确认内容",Map.of(),ConditionSource.USER_DECLARED)):List.of(),
@@ -72,7 +78,7 @@ class RuleAgentTaskHttpTest {
                 if(claim){var found=tools.search(owner,task,context.runId(),1,new Search("q1","合成条款"));var read=tools.read(owner,task,context.runId(),2,new Read("q1",List.of(found.candidates().getFirst().handle())));evidence=read.observation().evidence();}
                 var relations=claim?List.of(new EvidenceRelation(evidence.getFirst().id(),"q1",EvidenceRole.CLAIM,"answer")):List.<EvidenceRelation>of();
                 var result=new ResultEnvelope(input.version(),context.runId(),"synthetic-http-v1","2025.9.2",items.getFirst().coverage(),items,evidence,relations);
-                var state=failed?AgentRunState.FAILED:waiting||gap||partial?AgentRunState.INCOMPLETE:AgentRunState.SUCCEEDED;
+                var state=failed?AgentRunState.FAILED:waiting||gap||partial||insufficient?AgentRunState.INCOMPLETE:AgentRunState.SUCCEEDED;
                 context.finish(state);context.cleanupOnce(()->{});context.signalTermination();context.publishTermination();
                 return new RuleAgentRunner.Outcome(new TaskSnapshot(3,task,UUID.randomUUID(),context.runId(),input.version(),waiting?TaskStatus.WAITING_USER:failed?TaskStatus.FAILED:TaskStatus.RESOLVED,state,true,result,waiting?UUID.randomUUID():null,new Execution(Mode.ONLINE,incomplete?5:0,claim?2:0,false,claim?AnswerSource.VERIFIED_RULE_ONLY:AnswerSource.NONE,ReplayCoverage.NOT_APPLICABLE)),List.of());
             }
