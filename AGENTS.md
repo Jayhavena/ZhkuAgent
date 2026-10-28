@@ -11,6 +11,12 @@
 - 本机启动脚本应优先使用已配置的环境变量；既有数据目录中的 `infra/.env` 只作为数据库密码的兼容回退。启用 RAG / 校园 Agent 时必须由环境变量提供 `DASHSCOPE_API_KEY`。
 - 若进程、用户级和系统级环境均无法读取所需变量，应先检查启动器的环境继承与运行目录，再准确报告当前会话的访问边界；不能声称已调用数据库或真实供应商，也不能编造凭证。
 
+## 本机 Docker 就绪（按需自动恢复）
+
+- 执行依赖 Docker 的任务前，先运行 `knowledge\scripts\ensure-zhku-postgres.cmd -DockerOnly`；需要既有共享演示库时去掉 `-DockerOnly`。用户已于2026-10-28授权 Agent 按需启动已安装的 Docker Desktop 和本项目已有容器，无需每次询问或要求用户手动打开。
+- 发现端口、初始化挂载或容器环境漂移时，按 [本机 Docker 恢复流程](docs/local-docker-readiness.md) 执行 `-RepairConfiguration`：只复用经核对的原数据卷；以只读认证、固定端口及 healthy 为完成标准。数据库写入验收仍使用专用临时库，先仅确保 Docker 引擎就绪。
+- 遇到命名管道拒绝访问、系统授权、容器/卷身份不符或凭证不可读时，报告准确边界并遵守当前权限审批；此自动启动授权不等于放宽 DSH 沙箱、修改系统权限、删除卷或重置密码。无需为本功能设置全局开机自启。
+
 ## 用户终端与 Codex 运行时
 
 - Codex注入的PATH不等于用户Windows PowerShell/CMD的PATH。2026-10-06确认用户终端无法识别`pwsh`，但本机`%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.exe`存在。每次使用先检查实际文件，不假设缓存路径永久有效。
