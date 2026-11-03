@@ -1,0 +1,432 @@
+.rule-app {
+  --page: #ffffff;
+  --surface: #ffffff;
+  --text: #202b3b;
+  --muted: #7b8898;
+  --border: #edf0f4;
+  --blue: #2f6fe4;
+  --blue-dark: #245fcf;
+  --green: #39836b;
+  --amber: #a2680a;
+  --red: #b42318;
+  min-height: 100vh;
+  padding: 0 28px 20px;
+  color: var(--text);
+  background: var(--page);
+  color-scheme: light;
+  font-family: Inter, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.rule-app * { box-sizing: border-box; }
+.rule-app .app-header {
+  width: 100%;
+  max-width: 1120px;
+  min-height: 76px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.rule-app .brand { display: inline-flex; align-items: center; gap: 11px; color: inherit; }
+.rule-app .brand-mark, .rule-app .welcome-mark, .rule-app .assistant-mark {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: #fff;
+  background: var(--blue);
+  font-weight: 700;
+}
+.rule-app .brand-mark { width: 38px; height: 38px; border-radius: 12px; font-size: 19px; font-weight: 800; letter-spacing: -.04em; }
+.rule-app .brand-copy { display: grid; line-height: 1.25; }
+.rule-app .brand-copy strong { font-size: 16px; letter-spacing: -.02em; }
+.rule-app .brand-copy small { margin-top: 4px; color: var(--muted); font-size: 12px; }
+.rule-app .header-actions { display: flex; align-items: center; gap: 12px; }
+.rule-app .new-question-button { min-height: 40px; padding: 7px 12px; }
+.rule-app .identity-menu { position: relative; }
+.rule-app .identity-button {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid #e1e8f1;
+  border-radius: 50%;
+  color: #3f5066;
+  background: #f5f7fa;
+  font-size: 13px;
+  font-weight: 600;
+}
+.rule-app .identity-button:hover:not(:disabled) { border-color: #c9d8ea; background: #eef3fa; }
+.rule-app .identity-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 20;
+  width: 230px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 16px 38px rgb(23 38 56 / 12%);
+  text-align: left;
+}
+.rule-app .identity-eyebrow { color: var(--muted); font-size: 11px; }
+.rule-app .identity-role { margin-top: 3px; font-size: 14px; font-weight: 600; }
+.rule-app .identity-id { margin-top: 2px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.rule-app .identity-logout { width: 100%; margin-top: 12px; }
+.rule-app button, .rule-app input, .rule-app textarea { font: inherit; }
+.rule-app button { cursor: pointer; }
+.rule-app button:disabled, .rule-app input:disabled, .rule-app textarea:disabled { opacity: .56; cursor: not-allowed; }
+.rule-app button:focus-visible, .rule-app a:focus-visible, .rule-app input:focus-visible, .rule-app textarea:focus-visible, .rule-app summary:focus-visible {
+  outline: 3px solid #8bbcff;
+  outline-offset: 3px;
+}
+.rule-app .text-button { padding: 7px 9px; border: 0; color: var(--blue); background: transparent; font-size: 14px; }
+.rule-app .text-button:hover:not(:disabled) { color: var(--blue-dark); text-decoration: underline; }
+.rule-app .primary-button {
+  min-height: 42px;
+  padding: 9px 17px;
+  border: 1px solid var(--blue);
+  border-radius: 12px;
+  color: #fff;
+  background: var(--blue);
+  font-weight: 600;
+}
+.rule-app .primary-button:hover:not(:disabled) { background: var(--blue-dark); }
+/* 未选择条件时“确认并继续”必须一眼看出不可用：半透明蓝仍会被当成可点击的主操作。 */
+.rule-app .primary-button:disabled { border-color: #d7e1ee; background: #e5ecf5; color: #7d8ea3; opacity: 1; }
+.rule-app .mode-notice {
+  max-width: 900px;
+  margin: 16px auto 0;
+  padding: 10px 13px;
+  border: 1px solid #ead7a6;
+  border-radius: 10px;
+  color: #704b0d;
+  background: #fff9e9;
+  font-size: 13px;
+}
+.rule-app .mode-notice--inline { margin: 12px 0; }
+.rule-app .login-view { display: grid; place-items: start center; padding: 72px 0 40px; }
+.rule-app .login-card { width: min(100%, 420px); padding: 32px; border: 1px solid var(--border); border-radius: 22px; background: var(--surface); box-shadow: 0 12px 36px rgb(31 58 90 / 5%); }
+.rule-app .welcome-mark { width: 46px; height: 46px; margin-bottom: 18px; border-radius: 15px; font-size: 23px; border: 1px solid #e4eefc; }
+.rule-app .welcome-mark--brand { font-size: 21px; font-weight: 800; letter-spacing: -.04em; }
+.rule-app .welcome-mark svg { width: 24px; height: 24px; fill: currentColor; }
+.rule-app .login-card h1 { font-size: 25px; line-height: 1.3; letter-spacing: -.035em; }
+.rule-app .login-description { margin-top: 10px; color: var(--muted); font-size: 14px; }
+.rule-app .login-form { display: grid; gap: 8px; margin-top: 25px; }
+.rule-app .login-form label { margin-top: 8px; font-size: 13px; font-weight: 600; }
+.rule-app .login-form input, .rule-app .login-form .password-field {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #fff;
+}
+.rule-app .login-form input { padding: 10px 12px; }
+.rule-app .login-form .password-field { display: flex; overflow: hidden; }
+.rule-app .login-form .password-field input { min-width: 0; flex: 1; border: 0; border-radius: 0; }
+.rule-app .login-form .password-field button { border: 0; background: transparent; }
+.rule-app .login-form .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.rule-app .field-hint, .rule-app .login-feedback, .rule-app .inline-status { color: var(--muted); font-size: 13px; }
+.rule-app .login-feedback { min-height: 18px; color: var(--amber); }
+.rule-app .login-submit { width: 100%; margin-top: 4px; }
+.rule-app .recovery-button { margin-top: 12px; }
+.rule-app .access-notice { max-width: 620px; margin: 72px auto; padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.rule-app .welcome-view { width: min(100%, 720px); margin: clamp(56px, 12vh, 118px) auto 56px; text-align: center; }
+.rule-app .welcome-view .welcome-mark { width: 54px; height: 54px; margin: 0 auto 22px; border-radius: 18px; font-size: 26px; }
+.rule-app .welcome-view .welcome-mark svg { width: 26px; height: 26px; }
+.rule-app .welcome-view h1 { font-size: clamp(27px, 4vw, 36px); line-height: 1.25; letter-spacing: -.045em; font-weight: 700; }
+.rule-app .welcome-description { max-width: 510px; margin: 13px auto 28px; color: var(--muted); font-size: 15px; }
+.rule-app .composer {
+  width: 100%;
+  padding: 13px 14px 10px;
+  border: 1px solid #cbd8e8;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 8px 26px rgb(36 71 115 / 7%);
+  text-align: left;
+}
+.rule-app .composer:focus-within { border-color: #8bbcff; box-shadow: 0 0 0 3px rgb(23 105 210 / 9%); }
+.rule-app .composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 50px;
+  max-height: 220px;
+  resize: vertical;
+  padding: 5px 3px;
+  border: 0;
+  outline: 0;
+  color: var(--text);
+  background: transparent;
+  line-height: 1.6;
+}
+.rule-app .composer textarea::placeholder { color: #8997a9; }
+/* 输入框内部的提示语：和 V3 一致，说明可以直接用自然语言，不需要记关键词。 */
+.rule-app .input-hint { margin: 2px 0 0; padding: 0 3px; color: #9aa7b6; font-size: 12px; }
+.rule-app .composer textarea:focus-visible { outline: none; }
+/* 输入框由页面控制高度，浏览器拖拽手柄会压住发送按钮，也破坏底部输入区的稳定性。 */
+.rule-app .composer textarea { resize: none; }
+.rule-app .composer-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rule-app .composer-footer--end { justify-content: flex-end; }
+.rule-app .composer-hint { color: #8592a3; font-size: 12px; }
+.rule-app .send-button {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--blue);
+  font-size: 23px;
+  line-height: 1;
+}
+.rule-app .send-button:disabled { background: #a9bfdc; }
+.rule-app .example-prompts { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 9px; margin-top: 17px; }
+.rule-app .example-label { color: #9aa7b6; font-size: 12px; }
+.rule-app .example-prompts button {
+  max-width: 100%;
+  padding: 8px 13px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: #4f6177;
+  background: #fff;
+  font-size: 13px;
+}
+.rule-app .example-prompts button:hover:not(:disabled) { border-color: #a9c9f3; color: var(--blue); }
+.rule-app .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.rule-app .conversation-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 760px);
+  justify-content: center;
+  align-items: start;
+  gap: 26px;
+  width: 100%;
+  max-width: 1120px;
+  margin: 36px auto 0;
+}
+.rule-app .conversation-layout--with-original { grid-template-columns: minmax(0, 700px) minmax(280px, 360px); }
+.rule-app .conversation-main { min-width: 0; }
+/* 对话态把白色工作区固定为一屏高：只有消息区滚动，输入区与免责说明常驻底部。
+   不用 position: fixed，避免输入框脱离工作区遮挡正文或影响其他入口。 */
+.rule-app.rule-app--conversation { height: calc(100vh - 40px); height: calc(100dvh - 40px); min-height: 520px; overflow: hidden; }
+.rule-app--conversation .conversation-layout { flex: 1 1 auto; min-height: 0; margin-top: 0; padding-top: 26px; overflow: hidden; }
+.rule-app--conversation .conversation-layout { align-items: stretch; }
+.rule-app--conversation .conversation-main { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.rule-app .conversation-scroll { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 6px 6px 2px; }
+.rule-app--conversation .conversation-layout--with-original { align-items: stretch; }
+.rule-app--conversation .original-panel { position: static; max-height: 100%; height: 100%; }
+.rule-app--conversation .app-footer { flex: 0 0 auto; margin: 0; padding: 10px 0 0; border-top: 0; color: #8b98a9; font-size: 11.5px; text-align: center; }
+.rule-app .user-turn { display: flex; flex-direction: column; align-items: flex-end; margin: 0 0 28px; }
+.rule-app .turn-label { margin-bottom: 5px; color: var(--muted); font-size: 12px; }
+.rule-app .user-question { max-width: min(88%, 590px); padding: 12px 16px; border: 1px solid #d8e7fb; border-radius: 18px 18px 5px 18px; background: #eaf3ff; white-space: pre-wrap; overflow-wrap: anywhere; }
+.rule-app .assistant-turn { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: start; gap: 13px; }
+.rule-app .assistant-mark { width: 34px; height: 34px; border-radius: 12px; font-size: 15px; font-weight: 800; letter-spacing: -.04em; }
+.rule-app .assistant-content { min-width: 0; padding-top: 1px; }
+.rule-app .progress-message { padding: 12px 0; color: var(--muted); }
+.rule-app .error-message { margin: 12px 0; padding: 11px 13px; border: 1px solid #f0c8c5; border-radius: 11px; color: #922018; background: #fff5f4; font-size: 14px; overflow-wrap: anywhere; }
+.rule-app .recovery-row { margin: 12px 0; }
+.rule-app .secondary-button { padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; color: #334b66; background: #fff; font-size: 13px; }
+.rule-app .answer-heading { padding-bottom: 17px; border-bottom: 1px solid var(--border); }
+.rule-app .answer-heading h2 { margin-top: 8px; font-size: 23px; line-height: 1.38; letter-spacing: -.03em; }
+/* 结论句的引用紧跟标题，间距压到最小，避免它看起来像独立的一段说明。 */
+.rule-app .answer-citation-row { margin-top: 6px; }
+/* 状态改成“圆点 + 文字”：与参考图一致，也比彩色胶囊更少抢走结论的注意力。 */
+.rule-app .answer-status { display: flex; align-items: center; gap: 7px; color: #43566c; font-size: 12.5px; font-weight: 600; }
+.rule-app .status-dot { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: currentColor; }
+.rule-app .answer-status--complete { color: #176747; }
+.rule-app .answer-status--partial, .rule-app .answer-status--clarification { color: #a2680a; }
+.rule-app .answer-status--unknown, .rule-app .answer-status--stopped { color: #6b7889; }
+.rule-app .answer-status--failure { color: #b42318; }
+.rule-app .status-label { display: inline-flex; align-items: center; padding: 4px 9px; border-radius: 999px; color: #43566c; background: #eef2f7; font-size: 12px; font-weight: 600; }
+.rule-app .status-label--complete { color: #176747; background: #e9f7ef; }
+.rule-app .status-label--partial, .rule-app .status-label--clarification { color: #8b5a08; background: #fff5d9; }
+.rule-app .status-label--unknown, .rule-app .status-label--stopped { color: #59677a; background: #edf1f6; }
+.rule-app .status-label--failure { color: #a1261d; background: #fff0ee; }
+.rule-app .status-label--warning { color: #8b5a08; background: #fff5d9; }
+.rule-app .reference-revision { margin-top: 9px; color: var(--muted); font-size: 12px; }
+.rule-app .claims-section, .rule-app .issues-section { padding: 21px 0 5px; }
+.rule-app .claims-section h3, .rule-app .issues-section h3, .rule-app .clarification-form h3 { margin-bottom: 12px; font-size: 15px; font-weight: 700; }
+/* 分区标题降级为小标签，让结论与限制本身成为视觉重点。 */
+.rule-app .claims-section h3, .rule-app .issues-section h3 { margin-bottom: 10px; color: #6b7b8f; font-size: 12px; font-weight: 600; letter-spacing: .04em; }
+.rule-app .claim { padding: 0 0 16px; }
+.rule-app .claim + .claim { padding-top: 15px; border-top: 1px solid #edf0f5; }
+.rule-app .claim-text { font-size: 16.5px; line-height: 1.85; overflow-wrap: anywhere; }
+/* 行内引用：贴在结论句末尾的小胶囊，点击后定位到「证据详情」里对应的那一条。
+   只对 CLAIM 用途的证据生成，不能把范围说明或冲突证据伪装成“支持本结论”。 */
+.rule-app .inline-ref {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: baseline;
+  margin: 0 2px;
+  padding: 1px 6px;
+  border: 0;
+  border-radius: 6px;
+  color: #3467b3;
+  background: #eef4ff;
+  font-size: 11.5px;
+  font-weight: 650;
+  line-height: 1.7;
+}
+.rule-app .inline-ref:hover:not(:disabled) { color: #1d4f9c; background: #e2edff; }
+/* 三个默认收起的详情区：用一条细线分隔，标题比正文更醒目，展开状态由浏览器 details 语义提供。 */
+.rule-app .detail-stack { margin-top: 22px; border-top: 1px solid var(--border); }
+.rule-app .fold { border-bottom: 1px solid var(--border); }
+.rule-app .fold > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 2px;
+  color: #47596e;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.rule-app .fold > summary::-webkit-details-marker { display: none; }
+.rule-app .fold-title { font-size: 14px; font-weight: 650; color: #3f5268; }
+.rule-app .fold-meta { margin-left: 8px; color: #8c99a8; font-size: 12px; font-weight: 400; }
+.rule-app .chevron { flex: 0 0 auto; color: #97a3b1; font-size: 15px; transition: transform .18s; }
+.rule-app .fold[open] > summary .chevron { transform: rotate(180deg); }
+.rule-app .fold-body { padding: 2px 2px 16px; color: #56677b; font-size: 13.5px; line-height: 1.85; }
+.rule-app .fold-empty { margin: 0; padding: 10px 0; color: #6f7f91; font-size: 13px; }
+.rule-app .explanation-list { margin: 0; padding-left: 18px; }
+.rule-app .explanation-list li { padding: 4px 0; }
+.rule-app .explanation-label { display: inline-block; margin-right: 8px; padding: 1px 7px; border-radius: 999px; color: #6a7c91; background: #f0f4f9; font-size: 11.5px; font-weight: 600; }
+.rule-app .explanation-boundary .explanation-label { color: #7a5a17; background: #fdf4e3; }
+.rule-app .source-item { display: flex; align-items: flex-start; gap: 11px; width: 100%; padding: 11px 4px; border: 0; border-top: 1px solid #eef2f7; color: inherit; background: transparent; text-align: left; }
+.rule-app .source-item:first-of-type { border-top: 0; }
+.rule-app .source-item:hover .source-name { color: var(--blue); }
+.rule-app .file-icon { display: inline-grid; place-items: center; flex: 0 0 auto; width: 34px; height: 38px; border-radius: 7px; color: #77899e; background: #f1f4f8; font-size: 10.5px; font-weight: 700; }
+.rule-app .source-item-copy { display: grid; gap: 3px; min-width: 0; flex: 1 1 auto; }
+.rule-app .source-name { color: #41546a; font-size: 13.5px; font-weight: 650; }
+.rule-app .source-meta { color: #8b98a7; font-size: 12px; }
+.rule-app .source-go { flex: 0 0 auto; margin-left: auto; color: #8296ad; font-size: 12.5px; }
+.rule-app .evidence-panel { margin-top: 10px; padding: 14px; border: 1px solid #e9eef5; border-radius: 12px; background: #fcfdff; }
+.rule-app .evidence-panel--selected { border-color: #b9d3f5; background: #f8fbff; }
+.rule-app .evidence-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 9px; margin-bottom: 9px; }
+.rule-app .evidence-index { color: #3f5268; font-size: 13.5px; font-weight: 650; }
+.rule-app .evidence-role { color: #7a8b9e; font-size: 12px; }
+.rule-app .evidence-meta { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 5px 10px; margin: 0 0 12px; font-size: 12px; }
+.rule-app .evidence-meta dt { color: #98a4b2; }
+.rule-app .evidence-meta dd { margin: 0; color: #55677c; overflow-wrap: anywhere; }
+.rule-app .evidence-checksum { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; }
+.rule-app .quote { margin: 0; padding: 10px 13px; border-left: 2px solid #8db0e8; border-radius: 0 8px 8px 0; color: #4a5c72; background: #f4f7fc; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.9; }
+.rule-app .evidence-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+.rule-app .evidence-foot small { color: #97a3b1; font-size: 11.5px; }
+.rule-app .claim-conditions { display: flex; gap: 8px; margin-top: 9px; color: #5b6c80; font-size: 13px; }
+.rule-app .claim-conditions span { flex: 0 0 auto; color: #77869a; }
+.rule-app .no-claim-message { padding: 17px 0; color: #4f6177; }
+.rule-app .issues-section { border-top: 1px solid var(--border); }
+.rule-app .issue { padding: 12px 0; }
+.rule-app .issue + .issue { border-top: 1px solid #edf0f5; }
+.rule-app .issue-label { display: inline-block; margin-bottom: 6px; color: #65758a; font-size: 12px; font-weight: 600; }
+.rule-app .issue p { overflow-wrap: anywhere; }
+.rule-app .issue-next-step { margin-top: 10px; padding: 11px 13px; border-left: 3px solid #dfe6ef; border-radius: 0 10px 10px 0; background: #f4f7fa; color: #4c5f75; font-size: 13.5px; }
+/* 资料缺口类建议用克制的暖色左强调线；技术失败仍用中性/红色，避免两种状态被混为一谈。 */
+.rule-app .issue--gap .issue-next-step { border-left-color: #dfa94a; background: #fdf6ea; color: #6c4a12; }
+.rule-app .issue--failure .issue-next-step { border-left-color: #e4b3ad; background: #fdf3f2; color: #8d2b21; }
+.rule-app .clarification-form { margin: 20px 0; padding: 17px; border: 1px solid #f0d9a2; border-radius: 15px; background: #fffaf0; }
+.rule-app .clarification-form h3 { font-size: 16px; }
+.rule-app .clarification-hint { margin: -4px 0 12px; color: #7a6743; font-size: 13px; }
+.rule-app .clarification-options { display: grid; gap: 8px; margin: 12px 0 16px; }
+.rule-app .clarification-option { display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 9px 11px; border: 1px solid #eadfc8; border-radius: 10px; background: #fff; cursor: pointer; }
+.rule-app .clarification-option:has(input:checked) { border-color: #6ea8ef; background: #f1f7ff; }
+.rule-app .clarification-option input { width: 16px; height: 16px; accent-color: var(--blue); }
+.rule-app .change-question-button { margin-left: 8px; }
+.rule-app .original-panel { position: sticky; top: 18px; min-width: 0; max-height: calc(100vh - 36px); overflow: auto; padding: 18px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: 0 8px 26px rgb(36 71 115 / 6%); }
+.rule-app .original-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 13px; border-bottom: 1px solid var(--border); }
+.rule-app .panel-eyebrow { color: var(--muted); font-size: 11px; }
+.rule-app .original-header h2 { font-size: 20px; }
+.rule-app .original-title { margin: 16px 0 8px; font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+.rule-app .original-meta-list { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 5px 10px; margin: 10px 0 0; font-size: 12px; }
+.rule-app .original-meta-list dt { color: #98a4b2; }
+.rule-app .original-meta-list dd { margin: 0; color: #55677c; overflow-wrap: anywhere; }
+.rule-app .original-text { margin: 17px 0; padding: 13px; border-radius: 10px; background: #f7f9fc; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.9; }
+.rule-app mark { color: inherit; background: #fff0a8; box-decoration-break: clone; }
+.rule-app .original-unknown { padding-left: 18px; color: var(--muted); font-size: 12px; }
+.rule-app .original-link { display: inline-block; margin-top: 12px; color: var(--blue); text-decoration: underline; font-size: 13px; }
+.rule-app .original-unavailable, .rule-app .original-placeholder { margin-top: 14px; color: var(--muted); font-size: 13px; }
+.rule-app .app-footer { max-width: 1120px; margin: 42px auto 0; padding: 16px 0; border-top: 1px solid var(--border); color: #8592a3; font-size: 12px; }
+@media (max-width: 820px) {
+  .rule-app { padding: 0 18px 16px; }
+  .rule-app .app-header { min-height: 66px; }
+  .rule-app .conversation-layout, .rule-app .conversation-layout--with-original { grid-template-columns: minmax(0, 1fr); gap: 20px; margin-top: 24px; }
+  .rule-app .original-panel { position: static; max-height: none; height: auto; }
+  .rule-app .welcome-view { margin-top: clamp(64px, 12vh, 105px); }
+  /* 窄屏沿用“工作区固定为一屏、只有消息区滚动”的模型：软键盘弹出时 100dvh 收缩，
+     输入区随工作区底部上移，既不会被正文顶走，也不会像整页滚动那样滚到答案末尾才看见输入框。 */
+  .rule-app.rule-app--conversation { height: 100dvh; min-height: 0; overflow: hidden; }
+  .rule-app--conversation .conversation-layout { overflow: hidden; padding-top: 14px; }
+  .rule-app .conversation-scroll { padding: 0 2px 4px 0; }
+  .rule-app .composer-bottom { padding: 10px 0 8px; box-shadow: none; }
+}
+@media (max-width: 520px) {
+  .rule-app { padding: 0 14px 12px; }
+  .rule-app .brand-mark { width: 34px; height: 34px; border-radius: 11px; }
+  .rule-app .brand-copy strong { font-size: 15px; }
+  .rule-app .login-view { padding-top: 42px; }
+  .rule-app .login-card { padding: 24px 20px; border-radius: 18px; }
+  .rule-app .welcome-view { margin-top: 56px; }
+  .rule-app .welcome-view h1 { font-size: 28px; }
+  .rule-app .welcome-description { font-size: 14px; }
+  .rule-app .composer { padding: 10px 11px 9px; border-radius: 17px; }
+  .rule-app .example-prompts { flex-direction: column; align-items: stretch; }
+  .rule-app .example-prompts button { text-align: left; }
+  .rule-app .user-question { max-width: 94%; }
+  .rule-app .assistant-turn { grid-template-columns: 28px minmax(0, 1fr); gap: 9px; }
+  .rule-app .assistant-mark { width: 28px; height: 28px; border-radius: 9px; font-size: 14px; }
+  .rule-app .answer-heading h2 { font-size: 20px; }
+  /* 窄屏消息区更矮：压缩澄清面板纵向留白，让问题、选项和“确认并继续”尽量同屏。 */
+  .rule-app .clarification-form { margin: 12px 0; }
+  .rule-app .clarification-form h3 { margin-bottom: 6px; font-size: 17px; }
+  .rule-app .clarification-hint { margin: -2px 0 10px; }
+  .rule-app .clarification-options { margin: 10px 0 12px; gap: 8px; }
+  .rule-app .change-question-button { display: block; min-height: 38px; margin: 10px 0 0; padding-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rule-app *, .rule-app *::before, .rule-app *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* 外层画布与白色工作区分离；页面选择器限定在学生入口内。 */
+/* V3 基线是白底整页：不再用灰画布 + 圆角卡片包一层，避免输入区和正文被两层边框夹住。
+   页面选择器仍限定在学生入口内，其他入口保持各自样式。 */
+body.rule-check-page { display: block; min-width: 320px; min-height: 100vh; padding: 0; background: #fff; }
+body.rule-check-page #app { width: 100%; max-width: none; min-height: 100vh; height: auto; margin: 0 auto; padding: 0; text-align: left; }
+body.rule-check-page .rule-app { min-height: 100vh; display: flex; flex-direction: column; border: 0; border-radius: 0; background: #fff; }
+/* 旧版色板覆盖（蓝色状态胶囊、44px 触控目标）已并入上方主令牌，这里只保留真正需要的修正：
+   状态色与 V3 一致，触控目标仍不小于 44px（可访问性优先于原型里的 31px）。 */
+.rule-app .clarification-option { min-height: 44px; }
+.rule-app .primary-button, .rule-app .secondary-button, .rule-app .text-button, .rule-app .example-prompts button { min-height: 44px; }
+.rule-app .send-button { width: 44px; height: 44px; border-radius: 50%; }
+.rule-app .composer--hero textarea { min-height: 82px; }
+.rule-app .composer-bottom { flex: 0 0 auto; padding-top: 14px; border-top: 1px solid #eef2f7; background: #fff; }
+.rule-app .composer-bottom .composer { box-shadow: none; border-color: #dce6f4; }
+.rule-app .composer-bottom .composer-footer { justify-content: flex-end; }
+.rule-app .composer-note { margin-top: 9px; color: #939fae; font-size: 12px; text-align: center; }
+.rule-app .app-footer { width: 100%; margin-top: auto; text-align: center; color: #8b98a7; }
+@media (max-width: 820px) {
+  /* 全局 html/body 是 100% 高；窄屏内容超过一屏时必须让文档继续增长，否则底部无法滚到。 */
+  body.rule-check-page { height: auto; padding: 0; }
+  body.rule-check-page #app, body.rule-check-page .rule-app { min-height: 100vh; }
+  body.rule-check-page .rule-app { border: 0; border-radius: 0; }
+  .rule-app .composer textarea { font-size: 16px; }
+  /* 覆盖块里的澄清面板内边距要和窄屏压缩一致，否则上面的窄屏留白会被这里吃掉。 */
+  .rule-app .clarification-form { padding: 10px 0 4px; }
+}
+
+

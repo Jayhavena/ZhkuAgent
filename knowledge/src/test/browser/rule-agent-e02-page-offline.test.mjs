@@ -108,7 +108,7 @@ test('真实 Chrome 经合成宿主登录 E02 fixture，不提交问题', {timeo
       res.end(); return;
     }
     res.setHeader('content-type', 'text/html');
-    res.end(`<form class="rule-login"><input id="username" name="username"><input type="password" name="password"><button type="submit">Login</button></form><script>document.querySelector('form').onsubmit=async e=>{e.preventDefault();const r=await fetch('/login',{method:'POST',body:new URLSearchParams(new FormData(e.target))});if(r.ok)document.body.innerHTML='<textarea id="rule-question"></textarea>';};</script>`);
+    res.end(`<form class="rule-login"><input id="username" name="username"><input type="password" name="password"><button type="submit">Login</button></form><script>document.querySelector('form').onsubmit=async e=>{e.preventDefault();const r=await fetch('/login',{method:'POST',body:new URLSearchParams(new FormData(e.target))});if(r.ok)document.body.innerHTML='<textarea id="question-home"></textarea>';};</script>`);
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const owned = await startOwnedBrowser(executable); let cdp;
@@ -126,7 +126,7 @@ test('真实 Chrome 经合成宿主登录 E02 fixture，不提交问题', {timeo
     const fill = (selector, value) => evalPage(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.value=${JSON.stringify(value)};e.dispatchEvent(new Event('input',{bubbles:true}));})()`);
     const click = selector => evalPage(`document.querySelector(${JSON.stringify(selector)}).click()`);
     await loginSyntheticStudent({fill, click, wait: waitFor, evaluate:evalPage}, fixture);
-    assert.equal(await evalPage('!!document.querySelector("#rule-question")'), true);
+    assert.equal(await evalPage('!!document.querySelector("#question-home")'), true);
     assert.equal(logins, 1); assert.equal(otherPosts, 0);
     assert.equal((await probeSessionNetwork(evalPage)).reachable, true);
     server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

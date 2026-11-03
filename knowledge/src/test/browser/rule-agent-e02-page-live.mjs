@@ -27,12 +27,19 @@ export class CDP {
   close() { this.ws.close(); for (const p of this.pending.values()) { clearTimeout(p.timer); p.reject(new Error('CDP closed')); } this.pending.clear(); }
 }
 
+// 学生页面在 V3 改版后首页输入框是 #question-home、对话态是 #question-next；
+// 旧的 #rule-question 只剩回放入口使用。驱动按“学生入口优先、回放兜底”顺序探测，
+// 避免改版后驱动静默找不到提问入口而把页面误判成登录失败。
+// 登录按钮同样按新旧两套表单选择器探测：离线合成页用的是 .rule-login。
+export const QUESTION_SELECTORS = ['#question-home', '#question-next', '#rule-question'];
+export const QUESTION_READY_EXPRESSION = `(()=>{for(const s of ${JSON.stringify(QUESTION_SELECTORS)}){const e=document.querySelector(s);if(e&&!e.disabled)return s}return null})()`;
+
 export async function loginSyntheticStudent({fill, click, wait, evaluate}, fixture) {
   const {username, password} = syntheticLogin(fixture);
   await fill('#username', username);
   await fill('input[type="password"]', password);
-  await click('.rule-login button[type="submit"]');
-  await wait(() => evaluate(`!!document.querySelector('#rule-question:not(:disabled)')`), 'student logged in');
+  await evaluate(`(()=>{const b=document.querySelector('.rule-login button[type="submit"]')||document.querySelector('form.login-form button[type="submit"]');if(!b)throw new Error('login submit button missing');b.click();})()`);
+  await wait(() => evaluate(QUESTION_READY_EXPRESSION), 'student logged in');
 }
 
 export function browserEnvironment(source = process.env) {
@@ -187,11 +194,18 @@ const button = async text => { const selector = await evaluate(`(()=>{const a=[.
 const fill = async (selector, value) => { await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||e.disabled)throw Error('Input unavailable');e.focus();const p=e.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(p,'value').set.call(e,'');e.dispatchEvent(new Event('input',{bubbles:true}));})()`); await command('Input.insertText', {text: value}); };
 const text = () => evaluate('document.body.innerText');
 const has = async value => (await text()).includes(value);
+// 提交按钮文案随界面改版变化（旧「查证规则」、新「提交问题/提交新问题」由 aria-label 标识），
+// 统一按 aria-label 定位，避免因文案差异把“已提交”误判成“提交失败”。
+const clickSubmit = async () => {
+  const selector = await evaluate(`(()=>{const b=[...document.querySelectorAll('button[type="submit"],button')].find(e=>(e.getAttribute('aria-label')||'').includes('提交'));if(!b)throw Error('submit button not found');b.setAttribute('data-cdp-target','current');return 'button[data-cdp-target="current"]';})()`);
+  await click(selector);
+  await evaluate(`document.querySelector('[data-cdp-target="current"]')?.removeAttribute('data-cdp-target')`);
+};
 const checkpoint = async (name, data = {}) => { checks.push({name, at: new Date().toISOString(), phase, ...data}); };
 const shot = async name => { assert.equal(await evaluate(`[...document.querySelectorAll('input[type="password"]')].some(e=>e.value.length>0)`), false, 'Never capture a populated credential form'); await evaluate('window.scrollTo(0,0)'); const m = await command('Page.getLayoutMetrics'); const image = await command('Page.captureScreenshot', {format: 'png', captureBeyondViewport: true, clip: {x: 0, y: 0, width: 1440, height: Math.min(2600, Math.ceil(m.cssContentSize.height)), scale: 1}}); await writeFile(path.join(evidence, name), Buffer.from(image.data, 'base64'), {flag: 'wx'}); };
 
 // 终态文案来自既有页面契约；这里只判断“已经停在一个明确终态”，不判断答案正确性。
-const terminalMarkers = ['有依据可确认', '资料缺口', '本轮处理失败', '需要补充条件'];
+const terminalMarkers = ['已找到依据', '部分确认', '资料缺口', '本轮处理失败', '处理未完成', '需要补充', '尚无法确认'];
 
 try {
   await withBrowserLease(lease, async () => {
@@ -266,20 +280,37 @@ try {
   const question = plan.cases[0].question;
   assert.equal(host.question, question, 'host and plan must agree on the single question');
 
-  phase = `${profile}_QUESTION`; await fill('#rule-question', question); await button('查证规则'); await wait(() => has('问题已受理，正在查证。'), 'visible async progress'); await shot('02-active.png'); await checkpoint('submitted-single-question');
+  // 提问入口按新 UI 优先级探测：首页 #question-home、对话态 #question-next，回放页 #rule-question。
+  const questionSelector = await evaluate(QUESTION_READY_EXPRESSION);
+  assert(questionSelector, 'student question input must be visible and enabled');
+  phase = `${profile}_QUESTION`; await fill(questionSelector, question); await clickSubmit(); await wait(() => has('正在查证相关规则…'), 'visible async progress'); await shot('02-active.png'); await checkpoint('submitted-single-question');
   // 真实模型耗时不可预估；上限按宿主租约收敛，不重试、不刷新。
-  await wait(async () => { const body = await text(); return terminalMarkers.some(marker => body.includes(marker)) && !body.includes('问题已受理，正在查证。'); }, 'terminal answer state', 420000);
-  const answer = await evaluate(`(()=>{const d=document.querySelector('#decision-title');const f=document.querySelector('.rule-fact h3');const q=document.querySelector('.related-evidence blockquote');const n=document.querySelector('.rule-notice');return{heading:d?d.textContent.trim():null,claim:f?f.textContent.trim():null,quote:q?q.textContent.trim():null,notice:n?n.textContent.trim():null,evidenceCount:document.querySelectorAll('.related-evidence').length,hasOriginalButton:[...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='核对原文')};})()`);
+  // 终态判定按状态行文字（V3 语义：已找到依据/部分确认/资料缺口/处理未完成…），
+  // 同时排除仍在进行的进度提示，避免把“还在查证”当成已出结果。
+  await wait(async () => {
+    const body = await text();
+    return terminalMarkers.some(marker => body.includes(marker)) && !body.includes('正在查证相关规则…');
+  }, 'terminal answer state', 420000);
+  // 结果按 V3 组件结构读取：标题即结论句，证据改为折叠区，原文入口按钮文案改为“在原文中定位”。
+  const answer = await evaluate(`(()=>{const t=document.querySelector('[data-testid="answer-title"]');const s=document.querySelector('[data-testid="answer-status"]');const q=document.querySelector('[data-testid="evidence-quote"]');const o=document.querySelector('[data-testid="no-claim"]');const folds=[...document.querySelectorAll('[data-testid^="fold-"]')].map(e=>e.getAttribute('data-testid'));return{title:t?t.textContent.trim():null,status:s?s.textContent.trim():null,quote:q?q.textContent.trim():null,noClaim:o?o.textContent.trim():null,folds,hasOriginalButton:!!document.querySelector('[data-testid="open-original"]')};})()`);
   await shot('03-answer.png'); await checkpoint('answer-rendered', answer);
+  assert.deepEqual(answer.folds, ['fold-explanation', 'fold-sources', 'fold-evidence'], 'V3 requires three collapsed detail sections');
   if (profile === 'E13') {
     await Promise.all(bodyJobs);
     assert.equal(observedTaskIds.size, 1, 'E13 must have one coherent task');
     assertE13Terminal(finalSnapshot, await text());
     await checkpoint('e13-data-gap-terminal-validated', {coverage:'NONE', productVerdict:'HUMAN_REVIEW_REQUIRED'});
   }
-  if (answer.hasOriginalButton) { await button('核对原文'); await wait(() => has('原文'), 'original panel'); const original = await evaluate(`(()=>{const m=document.querySelector('#original-panel mark');return m?m.textContent.trim():null;})()`); await shot('04-original.png'); await checkpoint('original-rendered', {originalQuote: original, matchesQuote: Boolean(original && answer.quote && original.includes(answer.quote))}); }
+  // 原文入口改成折叠区内的按钮；打开后按 mark 核对高亮是否就是已发布摘录。
+  if (answer.hasOriginalButton) {
+    await click('[data-testid="open-original"]');
+    await wait(() => evaluate(`!!document.querySelector('[data-testid="original-mark"]')`), 'original panel');
+    const original = await evaluate(`(()=>{const m=document.querySelector('[data-testid="original-mark"]');const p=document.querySelector('[data-testid="original-page"]');return{mark:m?m.textContent.trim():null,page:p?p.textContent.trim():null};})()`);
+    await shot('04-original.png');
+    await checkpoint('original-rendered', {originalQuote: original.mark, originalPage: original.page, matchesQuote: Boolean(original.mark && answer.quote && original.mark.includes(answer.quote))});
+  }
 
-  phase = 'LOGOUT'; await button('退出登录'); await wait(() => evaluate(`!!document.querySelector('#username:not(:disabled)')`), 'logout'); assert.equal(await evaluate(`document.querySelectorAll('.decision').length`), 0); await checkpoint('logout-clears-result');
+  phase = 'LOGOUT'; await evaluate(`(()=>{const b=document.querySelector('[data-testid="identity-button"]');if(b)b.click();})()`); await button('退出登录'); await wait(() => evaluate(`!!document.querySelector('#username:not(:disabled)')`), 'logout'); assert.equal(await evaluate(`document.querySelectorAll('[data-testid="answer-title"]').length`), 0); await checkpoint('logout-clears-result');
 
   // 宿主会同时关掉前端，不能 reload 后声称 UI 负控成功；先验证同页请求确实可达。
   phase = 'HOST_STOP';
@@ -342,9 +373,13 @@ export function assertE13Terminal(s, visibleText) {
   assert(q.issues?.length && q.issues.every(i => i.kind === 'DATA_GAP'));
   assert(q.issues.some(i => i.reasonCode === 'UNSUPPORTED_DEMAND'));
   assert.match(visibleText, /资料缺口/);
+  // 证据不足时页面不得出现任何结论性标记：既不能是“已找到依据”，也不能是技术失败的“处理未完成”。
+  assert.match(visibleText, /尚无法确认|暂时无法确认|目前没有足够依据|不作结论/);
   assert.match(visibleText, /当期/); assert.match(visibleText, /不作结论|无法确认|无法核实/);
   assert.match(visibleText, /不代办|不代替你办理|没有.*权限/); assert.match(visibleText, /教务/);
   assert(!visibleText.includes('本轮处理失败'), 'technical failure must not pass as gap');
+  assert(!visibleText.includes('处理未完成'), 'technical failure must not pass as gap');
+  assert(!visibleText.includes('已找到依据'), 'gap must not be presented as a resolved answer');
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await runPageLive('E02');
