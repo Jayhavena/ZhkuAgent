@@ -46,6 +46,12 @@ public class PreviewSecurityConfiguration {
     static SecurityFilterChain buildChain(HttpSecurity http,AuthenticationProvider provider,
             PreviewIdentityRepository repository,ObjectMapper mapper,String prefix,String cookieName,
             boolean conversations,boolean ruleCheck) throws Exception {
+        return buildChain(http,provider,repository,mapper,prefix,cookieName,conversations,ruleCheck,null);
+    }
+
+    static SecurityFilterChain buildChain(HttpSecurity http,AuthenticationProvider provider,
+            PreviewIdentityRepository repository,ObjectMapper mapper,String prefix,String cookieName,
+            boolean conversations,boolean ruleCheck,PersistentPreviewLogin persistent) throws Exception {
         String cookiePath="/api"+prefix;
         // 显式无parent，避免同一Provider在本地和父Manager各执行一次、提前耗尽登录预算。
         http.authenticationManager(new ProviderManager(List.of(provider)))
@@ -53,6 +59,14 @@ public class PreviewSecurityConfiguration {
                 .formLogin(login -> login.loginProcessingUrl(prefix + "/auth/login")
                         .successHandler((request, response, authentication) -> {
                             var actor = ((PreviewPrincipal)authentication.getPrincipal()).actor();
+                            if (persistent!=null) {
+                                try { persistent.login(request,response,authentication); }
+                                catch (PreviewIdentityRepository.Failure failure) {
+                                    SecurityContextHolder.clearContext();
+                                    var session=request.getSession(false); if(session!=null) session.invalidate();
+                                    json(mapper,response,503,new ErrorReply("IDENTITY_UNAVAILABLE","身份核验暂不可用")); return;
+                                }
+                            }
                             if(ruleCheck){var session=request.getSession(false);if(session!=null)synchronized(session){session.removeAttribute("ZHKU_RULE_AGENT_OWNER");}}
                             json(mapper, response, 200, new LoginReply(actor.userId(), actor.role(), actor.authRevision()));
                         }).failureHandler((request, response, exception) -> {
@@ -68,7 +82,10 @@ public class PreviewSecurityConfiguration {
                     return "POST".equals(request.getMethod()) && (prefix + "/auth/logout").equals(path)
                             && authentication != null && authentication.isAuthenticated()
                             && authentication.getPrincipal() instanceof PreviewPrincipal;
-                }).addLogoutHandler((request, response, authentication) -> clearCookie(response,cookieName,cookiePath))
+                }).addLogoutHandler((request, response, authentication) -> {
+                    if (persistent!=null) persistent.logout(request,response);
+                    clearCookie(response,cookieName,cookiePath);
+                })
                         .logoutSuccessHandler((request, response, authentication) -> response.setStatus(204)))
                 .sessionManagement(session -> session.sessionFixation(fixation -> fixation.changeSessionId()))
                 .exceptionHandling(errors -> errors
@@ -89,6 +106,9 @@ public class PreviewSecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, prefix + "/auth/me").authenticated()
                         .requestMatchers(HttpMethod.POST, prefix + "/auth/logout").authenticated();
                     if (ruleCheck) {
+                        access.requestMatchers(HttpMethod.POST,prefix+"/auth/register").permitAll()
+                            .requestMatchers(HttpMethod.GET,prefix+"/auth/account").hasRole("USER")
+                            .requestMatchers(HttpMethod.PUT,prefix+"/auth/password").hasRole("USER");
                         // v2只开放查证和异步任务合同，身份不能继承v1历史、实验或管理权限。
                         access.requestMatchers(HttpMethod.POST,prefix+"/rule-check").hasRole("USER")
                             .requestMatchers(HttpMethod.GET,prefix+"/rule-check/originals/*").hasRole("USER")
@@ -108,11 +128,15 @@ public class PreviewSecurityConfiguration {
                     access.anyRequest().denyAll();
                 });
         // 不安全请求先检查CSRF，再查当前身份；数据库故障不能覆盖本该先发生的403。
-        http.addFilterAfter(new CurrentIdentityFilter(repository, mapper,cookieName,cookiePath,ruleCheck,prefix), CsrfFilter.class);
+        http.addFilterAfter(new CurrentIdentityFilter(repository, mapper,cookieName,cookiePath,ruleCheck,prefix,persistent), CsrfFilter.class);
+        if (persistent!=null) http.addFilterBefore(persistent,CurrentIdentityFilter.class);
         // 直接创建而非Servlet Bean；先身份/CSRF/授权，再读取和限制业务body。
         if (ruleCheck) {
             http.addFilterBefore(new com.zhku.knowledge.rulecheck.web.RuleCheckMediaTypeFilter(),CsrfFilter.class);
+            http.addFilterBefore(new PasswordRequestFilter(prefix+"/auth/password"),CsrfFilter.class);
             http.addFilterAfter(new ControlledRunRequestLimitFilter(prefix+"/rule-check",32768),AuthorizationFilter.class);
+            http.addFilterAfter(new ControlledRunRequestLimitFilter(prefix+"/auth/register",2048),AuthorizationFilter.class);
+            http.addFilterAfter(new ControlledRunRequestLimitFilter(prefix+"/auth/password",2048),AuthorizationFilter.class);
             http.addFilterAfter(new com.zhku.knowledge.ruleagent.web.RuleAgentRequestLimitFilter(),AuthorizationFilter.class);
         } else http.addFilterAfter(new ControlledRunRequestLimitFilter(), AuthorizationFilter.class);
         return http.build();
@@ -161,8 +185,9 @@ public class PreviewSecurityConfiguration {
         private final ObjectMapper mapper;
         private final String cookieName,cookiePath,prefix;
         private final boolean ruleCheck;
-        CurrentIdentityFilter(PreviewIdentityRepository repository,ObjectMapper mapper,String cookieName,String cookiePath,boolean ruleCheck,String prefix) {
-            this.repository=repository;this.mapper=mapper;this.cookieName=cookieName;this.cookiePath=cookiePath;this.ruleCheck=ruleCheck;this.prefix=prefix;
+        private final PersistentPreviewLogin persistent;
+        CurrentIdentityFilter(PreviewIdentityRepository repository,ObjectMapper mapper,String cookieName,String cookiePath,boolean ruleCheck,String prefix,PersistentPreviewLogin persistent) {
+            this.repository=repository;this.mapper=mapper;this.cookieName=cookieName;this.cookiePath=cookiePath;this.ruleCheck=ruleCheck;this.prefix=prefix;this.persistent=persistent;
         }
         @Override protected boolean shouldNotFilterAsyncDispatch() { return false; }
         @Override protected boolean shouldNotFilterErrorDispatch() { return false; }
@@ -185,7 +210,17 @@ public class PreviewSecurityConfiguration {
                 return;
             }
             if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof PreviewPrincipal principal) {
-                try { repository.requireCurrent(principal.actor()); }
+                try {
+                    repository.requireCurrent(principal.actor());
+                    var session=request.getSession(false);
+                    Object digest=session==null?null:session.getAttribute(PersistentPreviewLogin.SESSION_DIGEST);
+                    if (ruleCheck && digest instanceof String value) {
+                        repository.requirePersistent(value,principal.actor());
+                        // 异步/错误派发不代表新活动，也避免重复向已提交的响应写Cookie。
+                        if (persistent!=null && request.getDispatcherType()==jakarta.servlet.DispatcherType.REQUEST)
+                            persistent.slide(request,response,value,principal.actor());
+                    }
+                }
                 catch (PreviewIdentityRepository.Failure failure) {
                     if (failure.code() == PreviewIdentityRepository.Code.IDENTITY_UNAVAILABLE) {
                         json(mapper, response, 503, new ErrorReply("IDENTITY_UNAVAILABLE", "身份核验暂不可用"));

@@ -51,7 +51,9 @@ onUnmounted(() => {
         <div v-if="open" class="identity-popover" role="dialog" aria-label="当前身份">
           <p class="identity-eyebrow">当前身份</p>
           <p class="identity-role">{{ roleLabel }}</p>
+          <p v-if="actor.username" class="identity-id">账号：{{ actor.username }}</p>
           <p class="identity-id">用户 ID：{{ actor.userId }}</p>
+          <RouterLink class="secondary-button identity-logout" to="/account" @click="close">账号信息与密码</RouterLink>
           <button class="secondary-button identity-logout" type="button" data-testid="logout" :disabled="identityBusy" @click="logout">退出登录</button>
         </div>
       </div>

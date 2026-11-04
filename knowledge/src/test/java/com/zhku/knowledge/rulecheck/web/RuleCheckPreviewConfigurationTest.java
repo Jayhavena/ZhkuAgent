@@ -61,20 +61,27 @@ class RuleCheckPreviewConfigurationTest {
         ).forEach(e::setProperty);return e;
     }
     @Test void reviewedControlledModeRequiresExactBoundaryAndExplicitTransport() {
+        var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();
         var e=valid().withProperty("zhku.rule-check-preview.catalogue-mode","REVIEWED_2025_CONTROLLED")
-            .withProperty("zhku.rule-check-preview.repository-root",java.nio.file.Path.of("..").toAbsolutePath().normalize().toString())
+            .withProperty("zhku.rule-check-preview.repository-root",root.toString())
             .withProperty("zhku.rule-check-preview.selector-mode","SEALED_REPLAY")
             .withProperty("zhku.rule-check-preview.profile-id","controlled-2025-local")
             .withProperty("zhku.rule-check-preview.chunking-version","handbook-2025-clause-verbatim-v1")
             .withProperty("zhku.rule-check-preview.required-scope","RULE_CHECK_PUBLIC_ELECTIVE_2025")
             .withProperty("zhku.rule-check-preview.candidate-limit","20");
-        assertThatCode(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).doesNotThrowAnyException();
+        // 参数边界先于资料读取校验，不依赖外部原件是否存在。
         for(String key:java.util.List.of("selector-mode","chunking-version","required-scope","candidate-limit","repository-root")) {
             String before=e.getProperty("zhku.rule-check-preview."+key);
             e.setProperty("zhku.rule-check-preview."+key,"wrong");
             assertThatThrownBy(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).isInstanceOf(IllegalArgumentException.class);
             e.setProperty("zhku.rule-check-preview."+key,before);
         }
+        // 2026-10-27 工作区合并后学生手册原件不再随仓库存放；缺原件时如实跳过完整装配，
+        // 不能把“原件不在本机”当成配置通过的证据。
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                java.nio.file.Files.isRegularFile(com.zhku.knowledge.retrieval.Reviewed2025ControlledCatalogue.handbookPdf(root)),
+                "本机缺少已审2025学生手册原件，受控完整装配未验证");
+        assertThatCode(()->RuleCheckPreviewConfiguration.validateEnvironment(e)).doesNotThrowAnyException();
     }
     @Test void explicitValidBoundaryDoesNotNeedCredentialsOrOpenResources() {
         assertThatCode(()->RuleCheckPreviewConfiguration.validateEnvironment(valid())).doesNotThrowAnyException();
@@ -141,7 +148,8 @@ class RuleCheckPreviewConfigurationTest {
         assertThat(RuleCheckPreviewApplication.class.getAnnotation(ComponentScan.class)).isNull();
         var imports=RuleCheckPreviewApplication.class.getAnnotation(Import.class);assertThat(imports).isNotNull();
         assertThat(imports.value()).containsExactlyInAnyOrder(RuleCheckPreviewConfiguration.class,
-                RuleCheckPreviewSecurityConfiguration.class,RuleCheckAuthController.class,RuleCheckController.class);
+                RuleCheckPreviewSecurityConfiguration.class,RuleCheckAuthController.class,RuleCheckController.class,
+                com.zhku.knowledge.ruleagent.web.RuleAgentHttpConfiguration.class);
     }
     @Test void profileYamlKeepsEntryAndInitializationClosedByDefault() throws Exception {
         var resource=new ClassPathResource("application-zhku-rule-check-preview.yml");assertThat(resource.exists()).isTrue();

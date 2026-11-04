@@ -62,7 +62,8 @@ public class Reviewed2025ControlledCatalogue implements AutoCloseable {
      * 旧同级布局 SuperAgent-zhkuagent-mvp → 沿祖先回溯迁移布局
      * worktrees/projects/SuperAgent-zhkuagent-mvp。内容指纹仍由构造器校验，定位方式不放宽任何验证。
      */
-    static Path handbookPdf(Path root) {
+    /** 供启动器与装配测试复用同一解析规则；公开定位方式不等于放宽指纹校验。 */
+    public static Path handbookPdf(Path root) {
         String explicit=System.getProperty("zhku.t06.handbookPdf");
         if(explicit!=null&&!explicit.isBlank())return Path.of(explicit).toAbsolutePath().normalize();
         String file="data/raw/2025版学生手册2025.9.2.pdf";

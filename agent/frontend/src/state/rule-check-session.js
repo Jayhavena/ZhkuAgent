@@ -18,4 +18,6 @@ export function bindIdentityBus(session = ruleCheckSession, bus = createIdentity
   return { bus, dispose() { unsubscribe(); bus.close() } }
 }
 
-bindIdentityBus()
+const identityBinding = bindIdentityBus()
+// 本窗口原本匿名也可能覆盖同源其他窗口的 Cookie，登录确认后仍须通知它们清理旧结果。
+export function broadcastRuleLogin() { identityBinding.bus.publish({ reason: 'IDENTITY_CHANGED' }) }

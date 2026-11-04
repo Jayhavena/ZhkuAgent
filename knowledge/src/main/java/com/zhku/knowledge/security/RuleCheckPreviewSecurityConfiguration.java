@@ -31,10 +31,13 @@ public class RuleCheckPreviewSecurityConfiguration {
         String[][] required={{"server.servlet.context-path","/api"},
                 {"server.servlet.session.persistent","false"},{"server.servlet.session.tracking-modes","cookie"},
                 {"server.servlet.session.cookie.name",COOKIE_NAME},{"server.servlet.session.cookie.path",COOKIE_PATH},
-                {"server.servlet.session.cookie.http-only","true"},{"server.servlet.session.cookie.secure","false"},
+                {"server.servlet.session.cookie.http-only","true"},
                 {"server.servlet.session.cookie.same-site","strict"}};
         for (var setting:required) if (!setting[1].equals(environment.getProperty(setting[0])))
             throw new IllegalArgumentException("查证会话配置必须显式绑定独立cookie");
+        // 本地HTTP可显式关闭Secure；TLS部署显式启用，禁止遗漏配置。
+        if (!java.util.Set.of("true","false").contains(environment.getProperty("server.servlet.session.cookie.secure","")))
+            throw new IllegalArgumentException("查证Cookie必须显式声明Secure");
         String timeout=environment.getProperty("server.servlet.session.timeout");
         try {
             if (timeout==null || !java.time.Duration.ofMinutes(15).equals(org.springframework.boot.convert.DurationStyle.detectAndParse(timeout)))
@@ -56,6 +59,7 @@ public class RuleCheckPreviewSecurityConfiguration {
     }
     @Bean SecurityFilterChain ruleCheckSecurityFilterChain(HttpSecurity http,AuthenticationProvider ruleCheckAuthenticationProvider,
             PreviewIdentityRepository repository,ObjectMapper mapper,Environment environment) throws Exception {
-        return PreviewSecurityConfiguration.buildChain(http,ruleCheckAuthenticationProvider,repository,mapper,PREFIX,COOKIE_NAME,false,true);
+        var persistent=new PersistentPreviewLogin(repository,Boolean.parseBoolean(environment.getProperty("server.servlet.session.cookie.secure")));
+        return PreviewSecurityConfiguration.buildChain(http,ruleCheckAuthenticationProvider,repository,mapper,PREFIX,COOKIE_NAME,false,true,persistent);
     }
 }

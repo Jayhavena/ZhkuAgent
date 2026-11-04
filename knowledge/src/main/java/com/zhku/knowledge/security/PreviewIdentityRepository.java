@@ -18,7 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /** 身份只读边界；许可快照不代替Run/Session各自事务内的当前许可。 */
 public final class PreviewIdentityRepository implements AutoCloseable {
-    public enum Code { AUTH_REVOKED, ROLE_DENIED, IDENTITY_UNAVAILABLE }
+    public enum Code { AUTH_REVOKED, ROLE_DENIED, IDENTITY_UNAVAILABLE, INVALID_INPUT, LOGIN_EXISTS, BAD_PASSWORD }
     public static final class Failure extends RuntimeException {
         private final Code code;
         public Failure(Code code) {
@@ -100,6 +100,115 @@ public final class PreviewIdentityRepository implements AutoCloseable {
             if (password != null) Arrays.fill(password, '\0');
             if (!handedOff && copy != null) Arrays.fill(copy, '\0');
         }
+    }
+
+    public record Account(UUID userId, String loginName, String username, String accountStatus, java.time.Instant createdAt) { }
+
+    /** 注册只产生USER；数据库唯一约束而非先查后插负责并发去重。 */
+    public Account register(String login, char[] password) {
+        if (login == null || !login.matches("[a-z][a-z0-9-]{2,31}") || !validPassword(password))
+            throw new Failure(Code.INVALID_INPUT);
+        char[] secret = password.clone();
+        Arrays.fill(password, '\0');
+        return execute(new Work<>(() -> Arrays.fill(secret, '\0')), (connection, budget) -> {
+            String hash = encoder.encode(CharBuffer.wrap(secret));
+            budget.check();
+            UUID id = UUID.randomUUID();
+            try (var statement = connection.prepareStatement("INSERT INTO preview_identity(user_id,login_name,password_hash,role) VALUES (?,?,?,'USER')")) {
+                statement.setQueryTimeout(1); statement.setObject(1,id); statement.setString(2,login); statement.setString(3,hash);
+                try { statement.executeUpdate(); }
+                catch (SQLException ex) { if ("23505".equals(ex.getSQLState())) throw new Failure(Code.LOGIN_EXISTS); throw ex; }
+            }
+            return new Account(id,login,login,"ACTIVE",null);
+        });
+    }
+
+    public Account account(TrustedActor actor) {
+        return execute(new Work<>(() -> {}), (connection,budget) -> {
+            try (var statement=connection.prepareStatement("SELECT login_name,created_at FROM preview_identity WHERE user_id=? AND role=? AND enabled AND auth_revision=?")) {
+                statement.setQueryTimeout(1); statement.setObject(1,actor.userId()); statement.setString(2,actor.role().name()); statement.setLong(3,actor.authRevision());
+                try (var row=statement.executeQuery()) { if (!row.next()) throw new Failure(Code.AUTH_REVOKED); String name=row.getString(1); return new Account(actor.userId(),name,name,"ACTIVE",row.getTimestamp(2).toInstant()); }
+            }
+        });
+    }
+
+    public void changePassword(TrustedActor actor, char[] oldPassword, char[] newPassword) {
+        if (!validPassword(oldPassword) || !validPassword(newPassword)) throw new Failure(Code.INVALID_INPUT);
+        char[] oldCopy=oldPassword.clone(), newCopy=newPassword.clone();
+        Arrays.fill(oldPassword,'\0'); Arrays.fill(newPassword,'\0');
+        execute(new Work<Void>(() -> { Arrays.fill(oldCopy,'\0'); Arrays.fill(newCopy,'\0'); }), (connection,budget) -> {
+            connection.setAutoCommit(false);
+            try {
+                String hash;
+                try (var statement=connection.prepareStatement("SELECT password_hash FROM preview_identity WHERE user_id=? AND role='USER' AND enabled AND auth_revision=? FOR UPDATE")) {
+                    statement.setQueryTimeout(1); statement.setObject(1,actor.userId()); statement.setLong(2,actor.authRevision());
+                    try (var row=statement.executeQuery()) { if (!row.next()) throw new Failure(Code.AUTH_REVOKED); hash=row.getString(1); }
+                }
+                if (!encoder.matches(CharBuffer.wrap(oldCopy),hash)) throw new Failure(Code.BAD_PASSWORD);
+                String replacement=encoder.encode(CharBuffer.wrap(newCopy)); budget.check();
+                try (var statement=connection.prepareStatement("UPDATE preview_identity SET password_hash=?,auth_revision=auth_revision+1 WHERE user_id=?")) {
+                    statement.setQueryTimeout(1); statement.setString(1,replacement); statement.setObject(2,actor.userId()); statement.executeUpdate();
+                }
+                try (var statement=connection.prepareStatement("DELETE FROM preview_persistent_login WHERE user_id=?")) {
+                    statement.setQueryTimeout(1); statement.setObject(1,actor.userId()); statement.executeUpdate();
+                }
+                budget.check(); connection.commit(); return null;
+            } catch (Exception ex) { try { connection.rollback(); } catch (SQLException ignored) {} throw ex; }
+        });
+    }
+
+    public void createPersistent(TrustedActor actor, String digest) {
+        execute(new Work<Void>(() -> {}), (connection,budget) -> {
+            try (var statement=connection.prepareStatement("INSERT INTO preview_persistent_login(token_hash,user_id,auth_revision,expires_at) SELECT ?,user_id,auth_revision,clock_timestamp()+interval '30 days' FROM preview_identity WHERE user_id=? AND role='USER' AND enabled AND auth_revision=?")) {
+                statement.setQueryTimeout(1); statement.setString(1,digest); statement.setObject(2,actor.userId()); statement.setLong(3,actor.authRevision());
+                if (statement.executeUpdate()!=1) throw new Failure(Code.AUTH_REVOKED);
+            }
+            return null;
+        });
+    }
+
+    /** 相同Cookie的并发窗口共享凭据；原子续期避免轮换响应乱序使合法窗口失效。 */
+    public Optional<PreviewPrincipal> renewPersistent(String digest) {
+        return execute(new Work<>(() -> {}), (connection,budget) -> {
+            try (var statement=connection.prepareStatement("UPDATE preview_persistent_login p SET expires_at=clock_timestamp()+interval '30 days' FROM preview_identity i WHERE p.token_hash=? AND p.expires_at>clock_timestamp() AND i.user_id=p.user_id AND i.role='USER' AND i.enabled AND i.auth_revision=p.auth_revision RETURNING p.user_id,p.auth_revision")) {
+                statement.setQueryTimeout(1); statement.setString(1,digest);
+                try (var row=statement.executeQuery()) {
+                    if (!row.next()) return Optional.empty();
+                    return Optional.of(new PreviewPrincipal(new TrustedActor(row.getObject(1,UUID.class),TrustedActor.Role.USER,row.getLong(2))));
+                }
+            }
+        });
+    }
+
+    /** 按数据库时间原子节流；条件更新不会重建已撤销的凭据，也不会把旧请求的期限写短。 */
+    public boolean slidePersistent(String digest, TrustedActor actor) {
+        if (actor.role()!=TrustedActor.Role.USER) return false;
+        return execute(new Work<>(() -> {}), (connection,budget) -> {
+            try (var statement=connection.prepareStatement("UPDATE preview_persistent_login p SET expires_at=clock_timestamp()+interval '30 days' FROM preview_identity i WHERE p.token_hash=? AND p.user_id=? AND p.auth_revision=? AND p.expires_at>clock_timestamp() AND p.expires_at<=clock_timestamp()+interval '29 days' AND i.user_id=p.user_id AND i.role='USER' AND i.enabled AND i.auth_revision=p.auth_revision")) {
+                statement.setQueryTimeout(1); statement.setString(1,digest); statement.setObject(2,actor.userId()); statement.setLong(3,actor.authRevision());
+                return statement.executeUpdate()==1;
+            }
+        });
+    }
+
+    /** 持久登录建立的会话每次重新检查凭据，防止并发恢复在注销后继续授权。 */
+    public void requirePersistent(String digest, TrustedActor actor) {
+        execute(new Work<Void>(() -> {}), (connection,budget) -> {
+            try (var statement=connection.prepareStatement("SELECT 1 FROM preview_persistent_login WHERE token_hash=? AND user_id=? AND auth_revision=? AND expires_at>clock_timestamp()")) {
+                statement.setQueryTimeout(1); statement.setString(1,digest); statement.setObject(2,actor.userId()); statement.setLong(3,actor.authRevision());
+                try (var row=statement.executeQuery()) { if (!row.next()) throw new Failure(Code.AUTH_REVOKED); }
+            }
+            return null;
+        });
+    }
+
+    public void revokePersistent(String digest) {
+        execute(new Work<Void>(() -> {}), (connection,budget) -> {
+            try (var statement=connection.prepareStatement("DELETE FROM preview_persistent_login WHERE token_hash=?")) {
+                statement.setQueryTimeout(1); statement.setString(1,digest); statement.executeUpdate();
+            }
+            return null;
+        });
     }
 
     public void requireCurrent(TrustedActor actor) {

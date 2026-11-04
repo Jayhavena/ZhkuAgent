@@ -38,7 +38,7 @@ public class ControlledPreviewExceptionHandler {
         return error(status,failure.code().name(),failure.safeMessage());
     }
     @ExceptionHandler(PreviewIdentityRepository.Failure.class) ResponseEntity<?> identity(PreviewIdentityRepository.Failure failure) {
-        int status=switch(failure.code()){case AUTH_REVOKED->401;case ROLE_DENIED->403;case IDENTITY_UNAVAILABLE->503;};
+        int status=switch(failure.code()){case AUTH_REVOKED->401;case ROLE_DENIED->403;case IDENTITY_UNAVAILABLE->503;case INVALID_INPUT->400;case LOGIN_EXISTS->409;case BAD_PASSWORD->401;};
         return error(status,failure.code().name(),"当前身份许可不可用于本次操作");
     }
     @ExceptionHandler({IllegalArgumentException.class,HttpMessageNotReadableException.class,

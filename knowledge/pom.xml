@@ -50,6 +50,8 @@
       <execution><id>admin</id><goals><goal>repackage</goal></goals><configuration><classifier>admin</classifier><mainClass>com.zhku.knowledge.governance.web.ZhkuLocalAdminApplication</mainClass></configuration></execution>
       <execution><id>index</id><goals><goal>repackage</goal></goals><configuration><classifier>index</classifier><mainClass>com.zhku.knowledge.retrieval.IndexPublishedKnowledgeCli</mainClass></configuration></execution>
       <execution><id>controlled</id><goals><goal>repackage</goal></goals><configuration><classifier>controlled</classifier><mainClass>com.zhku.knowledge.controlled.ControlledPreviewApplication</mainClass></configuration></execution>
+      <!-- 长期账号入口单独打包；不与15分钟临时演示入口混用，避免把临时会话当成持久账号。 -->
+      <execution><id>persistent</id><goals><goal>repackage</goal></goals><configuration><classifier>persistent</classifier><mainClass>com.zhku.knowledge.controlled.PersistentRuleCheckLocalHost</mainClass></configuration></execution>
     </executions></plugin>
   </plugins></build>
 </project>

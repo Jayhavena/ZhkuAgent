@@ -2,6 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { selectEntryRoutes } from './entry-routes.js'
 import { controlledClient } from '../api/controlled.js'
 import { controlledSession } from '../state/controlled-session.js'
+import { ruleCheckSession } from '../state/rule-check-session.js'
+import { ruleTaskClient } from '../api/rule-task.js'
+import { createRuleAuthGuard } from './rule-auth.js'
 
 // 入口在构建期固定，离线演示须使用配套的同步回放页面。
 const routes = selectEntryRoutes(import.meta.env.VITE_ENTRY_MODE)
@@ -10,6 +13,10 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
+// 离线回放与模拟演示不使用真实认证接口。
+const ruleGuard = createRuleAuthGuard({ session: ruleCheckSession, client: ruleTaskClient })
+if (import.meta.env.VITE_ENTRY_MODE !== 'replay' && !['simulated', 'http-fixture'].includes(import.meta.env.VITE_DEMO_MODE)) router.beforeEach(ruleGuard)
 
 // 全局导航守卫，设置文档标题
 router.beforeEach(async (to) => {

@@ -21,6 +21,7 @@ const state = flow.state
 
 const username = ref('')
 const password = ref('')
+const rememberMe = ref(true)
 const question = ref('')
 const choice = ref('')
 const loginError = ref('')
@@ -216,7 +217,7 @@ async function login() {
   if (loginBusy.value || session.state.identityBusy || session.state.reason === 'LOGIN_UNCONFIRMED') return
   loginBusy.value = true
   loginError.value = ''
-  const pending = api.login(username.value.trim(), password.value)
+  const pending = api.login(username.value.trim(), password.value, rememberMe.value)
   const epoch = session.state.epoch
   session.state.reason = 'LOGIN_UNCONFIRMED'
   try {
@@ -331,7 +332,7 @@ watch(
       工程模拟：仅支持下方固定问题，不调用在线模型。示例：我这门选修课没过，能不能重修？可补充公共选修课或专业选修课；仅验证历史资料的查证流程。
     </p>
 
-    <RuleLogin v-if="!session.state.actor" v-model:username="username" v-model:password="password" :auth-checking="authChecking" :login-busy="loginBusy" :identity-busy="session.state.identityBusy" :reason="session.state.reason" :login-error="loginError" :identity-message="identityMessage" @login="login" @logout="logout" @check-login="checkLogin" />
+    <RuleLogin v-if="!session.state.actor" v-model:username="username" v-model:password="password" v-model:remember-me="rememberMe" :auth-checking="authChecking" :login-busy="loginBusy" :identity-busy="session.state.identityBusy" :reason="session.state.reason" :login-error="loginError" :identity-message="identityMessage" @login="login" @logout="logout" @check-login="checkLogin" />
 
     <section v-else-if="!student" class="access-notice" role="status">
       当前账号不是学生查证身份，请退出后使用学生查证身份登录。

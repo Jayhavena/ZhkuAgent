@@ -1,7 +1,10 @@
 // 工程独立入口的完整路由表：学生模式的运行期路由不使用本表，两个实验入口的底层能力只在这里保留。
 // 与 student-routes.js 成对存在，便于在 Node 侧直接核对路由定义，不必依赖 import.meta.env 分支。
 export const engineeringRoutes = [
-  { path: '/rules', name: 'RuleCheck', component: () => import('../views/RuleCheckView.vue'), meta: { title: '校园规则查证 - 仲园' } },
+  { path: '/rules', name: 'RuleCheck', component: () => import('../views/RuleCheckView.vue'), meta: { title: '校园规则查证 - 仲园', requiresRuleAuth: true } },
+  { path: '/login', component: () => import('../views/RuleAccount.vue'), meta: { title: '登录 - 仲园', accountMode: 'login' } },
+  { path: '/register', component: () => import('../views/RuleAccount.vue'), meta: { title: '注册 - 仲园', accountMode: 'register' } },
+  { path: '/account', component: () => import('../views/RuleAccount.vue'), meta: { title: '账号信息 - 仲园', accountMode: 'account', requiresRuleAuth: true } },
   { path: '/campus/login', component: () => import('../views/ControlledLogin.vue'), meta: { title: '登录 - 仲园 Agent' } },
   { path: '/campus', component: () => import('../components/ControlledLayout.vue'), meta: { requiresControlledAuth: true }, children: [
     { path: '', redirect: '/campus/run' },

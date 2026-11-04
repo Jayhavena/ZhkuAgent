@@ -1,8 +1,8 @@
 <script setup>
 import { computed } from 'vue'
 import PasswordInput from '../PasswordInput.vue'
-const props = defineProps(['username', 'password', 'authChecking', 'loginBusy', 'identityBusy', 'reason', 'loginError', 'identityMessage'])
-const emit = defineEmits(['update:username', 'update:password', 'login', 'logout', 'checkLogin'])
+const props = defineProps(['username', 'password', 'rememberMe', 'authChecking', 'loginBusy', 'identityBusy', 'reason', 'loginError', 'identityMessage'])
+const emit = defineEmits(['update:username', 'update:password', 'update:rememberMe', 'login', 'logout', 'checkLogin'])
 const usernameModel = computed({ get: () => props.username, set: value => emit('update:username', value) })
 </script>
 
@@ -18,7 +18,9 @@ const usernameModel = computed({ get: () => props.username, set: value => emit('
         <input id="username" v-model="usernameModel" name="username" autocomplete="username" required maxlength="32" data-testid="username" :disabled="authChecking || loginBusy || identityBusy" />
         <label for="password">密码</label>
         <PasswordInput :model-value="password" @update:model-value="$emit('update:password', $event)" :disabled="authChecking || loginBusy || identityBusy" />
-        <p id="password-hint" class="field-hint">使用受控演示账号登录。</p>
+        <p id="password-hint" class="field-hint">请输入账号密码。</p>
+        <label><input type="checkbox" :checked="rememberMe" @change="$emit('update:rememberMe', $event.target.checked)" /> 保持登录</label>
+        <RouterLink to="/register">注册账号</RouterLink>
         <p id="login-feedback" class="login-feedback" role="status" aria-live="polite">{{ loginError || identityMessage }}</p>
         <button class="primary-button login-submit" type="submit" data-testid="login-submit" :disabled="authChecking || loginBusy || identityBusy || reason === 'LOGIN_UNCONFIRMED'">
           {{ loginBusy || identityBusy ? '正在核对登录状态…' : '登录' }}
