@@ -1,4 +1,5 @@
-.rule-app {
+/* 账号页与查证页共用令牌；布局仍限定在各自页面，避免全局样式串页。 */
+:root {
   --page: #ffffff;
   --surface: #ffffff;
   --text: #202b3b;
@@ -9,6 +10,8 @@
   --green: #39836b;
   --amber: #a2680a;
   --red: #b42318;
+}
+.rule-app {
   min-height: 100vh;
   padding: 0 28px 20px;
   color: var(--text);
@@ -19,6 +22,8 @@
   line-height: 1.7;
 }
 .rule-app * { box-sizing: border-box; }
+/* 原模板曾隐式提供链接字重与发送按钮内边距；收归页面，保持现有查证页观感。 */
+.rule-app a { font-weight: 500; }
 .rule-app .app-header {
   width: 100%;
   max-width: 1120px;
@@ -173,6 +178,7 @@
 .rule-app .composer-footer--end { justify-content: flex-end; }
 .rule-app .composer-hint { color: #8592a3; font-size: 12px; }
 .rule-app .send-button {
+  padding: .6em 1.2em;
   display: inline-grid;
   place-items: center;
   width: 36px;
