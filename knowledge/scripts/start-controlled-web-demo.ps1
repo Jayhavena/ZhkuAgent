@@ -178,11 +178,19 @@ try {
     if($useWeb){
         Push-Location (Join-Path $root 'agent/frontend')
         $nodePathBefore=$env:PATH
+        $entryModeBefore=$env:VITE_ENTRY_MODE
         try {
             $env:PATH=$nodeTools.Directory+';'+$nodePathBefore
+            # 演示默认使用规则查证；调用者的回放环境不能渗入本次学生构建。
+            $env:VITE_ENTRY_MODE='student'
             & $nodeTools.Npm run build 2>&1 | ForEach-Object {SafeText $_.ToString()} | Set-Content -Encoding utf8 -LiteralPath (Join-Path $directory 'frontend-build.log')
             if($LASTEXITCODE -ne 0){throw '前端构建失败'}
-        } finally {$env:PATH=$nodePathBefore;Pop-Location}
+        } finally {
+            $env:PATH=$nodePathBefore
+            if ($null -eq $entryModeBefore) { Remove-Item Env:VITE_ENTRY_MODE -ErrorAction SilentlyContinue }
+            else { $env:VITE_ENTRY_MODE=$entryModeBefore }
+            Pop-Location
+        }
         SaveJson ([ordered]@{exitCode=0;indexSha256=(Get-FileHash (Join-Path $root 'agent/frontend/dist/index.html')).Hash}) 'frontend-build.json'
     }
     # 保留调用者显式进程Key优先级；临时为构建清空不能悄悄换成另一个用户级Key。
@@ -233,19 +241,19 @@ try {
                 $reply=$client.GetAsync("http://127.0.0.1:$httpPort/api/zhku/controlled-preview/v1/auth/me").GetAwaiter().GetResult()
                 try {if([int]$reply.StatusCode -ne 401){throw '启动检查匿名GET未被拒绝'}} finally {$reply.Dispose()}
                 if($SmokeWeb){
-                    $page=$client.GetAsync("http://127.0.0.1:$WebPort/campus/login").GetAwaiter().GetResult()
+                    $page=$client.GetAsync("http://127.0.0.1:$WebPort/rules").GetAwaiter().GetResult()
                     try {if([int]$page.StatusCode -ne 200 -or !$page.Content.ReadAsStringAsync().GetAwaiter().GetResult().Contains('id="app"')){throw '真实网页路由未就绪'}} finally {$page.Dispose()}
                     $firstPid=$hostProcess.Id
                     StopWeb; StopHost; StartHost; StartWeb
                     if($hostProcess.Id -eq $firstPid){throw '重启PID未变化'}
                     $reply=$client.GetAsync("http://127.0.0.1:$WebPort/api/zhku/controlled-preview/v1/auth/me").GetAwaiter().GetResult()
                     try {if([int]$reply.StatusCode -ne 401){throw '重启后代理未就绪'}} finally {$reply.Dispose()}
-                    SaveJson ([ordered]@{firstPid=$firstPid;secondPid=$hostProcess.Id;route=200;anonymousBefore=401;anonymousAfter=401;providerCalls=0;browserTest=$false}) 'web-smoke.json'
+                    SaveJson ([ordered]@{firstPid=$firstPid;secondPid=$hostProcess.Id;path='/rules';route=200;anonymousBefore=401;anonymousAfter=401;providerCalls=0;browserTest=$false}) 'web-smoke.json'
                 }
             } finally {$client.Dispose()}
             SaveJson ([ordered]@{anonymousGet=401;productionChatModelConfigured=$true;providerCalls=0;frontend=[bool]$SmokeWeb}) 'startup-smoke.json'
         } else {
-            Write-Host "校园网页已就绪 http://127.0.0.1:$WebPort/campus/login"
+            Write-Host "校园网页已就绪 http://127.0.0.1:$WebPort/rules"
             Write-Host '账号 user-a / user-b / maintainer 使用刚输入的密码。服务使用真实模型，仅输入合成资料。'
             Write-Host '输入 r 正常重启并保留本次库，须重新登录；q正常退出并删除本次临时库。不要直接关闭终端。'
             do {
