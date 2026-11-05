@@ -33,12 +33,15 @@ export class CDP {
 // 登录按钮同样按新旧两套表单选择器探测：离线合成页用的是 .rule-login。
 export const QUESTION_SELECTORS = ['#question-home', '#question-next', '#rule-question'];
 export const QUESTION_READY_EXPRESSION = `(()=>{for(const s of ${JSON.stringify(QUESTION_SELECTORS)}){const e=document.querySelector(s);if(e&&!e.disabled)return s}return null})()`;
+// 正式账号页和旧夹具共用真实登录流程；选择器变化不应诱使验收绕过认证去直接写会话。
+const LOGIN_USERNAME_SELECTOR = '#account-username:not(:disabled), #username:not(:disabled)';
+const LOGIN_SUBMIT_SELECTOR = '.account-card form button[type="submit"], .rule-login button[type="submit"], form.login-form button[type="submit"]';
 
 export async function loginSyntheticStudent({fill, click, wait, evaluate}, fixture) {
   const {username, password} = syntheticLogin(fixture);
-  await fill('#username', username);
+  await fill(LOGIN_USERNAME_SELECTOR, username);
   await fill('input[type="password"]', password);
-  await evaluate(`(()=>{const b=document.querySelector('.rule-login button[type="submit"]')||document.querySelector('form.login-form button[type="submit"]');if(!b)throw new Error('login submit button missing');b.click();})()`);
+  await click(LOGIN_SUBMIT_SELECTOR);
   await wait(() => evaluate(QUESTION_READY_EXPRESSION), 'student logged in');
 }
 
@@ -268,7 +271,7 @@ try {
   const smoke = await evaluate('({title:document.title,url:location.href,text:document.querySelector("h1").textContent})'); assert.equal(smoke.text, 'CDP interaction confirmed'); await shot('00-cdp-smoke.png');
   await save('cdp-ready.json', {browser: version.Browser, node: process.version, webSocket: typeof WebSocket, debugPort, chromePid: chrome.pid, isolatedProfile: true, headless: true, smoke});
 
-  phase = 'ANONYMOUS'; await command('Page.navigate', {url: pageUrl()}); await wait(() => evaluate(`!!document.querySelector('#username:not(:disabled)')`), 'login form'); await shot('01-login-empty.png'); await checkpoint('login-form-visible');
+  phase = 'ANONYMOUS'; await command('Page.navigate', {url: pageUrl()}); await wait(() => evaluate(`!!document.querySelector(${JSON.stringify(LOGIN_USERNAME_SELECTOR)})`), 'login form'); await shot('01-login-empty.png'); await checkpoint('login-form-visible');
 
   // 合成口令只从既有测试源码读入内存，不出现在脚本、参数、日志、截图或证据中。
   const fixtureSource = await readFile(path.join(root, 'knowledge/src/test/java/com/zhku/knowledge/ruleagent/web/RuleAgentSimulatedChainTempDbHttpTest.java'), 'utf8');

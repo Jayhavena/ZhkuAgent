@@ -25,7 +25,16 @@ final class RuleAgentThreeQuestionPackage {
     static boolean e13Profile() { e02Profile(); return "E13".equals(System.getProperty("zhku.three.profile")); }
     static boolean singlePageProfile() { return e02Profile() || e13Profile(); }
     static String profile() { e02Profile(); return System.getProperty("zhku.three.profile", "Three"); }
-    static String planPath() { return e13Profile() ? RuleAgentE13Policy.PLAN : e02Profile() ? RuleAgentE02Policy.PLAN : PLAN; }
+    static String planPath() {
+        String explicit = System.getProperty("zhku.three.plan");
+        if (explicit != null) {
+            // 本轮核价独立冻结，不能覆盖另一任务的原计划，也不能借参数加载任意执行范围。
+            if (!e02Profile() || !explicit.equals("knowledge/src/test/resources/rule-agent-e02-integration-plan.json"))
+                throw new IllegalArgumentException("仅E02可显式选择本轮集成验收计划");
+            return explicit;
+        }
+        return e13Profile() ? RuleAgentE13Policy.PLAN : e02Profile() ? RuleAgentE02Policy.PLAN : PLAN;
+    }
     static String purpose() { return e13Profile() ? RuleAgentE13Policy.PURPOSE : e02Profile() ? RuleAgentE02Policy.PURPOSE : PURPOSE; }
     static JsonNode plan(Path root) throws Exception {
         JsonNode value = JSON.readTree(Files.readAllBytes(root.resolve(planPath())));

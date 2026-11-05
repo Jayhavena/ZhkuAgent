@@ -3,6 +3,7 @@
 param(
  [ValidateSet('Prepare','Verify','Assembly','Live','PageFixture')][string]$Operation='Prepare',
  [ValidateSet('Three','E02','E13')][string]$Profile='Three',
+ [ValidateSet('knowledge/src/test/resources/rule-agent-e02-integration-plan.json')][string]$PlanFile,
  [string]$AssetsRoot,
  [string]$BatchDirectory,
  [ValidateRange(1024,65535)][int]$HttpPort=18087,
@@ -17,12 +18,15 @@ param(
  [string]$HandbookPdf
 )
 $ErrorActionPreference='Stop'
+$utf8=[Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding=$utf8;[Console]::OutputEncoding=$utf8;$OutputEncoding=$utf8
+if($PlanFile -and $Profile -ne 'E02'){throw '本轮独立计划仅适用于E02单题集成验收'}
 # 档位硬帽必须在路径、端口和凭证操作前一致，避免误把三题额度用于 E02。
 $expectedHardBudgetRmb=if($Profile -in @('E02','E13')){'4.02'}else{'16.10'}
 if($HardBudgetRmb -ne $expectedHardBudgetRmb){throw "档位与硬预算不匹配：$Profile 仅允许 $expectedHardBudgetRmb 元"}
 # 无授权的 Live 在资源和凭证边界前失败，不能先触碰旧包或数据库。
 if($Operation-eq 'Live'){
- if($PackageSha256-notmatch '\A[a-f0-9]{64}\z'-or $ApprovedSha256-ne $PackageSha256-or $ApprovedBudgetRmb-ne $HardBudgetRmb-or $AuthorizationId-notmatch '\A[A-Za-z0-9._-]{1,128}\z'-or $AuthorizationId-eq 'LOCAL_TEST_ONLY'){throw "Live须先获本包SHA、$HardBudgetRmb元硬预算及新授权编号的明确人工授权"}
+ if($PackageSha256-notmatch '\A[a-f0-9]{64}\z'-or $ApprovedSha256-ne $PackageSha256-or $ApprovedBudgetRmb-ne $HardBudgetRmb-or $AuthorizationId-notmatch '\A[A-Za-z0-9._-]{1,128}\z'-or $AuthorizationId-eq 'LOCAL_TEST_ONLY'){throw "Live须先获本包SHA、${HardBudgetRmb}元硬预算及新授权编号的明确人工授权"}
 }
 if($Profile-eq 'E13'-and $Operation-eq 'PageFixture'){throw 'E13本档不借用旧合成页面验收；请使用独立已审核夹具入口'}
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -65,8 +69,10 @@ $secrets=@()
 $container=$null
 $ownedContainer=$false
 $failed=$false
-$pwsh=(Get-Command pwsh.exe -ErrorAction Stop).Source
-$mvn=(Get-Command mvn.cmd -ErrorAction Stop).Source
+# 已由PowerShell7进入；复用当前可执行文件和仓库包装器，不要求普通终端另配CLI路径。
+$pwsh=Join-Path $PSHOME 'pwsh.exe'
+$mvn=Join-Path $root 'mvnw.cmd'
+if(!(Test-Path -LiteralPath $pwsh -PathType Leaf)-or !(Test-Path -LiteralPath $mvn -PathType Leaf)){throw 'PowerShell7或仓库Maven包装器缺失'}
 $docker=$null # Prepare/Verify不需要Docker，不能因缺少容器工具阻断零资源审包。
 # 使用本轮独立有界进程封装，不修改旧235秒进程预算。
 function Invoke-Child([string]$exe,[string[]]$argv,[int]$seconds){
@@ -84,9 +90,10 @@ function Invoke-Child([string]$exe,[string[]]$argv,[int]$seconds){
  }finally{$p.Dispose()}
 }
 function Invoke-Maven([string]$op,[int]$timeout){
- $args=@('-o','-pl','knowledge','-am','-DfailIfNoTests=false','-Dsurefire.failIfNoSpecifiedTests=false','-Dtest=RuleAgentThreeQuestionHostTest',"-Dzhku.three.operation=$($op.ToLowerInvariant())","-Dzhku.three.codeRoot=$root","-Dzhku.t06.root=$assets","-Dzhku.three.batch=$batch")
+ $args=@('-o','-pl','knowledge','-am','-DfailIfNoTests=false','-Dsurefire.failIfNoSpecifiedTests=false','-DargLine=-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8','-Dtest=RuleAgentThreeQuestionHostTest',"-Dzhku.three.operation=$($op.ToLowerInvariant())","-Dzhku.three.codeRoot=$root","-Dzhku.t06.root=$assets","-Dzhku.three.batch=$batch")
  # E02 单题计划与三题计划互不复用：缺省即 Three，显式才切 E02。
  if($Profile-in @('E02','E13')){$args+="-Dzhku.three.profile=$Profile"}
+ if($PlanFile){$args+="-Dzhku.three.plan=$PlanFile"}
  # 只转发显式指定的手册位置；不在启动器读取文件或默认沿用旧源码目录。
  if($HandbookPdf){$args+="-Dzhku.t06.handbookPdf=$HandbookPdf"}
  if($PackageSha256){$args+="-Dzhku.three.sha256=$PackageSha256"}

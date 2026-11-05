@@ -93,7 +93,7 @@ test('真实 Chrome 使用随机 CDP 并确认退出后清理自己的 profile',
   }
 });
 
-test('真实 Chrome 经合成宿主登录 E02 fixture，不提交问题', {timeout: 45000}, async t => {
+for (const layout of ['legacy', 'account']) test(`真实 Chrome 经合成宿主登录 E02 ${layout} fixture，不提交问题`, {timeout: 45000}, async t => {
   const executable = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
   try { await access(executable); } catch { t.skip('Chrome unavailable'); return; }
   const fixture = await readFile('knowledge/src/test/java/com/zhku/knowledge/ruleagent/web/RuleAgentSimulatedChainTempDbHttpTest.java', 'utf8');
@@ -108,7 +108,10 @@ test('真实 Chrome 经合成宿主登录 E02 fixture，不提交问题', {timeo
       res.end(); return;
     }
     res.setHeader('content-type', 'text/html');
-    res.end(`<form class="rule-login"><input id="username" name="username"><input type="password" name="password"><button type="submit">Login</button></form><script>document.querySelector('form').onsubmit=async e=>{e.preventDefault();const r=await fetch('/login',{method:'POST',body:new URLSearchParams(new FormData(e.target))});if(r.ok)document.body.innerHTML='<textarea id="question-home"></textarea>';};</script>`);
+    const form = layout === 'account'
+      ? '<div class="account-card"><form><input id="account-username" name="username"><input id="account-password" type="password" name="password"><button type="submit">Login</button></form></div>'
+      : '<form class="rule-login"><input id="username" name="username"><input type="password" name="password"><button type="submit">Login</button></form>';
+    res.end(`${form}<script>document.querySelector('form').onsubmit=async e=>{e.preventDefault();const r=await fetch('/login',{method:'POST',body:new URLSearchParams(new FormData(e.target))});if(r.ok)document.body.innerHTML='<textarea id="question-home"></textarea>';};</script>`);
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const owned = await startOwnedBrowser(executable); let cdp;
@@ -122,7 +125,7 @@ test('真实 Chrome 经合成宿主登录 E02 fixture，不提交问题', {timeo
     const evalPage = async expression => (await cmd('Runtime.evaluate', {expression, returnByValue:true, awaitPromise:true})).result.value;
     const waitFor = async fn => { for (let i=0;i<100;i++) { if (await fn()) return; await new Promise(r=>setTimeout(r,100)); } throw Error('synthetic page timeout'); };
     await cmd('Page.enable'); await cmd('Page.navigate', {url:`http://127.0.0.1:${server.address().port}/rules`});
-    await waitFor(() => evalPage('!!document.querySelector("#username")'));
+    await waitFor(() => evalPage(`!!document.querySelector(${JSON.stringify(layout === 'account' ? '#account-username' : '#username')})`));
     const fill = (selector, value) => evalPage(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.value=${JSON.stringify(value)};e.dispatchEvent(new Event('input',{bubbles:true}));})()`);
     const click = selector => evalPage(`document.querySelector(${JSON.stringify(selector)}).click()`);
     await loginSyntheticStudent({fill, click, wait: waitFor, evaluate:evalPage}, fixture);
