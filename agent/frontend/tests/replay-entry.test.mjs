@@ -17,10 +17,10 @@ test('replay entry uses synchronous replay page at the existing rules URL',async
     }
   } finally { globalThis.fetch = originalFetch }
 })
-test('student and engineering entries retain the asynchronous task page',()=>{
+test('student entry retains the asynchronous task page and engineering falls back to it',()=>{
   for(const mode of [undefined,'student','engineering']){
     assert.match(String(selectEntryRoutes(mode).find(r=>r.path==='/rules').component),/RuleCheckView\.vue/)
   }
-  assert.ok(selectEntryRoutes('engineering').some(r=>r.path==='/super-agent'))
+  assert.equal(selectEntryRoutes('engineering').some(r=>r.path==='/super-agent'),false)
   assert.equal(selectEntryRoutes('replay').some(r=>r.path==='/super-agent'),false)
 })
