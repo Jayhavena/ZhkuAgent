@@ -38,6 +38,9 @@ jobs:
 
       - name: 生成评测报告
         run: |
+          # knowledge 依赖同仓库模块（agent-runtime 等）；干净检出上这些构件
+          # 不在本地仓库里，dependency:build-classpath 会解析失败，所以先安装一次。
+          mvn -B -q -pl knowledge -am -Dmaven.test.skip=true install
           mvn -B -q -pl knowledge dependency:build-classpath \
             -Dmdep.outputFile=target/cp.txt
           java -cp "knowledge/target/classes:$(cat knowledge/target/cp.txt)" \

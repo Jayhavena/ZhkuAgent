@@ -27,7 +27,8 @@ java -cp "knowledge/target/classes:$(cat knowledge/target/cp.txt)" \
   --out target/agent-eval-chain-report --repo-root .
 ```
 
-Windows 下 `-cp` 分隔符是 `;`，`cp.txt` 由
+Windows 下 `-cp` 分隔符是 `;`。`cp.txt` 由
+`mvn -q -pl knowledge -am -Dmaven.test.skip=true install`（先让同仓库模块进入本地仓库）后
 `mvn -q -pl knowledge dependency:build-classpath -Dmdep.outputFile=target/cp.txt` 生成。
 
 ## 套件与当前基线
@@ -85,7 +86,7 @@ Windows 下 `-cp` 分隔符是 `;`，`cp.txt` 由
 `.github/workflows/agent-eval-chain.yml` 在 PR / 推送 / 手动触发时：
 
 1. `mvn -pl knowledge -am -Dtest=AgentEvalChainRegressionTest test` —— 6 条用例含篡改终态、抹掉观察、截断 trace 等负例，任何一条回退都会让构建失败。
-2. 用 `AgentEvalChainMain run` 重新生成报告并作为 artifact 上传；回归不通过时 CLI 以非零码退出。
+2. 先 `mvn -pl knowledge -am -Dmaven.test.skip=true install` 让同仓库模块可解析，再用 `AgentEvalChainMain run` 重新生成报告并作为 artifact 上传；回归不通过或报告不匹配时 CLI 以非零码退出。
 
 ## 已知缺口
 
