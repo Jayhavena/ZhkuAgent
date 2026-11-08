@@ -47,7 +47,7 @@ Windows 下 `-cp` 分隔符是 `;`。`cp.txt` 由
 当前基线报告：`docs/agent/eval/chain/2026-11-08/report.md`，6/6 命中，4 PASS / 2 NOT_EVALUABLE。
 
 本会话（2026-11-08）的完整工作记录见
-[`2026-11-08/session-log.md`](2026-11-08/session-log.md)（交付物、验证、提交、排障与边界）。
+[`2026-11-08-agent-eval-chain-delivery.md`](../../../collaboration/2026-11-08-agent-eval-chain-delivery.md)（交付物、验证、提交、排障与边界）。
 
 ## 采集状态与判定边界
 
