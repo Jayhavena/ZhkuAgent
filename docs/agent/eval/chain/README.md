@@ -53,13 +53,32 @@ Windows 下 `-cp` 分隔符是 `;`，`cp.txt` 由
 
 `NOT_EVALUABLE` 不等于通过：`RuleAgentTraceEvaluator.Report.passedGate()` 要求失败与不可判定同时为 0，报告里的 `regressionPassed` 也只在全部用例命中期望时为真。
 
-## 新增一次真实执行
+## 新增一次真实执行（含零调用预检）
+
+历史冻结包会被后续提示词/协议变更淘汰：`--CheckPackage` 会以「请求包预算、问题或协议身份变化」拒绝，不能靠重建 jar 绕过。正确顺序：
 
 1. 确认授权额度：`approval-state.json` 里 `remainingAuthorizedCalls` 为 0 时必须重新授权，不要复用旧额度。
-2. 启动 Docker 并确认本地有 `pgvector/pgvector:0.8.6-pg16-bookworm`（脚本用 `--pull never`）。
-3. 运行 `knowledge/scripts/start-rule-agent-probe.ps1 -Probe -ApprovedPackageSha256 <包 SHA>`，产物即新的证据目录。
-4. 用 `collect` 生成夹具，把用例与期望写进套件，跑 `run` 复核，再提交报告。
-5. 真实执行不要放进 CI：CI 没有凭证，也不应产生外部调用与费用。
+2. 零调用预检（不产生 provider 调用、不建库、不跑容器）：
+
+   ```powershell
+   # 1) 用当前构建生成新包；新目录，绝不覆盖历史冻结包
+   knowledge\scripts\start-rule-agent-probe.ps1 -PrepareProbe `
+     -PackageRelativePath docs/evidence/rule-agent-provider/<日期>/<批次>/request-package.json
+
+   # 2) 用上一步打印的 PROBE_PACKAGE_SHA256 复核包身份
+   knowledge\scripts\start-rule-agent-probe.ps1 -CheckPackage -OnlyP02 `
+     -ApprovedPackageSha256 <SHA> `
+     -PackageRelativePath docs/evidence/rule-agent-provider/<日期>/<批次>/request-package.json
+   ```
+
+   宿主与启动脚本都通过 `ZHKU_RULE_AGENT_PROBE_PACKAGE` 读取仓库相对路径；路径越出 `docs/evidence/rule-agent-provider` 会被拒绝。
+3. 启动 Docker 并确认本地有 `pgvector/pgvector:0.8.6-pg16-bookworm`（脚本用 `--pull never`）。
+4. 运行 `... -Probe -OnlyP02 -ApprovedPackageSha256 <新包 SHA> -PackageRelativePath <同一相对路径>`，产物即新的证据目录。
+5. 用 `collect` 生成夹具，把用例与期望写进套件，跑 `run` 复核，再提交报告。
+6. 真实执行不要放进 CI：CI 没有凭证，也不应产生外部调用与费用。
+
+2026-11-08 的零调用预检记录见
+`docs/evidence/rule-agent-provider/2026-11-08/eval-chain-preflight/PREFLIGHT.md`。
 
 ## CI
 
@@ -70,6 +89,7 @@ Windows 下 `-cp` 分隔符是 `;`，`cp.txt` 由
 
 ## 已知缺口
 
-- 2026-10-16 之后没有重新跑过 Live 探针；本轮验证的是「归档证据 → 判定」这一段，不代表当前模型行为。
+- 2026-11-08 已完成零调用预检：用当前构建生成新包并通过 `--CheckPackage`，但**没有执行 `--Probe`**，所以仍没有 2026-10-16 之后的真实模型行为样本；本轮验证的仍是「归档证据 → 判定」。
+- 预检时 Docker 引擎可从普通终端访问，pipe 访问在受限 sandbox 内会被拒绝；实际 Live 批次需要在能访问 Docker 与凭证的受控终端执行。
 - E13 1016 夹具只归档了决策序列，没有工具观察，因此该用例的正确期望是 `NOT_EVALUABLE` 而不是 PASS；要把它变成硬证据，需要在探针侧补录 `ToolObservation`。
 - `docs/evidence/agent-eval/2026-10-29-e13/` 是从 `feat/agent-eval-mvp` 原样复制的归档（字节与 SHA 未变），用于让夹具的来源校验在本分支成立。

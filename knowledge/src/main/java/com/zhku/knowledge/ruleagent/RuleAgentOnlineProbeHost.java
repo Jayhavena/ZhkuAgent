@@ -25,6 +25,15 @@ public final class RuleAgentOnlineProbeHost {
         cases.addObject().put("id","P02").put("question",P02_QUESTION).put("reply","PUBLIC");
         return cases;
     }
+    /** 探针包路径：默认历史冻结包；允许用仓库相对路径指向新批次目录，但不得越出证据根。 */
+    private static Path packagePath(Path root){
+        String override=System.getenv("ZHKU_RULE_AGENT_PROBE_PACKAGE");
+        if(override==null||override.isBlank())return root.resolve(PACKAGE);
+        Path resolved=root.resolve(override).normalize();
+        if(!resolved.startsWith(root.resolve("docs/evidence/rule-agent-provider")))
+            throw new IllegalArgumentException("探针包路径越出证据根");
+        return resolved;
+    }
     public static Map<String,Object> environmentCheck(Map<String,String> env){
         var settings=RuleAgentProvider.Settings.environment(env);String sha=env.get("ZHKU_RULE_AGENT_PROBE_SHA256");
         if(sha==null||!sha.matches("[a-f0-9]{64}")||!settings.authorizationId().equals(sha))throw new IllegalArgumentException("探针未绑定具体请求包授权");
@@ -64,7 +73,7 @@ public final class RuleAgentOnlineProbeHost {
         boolean checkOnly=args[0].equals("--CheckPackage");
         if(!checkOnly&&!args[0].equals("--Probe"))throw new IllegalArgumentException("未知探针操作");
         int maximum=checkOnly?MAXIMUM:(Integer)environmentCheck(System.getenv()).get("maximumProviderCalls");
-        byte[] bytes=Files.readAllBytes(root.resolve(PACKAGE));
+        byte[] bytes=Files.readAllBytes(packagePath(root));
         if(!sha(bytes).equals(required("ZHKU_RULE_AGENT_PROBE_SHA256")))throw new IllegalArgumentException("请求包与授权指纹不同");
         JsonNode pack=JSON.readTree(bytes);validatePackage(pack);if(!pack.equals(preparedPackage(root)))throw new IllegalArgumentException("本机审核资产或请求定义已漂移");
         if(checkOnly) {
@@ -163,7 +172,7 @@ public final class RuleAgentOnlineProbeHost {
     }
     private static TaskSnapshot waitFor(RuleAgentTaskStore store,Owner owner,UUID task)throws Exception{long deadline=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(DEFAULT_BUDGET.maxRunMillis()+3000);TaskSnapshot result;while((result=store.snapshot(owner,task)).taskStatus()==TaskStatus.ACTIVE){if(System.nanoTime()>=deadline)throw new IllegalStateException("探针运行预算耗尽");Thread.sleep(20);}return result;}
     private static void prepare(Path root)throws Exception{
-        Path path=root.resolve(PACKAGE);
+        Path path=packagePath(root);
         // 已有申请不可覆盖；先拒绝再读取资产，避免误操作改变已冻结身份。
         if(Files.exists(path))throw new FileAlreadyExistsException(path.toString());
         var pack=preparedPackage(root);validatePackage(pack);Files.createDirectories(path.getParent());byte[] bytes=JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(pack);Files.write(path,bytes,StandardOpenOption.CREATE_NEW);System.out.println("PROBE_PACKAGE_SHA256="+sha(bytes));
