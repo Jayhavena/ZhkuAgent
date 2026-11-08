@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "origin": "SYNTHETIC_MANUALLY_ANNOTATED",
+  "examples": [
+    {"exampleId":"17-required", "caseId":"RFE-017", "answer":"先安排必修课和专业选修课，再安排全校性公共选修课。[handbook-2025-article-12]", "factsComplete":true, "citationsComplete":true, "matchedFacts":[{"factId":"schedule-order", "answerExcerpt":"先安排必修课和专业选修课，再安排全校性公共选修课", "reason":"模拟人工对照第12条确认顺序"}], "citations":[{"locator":"handbook-2025-article-12", "answerExcerpt":"[handbook-2025-article-12]", "verification":"SUPPORTED", "reason":"模拟人工核对条文与所关联的顺序主张"}]},
+    {"exampleId":"17-optional", "caseId":"RFE-017", "answer":"开课前一个学期排课；先安排必修课和专业选修课，再安排全校性公共选修课。[handbook-2025-article-12]", "factsComplete":true, "citationsComplete":true, "matchedFacts":[{"factId":"schedule-order", "answerExcerpt":"先安排必修课和专业选修课，再安排全校性公共选修课", "reason":"模拟人工确认安排顺序"},{"factId":"schedule-previous-semester", "answerExcerpt":"开课前一个学期排课", "reason":"模拟人工确认可选事实"}], "citations":[{"locator":"handbook-2025-article-12", "answerExcerpt":"[handbook-2025-article-12]", "verification":"SUPPORTED", "reason":"模拟人工核对条文支持两项主张"}]},
+    {"exampleId":"17-missing-order", "caseId":"RFE-017", "answer":"开课前一个学期排课。[handbook-2025-article-12]", "factsComplete":true, "citationsComplete":true, "matchedFacts":[{"factId":"schedule-previous-semester", "answerExcerpt":"开课前一个学期排课", "reason":"模拟人工确认可选事实，未找到安排顺序"}], "citations":[{"locator":"handbook-2025-article-12", "answerExcerpt":"[handbook-2025-article-12]", "verification":"SUPPORTED", "reason":"模拟人工确认引用支持排课时间"}]},
+    {"exampleId":"20-no-citation", "caseId":"RFE-020", "answer":"现有材料没有奖学金评定依据，请查看正式管理办法和当年通知。", "factsComplete":true, "citationsComplete":true, "matchedFacts":[], "citations":[]},
+    {"exampleId":"20-bad-citation", "caseId":"RFE-020", "answer":"奖学金要求排名前十。[虚构条例]", "factsComplete":true, "citationsComplete":true, "matchedFacts":[], "citations":[{"locator":"虚构条例", "answerExcerpt":"[虚构条例]", "verification":"MISMATCH", "reason":"构造的虚假引用，无法支持该主张"}]},
+    {"exampleId":"20-unknown-citation", "caseId":"RFE-020", "answer":"请核对某年度奖学金办法。[待核对办法]", "factsComplete":true, "citationsComplete":true, "matchedFacts":[], "citations":[{"locator":"待核对办法", "answerExcerpt":"[待核对办法]", "verification":"UNKNOWN", "reason":"模拟样例未提供可核对的引用来源"}]}
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "recordType": "RULE_AGENT_EVALUATION_CANDIDATE",
+  "schemaVersion": 1,
+  "candidateId": "phase1-offline-candidate",
+  "caseId": "java-offline-runner-pass",
+  "status": "CANDIDATE",
+  "reviewStatus": "PENDING",
+  "provenance": {
+    "sourceSha": "bb7967a9bdf04b01e33fe89aa346cb748742da655efa38b8fe8cb1c2e776ec7d",
+    "datasetFile": "tools/t08-acceptance/sprint02/java-offline-runner-dataset.json",
+    "datasetSha256": "eb88317a6fe439c339f980018bc716b2c7c1332bbafa3dff56aafabb508ae59a",
+    "traceFile": "knowledge/src/test/resources/eval/candidates/java-offline-runner-pass-trace.json",
+    "traceSha256": "2780ca4725251587f61d782271f0623ba0543df6611edb071efb9eade1563d5b",
+    "expectationSource": "T08 development safety contract expected fields; RuleAgentRunnerTest.evidenceChangesNextActionAndClosesRuntime; not a reviewed semantic answer"
+  },
+  "expectation": {
+    "caseId": "java-offline-runner-pass",
+    "taskStatus": "RESOLVED",
+    "runState": "SUCCEEDED",
+    "coverage": "COMPLETE",
+    "requiredActions": [
+      "SEARCH_REVIEWED_RULES",
+      "READ_VERIFIED_RULE",
+      "FINISH_CHECK"
+    ],
+    "issueReason": null,
+    "expectClaims": true,
+    "observedAction": "READ_VERIFIED_RULE",
+    "observationStatus": "SUCCEEDED",
+    "requireEvidenceLinks": true,
+    "expectRejectedUnknownTool": false
+  }
+}
