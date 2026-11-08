@@ -16,6 +16,7 @@
 | `releases/` | 版本说明与工程冻结：`v0.1.0-rc.1-engineering-freeze.md` |
 | `product/` | 产品语义与规则评审材料（rule-check 各批次） |
 | `collaboration/` | 跨会话协作记录：分工、并行竞态与排查过程，如 `2026-11-08-agent-eval-chain-ci-failure-triage.md` |
+| `developer-issues/` | 开发过程中的随手问题记录：原始疑问、当前理解与待验证项；成熟后再升级为 issue/ADR/plan |
 | `preparation/` | 各批次验收准备：验收矩阵、评分规则、证据格式与校验工具 |
 | `design-references/` | 设计参考素材与 home 改版方案 |
 | `retrospectives/` | 复盘：如 Agent 运行时生命周期问题 |
