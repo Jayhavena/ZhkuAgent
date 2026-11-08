@@ -1,0 +1,54 @@
+name: agent-eval-chain
+
+# 评测链路回归：用已归档的真实 Agent 证据重放，跑现有 Grader 并产出报告。
+# 这里刻意不配置数据库、模型或浏览器凭证 —— CI 只验证链路契约，
+# 真实执行（RuleAgentOnlineProbeHost）必须由人工在受控环境发起。
+on:
+  pull_request:
+  push:
+    branches: [main, feat/zhkuagent-v3-frontend]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-eval-chain-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: 链路回归（归档证据重放，不调模型/数据库）
+        run: >
+          mvn -B -pl knowledge -am
+          -Dtest=AgentEvalChainRegressionTest
+          -Dsurefire.failIfNoSpecifiedTests=false
+          test
+
+      - name: 生成评测报告
+        run: |
+          mvn -B -q -pl knowledge dependency:build-classpath \
+            -Dmdep.outputFile=target/cp.txt
+          java -cp "knowledge/target/classes:$(cat knowledge/target/cp.txt)" \
+            com.zhku.knowledge.eval.chain.AgentEvalChainMain run \
+            --suite knowledge/src/test/resources/agent-eval-chain/suite-v1.json \
+            --out target/agent-eval-chain-report \
+            --repo-root .
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agent-eval-chain-report
+          path: target/agent-eval-chain-report/report.*
+          if-no-files-found: warn
