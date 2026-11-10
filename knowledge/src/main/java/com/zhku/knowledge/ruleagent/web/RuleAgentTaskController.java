@@ -33,7 +33,15 @@ public final class RuleAgentTaskController {
     @PostMapping public ResponseEntity<?> create(@RequestBody byte[] body,@AuthenticationPrincipal PreviewPrincipal p,HttpServletRequest r){
         return invoke(p,r,202,()->{var n=payload(body,"question clientRequestId");return tasks.create(owner(r),new CreateTask(string(n,"question"),uuid(n,"clientRequestId")));});
     }
-    @GetMapping("/{taskId}") public ResponseEntity<?> snapshot(@PathVariable UUID taskId,@AuthenticationPrincipal PreviewPrincipal p,HttpServletRequest r){return invoke(p,r,200,()->tasks.snapshot(owner(r),taskId));}
+    @GetMapping("/{taskId}") public ResponseEntity<?> snapshot(@PathVariable UUID taskId,@AuthenticationPrincipal PreviewPrincipal p,HttpServletRequest r){
+        return invoke(p,r,200,()->{
+            var owner=owner(r);var snapshot=tasks.snapshot(owner,taskId);
+            // 发布时有效不代表现在仍可展示；刷新/恢复不能绕过原文入口重放已撤销的证据和结论。
+            // 读取在TaskStore锁外，复用现有有界句柄校验，不重新执行Agent或消耗模型预算。
+            if(snapshot.result()!=null)for(var proof:snapshot.result().evidence())currentEvidence(owner,taskId,proof);
+            return snapshot;
+        });
+    }
     @GetMapping("/requests/{action}/{requestId}") public ResponseEntity<?> lookup(@PathVariable RequestAction action,@PathVariable UUID requestId,@AuthenticationPrincipal PreviewPrincipal p,HttpServletRequest r){return invoke(p,r,200,()->tasks.lookup(owner(r),action,requestId));}
     @PostMapping("/{taskId}/messages") public ResponseEntity<?> message(@PathVariable UUID taskId,@RequestBody byte[] body,@AuthenticationPrincipal PreviewPrincipal p,HttpServletRequest r){
         return invoke(p,r,202,()->{var n=payload(body,"message continuationToken expectedVersion clientRequestId");return tasks.message(owner(r),taskId,new Message(string(n,"message"),uuid(n,"continuationToken"),version(n),uuid(n,"clientRequestId")));});
@@ -47,13 +55,17 @@ public final class RuleAgentTaskController {
             var proof=snapshot.result()==null?null:snapshot.result().evidence().stream().filter(e->e.originalToken().equals(token)).findFirst().orElse(null);
             // 只授权已发布且有用途关系的证据；猜到内部读取句柄不能访问候选或别的任务原文。
             if(proof==null)throw new RuleAgentTaskStore.Failure(RuleAgentTaskStore.Code.NOT_AVAILABLE);
-            var quote=originals.read(owner,taskId,token).orElseThrow(()->new RuleAgentTaskStore.Failure(RuleAgentTaskStore.Code.EXPIRED));
-            if(!proof.sourceId().equals(quote.sourceId())||!proof.chunkId().equals(quote.chunkId())||!proof.revision().equals(quote.revision())||!proof.checksum().equalsIgnoreCase(quote.checksum())||proof.startInclusive()!=quote.startInclusive()||proof.endExclusive()!=quote.endExclusive()||!proof.quote().equals(quote.text()))throw new RuleAgentTaskStore.Failure(RuleAgentTaskStore.Code.EXPIRED);
+            var quote=currentEvidence(owner,taskId,proof);
             var located=locator.locate(quote);
             if(located.code()==RuleCheckOriginalEvidenceService.Code.UNAVAILABLE)throw new IllegalStateException();
             if(located.code()!=RuleCheckOriginalEvidenceService.Code.FOUND)throw new RuleAgentTaskStore.Failure(RuleAgentTaskStore.Code.EXPIRED);
             return located.original();
         });
+    }
+    private RuleCheckVerifiedExcerpt currentEvidence(Owner owner,UUID taskId,Evidence proof){
+        var quote=originals.read(owner,taskId,proof.originalToken()).orElseThrow(()->new RuleAgentTaskStore.Failure(RuleAgentTaskStore.Code.EXPIRED));
+        if(!proof.sourceId().equals(quote.sourceId())||!proof.chunkId().equals(quote.chunkId())||!proof.revision().equals(quote.revision())||!proof.checksum().equalsIgnoreCase(quote.checksum())||proof.startInclusive()!=quote.startInclusive()||proof.endExclusive()!=quote.endExclusive()||!proof.quote().equals(quote.text()))throw new RuleAgentTaskStore.Failure(RuleAgentTaskStore.Code.EXPIRED);
+        return quote;
     }
     private ResponseEntity<?> invoke(PreviewPrincipal principal,HttpServletRequest request,int status,Supplier<?> operation){
         if(principal==null)return error(401,"AUTHENTICATION_REQUIRED");if(principal.actor().role()!=TrustedActor.Role.USER)return error(403,"ROLE_DENIED");

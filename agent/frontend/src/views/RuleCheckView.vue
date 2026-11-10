@@ -206,6 +206,7 @@ onMounted(async () => {
     return
   }
   await checkLogin()
+  if (alive) await flow.restoreLatest()
 })
 onUnmounted(() => {
   alive = false
@@ -223,6 +224,7 @@ async function login() {
   try {
     await pending
     if (session.state.epoch === epoch) session.state.reason = ''
+    if (alive) await flow.restoreLatest()
   } catch (error) {
     if (error.code !== 'STALE_RESPONSE') {
       const unknown = error.code === 'NETWORK_UNAVAILABLE' || error.code === 'BAD_RESPONSE'
@@ -324,6 +326,14 @@ watch(
 <template>
   <main ref="appEl" class="rule-app" :class="{ 'rule-app--conversation': hasConversation && student }">
     <RuleHeader :actor="session.state.actor" :identity-busy="session.state.identityBusy" :can-ask-new="hasConversation && student" :new-question-disabled="authChecking || state.busy || !!state.pending || active" @logout="logout" @new-question="newQuestion" />
+
+    <p v-if="student && state.error && !hasConversation" class="mode-notice" role="alert">{{ state.error }}</p>
+
+    <details v-if="student && state.recent?.length" class="mode-notice" data-testid="recent-tasks">
+      <summary>本标签页最近查证（最多 5 条）</summary>
+      <p>仅恢复本标签页约 15 分钟内的任务；退出或换账号会清除记录，不支持服务器重启或跨设备历史。</p>
+      <button v-for="(entry,index) in state.recent" :key="entry.taskId" type="button" class="text-button" :disabled="state.busy || !!state.pending || active" @click="flow.resume(entry.taskId)">恢复查证 {{ index + 1 }}</button>
+    </details>
 
     <p v-if="httpFixture" class="mode-notice" role="note" data-testid="http-fixture-notice">
       本机 HTTP FIXTURE 验收：身份、规则和答案均为合成测试数据，模型调用为零；不代表真实在线问答能力。
