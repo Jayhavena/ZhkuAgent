@@ -64,7 +64,10 @@ param(
     [ValidateRange(1024, 65535)][int]$RulePort = 55441,
     [ValidateRange(1024, 65535)][int]$BackendPort = 58130,
     [switch]$SkipBuild,
-    [switch]$BuildOnly
+    [switch]$BuildOnly,
+    [ValidatePattern('^[a-z0-9][a-z0-9-]{0,31}$')][string]$InstanceName,
+    [string]$HandbookPdf = '',
+    [string]$AssetsRoot = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -76,6 +79,8 @@ $OutputEncoding = $utf8
 $root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $jarPath = Join-Path $root 'knowledge/target/knowledge-0.1.0-rc.1-persistent.jar'
 $stateDir = Join-Path $root 'tmp/rule-check-identity'
+# 每个试用实例独享状态、容器及卷，避免新 checkout 接管既有账号数据。
+if ($InstanceName) { $stateDir += '-' + $InstanceName }
 $statePath = Join-Path $stateDir 'state.json'
 $outLog = Join-Path $stateDir 'host-out.log'
 $errLog = Join-Path $stateDir 'host-err.log'
@@ -92,6 +97,10 @@ $ruleDbName = 'zhkuagent_rulecheck_e2e'
 $ruleDbUser = 'zhkuagent'
 $identityContainerName = 'zhkuagent-rulecheck-identity'
 $identityVolumeName = 'zhkuagent-rulecheck-identity-data'
+if ($InstanceName) {
+    $identityContainerName += '-' + $InstanceName
+    $identityVolumeName += '-' + $InstanceName
+}
 $hostReadySeconds = 120
 
 . (Join-Path $root 'scripts/ZhkuDocker.ps1')
@@ -471,6 +480,9 @@ function Invoke-Start {
     $state['ruleContainer'] = $ruleContainer
     $state['rulePassword'] = $rulePassword
     $state['hostJar'] = $jarPath
+    $state['handbookPdf'] = $HandbookPdf
+    # 源码从固定提交构建，审核原件可在独立只读目录；原有指纹/资格校验仍在连接前执行。
+    $state['assetsRoot'] = if ($AssetsRoot) { (Resolve-Path -LiteralPath $AssetsRoot).Path } else { $root }
     $state['hostPid'] = $null
     $state['supervisorPid'] = $null
     $state['lastAction'] = 'Start'
@@ -484,6 +496,7 @@ function Invoke-Start {
     }
     $quotedScript = '"' + $PSCommandPath + '"'
     $argumentLine = '-NoLogo -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ' + $quotedScript + ' -Action Supervise'
+    if ($InstanceName) { $argumentLine += ' -InstanceName ' + $InstanceName }
     $supervisor = Start-Process -FilePath $powerShellPath -ArgumentList $argumentLine -WindowStyle Hidden -PassThru
     $script:supervisorPid = $supervisor.Id
 
@@ -654,6 +667,11 @@ function Invoke-Supervisor {
         $info = New-Object Diagnostics.ProcessStartInfo
         $info.FileName = $java
         $info.Arguments = '-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -jar "' + $jar + '"'
+        if ($state['handbookPdf']) {
+            $pdf = (Resolve-Path -LiteralPath ([string]$state['handbookPdf'])).Path
+            if ($pdf.Contains('"')) { throw 'PDF路径含非法引号' }
+            $info.Arguments = '-Dzhku.t06.handbookPdf="' + $pdf + '" ' + $info.Arguments
+        }
         $info.WorkingDirectory = $root
         $info.UseShellExecute = $false
         $info.CreateNoWindow = $true
@@ -668,7 +686,7 @@ function Invoke-Supervisor {
         $rulePort = [int]$state['rulePort']
         $backendPort = [int]$state['backendPort']
         $variables = $info.EnvironmentVariables
-        $variables['ZHKU_RULECHECK_ROOT'] = $root
+        $variables['ZHKU_RULECHECK_ROOT'] = if ($state['assetsRoot']) { [string]$state['assetsRoot'] } else { $root }
         $variables['ZHKU_RULECHECK_PORT'] = [string]$backendPort
         $variables['ZHKU_DB_URL'] = 'jdbc:postgresql://127.0.0.1:' + $rulePort + '/' + $ruleDbName
         $variables['ZHKU_DB_PASSWORD'] = [string]$state['rulePassword']
