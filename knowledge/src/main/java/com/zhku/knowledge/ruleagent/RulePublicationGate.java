@@ -69,8 +69,7 @@ public final class RulePublicationGate {
             boolean unresolved=review.requirements().stream().anyMatch(r->r.span().subquestionId().equals(item.subquestionId())&&r.recognition()!=Recognition.IDENTIFIED)
                 ||review.unresolvedDemands().stream().anyMatch(r->r.span().subquestionId().equals(item.subquestionId()));
             // 需求已识别但审核资料/能力不覆盖（实时截止时间、代办等）属资料边界，不能与“尚未理解需求”共用同一失败语义。
-            boolean unsupported=review.unresolvedDemands().stream().anyMatch(r->r.span().subquestionId().equals(item.subquestionId())
-                &&r.reason()==UnresolvedReason.UNSUPPORTED_DIMENSION);
+            boolean unsupported=unsupportedDemand(review,item.subquestionId());
             boolean issues=!item.issues().isEmpty();
             complete&=uncovered.isEmpty()&&!unresolved&&!issues;
             hasCovered|=!covered.isEmpty();
@@ -156,6 +155,26 @@ public final class RulePublicationGate {
     }
     private FactCapability capability(RuleAgentEvidenceTools.VerifiedFact fact) {
         return catalogue.requireCapability(fact);
+    }
+    /**
+     * 资料缺口只适用于“已被理解的需求”。若只看是否存在 UNSUPPORTED_DIMENSION，
+     * 同一子问题里未识别的需求会被并存的资料缺口掩盖，最终发布成正常的资料不足；
+     * 因此每个 UNCLASSIFIED/UNKNOWN 需求都必须由自身完整的 UNSUPPORTED_DIMENSION 区间覆盖，
+     * 且同一子问题不能混入其他未解决原因；其余需求必须已识别。
+     */
+    public static boolean unsupportedDemand(SemanticAssessment review,String subquestionId) {
+        var demands=review.unresolvedDemands().stream().filter(d->d.span().subquestionId().equals(subquestionId)).toList();
+        // 混合“尚未理解/范围不明”时不可借一个资料缺口将整个子问题归为已知能力边界。
+        if(demands.isEmpty()||demands.stream().anyMatch(d->d.reason()!=UnresolvedReason.UNSUPPORTED_DIMENSION))return false;
+        return review.requirements().stream().filter(r->r.span().subquestionId().equals(subquestionId))
+            .allMatch(r->r.recognition()==Recognition.IDENTIFIED
+                ||r.recognition()==Recognition.UNCLASSIFIED&&r.dimension()==Dimension.UNKNOWN
+                    &&r.subject()==Subject.UNSPECIFIED
+                    &&demands.stream().anyMatch(gap->covers(gap.span(),r.span())));
+    }
+    private static boolean covers(DemandSpan gap,DemandSpan requirement) {
+        return gap.startInclusive()<=requirement.startInclusive()
+            &&gap.endExclusive()>=requirement.endExclusive();
     }
     private static void span(DemandSpan span,Map<String,RuleAgentRunner.Question> questions) {
         var question=questions.get(span.subquestionId());
