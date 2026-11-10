@@ -24,6 +24,12 @@
 
 不包含：真实模型决策、真实学生账号、学校 SSO、生产 HTTPS、对外邀请、真实账单结算。
 
+### 构建产物身份
+
+- 4 个实际加载资产（`index-853f1355.js`、`index-30a10a57.css`、`RuleCheckView-14d70cf6.js`、`RuleCheckView-4d6ae977.css`）的字节数和 SHA-256 与 `agent/frontend/dist` 当前文件一致。
+- 4 个后端验收类（`RuleAgentTaskController`、`RulePublicationGate`、`RuleAgentProvider`、`RulePublicationProtocol`）的 SHA-256 与 `knowledge/target/classes` 当前文件一致。
+- 仓库不提交 jar；`start-persistent-rule-check.cmd` 从源码构建。若重新构建后类摘要变化，必须重新对应证据，不能继续引用本清单。
+
 ## 2. 快速启动（本地受控试用）
 
 前提：Windows 用户终端、Java 21、仓库 Maven wrapper、Node/npm、Docker Desktop、本地已缓存 `pgvector/pgvector:0.8.6-pg16-bookworm` 与 Nginx 镜像。数据库凭据按 Process → User → Machine 解析；不要把密码写入命令行或日志。
