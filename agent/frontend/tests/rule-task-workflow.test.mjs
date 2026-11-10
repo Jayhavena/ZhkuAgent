@@ -21,3 +21,12 @@ test('old polling success cannot repopulate next question or identity',async()=>
 test('snapshot identity and version conflicts are rejected without inventing task failure',async()=>{for(const bad of [{...sample('complete'),taskId:'33333333-3333-4333-8333-333333333333'},{...sample('complete'),version:0}]){const {flow,timers}=setup({snapshot:async()=>bad});await flow.start('问题');await timers.shift()();assert.equal(flow.state.snapshot,null);assert.equal(flow.state.ticket.taskId,ID);assert.match(flow.state.error,/查询/);flow.dispose()}})
 test('HTTP version conflict preserves snapshot and asks for fresh query',async()=>{const {flow,timers}=setup({snapshot:async()=>sample('partial-and-clarification'),message:async()=>{throw{status:409}}});await flow.start('问题');await timers.shift()();await flow.clarify('A');assert.equal(flow.state.snapshot.taskStatus,'WAITING_USER');assert.match(flow.state.error,/更新/);flow.dispose()})
 test('late original and dispose cannot retain old identity content',async()=>{const delayed=deferred();const {flow,session,timers}=setup({original:()=>delayed.promise});await flow.start('问题');await timers.shift()();const pending=flow.openOriginal(ID);session.clear();delayed.resolve({contextText:'旧正文'});await pending;assert.equal(flow.state.original,null);flow.dispose()})
+
+test('snapshot qualification rejection retracts cached answer and original without retrying POST',async()=>{
+  let withdrawn=false
+  const {flow,timers,calls}=setup({snapshot:async()=>{if(withdrawn)throw{status:409};return sample('complete')}})
+  await flow.start('问题');await timers.shift()();flow.state.original={contextText:'旧正文'}
+  withdrawn=true;await flow.refresh()
+  assert.equal(flow.state.snapshot,null);assert.equal(flow.state.original,null);assert.equal(flow.state.ticket,null)
+  assert.match(flow.state.error,/撤回/);assert.equal(calls.length,1);flow.dispose()
+})

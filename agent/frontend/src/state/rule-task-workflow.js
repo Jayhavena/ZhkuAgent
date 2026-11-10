@@ -47,7 +47,13 @@ export function createRuleTaskWorkflow({client=ruleTaskClient,session=ruleCheckS
         if(now()>=deadline){state.error='本地查询等待已到时限，任务状态仍未确认；可主动继续查询。';return}
         queuePoll()
       }
-    }catch(error){if(current()&&error.code!=='STALE_RESPONSE')state.error='任务查询未确认，已保留任务；请继续查询，不必重复提交问题。'}
+    }catch(error){if(current()&&error.code!=='STALE_RESPONSE'){
+      if([404,409].includes(error.status)){
+        // 后端资格拒绝是撤回信号，不能按临时网络故障继续保留旧结论/原文。
+        history.forget(session.state.actor.userId,ticket.taskId);reset();recent()
+        state.evidenceUnavailable=true;state.error='任务或依据已过期或不可访问，旧结果已撤回，请重新查证。'
+      }else state.error='任务查询未确认，已保留任务；请继续查询，不必重复提交问题。'
+    }}
   }
   function install(ticket,action){
     validateAccepted(ticket)
