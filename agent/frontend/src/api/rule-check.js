@@ -206,7 +206,7 @@ export function createRuleCheckClient({ session = ruleCheckSession, fetchImpl = 
       if (session.state.identityBusy) throw new RuleCheckError('AUTH_TRANSITION')
       session.state.identityBusy = true
       try {
-        const token = session.csrf; session.clear(); cancelResults()
+        const token = session.csrf; session.clear('LOGOUT'); cancelResults()
         await request('POST', '/auth/logout', undefined, { token: token || await csrf() })
       } catch (error) { session.clear('LOGOUT_UNCONFIRMED'); throw error }
       finally { session.state.identityBusy = false }

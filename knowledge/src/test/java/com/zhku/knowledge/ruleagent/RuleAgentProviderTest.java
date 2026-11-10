@@ -289,7 +289,7 @@ class RuleAgentProviderTest {
         var view=new RuleAgentRunner.View(question,List.of(new RuleAgentRunner.Question("q1",question)),Map.of(),List.of(),List.of(),List.of(),List.of(),
             RulePublicationContract.MAX_DECISION_CALLS,DEFAULT_BUDGET.maxToolStepsPerRun(),state);
         String payload=port.payload(view);
-        assertThat(payload.getBytes(StandardCharsets.UTF_8).length).isEqualTo(4607); // 原4557属于旧冻结合同；新增两个空反馈数组增加50字节，不是供应商兼容性证明。
+        assertThat(payload.getBytes(StandardCharsets.UTF_8).length).isEqualTo(4935); // Prompt-only candidate additions add 328 UTF-8 bytes; not a historical identity or supplier-compatibility claim.
         var wire=new ObjectMapper().readTree(payload);
         var format=wire.path("response_format").path("json_schema");
         assertThat(format.path("name").asText()).isEqualTo("zhku_rule_agent_action");

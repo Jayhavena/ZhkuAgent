@@ -6,14 +6,17 @@ param(
     [int]$Port=55439,
     [string]$DatabaseUrl='',
     [switch]$CheckEnvironment,
-    [string]$EvidenceRoot=''
+    [string]$EvidenceRoot='',
+    [switch]$ReviewedBrowserLease,
+    [string]$AssetsRoot='',
+    [string]$HandbookPdf=''
 )
 $ErrorActionPreference='Stop'
 $runnerUtf8=[Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding=$runnerUtf8; [Console]::OutputEncoding=$runnerUtf8; $OutputEncoding=$runnerUtf8
 
 function Get-RuleCheckVerificationPlan {
-    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='',[string]$EvidenceRoot='')
+    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='',[string]$EvidenceRoot='',[bool]$ReviewedBrowserLease=$false,[string]$AssetsRoot='',[string]$HandbookPdf='')
     # 全部准入在任何外部进程与证据写入之前完成，连接失败不能替代目标隔离。
     if ($Mode -notin @('Unit','Database','Acceptance')) {throw '未知验收模式'}
     if ($Phase -notmatch '^[a-z0-9][a-z0-9-]{0,79}$') {throw '批次必须是1至80位小写字母、数字或连字符'}
@@ -26,7 +29,7 @@ function Get-RuleCheckVerificationPlan {
         'RuleCheckEvidenceVerifierTest','JdbcRuleCheckEvidenceReaderTargetTest','RuleCheckDecisionServiceTest',
         'RuleCheckEvidenceCaptureTest','JdbcRuleCheckCitationAuditTargetTest','RuleCheckApplicationServiceTest','RuleCheckApplicabilityTest','RuleCheckTopicGuardTest','RuleCheckSelectionNarrowingTest','RuleCheckScopeLanguageTest',
         'RuleCheckPreviewSecurityConfigurationTest','PreviewSecurityConfigurationTest','RuleCheckPreviewConfigurationTest','RuleCheckOptionalIdentityBoundaryTest','RuleCheckControllerTest','RuleCheckClarificationStoreTest','BoundedRuleSelectorTest','RuleCheckOriginalEvidenceServiceTest','ZhkuDatabaseTestTargetTest','RuleCheckCitationStoreTest','RuleCheckReleaseGuardTest','RuleCheckDevelopmentCaptureTest','RuleCheckDevelopmentInputsTest','ChineseBigramLexicalRankerTest','RuleCheckEmbeddingArtifactsTest','RuleCheckNoiseFixturesTest')
-    $database=@('RuleAgentLoopDatabaseTest','RuleAgentEvidenceDatabaseTest','RuleCheck2025FinalPreparationTest','RuleCheck2025TargetedRepairTest','RuleCheck2025QualityReplayTest','RuleCheck2025QualityPreparationTest','RuleCheck2025ReliabilityReplayTest','RuleCheck2025ReportReplayTest','RuleCheck2025ReportPreparationTest','RuleCheck2025ReportAssemblyTest','RuleCheck2025ScopedSelectionReplayTest','KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
+    $database=@('RuleAgentReviewedBrowserLeaseTest','RuleAgentLoopDatabaseTest','RuleAgentEvidenceDatabaseTest','RuleCheck2025FinalPreparationTest','RuleCheck2025TargetedRepairTest','RuleCheck2025QualityReplayTest','RuleCheck2025QualityPreparationTest','RuleCheck2025ReliabilityReplayTest','RuleCheck2025ReportReplayTest','RuleCheck2025ReportPreparationTest','RuleCheck2025ReportAssemblyTest','RuleCheck2025ScopedSelectionReplayTest','KnowledgeSchemaTest','JdbcCandidateRetrieverTest','JdbcRetrievalIndexingTest',
         'JdbcEmbeddingProfileStoreTest','RetrievalAcceptanceEvalTest','KnowledgeGovernancePublisherTest',
         'JdbcRuleCheckEvidenceReaderTest','JdbcRuleCheckCitationAuditTest','RuleCheck2025TrialTest','RuleCheck2025SelectionPreparationTest','RuleCheck2025SelectionReplayTest','RuleCheck2025TopicSelectionReplayTest','RuleCheck2025TopicValidationTest','RuleCheck2025NarrowingValidationTest','RuleCheck2025HttpTest','RuleCheck2025BrowserHttpTest','RuleCheck2025DevelopmentCaptureTest','RuleCheck2025LexicalCalibrationTest','RuleCheck2025VectorCalibrationTest','RuleCheck2025RobustnessTest','RuleCheck2025ApplicabilityTest','ControlledPreviewConfigurationTest','RuleCheckPreviewHttpTest','RuleCheckRegisteredAccountHttpTest','RuleCheckRememberMeHttpRestartTest','RuleCheckPersistentLoginSecurityHttpTest','RuleCheckSlidingLoginHttpTest','RuleCheckOriginalHttpTest','RuleCheckBrowserHttpTest','RuleCheckLegacyBrowserHttpTest',
         'RetrievalSchemaTest','ZhkuFlywayTestSupportTest','JdbcFeedbackRepositoryTest','JdbcAnonymousTelemetryRepositoryTest',
@@ -53,6 +56,7 @@ function Get-RuleCheckVerificationPlan {
         $syntheticClasses=@($selected|Where-Object {$_ -notin $realTextTests})
         $dataProvenance=if($syntheticClasses.Count){'MIXED_REVIEWED_2025_AND_SYNTHETIC_FIXTURES'}else{'REVIEWED_2025_TEXT'}
     }
+    if($selected.Count -eq 1 -and $selected[0] -eq 'RuleAgentReviewedBrowserLeaseTest'){$dataProvenance='REVIEWED_2025_TEXT'}
     $target="jdbc:postgresql://127.0.0.1:$Port/zhkuagent_rulecheck_e2e"
     if ($DatabaseUrl -and (!$usesDatabase -or $DatabaseUrl -cne $target)) {throw 'URL必须与专用临时库、回环host和Port完全一致'}
     $package04Replay=$selected.Count -eq 1 -and $selected[0] -eq 'RuleCheck2025ReliabilityReplayTest' -and $Phase -eq 'package04-application-replay'
@@ -150,9 +154,22 @@ function Invoke-RuleCheckMaven {
     } finally {Pop-Location}
 }
 
+function Get-RuleCheckBrowserLeaseArguments {
+    param([string[]]$Selected,[bool]$Enabled,[string]$AssetsRoot='',[string]$HandbookPdf='',[string]$SourceHead='')
+    $browser=$Selected -contains 'RuleAgentReviewedBrowserLeaseTest'
+    if(!$browser){if($Enabled-or $AssetsRoot-or $HandbookPdf){throw '浏览器租约参数不能夹带到普通测试'};return @()}
+    # 长租约必须单独显式选择，防止普通回归意外停在浏览器等待窗口或复用已迁移的库。
+    if(!$Enabled-or $Selected.Count-ne 1-or !$AssetsRoot){throw '须单选Reviewed浏览器测试并提供显式租约和已审核资料根'}
+    $assets=(Resolve-Path -LiteralPath $AssetsRoot -ErrorAction Stop).Path
+    $result=@('-Dzhku.t06.reviewedBrowserLease=true',"-Dzhku.t06.root=$assets","-Dzhku.sourceSha=$SourceHead")
+    if($HandbookPdf){$pdf=(Resolve-Path -LiteralPath $HandbookPdf -ErrorAction Stop).Path;$result+="-Dzhku.t06.handbookPdf=$pdf"}
+    return $result
+}
+
 function Invoke-RuleCheckVerificationCore {
-    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='',[string]$EvidenceRoot='')
+    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='',[string]$EvidenceRoot='',[bool]$ReviewedBrowserLease=$false,[string]$AssetsRoot='',[string]$HandbookPdf='')
     $plan=Get-RuleCheckVerificationPlan @PSBoundParameters -ErrorAction Stop
+    $browserArguments=@(Get-RuleCheckBrowserLeaseArguments -Selected $plan.Selected -Enabled ([bool]$ReviewedBrowserLease) -AssetsRoot $AssetsRoot -HandbookPdf $HandbookPdf -SourceHead (git -C $Root rev-parse HEAD))
     if (!(Test-Path -LiteralPath $plan.Maven)) {throw '根Maven wrapper不可用'}
     if (!(Get-Command java.exe -ErrorAction SilentlyContinue)) {throw '当前用户终端没有Java'}
     New-Item -ItemType Directory -Path $plan.Directory -ErrorAction Stop|Out-Null
@@ -173,6 +190,7 @@ function Invoke-RuleCheckVerificationCore {
     $arguments=@('-o',"-Dmaven.repo.local=$env:USERPROFILE/.m2/repository",'-Dfile.encoding=UTF-8','-pl','knowledge','-am',
         "-Dtest=$($plan.Selected -join ',')",'-Dsurefire.failIfNoSpecifiedTests=false',"-Dzhku.db.url=$($plan.DatabaseUrl)",
         "-Dzhku.rulecheck.evidenceDir=$($plan.Directory)",'-Dzhku.db.user=zhkuagent','test')
+    if($browserArguments.Count){$arguments=@($arguments[0..($arguments.Count-2)])+$browserArguments+$arguments[-1]}
     if($plan.Package04Replay){$arguments=@($arguments[0..($arguments.Count-2)])+'-Dzhku.rulecheck.package04.requireCapture=true'+$arguments[-1]}
     Save-RuleCheckJson ([ordered]@{mode=$Mode;phase=$Phase;selectedClasses=$plan.Selected;providerAllowed=$false;database=$plan.Database;
         databaseUrl=$plan.DatabaseUrl;startedAt=$started.ToString('o');maven=$plan.Maven;arguments=$arguments;sourceHead=$headBefore}) (Join-Path $plan.Directory 'command.json')
@@ -233,7 +251,7 @@ function Invoke-RuleCheckVerificationCore {
 }
 
 function Invoke-RuleCheckVerification {
-    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='',[string]$EvidenceRoot='')
+    param([string]$Root,[string]$Mode,[string]$Phase,[string]$Tests,[int]$Port,[string]$DatabaseUrl='',[string]$EvidenceRoot='',[bool]$ReviewedBrowserLease=$false,[string]$AssetsRoot='',[string]$HandbookPdf='')
     $null=Get-RuleCheckVerificationPlan @PSBoundParameters
     $lockDirectory=Join-Path $Root '.superpowers'
     New-Item -ItemType Directory -Path $lockDirectory -Force|Out-Null
@@ -246,14 +264,15 @@ function Invoke-RuleCheckVerification {
 $runnerRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 try {
     if ($CheckEnvironment) {
-        $runnerPlan=Get-RuleCheckVerificationPlan -Root $runnerRoot -Mode $Mode -Phase $Phase -Tests $Tests -Port $Port -DatabaseUrl $DatabaseUrl -EvidenceRoot $EvidenceRoot
+        $runnerPlan=Get-RuleCheckVerificationPlan -Root $runnerRoot -Mode $Mode -Phase $Phase -Tests $Tests -Port $Port -DatabaseUrl $DatabaseUrl -EvidenceRoot $EvidenceRoot -ReviewedBrowserLease ([bool]$ReviewedBrowserLease) -AssetsRoot $AssetsRoot -HandbookPdf $HandbookPdf
+        $null=Get-RuleCheckBrowserLeaseArguments -Selected $runnerPlan.Selected -Enabled ([bool]$ReviewedBrowserLease) -AssetsRoot $AssetsRoot -HandbookPdf $HandbookPdf -SourceHead (git -C $runnerRoot rev-parse HEAD)
         [ordered]@{powerShellVersion=$PSVersionTable.PSVersion.ToString();mavenWrapperAvailable=(Test-Path -LiteralPath $runnerPlan.Maven);
             javaAvailable=($null -ne (Get-Command java.exe -ErrorAction SilentlyContinue));dockerAvailable=($null -ne (Get-Command docker.exe -ErrorAction SilentlyContinue));
             mode=$Mode;selectedClasses=$runnerPlan.Selected;databaseUrl=$runnerPlan.DatabaseUrl;consoleCodePage=[Console]::OutputEncoding.CodePage;
             encodingSample='中文验收：临时库、拒绝原库';requiresRipgrep=$false;externalStarts=0}|ConvertTo-Json
         exit 0
     }
-    $runnerResult=Invoke-RuleCheckVerification -Root $runnerRoot -Mode $Mode -Phase $Phase -Tests $Tests -Port $Port -DatabaseUrl $DatabaseUrl -EvidenceRoot $EvidenceRoot
+    $runnerResult=Invoke-RuleCheckVerification -Root $runnerRoot -Mode $Mode -Phase $Phase -Tests $Tests -Port $Port -DatabaseUrl $DatabaseUrl -EvidenceRoot $EvidenceRoot -ReviewedBrowserLease ([bool]$ReviewedBrowserLease) -AssetsRoot $AssetsRoot -HandbookPdf $HandbookPdf
     Write-Output "RULECHECK phase=$Phase passed=$($runnerResult.passed) tests=$($runnerResult.testCount) database=$($runnerResult.database) resources=$($runnerResult.resourcesVerified)"
     if (!$runnerResult.passed) {exit 1}
 } catch {Write-Error $_.Exception.Message;exit 1}

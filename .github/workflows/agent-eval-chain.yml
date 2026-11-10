@@ -17,6 +17,34 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  trial-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: 本地试用契约（无数据库及供应商）
+        run: |
+          mkdir -p "$PWD/target/trial-evidence"
+          mvn -B -pl knowledge -am test \
+            -Dtest=RuleCheckCoverageRepairTest,RuleCheckDisabledRetrievalTest,RuleCheckEvidenceFirstTest,HybridRetrievalServiceTest,RulePublicationGateTest,RuleAgentProviderTest,RuleAgentTaskHttpTest,RuleAgentE13PublicationCapabilityTest \
+            -Dsurefire.failIfNoSpecifiedTests=false \
+            -Dzhku.rulecheck.evidenceDir="$PWD/target/trial-evidence"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: agent/frontend/package-lock.json
+      - name: 学生页测试与构建
+        working-directory: agent/frontend
+        run: |
+          npm ci
+          node --test tests/*.test.mjs
+          npm run build
   replay:
     runs-on: ubuntu-latest
     timeout-minutes: 20
