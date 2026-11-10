@@ -14,7 +14,7 @@ public final class RuleCheckMediaTypeFilter extends OncePerRequestFilter {
         // 对新应用所有路径检查，不能只匹配原始v2前缀，否则编码前缀也会绕过。
         String path=request.getRequestURI().substring(request.getContextPath().length());
         // task表单也必须在CSRF解析参数前拒绝，否则正文限长会被提前解析绕过。
-        boolean jsonPost="POST".equals(request.getMethod())&&(path.equals("/zhku/controlled-preview/v2/rule-check")||path.equals("/zhku/controlled-preview/v2/tasks")||path.startsWith("/zhku/controlled-preview/v2/tasks/"));
+        boolean jsonPost="POST".equals(request.getMethod())&&(path.equals("/zhku/controlled-preview/v2/rule-check")||path.equals("/zhku/controlled-preview/v2/tasks")||path.startsWith("/zhku/controlled-preview/v2/tasks/")||path.equals("/zhku/controlled-preview/v2/auth/register")||path.equals("/zhku/controlled-preview/v2/auth/password"));
         return !request.getRequestURI().contains("%")&&!jsonPost;
     }
     @Override protected void doFilterInternal(HttpServletRequest request,HttpServletResponse response,FilterChain chain) throws ServletException,IOException {

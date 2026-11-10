@@ -60,6 +60,7 @@ public class RuleCheckPreviewConfiguration {
             throw new IllegalArgumentException("查证迁移要求显式同意且禁止自动与乱序迁移");
         if(!"CLOSED".equals(environment.getProperty(PREFIX+"catalogue-mode"))&&!controlled(environment))
             throw new IllegalArgumentException("真实资料未通过时查证目录必须关闭");
+        validatePersistentIdentity(environment,port);
         runtimeSettings(environment);
         if(controlled(environment)) {
             if(!java.util.Set.of("SEALED_REPLAY","TASK_PLAN_REPLAY").contains(environment.getProperty(PREFIX+"selector-mode",""))
@@ -82,6 +83,23 @@ public class RuleCheckPreviewConfiguration {
                 }
             }catch(Exception invalid){throw new IllegalArgumentException("受控资料、回放或根目录不合格");}
         }
+    }
+    private static void validatePersistentIdentity(Environment environment,int rulePort) {
+        String enabled=environment.getProperty(PREFIX+"persistent-identity.enabled","false");
+        if(!"true".equals(enabled)&&!"false".equals(enabled))
+            throw new IllegalArgumentException("持久身份开关必须为true或false");
+        if(!"true".equals(enabled))return;
+        // 限定唯一库名、回环地址与独立端口；禁止URL参数、别名和指向演示实例。
+        var target=Pattern.compile("^jdbc:postgresql://127\\.0\\.0\\.1:([0-9]{4,5})/zhkuagent_rulecheck_identity$")
+                .matcher(environment.getProperty(PREFIX+"persistent-identity.url",""));
+        if(!target.matches())throw new IllegalArgumentException("持久身份库必须是明确命名的专用回环数据库");
+        int port=Integer.parseInt(target.group(1));
+        if(port<1024||port>65535||port==54329||port==rulePort)
+            throw new IllegalArgumentException("持久身份库必须使用独立且非演示库端口");
+        String username=System.getenv("ZHKU_RULECHECK_IDENTITY_DB_USER");
+        String password=System.getenv("ZHKU_RULECHECK_IDENTITY_DB_PASSWORD");
+        if(username==null||!username.matches("[A-Za-z_][A-Za-z0-9_]{0,62}")||password==null||password.isBlank())
+            throw new IllegalArgumentException("持久身份库要求显式进程环境凭据");
     }
     static boolean controlled(Environment e){return "REVIEWED_2025_CONTROLLED".equals(e.getProperty(PREFIX+"catalogue-mode"));}
     static boolean taskReplay(Environment e){return controlled(e)&&"TASK_PLAN_REPLAY".equals(e.getProperty(PREFIX+"selector-mode"));}
@@ -110,8 +128,18 @@ public class RuleCheckPreviewConfiguration {
     @Bean(initMethod="migrate") public Flyway ruleCheckMigration(DataSource ruleCheckDataSource) {
         return Flyway.configure().dataSource(ruleCheckDataSource).locations("classpath:db/migration").outOfOrder(false).load();
     }
-    @Bean(destroyMethod="close") public PreviewIdentityRepository ruleCheckIdentityRepository(DataSource ruleCheckDataSource,Flyway ruleCheckMigration) {
-        return new PreviewIdentityRepository(ruleCheckDataSource);
+    @Bean(destroyMethod="close") public PreviewIdentityRepository ruleCheckIdentityRepository(DataSource ruleCheckDataSource,Flyway ruleCheckMigration,Environment environment) {
+        if(!"true".equals(environment.getProperty(PREFIX+"persistent-identity.enabled","false")))
+            return new PreviewIdentityRepository(ruleCheckDataSource);
+        validateEnvironment(environment);
+        // 身份源和Flyway不注册为Bean，防止规则库、资料安装或其他类型注入误选持久库。
+        var identitySource=new DriverManagerDataSource(environment.getProperty(PREFIX+"persistent-identity.url"),
+                System.getenv("ZHKU_RULECHECK_IDENTITY_DB_USER"),System.getenv("ZHKU_RULECHECK_IDENTITY_DB_PASSWORD"));
+        var limits=new Properties();limits.setProperty("connectTimeout","1");limits.setProperty("socketTimeout","2");limits.setProperty("cancelSignalTimeout","1");
+        identitySource.setConnectionProperties(limits);
+        // 独立位置只包含V19身份约束和V23登录表，绝不运行规则资料迁移或清库。
+        Flyway.configure().dataSource(identitySource).locations("classpath:db/rulecheck-identity-migration").outOfOrder(false).load().migrate();
+        return new PreviewIdentityRepository(identitySource);
     }
     @Bean public Clock ruleCheckClock() {return Clock.systemUTC();}
     @Bean public RuleCheckClarificationStore ruleCheckClarificationStore(Clock ruleCheckClock) {return new RuleCheckClarificationStore(ruleCheckClock);}

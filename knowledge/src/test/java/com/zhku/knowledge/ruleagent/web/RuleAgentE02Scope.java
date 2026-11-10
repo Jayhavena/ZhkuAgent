@@ -14,24 +14,31 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 final class RuleAgentE02Scope {
     private static final String REJECTED = "E02单题执行范围已关闭或不匹配";
     private final String question;
+    private final String caseId;
     private Owner owner;
     private UUID taskId;
     private UUID runId;
     private RuleAgentRunner.Input inFlight;
     private boolean closed;
 
-    RuleAgentE02Scope(JsonNode plan) {
+    RuleAgentE02Scope(JsonNode plan) { this(plan, "E02"); }
+
+    /** E13复用同一单题生命周期；必须先过各自Policy，不能放宽成任意题。 */
+    RuleAgentE02Scope(JsonNode plan, String caseId) {
+        if (!Set.of("E02", "E13").contains(caseId)) throw reject();
+        if (caseId.equals("E13")) RuleAgentE13Policy.validate(plan);
         if (plan == null || !plan.isObject() || !exactInteger(plan.path("schemaVersion"), 1)
                 || !exactInteger(plan.path("maximumTasks"), 1) || !exactInteger(plan.path("maximumRuns"), 1)
                 || !plan.path("cases").isArray() || plan.path("cases").size() != 1) throw reject();
         var item = plan.path("cases").get(0);
-        if (!item.isObject() || !"E02".equals(item.path("id").asText())
+        if (!item.isObject() || !caseId.equals(item.path("id").asText())
                 || !item.path("question").isTextual() || item.path("question").asText().isBlank()
                 || item.has("reply") || !exactInteger(item.path("maximumRuns"), 1)
                 || !exactInteger(item.path("maximumCalls"), 5)) throw reject();
         if (plan.path("cases").findValues("reply").size() != 0) throw reject();
         // 复制字符串，防止审包后外部修改计划改变执行范围。
         question = item.path("question").asText();
+        this.caseId = caseId;
     }
 
     synchronized void begin(RuleAgentRunner.Input input, String rawMessage, UUID run) {
@@ -57,6 +64,10 @@ final class RuleAgentE02Scope {
                 || snapshot.taskStatus() == TaskStatus.FAILED || snapshot.taskStatus() == TaskStatus.ACTIVE) throw reject();
         // 本计划没有第二个run，因此任何追问/待补充条件都不属于可完成状态，只按安全停下记。
         if (snapshot.taskStatus() == TaskStatus.WAITING_USER) throw reject();
+        if (caseId.equals("E13")) {
+            try { RuleAgentE13Policy.terminal(snapshot); }
+            catch (RuntimeException invalid) { throw reject(); }
+        }
         // 终态即耗尽该题唯一机会；安全拒答不等于产品完成，由宿主另记判定。
         inFlight = null;
         closed = true;

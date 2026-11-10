@@ -36,7 +36,7 @@ Claim仅由宿主发布：id、审核factId、解释text、when、conditionSourc
 
 | issue.kind | reasonCode示例 | 判定/学生表达 |
 | --- | --- | --- |
-| DATA_GAP | RETRIEVAL_NO_MATCH、DETAIL_NOT_IN_REVIEWED_TEXT、CURRENT_NOTICE_MISSING、PERSONAL_RECORD_NOT_AVAILABLE、REVIEWED_FACT_COVERAGE_GAP | 当前取得/允许使用的依据不足。“能确认……；不能确定……；可核对……”；零召回不等于整本资料没有规定 |
+| DATA_GAP | RETRIEVAL_NO_MATCH、DETAIL_NOT_IN_REVIEWED_TEXT、CURRENT_NOTICE_MISSING、PERSONAL_RECORD_NOT_AVAILABLE、REVIEWED_FACT_COVERAGE_GAP、UNSUPPORTED_DEMAND | 当前取得/允许使用的依据不足。“能确认……；不能确定……；可核对……”；零召回不等于整本资料没有规定。UNSUPPORTED_DEMAND专指需求超出已审核资料与办理能力的边界（如当期截止时间、代办操作），属于资料缺口而非技术失败，此时任务为RESOLVED、runState为INCOMPLETE |
 | CLARIFICATION | MISSING_CONDITION | 必要且学生可补充的条件尚不明确；展示已知部分，再问该条件 |
 | PROCESSING_FAILURE | RETRIEVAL_UNAVAILABLE、MODEL_TIMEOUT、INVALID_MODEL_RESPONSE、AUDIT_UNAVAILABLE等 | 执行环节未完成；不能替换为“资料没有规定”；保留独立核验内容 |
 | SCOPE_LIMIT | MATERIAL_SCOPE_MISMATCH、CURRENT_APPLICABILITY_UNKNOWN | 对象/时间/用途未被当前范围支持；解释可支持的部分，限制适用结论 |

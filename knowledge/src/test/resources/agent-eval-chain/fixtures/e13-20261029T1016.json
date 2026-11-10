@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "e13-20261029T1016",
+  "caseId": "E13-1016",
+  "title": "E13 单题真实 Live：合法缺口响应（修复后）",
+  "createdAt": "2026-11-05",
+  "projection": "MODEL_DECISION_SEQUENCE_ONLY",
+  "taskId": "9a3ba9b0-0e5b-477b-b58d-b52c4c70d237",
+  "turnId": "119f4115-5b1b-478c-83d0-7d24ca1f0376",
+  "runId": "71520cd6-5667-47e7-8c10-280299eab9e9",
+  "version": 2,
+  "sourceArtifacts": [
+    {
+      "role": "TERMINAL_SNAPSHOT",
+      "path": "docs/evidence/agent-eval/2026-10-29-e13/prepare-offline-20261029-abc/task-results.jsonl",
+      "sha256": "ae9014a3adb56db54f5b5d2578ff48e8eaa1fb957cf9135a85c85d9a27af2c4c",
+      "committed": true
+    },
+    {
+      "role": "PROVIDER_TRACE",
+      "path": "docs/evidence/agent-eval/2026-10-29-e13/prepare-offline-20261029-abc/provider-traces.jsonl",
+      "sha256": "da485408b98e24dc33357b453ea3b107a2715d485d5fd2907eacff64cb622bf2",
+      "committed": true
+    },
+    {
+      "role": "USAGE_AND_CHAIN",
+      "path": "docs/evidence/agent-eval/2026-10-29-e13/live-20261029T1016/usage-and-chain.json",
+      "sha256": "988e29e8b2b3bddc0d3d8e6d77e22b1923928a32fc00869387c557f6ce473a0a",
+      "committed": true
+    }
+  ],
+  "actions": [
+    {
+      "type": "SEARCH_REVIEWED_RULES",
+      "step": 1,
+      "modelAttempt": 1,
+      "observation": null,
+      "reasonCode": null,
+      "publicationReason": null,
+      "provenance": "usage-and-chain.responses[0].content"
+    },
+    {
+      "type": "READ_VERIFIED_RULE",
+      "step": 2,
+      "modelAttempt": 2,
+      "observation": null,
+      "reasonCode": null,
+      "publicationReason": null,
+      "provenance": "usage-and-chain.responses[1].content"
+    },
+    {
+      "type": "FINISH_CHECK",
+      "step": 3,
+      "modelAttempt": 3,
+      "observation": null,
+      "reasonCode": null,
+      "publicationReason": null,
+      "provenance": "usage-and-chain.responses[2].content"
+    },
+    {
+      "type": "PUBLICATION_REVIEW",
+      "step": 4,
+      "modelAttempt": 4,
+      "observation": null,
+      "reasonCode": null,
+      "publicationReason": null,
+      "provenance": "usage-and-chain.responses[3].content"
+    }
+  ],
+  "review": {
+    "protocolRevision": "RULE_PUBLICATION_REVIEW_02",
+    "inputFingerprint": "452579d69f541a508908e153b91034158d9d79468df46053c849254064a60170",
+    "requirements": [
+      {
+        "id": "r1",
+        "span": {
+          "subquestionId": "q1",
+          "excerpt": "这学期公选补选今晚几点关"
+        },
+        "dimension": "UNKNOWN",
+        "subject": "UNSPECIFIED",
+        "recognition": "UNCLASSIFIED",
+        "necessaryConditionIds": []
+      },
+      {
+        "id": "r2",
+        "span": {
+          "subquestionId": "q1",
+          "excerpt": "现在还能帮我补上吗"
+        },
+        "dimension": "UNKNOWN",
+        "subject": "UNSPECIFIED",
+        "recognition": "UNCLASSIFIED",
+        "necessaryConditionIds": []
+      }
+    ],
+    "bindings": [],
+    "unresolvedDemands": [
+      {
+        "span": {
+          "subquestionId": "q1",
+          "excerpt": "这学期公选补选今晚几点关"
+        },
+        "reason": "UNSUPPORTED_DIMENSION"
+      },
+      {
+        "span": {
+          "subquestionId": "q1",
+          "excerpt": "现在还能帮我补上吗"
+        },
+        "reason": "UNSUPPORTED_DIMENSION"
+      }
+    ]
+  },
+  "capabilities": [],
+  "capabilitiesProvenance": "docs/agent/eval/rounds/2026-10-29-e13/eval-report.md：审核输入的 capabilities 为空；同目录测试夹具使用空列表。",
+  "terminal": {
+    "schemaVersion": 3,
+    "taskId": "9a3ba9b0-0e5b-477b-b58d-b52c4c70d237",
+    "turnId": "119f4115-5b1b-478c-83d0-7d24ca1f0376",
+    "runId": "71520cd6-5667-47e7-8c10-280299eab9e9",
+    "version": 2,
+    "taskStatus": "RESOLVED",
+    "runState": "INCOMPLETE",
+    "terminated": true,
+    "result": {
+      "publishedVersion": 2,
+      "originatingRunId": "71520cd6-5667-47e7-8c10-280299eab9e9",
+      "catalogueVersion": "cat-e9a06cedfd2074e44b1a671f4f7444824cb203b93b2bca2a80d4d94133865c2e",
+      "referenceRevision": "2025.9.2",
+      "coverage": "NONE",
+      "items": [
+        {
+          "id": "q1",
+          "coverage": "NONE",
+          "claims": [],
+          "issues": [
+            {
+              "id": "i-UNSUPPORTED_DEMAND",
+              "kind": "DATA_GAP",
+              "reasonCode": "UNSUPPORTED_DEMAND",
+              "message": "已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。",
+              "nextStep": "请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。"
+            }
+          ],
+          "clarification": []
+        }
+      ],
+      "evidence": [],
+      "evidenceRelations": []
+    },
+    "execution": {
+      "mode": "ONLINE",
+      "modelAttemptCount": 4,
+      "toolStepCount": 3,
+      "providerResponseReceived": true,
+      "answerSource": "NONE",
+      "replayCoverage": "NOT_APPLICABLE"
+    }
+  },
+  "losses": [
+    {
+      "field": "actions[].observation",
+      "reason": "冻结资产未归档 SEARCH/READ 的 ToolObservation；保留为 null，不推断成功"
+    },
+    {
+      "field": "actions[].params",
+      "reason": "RuleAgentRunTrace 白名单不保留 query/handles；原始响应内容中的参数不入 Trace"
+    },
+    {
+      "field": "review.capabilities",
+      "reason": "review JSON 不含 capabilities；由报告与测试夹具确认为空"
+    },
+    {
+      "field": "raw request/response bodies",
+      "reason": "request-package.json 与 provider-exchanges.jsonl 按 R0 决策未入库"
+    }
+  ],
+  "notes": [
+    "动作类型来自 usage-and-chain.responses[*].content；不是人工报告反推。",
+    "PUBLICATION_REVIEW 的 response 是审核输出，不是工具观察。",
+    "终态直接来自 task-results.jsonl 的 snapshot。"
+  ]
+}

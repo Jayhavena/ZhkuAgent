@@ -1,6 +1,7 @@
 #requires -Version 7.0
 param([switch]$CheckEnvironment,[switch]$PrepareProbe,[switch]$Probe,[switch]$BuildOnly,[switch]$OnlyP01,[switch]$OnlyP02,[switch]$IncludeClarification,[switch]$CheckPackage,
  [ValidatePattern('^[a-f0-9]{64}$')][string]$ApprovedPackageSha256,
+ [string]$PackageRelativePath='docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json',
  [ValidateRange(1024,65535)][int]$DatabasePort=55518)
 $ErrorActionPreference='Stop'
 $utf8=[Text.UTF8Encoding]::new($false)
@@ -11,7 +12,12 @@ $importer=Join-Path $root 'scripts/Import-ZhkuCredentials.ps1'
 $java=Get-Command java.exe -ErrorAction SilentlyContinue
 $docker=Get-Command docker.exe -ErrorAction SilentlyContinue
 $jar=Join-Path $root 'knowledge/target/knowledge-0.1.0-rc.1-controlled.jar'
-$package=Join-Path $root 'docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json'
+if([IO.Path]::IsPathRooted($PackageRelativePath)){throw '请求包路径必须是仓库相对路径'}
+$packageRoot=Join-Path $root 'docs/evidence/rule-agent-provider'
+$package=Join-Path $root $PackageRelativePath
+# 新批次包写入独立目录，绝不覆盖历史冻结包；越出证据根直接拒绝。
+if(!$package.StartsWith($packageRoot,[StringComparison]::OrdinalIgnoreCase)){throw '请求包路径必须位于 docs/evidence/rule-agent-provider 下'}
+$env:ZHKU_RULE_AGENT_PROBE_PACKAGE=$PackageRelativePath
 if($CheckEnvironment){
  & $importer -UseDashScope
  @{javaAvailable=($null-ne $java);dockerAvailable=($null-ne $docker);keyAvailable=![string]::IsNullOrWhiteSpace($env:DASHSCOPE_API_KEY);mode='P02_DIAGNOSTIC_PREFLIGHT';maximumProviderCalls=10;providerCalls=0;databaseOperations=0;builds=0;encodingSample='规则查证：在线探针、等待授权';encoding=[Console]::OutputEncoding.CodePage;requiresRipgrep=$false}|ConvertTo-Json

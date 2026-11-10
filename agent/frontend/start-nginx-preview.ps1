@@ -4,7 +4,7 @@ param(
     [int]$BackendPort,
     [ValidateRange(1024, 65535)][int]$WebPort = 8080,
     [ValidatePattern('^[a-z0-9][a-z0-9_-]{0,62}$')][string]$ProjectName = 'zhku-web-preview',
-    [ValidateSet('student', 'engineering', 'replay')][string]$EntryMode,
+    [ValidateSet('student', 'replay')][string]$EntryMode,
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'
@@ -18,6 +18,8 @@ try {
     if ($Action -eq 'Start' -and $EntryMode -and $SkipBuild) {
         throw 'EntryMode requires a fresh frontend build; omit -SkipBuild.'
     }
+    # Check只校验Compose插值，不连接服务；省略端口时用占位值，Start仍必须明确真实端口。
+    if ($Action -eq 'Check' -and -not $PSBoundParameters.ContainsKey('BackendPort')) { $BackendPort = 8123 }
     # Stop不需要真实后端；仅让Compose完成插值，绝不启动该端口的服务。
     if ($Action -ne 'Stop' -and ($BackendPort -lt 1024 -or $BackendPort -gt 65535)) {
         throw 'Provide -BackendPort with the actual controlled service port (1024..65535).'
@@ -50,7 +52,8 @@ try {
         Push-Location $previewRoot
         try {
             $env:PATH=$nodeTools.Directory+';'+$nodePathBefore
-            if ($EntryMode) { $env:VITE_ENTRY_MODE=$EntryMode }
+            # 默认构建固定学生入口，避免调用者残留的回放模式改变人工演示。
+            $env:VITE_ENTRY_MODE=if ($EntryMode) { $EntryMode } else { 'student' }
             & $nodeTools.Npm run build
             if ($LASTEXITCODE -ne 0) { throw 'Frontend build failed.' }
         } finally {
@@ -73,12 +76,12 @@ try {
     $deadline = [DateTime]::UtcNow.AddSeconds(10)
     do {
         try {
-            $response = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$WebPort/" -TimeoutSec 2
+            $response = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$WebPort/rules" -TimeoutSec 2
             $ready = $response.StatusCode -eq 200
         } catch { Start-Sleep -Milliseconds 200 }
     } while (-not $ready -and [DateTime]::UtcNow -lt $deadline)
     if (-not $ready) { throw 'Nginx page readiness failed.' }
-    Write-Host "Nginx page ready: http://127.0.0.1:$WebPort/"
+    Write-Host "Nginx page ready: http://127.0.0.1:$WebPort/rules"
     Write-Host "Controlled API upstream: host.docker.internal:$BackendPort"
     Write-Host 'Only controlled v1/v2 namespaces are proxied; the selected backend determines which functions are available.'
     Write-Host "Stop this container with: .\start-nginx-preview.cmd -Action Stop -ProjectName $ProjectName"

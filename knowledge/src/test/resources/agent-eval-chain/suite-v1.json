@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "agent-eval-chain-v1",
+  "blocks": [
+    {
+      "blockId": "live-t05-69",
+      "kind": "EVIDENCE_BUNDLE",
+      "evidenceDir": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-04994adbb93a4932bed3aa7b1b8b9047",
+      "cases": [
+        {
+          "caseId": "T05-69-CLARIFY",
+          "title": "真实两轮首轮：必要追问而非抢答",
+          "runId": "9ad28cae-9f00-4c32-a40d-7443ccf017cb",
+          "expectedVerdict": "PASS",
+          "expectedDetails": ["EXPECTATIONS_MET"],
+          "expectation": {
+            "taskStatus": "WAITING_USER",
+            "runState": "INCOMPLETE",
+            "coverage": "NONE",
+            "requiredActions": ["SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "ASK_NECESSARY_CONDITION", "PUBLICATION_REVIEW"],
+            "issueReason": "MISSING_CONDITION",
+            "expectClaims": false,
+            "observedAction": "SEARCH_REVIEWED_RULES",
+            "observationStatus": "SUCCEEDED",
+            "requireEvidenceLinks": false,
+            "expectRejectedUnknownTool": false
+          }
+        },
+        {
+          "caseId": "T05-69-RESOLVE",
+          "title": "真实两轮续答：结论带证据链",
+          "runId": "1fb4624b-9623-465b-a153-8a11d3deced3",
+          "expectedVerdict": "PASS",
+          "expectedDetails": ["EXPECTATIONS_MET"],
+          "expectation": {
+            "taskStatus": "RESOLVED",
+            "runState": "SUCCEEDED",
+            "coverage": "COMPLETE",
+            "requiredActions": ["SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW"],
+            "issueReason": null,
+            "expectClaims": true,
+            "observedAction": "READ_VERIFIED_RULE",
+            "observationStatus": "SUCCEEDED",
+            "requireEvidenceLinks": true,
+            "expectRejectedUnknownTool": false
+          }
+        }
+      ]
+    },
+    {
+      "blockId": "e13-failure-fixtures",
+      "kind": "FIXTURE_CORPUS",
+      "cases": [
+        {
+          "caseId": "E13-0842-FAIL-CLOSED",
+          "title": "失败样本：非法模型响应必须失败关闭，不得伪装成资料不存在",
+          "fixture": "knowledge/src/test/resources/agent-eval-chain/fixtures/e13-20261029T0842.json",
+          "expectedVerdict": "PASS",
+          "expectedDetails": ["EXPECTATIONS_MET"],
+          "expectation": {
+            "taskStatus": "FAILED",
+            "runState": "FAILED",
+            "coverage": "NONE",
+            "requiredActions": [],
+            "issueReason": "INVALID_MODEL_RESPONSE",
+            "expectClaims": false,
+            "observedAction": null,
+            "observationStatus": null,
+            "requireEvidenceLinks": false,
+            "expectRejectedUnknownTool": false
+          }
+        },
+        {
+          "caseId": "E13-1016-NO-OBSERVATION",
+          "title": "失败样本：缺少工具观察时只能 NOT_EVALUABLE，不能判 PASS",
+          "fixture": "knowledge/src/test/resources/agent-eval-chain/fixtures/e13-20261029T1016.json",
+          "expectedVerdict": "NOT_EVALUABLE",
+          "expectedDetails": ["TOOL_OBSERVATION_MISSING"],
+          "expectation": {
+            "taskStatus": "RESOLVED",
+            "runState": "INCOMPLETE",
+            "coverage": "NONE",
+            "requiredActions": ["SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW"],
+            "issueReason": "UNSUPPORTED_DEMAND",
+            "expectClaims": false,
+            "observedAction": null,
+            "observationStatus": null,
+            "requireEvidenceLinks": false,
+            "expectRejectedUnknownTool": false
+          }
+        }
+      ]
+    },
+    {
+      "blockId": "failed-probe-t05-46",
+      "kind": "EVIDENCE_BUNDLE",
+      "evidenceDir": "docs/evidence/rule-agent-provider/2026-10-15/t05-46-p02-request/live-538e1c90a76c4a10b7347d323c8a06aa",
+      "cases": [
+        {
+          "caseId": "T05-46-FAILED-RUN",
+          "title": "失败样本：探针失败但终态失败关闭且动作有观察",
+          "runId": "58864832-109d-4610-83a7-4701fd4ad52e",
+          "expectedVerdict": "PASS",
+          "expectedDetails": ["EXPECTATIONS_MET"],
+          "expectation": {
+            "taskStatus": "FAILED",
+            "runState": "FAILED",
+            "coverage": "NONE",
+            "requiredActions": ["SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE"],
+            "issueReason": "INVALID_MODEL_RESPONSE",
+            "expectClaims": false,
+            "observedAction": "READ_VERIFIED_RULE",
+            "observationStatus": "SUCCEEDED",
+            "requireEvidenceLinks": false,
+            "expectRejectedUnknownTool": false
+          }
+        }
+      ]
+    },
+    {
+      "blockId": "incomplete-probe-t05",
+      "kind": "EVIDENCE_BUNDLE",
+      "evidenceDir": "docs/evidence/rule-agent-provider/2026-10-14/t05-live-1c7d94d4c9e94870bb299b35b38b5c53",
+      "bundleCase": {
+        "caseId": "T05-INCOMPLETE-EVIDENCE",
+        "title": "失败样本：只有 provider trace、没有终态快照时必须 NOT_EVALUABLE",
+        "expectedVerdict": "NOT_EVALUABLE",
+        "expectedDetails": ["COLLECTION_INCOMPLETE"]
+      },
+      "cases": []
+    }
+  ]
+}

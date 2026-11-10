@@ -101,10 +101,12 @@ class RuleCheckPreviewSecurityConfigurationTest {
         mvc.perform(post(P+"/auth/login").param("username","user-a").param("password","synthetic-password")).andExpect(status().isForbidden());
         var session=login(mvc,"user-a");
         mvc.perform(post(P+"/auth/logout").session(session)).andExpect(status().isForbidden());assertThat(session.isInvalid()).isFalse();
-        mvc.perform(post(P+"/auth/logout").session(session).with(csrf())).andExpect(status().isNoContent())
-                .andExpect(header().string("Set-Cookie",org.hamcrest.Matchers.containsString("ZHKU_RULE_CHECK_SESSION=")))
-                .andExpect(header().string("Set-Cookie",org.hamcrest.Matchers.containsString("Path=/api"+P)))
-                .andExpect(header().doesNotExist("Location"));assertThat(session.isInvalid()).isTrue();
+        var response=mvc.perform(post(P+"/auth/logout").session(session).with(csrf())).andExpect(status().isNoContent())
+                .andExpect(header().doesNotExist("Location")).andReturn().getResponse();
+        assertThat(response.getHeaders("Set-Cookie")).anySatisfy(cookie->{
+            assertThat(cookie).contains("ZHKU_RULE_CHECK_SESSION=", "Path=/api"+P);
+        });
+        assertThat(session.isInvalid()).isTrue();
     });}
     @Test void realSessionTokenChangesAfterLoginAndOldTokenCannotSubmit(){run((mvc,repository)->{
         var first=mvc.perform(get(P+"/auth/csrf")).andExpect(status().isOk()).andReturn();
@@ -127,7 +129,7 @@ class RuleCheckPreviewSecurityConfigurationTest {
     @Test void cookieScopeLifetimePersistenceAndBindingCannotBeOverridden(){
         for(var pair:new String[][]{{"server.address","0.0.0.0"},{"server.servlet.context-path","/"},
                 {"server.servlet.session.cookie.name","ZHKU_CONTROLLED_SESSION"},{"server.servlet.session.cookie.path","/api"},
-                {"server.servlet.session.cookie.http-only","false"},{"server.servlet.session.cookie.secure","true"},
+                {"server.servlet.session.cookie.http-only","false"},{"server.servlet.session.cookie.secure","invalid"},
                 {"server.servlet.session.cookie.same-site","lax"},{"server.servlet.session.timeout","1h"},
                 {"server.servlet.session.persistent","true"},{"server.servlet.session.tracking-modes","url"},
                 {"server.servlet.session.cookie.domain","localhost"},{"server.servlet.session.cookie.max-age","1h"},
@@ -177,6 +179,10 @@ class RuleCheckPreviewSecurityConfigurationTest {
         @Bean PreviewIdentityRepository repository(){
             initializations.incrementAndGet();
             var repository=mock(PreviewIdentityRepository.class);
+            when(repository.account(any())).thenAnswer(invocation->{
+                TrustedActor actor=invocation.getArgument(0);
+                return new PreviewIdentityRepository.Account(actor.userId(),"user-a","user-a","ACTIVE",java.time.Instant.parse("2026-01-01T00:00:00Z"));
+            });
             when(repository.authenticate(anyString(),any())).thenAnswer(invocation->{
                 Arrays.fill((char[])invocation.getArgument(1),'\0');String name=invocation.getArgument(0);
                 return name.equals("user-a")?Optional.of(new PreviewPrincipal(USER)):name.equals("maintainer")?Optional.of(new PreviewPrincipal(MAINTAINER)):Optional.empty();

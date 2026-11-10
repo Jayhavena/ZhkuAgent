@@ -1,5 +1,4 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
@@ -7,34 +6,9 @@ import HelloWorld from './components/HelloWorld.vue'
 </template>
 
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 html, body {
-  font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 16px;
   color: #333;
-  background-color: #f0f2f5;
-  width: 100%;
-  height: 100%;
-  overflow-x: hidden;
-}
-
-#app {
-  width: 100%;
-  height: 100%;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-button {
-  cursor: pointer;
+  background-color: #fff;
 }
 
 /* 响应式字体大小 */

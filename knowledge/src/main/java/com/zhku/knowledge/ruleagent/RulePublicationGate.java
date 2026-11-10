@@ -68,10 +68,13 @@ public final class RulePublicationGate {
             uncovered.removeAll(covered);
             boolean unresolved=review.requirements().stream().anyMatch(r->r.span().subquestionId().equals(item.subquestionId())&&r.recognition()!=Recognition.IDENTIFIED)
                 ||review.unresolvedDemands().stream().anyMatch(r->r.span().subquestionId().equals(item.subquestionId()));
+            // 需求已识别但审核资料/能力不覆盖（实时截止时间、代办等）属资料边界，不能与“尚未理解需求”共用同一失败语义。
+            boolean unsupported=review.unresolvedDemands().stream().anyMatch(r->r.span().subquestionId().equals(item.subquestionId())
+                &&r.reason()==UnresolvedReason.UNSUPPORTED_DIMENSION);
             boolean issues=!item.issues().isEmpty();
             complete&=uncovered.isEmpty()&&!unresolved&&!issues;
             hasCovered|=!covered.isEmpty();
-            assessments.put(item.subquestionId(),new QuestionAssessment(covered,uncovered,unresolved,issues));
+            assessments.put(item.subquestionId(),new QuestionAssessment(covered,uncovered,unresolved,unsupported,issues));
         }
         // 辅助例外不完成主需求；漏选已读事实也不能借核验器看过它而自称完整。
         return new PublicationAssessment(complete?Verdict.COMPLETE:hasCovered?Verdict.PARTIAL:Verdict.UNRESOLVED,accepted,assessments);
@@ -123,7 +126,7 @@ public final class RulePublicationGate {
             // 追问不能掩盖其余未理解/未完成需求；首期只接受可由这一审核条件推进的澄清。
             if(unresolved||uncovered.stream().anyMatch(id->!pending.contains(id)))throw new Rejected(Code.CONDITION_NOT_NECESSARY);
             hasKnown|=!covered.isEmpty();
-            assessments.put(q,new QuestionAssessment(covered,uncovered,false,false));
+            assessments.put(q,new QuestionAssessment(covered,uncovered,false,false,false));
         }
         if(pending.isEmpty()||pending.stream().allMatch(id->assessments.get(ask.subquestionId()).coveredRequirementIds().contains(id)))
             throw new Rejected(Code.CONDITION_NOT_NECESSARY);

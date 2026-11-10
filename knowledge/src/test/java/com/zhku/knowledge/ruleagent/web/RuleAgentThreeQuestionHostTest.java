@@ -58,7 +58,7 @@ class RuleAgentThreeQuestionHostTest {
         assets = Path.of(System.getProperty("zhku.t06.root")).toRealPath();
         batch = Path.of(System.getProperty("zhku.three.batch")).toAbsolutePath().normalize();
         plan = RuleAgentThreeQuestionPackage.plan(root);
-        single = RuleAgentThreeQuestionPackage.e02Profile();
+        single = RuleAgentThreeQuestionPackage.singlePageProfile();
         hardBudgetRmb = single ? RuleAgentE02Policy.HARD_BUDGET_RMB : "16.10";
         maximumCalls = single ? RuleAgentE02Policy.MAXIMUM_PROVIDER_CALLS : 20;
         if (operation.equals("prepare")) {
@@ -144,12 +144,13 @@ class RuleAgentThreeQuestionHostTest {
     private static void runHttpFixture() throws Exception {
         keyReads.set(0); calls.set(0); stopped = false; reserved = BigDecimal.ZERO; queue.clear(); outcomes.clear();
         scope = single ? null : new RuleAgentThreeQuestionScope(plan);
-        e02Scope = single ? new RuleAgentE02Scope(plan) : null;
+        e02Scope = single ? new RuleAgentE02Scope(plan, RuleAgentThreeQuestionPackage.profile()) : null;
         if (live) workers = Executors.newSingleThreadExecutor(r -> new Thread(r, "zhku-three-question-worker"));
         ServletWebServerApplicationContext context = null;
         int port = -1;
         String oldPort = System.getProperty("server.port");
         boolean passed = false, closed = false;
+        Throwable primary = null;
         try {
             RuleAgentSimulatedChainTempDbHttpTest.installReviewedAssetsAndIdentities();
             System.setProperty("server.port", "0");
@@ -180,31 +181,97 @@ class RuleAgentThreeQuestionHostTest {
             else if (single) pageDrivenE02(port);
             else executeCases(a, otherSession);
             passed = true;
+        } catch (Exception | Error failure) {
+            primary = failure;
+            throw failure;
         } finally {
             stopped = true;
-            if (store != null) store.close();
-            if (factory != null) factory.close();
-            if (workers != null) { workers.shutdown(); if (!workers.awaitTermination(5, TimeUnit.SECONDS)) { workers.shutdownNow(); if (!workers.awaitTermination(5, TimeUnit.SECONDS)) throw new IllegalStateException("worker未退出"); } }
-            // 取消尚未执行的assembly任务后再排空，证明不会创建Provider。
-            Runnable pending; while ((pending = queue.poll()) != null) pending.run();
-            if (context != null) context.close();
-            RuleAgentSimulatedChainTempDbHttpTest.uninstall();
-            if (oldPort == null) System.clearProperty("server.port"); else System.setProperty("server.port", oldPort);
-            closed = (store == null || store.activeJobs() == 0) && (factory == null || factory.resourcesClosed()) && (workers == null || workers.isTerminated());
-            if (port > 0) try (var socket = new Socket()) { socket.connect(new InetSocketAddress("127.0.0.1", port), 300); closed = false; } catch (java.io.IOException expected) { /* 已停止监听 */ }
-            var receipt = JSON.createObjectNode().put("mode", live ? "LIVE" : "ASSEMBLY_NO_MODEL")
-                    .put("httpChecksPassed", passed).put("resourcesClosed", closed).put("providerCalls", calls.get()).put("keyReads", keyReads.get())
-                    .put("reservedRmb", reserved.toPlainString()).put("hardBudgetRmb", hardBudgetRmb).put("packageSha256", hash)
-                    .put("browserTested", false).put("humanProductReview", live ? "REQUIRED_NOT_AUTOMATICALLY_PASSED" : "NOT_EXECUTED")
-                    .put("billing", live ? "SUPPLIER_BILL_NOT_RECONCILED" : "ZERO_PROVIDER_CALLS")
-                    .put("pageProxyPreflight", System.getProperty("zhku.three.pageProxyPort") != null)
-                    .put("profile", single ? "E02" : "Three")
-                    .put("scopeRuns", single ? e02Scope.runs() : scope.runs()).put("remainingProviderCalls", factory == null ? -1 : factory.remainingCalls());
-            receipt.set("outcomes", JSON.valueToTree(outcomes));
-            Files.write(batch.resolve(live ? "live-result.json" : "assembly-result.json"), JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(receipt), StandardOpenOption.CREATE_NEW);
+            var cleanup = new Cleanup();
+            if (primary instanceof InterruptedException) cleanup.interrupted = true;
+            final var closingContext = context;
+            final int closingPort = port;
+            final boolean httpPassed = passed;
+            boolean[] resourcesClosed = {false};
+            cleanup.attempt(() -> { if (store != null) store.close(); });
+            cleanup.attempt(() -> { if (factory != null) factory.close(); });
+            cleanup.attempt(() -> stopWorkers(workers));
+            // 已取消的排队任务仍逐项排空；单项异常不能阻止剩余清理。
+            Runnable pending;
+            while ((pending = queue.poll()) != null) { Runnable job = pending; cleanup.attempt(job::run); }
+            cleanup.attempt(() -> { if (closingContext != null) closingContext.close(); });
+            cleanup.attempt(RuleAgentSimulatedChainTempDbHttpTest::uninstall);
+            cleanup.attempt(() -> { if (oldPort == null) System.clearProperty("server.port"); else System.setProperty("server.port", oldPort); });
+            cleanup.attempt(() -> {
+                resourcesClosed[0] = (store == null || store.activeJobs() == 0) && (factory == null || factory.resourcesClosed()) && (workers == null || workers.isTerminated());
+                if (closingPort > 0) try (var socket = new Socket()) { socket.connect(new InetSocketAddress("127.0.0.1", closingPort), 300); resourcesClosed[0] = false; } catch (java.io.IOException expected) { /* 已停止监听 */ }
+            });
+            cleanup.attempt(() -> {
+                var receipt = JSON.createObjectNode().put("mode", live ? "LIVE" : "ASSEMBLY_NO_MODEL")
+                        .put("httpChecksPassed", httpPassed).put("resourcesClosed", resourcesClosed[0] && cleanup.failure == null)
+                        .put("cleanupFailed", cleanup.failure != null).put("providerCalls", calls.get()).put("keyReads", keyReads.get())
+                        .put("reservedRmb", reserved.toPlainString()).put("hardBudgetRmb", hardBudgetRmb).put("packageSha256", hash)
+                        .put("browserTested", false).put("humanProductReview", live ? "REQUIRED_NOT_AUTOMATICALLY_PASSED" : "NOT_EXECUTED")
+                        .put("billing", live ? "SUPPLIER_BILL_NOT_RECONCILED" : "ZERO_PROVIDER_CALLS")
+                        .put("pageProxyPreflight", System.getProperty("zhku.three.pageProxyPort") != null)
+                        .put("profile", RuleAgentThreeQuestionPackage.profile())
+                        .put("scopeRuns", single ? (e02Scope == null ? 0 : e02Scope.runs()) : (scope == null ? 0 : scope.runs()))
+                        .put("remainingProviderCalls", factory == null ? -1 : factory.remainingCalls());
+                receipt.set("outcomes", JSON.valueToTree(outcomes));
+                Files.write(batch.resolve(live ? "live-result.json" : "assembly-result.json"), JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(receipt), StandardOpenOption.CREATE_NEW);
+            });
+            closed = resourcesClosed[0] && cleanup.failure == null;
+            cleanup.finish(primary);
         }
         assertThat(closed).isTrue();
         if (!live) { assertThat(calls.get()).isZero(); assertThat(keyReads.get()).isZero(); }
+    }
+
+    @FunctionalInterface interface CleanupStep { void run() throws Exception; }
+    static void runCleanup(CleanupStep... steps) throws Exception {
+        var cleanup = new Cleanup();
+        for (var step : steps) cleanup.attempt(step);
+        cleanup.finish(null);
+    }
+
+    static final class Cleanup {
+        Throwable failure;
+        boolean interrupted = Thread.interrupted();
+        void attempt(CleanupStep step) {
+            try { step.run(); }
+            catch (Throwable next) {
+                if (next instanceof InterruptedException) interrupted = true;
+                if (failure == null) failure = next;
+                else if (failure != next) failure.addSuppressed(next);
+            } finally {
+                // 清理期间暂时清除中断，避免后续有界等待立即失败；结束时恢复。
+                if (Thread.interrupted()) interrupted = true;
+            }
+        }
+        void finish(Throwable primary) throws Exception {
+            if (interrupted) Thread.currentThread().interrupt();
+            if (failure == null) return;
+            if (primary != null) { if (primary != failure) primary.addSuppressed(failure); return; }
+            if (failure instanceof Error error) throw error;
+            if (failure instanceof Exception exception) throw exception;
+            throw new IllegalStateException(failure);
+        }
+    }
+
+    private static void stopWorkers(ExecutorService executor) throws InterruptedException {
+        if (executor == null) return;
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+                if (!executor.awaitTermination(5, TimeUnit.SECONDS)) throw new IllegalStateException("worker未退出");
+            }
+        } catch (InterruptedException interrupted) {
+            try {
+                executor.shutdownNow();
+                if (!executor.awaitTermination(5, TimeUnit.SECONDS)) interrupted.addSuppressed(new IllegalStateException("worker未退出"));
+            } catch (InterruptedException | RuntimeException failure) { interrupted.addSuppressed(failure); }
+            throw interrupted;
+        }
     }
 
     /**
@@ -213,6 +280,7 @@ class RuleAgentThreeQuestionHostTest {
      * 不代替页面提交、不发业务POST、不跑第二次。
      */
     private static void pageDrivenE02(int port) throws Exception {
+        String driverLeaseNonce = readDriverLease(batch, hash);
         assertThat(queue).isEmpty();
         Path frontend = root.resolve("agent/frontend");
         Path dist = root.resolve(plan.path("page").path("dist").asText());
@@ -220,6 +288,7 @@ class RuleAgentThreeQuestionHostTest {
         int proxyPort;
         try (var probe = new java.net.ServerSocket(0, 1, java.net.InetAddress.getByName("127.0.0.1"))) { proxyPort = probe.getLocalPort(); }
         Process preview = null;
+        Throwable pageFailure = null;
         try {
             var serve = new ProcessBuilder("node", "node_modules/vite/bin/vite.js", "preview", "--outDir", dist.toString(),
                     "--host", "127.0.0.1", "--port", String.valueOf(proxyPort), "--strictPort").directory(frontend.toFile())
@@ -244,15 +313,8 @@ class RuleAgentThreeQuestionHostTest {
                 Thread.sleep(100);
             }
             assertThat(ready).as("本包冻结的student构建须经本轮回环代理提供").isTrue();
-            var readyTicket = JSON.createObjectNode()
-                    .put("profile", "E02").put("executionMode", "ONLINE").put("browserRequired", true)
-                    .put("backendPort", port).put("proxyPort", proxyPort).put("schemaVersion", 4)
-                    .put("question", plan.path("cases").get(0).path("question").asText())
-                    .put("maximumTasks", 1).put("maximumRuns", 1)
-                    .put("maximumProviderCalls", maximumCalls).put("hardBudgetRmb", hardBudgetRmb)
-                    .put("packageSha256", hash)
-                    .put("javaPostAllowed", false).put("driver", plan.path("page").path("driver").asText());
-            Files.write(batch.resolve("browser-ready.json"), JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(readyTicket), StandardOpenOption.CREATE_NEW);
+            var readyTicket = readyTicket(port, proxyPort, driverLeaseNonce);
+            writeReadyTicket(batch, readyTicket);
             // 页面租约必须有界：上限只由本宿主预算与计划时长决定，不无限等待。
             long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(600);
             while (!Files.exists(batch.resolve("STOP")) && System.nanoTime() < deadline) Thread.sleep(100);
@@ -273,19 +335,107 @@ class RuleAgentThreeQuestionHostTest {
             assertThat(snapshot).isNotNull();
             assertThat(snapshot.terminated()).as("页面任务须在宿主预算内到达终态").isTrue();
             assertThat(snapshot.execution().mode()).isEqualTo(Mode.ONLINE);
-            assertThat(snapshot.taskStatus()).isNotEqualTo(TaskStatus.FAILED);
-            recordOutcome("E02", JSON.valueToTree(snapshot));
+            recordE02Outcome(snapshot);
             assertThat(e02Scope.tasks()).isEqualTo(1);
             assertThat(e02Scope.runs()).isEqualTo(1);
             assertThat(calls.get()).isBetween(1, maximumCalls);
+        } catch (Exception | Error failure) {
+            pageFailure = failure;
+            throw failure;
         } finally {
-            if (preview != null && preview.isAlive()) {
-                preview.destroy();
-                if (!preview.waitFor(3, TimeUnit.SECONDS)) preview.destroyForcibly();
+            finishPage(preview, proxyPort, batch, pageFailure);
+        }
+    }
+
+    static void finishPage(Process preview, int port, Path batch, Throwable primary) throws Exception {
+        try {
+            finishOwnedPreview(preview, port, batch);
+        } catch (Exception | Error cleanupFailure) {
+            if (primary == null) throw cleanupFailure;
+            if (primary != cleanupFailure) primary.addSuppressed(cleanupFailure);
+        } finally {
+            if (primary instanceof InterruptedException) Thread.currentThread().interrupt();
+        }
+    }
+
+    static void writeReadyTicket(Path batch, ObjectNode ticket) throws Exception {
+        Files.write(batch.resolve("browser-ready.json"), JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(ticket), StandardOpenOption.CREATE_NEW);
+    }
+
+    static ObjectNode readyTicket(int port, int proxyPort, String driverLeaseNonce) {
+        return JSON.createObjectNode()
+                .put("profile", RuleAgentThreeQuestionPackage.profile()).put("executionMode", "ONLINE").put("browserRequired", true)
+                .put("backendPort", port).put("proxyPort", proxyPort).put("schemaVersion", 4)
+                .put("question", plan.path("cases").get(0).path("question").asText())
+                .put("maximumTasks", 1).put("maximumRuns", 1)
+                .put("maximumProviderCalls", maximumCalls).put("hardBudgetRmb", hardBudgetRmb)
+                .put("packageSha256", hash)
+                .put("driverLeaseSchemaVersion", 1).put("driverLeaseNonce", driverLeaseNonce)
+                .put("javaPostAllowed", false).put("driver", plan.path("page").path("driver").asText());
+    }
+
+    static String readDriverLease(Path batch, String hash) throws Exception {
+        for (String marker : List.of("browser-ready.json", "STOP", "live-result.json"))
+            if (Files.exists(batch.resolve(marker), LinkOption.NOFOLLOW_LINKS))
+                throw new IllegalStateException("拒绝复用已开始或已结束的浏览器批次: " + marker);
+        Path lease = batch.resolve("browser-driver-lease.json");
+        if (!Files.isRegularFile(lease)) throw new IllegalStateException("缺少本轮浏览器租约");
+        if (hash == null || !hash.matches("[0-9a-f]{64}") || Files.size(lease) > 4096)
+            throw new IllegalStateException("浏览器租约或包哈希无效");
+        JsonNode value;
+        try (var parser = JSON.getFactory().createParser(Files.readAllBytes(lease))) {
+            parser.enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+            value = JSON.readTree(parser);
+            if (parser.nextToken() != null) throw new IllegalStateException("浏览器租约包含额外内容");
+        }
+        if (value == null || !value.isObject() || value.size() != 3
+                || !value.path("schemaVersion").isIntegralNumber() || !value.path("schemaVersion").canConvertToInt() || value.path("schemaVersion").intValue() != 1
+                || !value.path("nonce").isTextual() || !value.path("nonce").asText().matches("[0-9a-f]{64}")
+                || !value.path("packageSha256").isTextual() || !hash.equals(value.path("packageSha256").asText()))
+            throw new IllegalStateException("浏览器租约与本轮包不匹配");
+        // 仅关联本轮批次，不作为同用户恶意进程的身份认证。
+        return value.path("nonce").asText();
+    }
+
+    static void finishOwnedPreview(Process preview, int proxyPort, Path batch) throws Exception {
+        try {
+            if (preview != null) stopOwnedPreview(preview);
+        } catch (Exception | Error failure) {
+            // 停止失败也记录事实；回执失败不能覆盖原始停止异常。
+            try { writePreviewExit(preview, proxyPort, batch, true); }
+            catch (Exception | Error receiptFailure) { failure.addSuppressed(receiptFailure); }
+            throw failure;
+        }
+        writePreviewExit(preview, proxyPort, batch, false);
+    }
+
+    private static void writePreviewExit(Process preview, int proxyPort, Path batch, boolean stopFailed) throws Exception {
+        var receipt = JSON.createObjectNode().put("proxyPort", proxyPort)
+                .put("exited", preview == null || !preview.isAlive())
+                .put("stopFailed", stopFailed).put("browserExecutedByHost", false);
+        Files.write(batch.resolve("page-proxy-exit.json"), JSON.writeValueAsBytes(receipt), StandardOpenOption.CREATE_NEW);
+    }
+
+    // destroyForcibly 只是发出请求；必须再次有界等待，不能把仍存活的进程记为已回收。
+    static void stopOwnedPreview(Process preview) throws InterruptedException {
+        if (!preview.isAlive()) return;
+        preview.destroy();
+        try {
+            if (!preview.waitFor(3, TimeUnit.SECONDS)) {
+                preview.destroyForcibly();
+                if (!preview.waitFor(3, TimeUnit.SECONDS)) throw new IllegalStateException("本轮预览进程未退出");
             }
-            Files.writeString(batch.resolve("page-proxy-exit.json"),
-                    "{\"proxyPort\":" + proxyPort + ",\"exited\":" + (preview == null || !preview.isAlive())
-                            + ",\"browserExecutedByHost\":false}", StandardOpenOption.CREATE_NEW);
+        } catch (InterruptedException interrupted) {
+            // 中断不能留下 owned 进程；回收后恢复中断并保留首个异常。
+            try {
+                preview.destroyForcibly();
+                if (!preview.waitFor(3, TimeUnit.SECONDS)) interrupted.addSuppressed(new IllegalStateException("本轮预览进程未退出"));
+            } catch (InterruptedException | RuntimeException cleanupFailure) {
+                interrupted.addSuppressed(cleanupFailure);
+            } finally {
+                Thread.currentThread().interrupt();
+            }
+            throw interrupted;
         }
     }
 
@@ -348,6 +498,13 @@ class RuleAgentThreeQuestionHostTest {
         }
         throw new IllegalStateException("任务等待超时，停止不重试");
     }
+    static void recordE02Outcome(TaskSnapshot snapshot) throws Exception {
+        // 先保存原终态和原因码，再拒绝失败；否则失败断言会把唯一回执吞掉。
+        recordOutcome(RuleAgentThreeQuestionPackage.e13Profile() ? "E13" : "E02", JSON.valueToTree(snapshot));
+        if (RuleAgentThreeQuestionPackage.e13Profile()) RuleAgentE13Policy.terminal(snapshot);
+        assertThat(snapshot.taskStatus()).as("E02失败或停止不能算通过")
+                .isNotIn(TaskStatus.FAILED, TaskStatus.STOPPED);
+    }
     private static void recordOutcome(String id, JsonNode value) throws Exception {
         ObjectNode item = JSON.createObjectNode().put("caseId", id).put("safetyVerdict", "HUMAN_REVIEW_REQUIRED").put("productVerdict", "HUMAN_REVIEW_REQUIRED");
         item.set("snapshot", redact(value)); outcomes.add(item); journal("task-results.jsonl", item);
@@ -357,7 +514,8 @@ class RuleAgentThreeQuestionHostTest {
         if (value.isArray()) { ArrayNode safe = JSON.createArrayNode(); value.forEach(e -> safe.add(redact(e))); return safe; }
         return value;
     }
-    private static synchronized void audit(RuleAgentProvider.Trace trace) {
+    // 包可见只为回环 Provider 专项测试复用实际发送闸门；不新增运行入口或跳过审包。
+    static synchronized void audit(RuleAgentProvider.Trace trace) {
         if (trace.phase() == RuleAgentProvider.Phase.BEGIN) {
             // 预算/审包必须先于任何网络外发；这里失败必须抛出以阻断发送。
             try {
@@ -390,7 +548,7 @@ class RuleAgentThreeQuestionHostTest {
             stopped = true; failScope(); throw new IllegalStateException("HOST_USAGE_INVALID：用量未知或越界，保留全额预留并停止");
         }
     }
-    private static synchronized void exchange(RuleAgentProvider.Exchange exchange) {
+    static synchronized void exchange(RuleAgentProvider.Exchange exchange) {
         try {
             if (exchange.direction() == RuleAgentProvider.Direction.REQUEST) {
                 JsonNode wire = JSON.readTree(exchange.body());
@@ -404,6 +562,9 @@ class RuleAgentThreeQuestionHostTest {
                 if (!(exchange.purpose() == RuleAgentProvider.Purpose.DECISION ? "json_schema" : "json_object").equals(format)) throw new IllegalStateException("决策/核验格式不匹配");
             }
             journal("provider-exchanges.jsonl", JSON.valueToTree(exchange));
+            if (RuleAgentThreeQuestionPackage.e13Profile() && exchange.purpose() == RuleAgentProvider.Purpose.PUBLICATION_REVIEW
+                    && exchange.direction() == RuleAgentProvider.Direction.RESPONSE)
+                RuleAgentE13Policy.reviewBoundary(JSON.readTree(exchange.body()));
         } catch (Exception failure) { stopped = true; failScope(); throw new IllegalStateException("正文审计失败，禁止外发"); }
     }
     private static synchronized void journal(String name, JsonNode value) throws Exception {

@@ -33,6 +33,9 @@ if ($CheckEnvironment) {
 }
 if ($DatabasePort -eq 54329) { throw '拒绝使用原演示库端口54329' }
 if ($Verify -and $Smoke) { throw 'Verify和Smoke须分开执行，保持证据类型明确' }
+# 临时库入口只拉起引擎，不启动或复用共享演示库；CheckEnvironment 仍保持无副作用。
+. (Join-Path $root 'scripts/ZhkuDocker.ps1')
+Ensure-ZhkuDocker -TimeoutSeconds 180
 if (!(Test-Path -LiteralPath $Maven)) { throw 'Maven路径不存在，可通过-Maven指定本机已安装位置' }
 if ((Test-Path -LiteralPath $board) -and (Get-Content -Raw -LiteralPath $board) -match '\| lease \| \*\*ACTIVE') { throw '旧共同lease仍占用，不能并行构建' }
 if (Test-Path -LiteralPath $leasePath) {

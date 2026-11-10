@@ -6,18 +6,26 @@ services:
     # 固定镜像版本，避免本地开发环境因上游镜像更新而产生不可复现的差异。
     image: pgvector/pgvector:0.8.6-pg16-bookworm
     container_name: zhkuagent-postgres
+    # 固定非秘密默认值与本机 Java 入口一致；缺口令时拒绝启动，避免空值和随机端口。
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: ${ZHKU_DB_NAME}
-      POSTGRES_USER: ${ZHKU_DB_USER}
-      POSTGRES_PASSWORD: ${ZHKU_DB_PASSWORD}
+      POSTGRES_DB: ${ZHKU_DB_NAME:-zhkuagent}
+      POSTGRES_USER: ${ZHKU_DB_USER:-zhkuagent}
+      POSTGRES_PASSWORD: ${ZHKU_DB_PASSWORD:?ZHKU_DB_PASSWORD must be configured}
     ports:
       # 只允许本机访问；MVP 不应将学生资料库直接暴露到局域网或公网。
-      - "127.0.0.1:${ZHKU_DB_PORT}:5432"
+      - "127.0.0.1:${ZHKU_DB_PORT:-54329}:5432"
     volumes:
       # 命名数据卷使重建容器不会误删知识库；明确清理数据卷才会丢失本地数据。
       - zhkuagent_postgres_data:/var/lib/postgresql/data
       # 仅在空数据卷首次初始化时执行，用于提供 PGVector 扩展。
-      - ./init/001-enable-pgvector.sql:/docker-entrypoint-initdb.d/001-enable-pgvector.sql:ro
+      # worktree 被移除时明确失败，不能让 Docker 把不存在的 SQL 文件创建成目录。
+      - type: bind
+        source: ./init/001-enable-pgvector.sql
+        target: /docker-entrypoint-initdb.d/001-enable-pgvector.sql
+        read_only: true
+        bind:
+          create_host_path: false
     healthcheck:
       # “容器正在运行”不代表数据库可连接，后续测试和应用应以 healthy 为准。
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]

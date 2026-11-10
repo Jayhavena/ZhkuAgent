@@ -18,6 +18,23 @@ class RuleAgentThreeQuestionPackageTest {
         }
     }
     private Clock at(String time) { return Clock.fixed(Instant.parse(time), ZoneOffset.UTC); }
+    @Test void integrationPlanIsExplicitAndOnlyAvailableForE02() {
+        String oldProfile = System.getProperty("zhku.three.profile");
+        String oldPlan = System.getProperty("zhku.three.plan");
+        try {
+            System.setProperty("zhku.three.profile", "E02");
+            System.setProperty("zhku.three.plan", "knowledge/src/test/resources/rule-agent-e02-integration-plan.json");
+            assertThat(RuleAgentThreeQuestionPackage.planPath()).isEqualTo("knowledge/src/test/resources/rule-agent-e02-integration-plan.json");
+            System.setProperty("zhku.three.profile", "E13");
+            assertThatThrownBy(RuleAgentThreeQuestionPackage::planPath).isInstanceOf(IllegalArgumentException.class);
+            System.setProperty("zhku.three.profile", "E02");
+            System.setProperty("zhku.three.plan", "../unapproved-plan.json");
+            assertThatThrownBy(RuleAgentThreeQuestionPackage::planPath).isInstanceOf(IllegalArgumentException.class);
+        } finally {
+            if (oldProfile == null) System.clearProperty("zhku.three.profile"); else System.setProperty("zhku.three.profile", oldProfile);
+            if (oldPlan == null) System.clearProperty("zhku.three.plan"); else System.setProperty("zhku.three.plan", oldPlan);
+        }
+    }
     @Test void reservesWholeContextAndTenExtraOutputTokensWithoutCacheAssumptions() throws Exception {
         JsonNode p = plan();
         assertThat(RuleAgentThreeQuestionPackage.perCallReserve(p)).isEqualByComparingTo("0.8027918");

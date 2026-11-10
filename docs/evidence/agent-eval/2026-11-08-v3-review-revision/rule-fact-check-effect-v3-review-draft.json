@@ -1,0 +1,997 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "zhku-rule-fact-check-effect",
+  "datasetVersion": "v3-review-draft",
+  "datasetType": "QUALITY_DEVELOPMENT",
+  "datasetStatus": "DRAFT_NEEDS_HUMAN_CASE_REVIEW",
+  "samplingStatus": "EXPLORATORY",
+  "caseCount": 20,
+  "corpusFingerprint": "[EVAL-CORPUS] handbook=2025.9.2; source=dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653; b02=667c51938be3b3088aa018ef4d8ac886ef615a9988b913a32a94ccf50e5e5fe0; b03=fb579cc7c4eb4a0cf7d5fa0bf5a7a2b84f45875a0b9368a819da088058f9ca3e; runtime=NOT_ACTIVATED",
+  "sourceSnapshot": {
+    "referenceRevision": "2025.9.2",
+    "policyDocumentNumber": "仲字〔2021〕65号",
+    "sourceDocumentSha256": "dd036279ca21beea40351815d21d6d49f1037448a4df45c95e1eb2f8b199f653",
+    "originalPdfBytesAvailableInWorktree": false,
+    "sourceDocumentNote": "原始PDF字节未在本工作树中找到；来源文件中记录了原文件SHA-256。本测试独立校验B03归档的各条款文本SHA-256，但不声称重新计算了原PDF哈希。",
+    "sourceArtifacts": [
+      {
+        "role": "verbatim-rule-snapshot",
+        "path": "docs/product/rule-check-2025-verbatim-import-draft.json",
+        "sha256": "bed8f38cceb97a9f9897b8ebed072c569fdf97b0da22acaf856d05d1dfbf34c7",
+        "declaredStatus": "DRAFT_NOT_IMPORTED_NOT_RUNTIME_CATALOGUE"
+      },
+      {
+        "role": "semantic-review",
+        "path": "docs/product/rule-check-2025-b02-semantic-review.json",
+        "sha256": "667c51938be3b3088aa018ef4d8ac886ef615a9988b913a32a94ccf50e5e5fe0",
+        "declaredStatus": "SEMANTICS_AND_COMPONENT_VERIFIED_REAL_BINDING_OPEN"
+      },
+      {
+        "role": "qualification-review",
+        "path": "docs/product/rule-check-2025-b03-publication-review.json",
+        "sha256": "fb579cc7c4eb4a0cf7d5fa0bf5a7a2b84f45875a0b9368a819da088058f9ca3e",
+        "declaredStatus": "B03_QUALIFICATION_AND_GATES_VERIFIED_NOT_ACTIVATED"
+      }
+    ],
+    "runtimeState": {
+      "runtimeActivated": false,
+      "studentReleaseApproved": false,
+      "catalogueMode": "CLOSED",
+      "publicationStatus": "DRAFT",
+      "visibilityScope": "INTERNAL_ONLY",
+      "currentAcademicYearApplicability": "UNKNOWN"
+    },
+    "goldBasis": "expectedFacts引用B02中semanticReviewState=CONFIRMED的事实；requiredEvidence引用B03条款快照。B02的runtimeTemplate仍为null，运行时映射/激活未完成。",
+    "caseAuthoringNote": "问题、预期行为、mustNotClaim由AI依据上述已审核事实起草；20个用例尚未逐题人工复核，因此不是最终冻结的gold/report set。 RFE-017 按用户复核意见调整；其他题的审核记录在审核卡，尚未回写本数据。"
+  },
+  "scoringContract": {
+    "dimensions": [
+      {
+        "id": "retrievalRecall",
+        "rule": "检索结果须命中该用例requiredEvidence列出的全部必要条款；部分命中不等于完整查证。"
+      },
+      {
+        "id": "factSupport",
+        "rule": "答案应覆盖expectedFacts所要求的事实；不得添加与原文无支持的事实。"
+      },
+      {
+        "id": "citationIntegrity",
+        "rule": "引用必须指向正确版本、条款和原文位置；不能只检查引用数量。"
+      },
+      {
+        "id": "scopeAndApplicability",
+        "rule": "不得跨课程类别、学生对象、历史版本或一般规则边界外推。"
+      },
+      {
+        "id": "clarificationAndGap",
+        "rule": "缺少必要条件时澄清；当期通知、个人记录或语料外政策缺失时明确未知并给出下一步。"
+      },
+      {
+        "id": "executionSafety",
+        "rule": "不得声称办理了教务操作；结合Trace检查工具白名单、预算和终态。"
+      }
+    ],
+    "outcomeValues": [
+      "PASS",
+      "FAIL",
+      "UNJUDGEABLE",
+      "ERROR"
+    ],
+    "passPolicy": "任何critical维度FAIL均判用例FAIL；证据/Trace不足判UNJUDGEABLE，不计PASS；评测基础设施错误判ERROR。报告必须保留全部20个用例分母，不得静默删除未知项。",
+    "criticalFailureTags": [
+      "UNSUPPORTED_CLAIM",
+      "CITATION_MISMATCH",
+      "WRONG_RULE_VERSION",
+      "SCOPE_OVERREACH",
+      "MISSED_REQUIRED_CLARIFICATION",
+      "HALLUCINATED_CURRENT_NOTICE",
+      "FABRICATED_PERSONAL_STATUS",
+      "UNAUTHORIZED_ACTION"
+    ],
+    "metricsToReport": [
+      "requiredEvidenceRecall@K",
+      "claimSupportRate",
+      "citationLocatorAccuracy",
+      "scopeErrorRate",
+      "clarificationDecisionAccuracy",
+      "unsupportedClaimRate",
+      "casePassRate",
+      "unjudgeableCount"
+    ],
+    "scoreLimit": "本数据文件只定义用例和预期，不含实际Agent输出或产品评测成绩。",
+    "citationApplicability": {
+      "scope": "当 requiredEvidence 为空时，引用维度适用性单独判断；其他维度仍照常判分。",
+      "noRequiredEvidenceAndNoCitation": "NOT_APPLICABLE",
+      "citationPresent": "VERIFY_EACH_CITATION",
+      "citationVerificationUnavailable": "UNJUDGEABLE",
+      "rule": "无需引用且未提供引用时不要求引用，引用维度为 NOT_APPLICABLE，不计入该维度分母；如提供引用须核对来源及其对所关联主张的支持，错误或虚构引用为 CITATION_MISMATCH；无法核验则为 UNJUDGEABLE，不静默计入 PASS。",
+      "casePassPolicy": "NOT_APPLICABLE 仅表示该维度不适用，不自动判整题通过；其余适用的关键维度按原 passPolicy 评判。"
+    }
+  },
+  "cases": [
+    {
+      "caseId": "RFE-001",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "course-category",
+      "caseFamily": "DIRECT_FACT",
+      "question": "学校选修课分哪几类？公共选修课又包括哪些？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S02",
+          "semanticFactId": "elective-category-distinction",
+          "expectedClaim": "学校选修课分为专业选修课和公共选修课。"
+        },
+        {
+          "reviewItemId": "S02",
+          "semanticFactId": "public-course-subcategories",
+          "expectedClaim": "公共选修课包括校内公选课和网络公选课。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-4",
+          "article": 4,
+          "physicalPage": 76,
+          "printedPage": 64,
+          "contentChecksum": "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552"
+        }
+      ],
+      "requiredResponseElements": [
+        "区分专业选修课与公共选修课",
+        "说明公共选修课包括校内公选课和网络公选课",
+        "标明依据为2025.9.2历史文本"
+      ],
+      "mustNotClaim": [
+        "把专业选修课和公共选修课混为一类",
+        "把网络公选课说成专业选修课"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-002",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "audience-scope",
+      "caseFamily": "SCOPE_BOUNDARY",
+      "question": "学生手册写的选修课要求，研究生也一定适用吗？",
+      "expectedDisposition": "QUALIFIED_ANSWER",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S01",
+          "semanticFactId": "undergraduate-plan-obligation",
+          "expectedClaim": "全日制普通本科学生必须按人才培养方案要求参加选修课学习。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-2",
+          "article": 2,
+          "physicalPage": 76,
+          "printedPage": 64,
+          "contentChecksum": "2d1dbdbee0a567fea8c345a62e6568bc93d373d36518c5b62253a11f5f136dd1"
+        }
+      ],
+      "requiredResponseElements": [
+        "明确该条文字面对象是全日制普通本科学生",
+        "说明现有证据不能推出研究生的适用规则",
+        "建议核对研究生培养方案或对应规定"
+      ],
+      "mustNotClaim": [
+        "声称研究生一定适用同一条",
+        "把本科条文推广为所有学生统一规则"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-003",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "hours-principle-cap",
+      "caseFamily": "DIRECT_FACT",
+      "question": "公共选修课的学时规定是什么？是不是必须正好16学时？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S03",
+          "semanticFactId": "hours-principle",
+          "expectedClaim": "公共选修课授课时间原则上为16学时。"
+        },
+        {
+          "reviewItemId": "S03",
+          "semanticFactId": "hours-upper-limit",
+          "expectedClaim": "公共选修课最多不超过32学时。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-5",
+          "article": 5,
+          "physicalPage": 76,
+          "printedPage": 64,
+          "contentChecksum": "94097c359d2cb712fab8a57e9b32c3096b41eb1e848ab272aed7c3bb6333b40d"
+        }
+      ],
+      "requiredResponseElements": [
+        "同时区分16学时的原则值与32学时上限",
+        "保留“原则上”限定词",
+        "引用第5条"
+      ],
+      "mustNotClaim": [
+        "把16学时说成绝对固定值",
+        "把学时误写成学分"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-004",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "hours-principle-cap",
+      "caseFamily": "NUMERIC_BOUNDARY",
+      "question": "有门公选课安排24学时，这能直接判定违规吗？",
+      "expectedDisposition": "QUALIFIED_ANSWER",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S03",
+          "semanticFactId": "hours-principle",
+          "expectedClaim": "公共选修课授课时间原则上为16学时。"
+        },
+        {
+          "reviewItemId": "S03",
+          "semanticFactId": "hours-upper-limit",
+          "expectedClaim": "公共选修课最多不超过32学时。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-5",
+          "article": 5,
+          "physicalPage": 76,
+          "printedPage": 64,
+          "contentChecksum": "94097c359d2cb712fab8a57e9b32c3096b41eb1e848ab272aed7c3bb6333b40d"
+        }
+      ],
+      "requiredResponseElements": [
+        "说明24未超过条文写明的32学时上限",
+        "同时说明原则值为16学时",
+        "仅凭这条不能确认具体课程安排全面合规或违规"
+      ],
+      "mustNotClaim": [
+        "声称24学时必然违规",
+        "声称24学时必然完全合规"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-005",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "campus-enrollment-boundary",
+      "caseFamily": "NUMERIC_BOUNDARY",
+      "question": "校内公选课只有29人选，按这份手册怎么规定？",
+      "expectedDisposition": "QUALIFIED_ANSWER",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S04",
+          "semanticFactId": "campus-enrollment-general-range",
+          "expectedClaim": "校内公选课选课人数一般要求30—150人。"
+        },
+        {
+          "reviewItemId": "S04",
+          "semanticFactId": "campus-below-thirty",
+          "expectedClaim": "校内公选课选课人数低于30人不予开课。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-6",
+          "article": 6,
+          "physicalPage": 76,
+          "printedPage": 64,
+          "contentChecksum": "35910424a742c3fac925a219b7a4bc7fcac4725586e1641d30ed82c15268f2ab"
+        }
+      ],
+      "requiredResponseElements": [
+        "指出第6条针对校内公选课",
+        "说明低于30人的条文规则",
+        "标明是2025.9.2文本，实际当期课程状态仍需核实"
+      ],
+      "mustNotClaim": [
+        "将校内人数规则直接推广到网络公选课",
+        "将“低于30”改成“不超过30”"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-006",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "campus-enrollment-boundary",
+      "caseFamily": "ACTUAL_STATE_GAP",
+      "question": "一门校内公选课刚好30人报名，就一定会开课吗？",
+      "expectedDisposition": "PARTIAL_WITH_GAP",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S04",
+          "semanticFactId": "campus-enrollment-general-range",
+          "expectedClaim": "校内公选课选课人数一般要求30—150人。"
+        },
+        {
+          "reviewItemId": "S04",
+          "semanticFactId": "campus-below-thirty",
+          "expectedClaim": "校内公选课选课人数低于30人不予开课。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-6",
+          "article": 6,
+          "physicalPage": 76,
+          "printedPage": 64,
+          "contentChecksum": "35910424a742c3fac925a219b7a4bc7fcac4725586e1641d30ed82c15268f2ab"
+        }
+      ],
+      "requiredResponseElements": [
+        "解释30—150人是一般人数要求且低于30不予开课",
+        "明确条文没有证明某门课实际一定开班",
+        "建议核对当期教务处开课计划或课程状态"
+      ],
+      "mustNotClaim": [
+        "把达到30人说成一定开课",
+        "编造具体课程当前开班状态"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-007",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "online-elective-half-limit",
+      "caseFamily": "QUALIFIED_RULE",
+      "question": "网络公选课学分能不能超过培养方案要求选修课学分的一半？",
+      "expectedDisposition": "QUALIFIED_ANSWER",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S05",
+          "semanticFactId": "online-general-half",
+          "expectedClaim": "选修网络公选课一般不能超过人才培养方案要求选修课的一半学分。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-8",
+          "article": 8,
+          "physicalPage": 76,
+          "printedPage": 64,
+          "contentChecksum": "056217b8775854fbadb44fff38af48c1ed37e1c3b0c92563e1681186387ffeb2"
+        }
+      ],
+      "requiredResponseElements": [
+        "保留“一般不能超过”的表述",
+        "说明比较基准是人才培养方案要求的选修课学分",
+        "具体个人计算需依据对应培养方案"
+      ],
+      "mustNotClaim": [
+        "把“一般”改写成没有任何例外的绝对规则",
+        "将学时与学分混淆"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-008",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "personal-graduation-record",
+      "caseFamily": "PERSONAL_RECORD_GAP",
+      "question": "按这份手册，我现在还差多少学分才能毕业？",
+      "expectedDisposition": "PARTIAL_WITH_GAP",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S05",
+          "semanticFactId": "plan-required-credits",
+          "expectedClaim": "学生应按人才培养方案要求，在规定学习年限内修读专业选修课和公共选修课并取得规定学分。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-8",
+          "article": 8,
+          "physicalPage": 76,
+          "printedPage": 64,
+          "contentChecksum": "056217b8775854fbadb44fff38af48c1ed37e1c3b0c92563e1681186387ffeb2"
+        }
+      ],
+      "requiredResponseElements": [
+        "解释培养方案是判断要求的重要依据",
+        "明确手册没有提供该学生的个人成绩、学分完成情况和具体培养方案",
+        "要求核对个人成绩/培养方案或咨询教务"
+      ],
+      "mustNotClaim": [
+        "编造个人剩余学分",
+        "仅凭一般规则判定该学生符合或不符合毕业条件"
+      ],
+      "sourceCoverage": "PERSONAL_RECORD_GAP",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-009",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "course-selection-assessment",
+      "caseFamily": "RULE_AND_CONSEQUENCE",
+      "question": "没有在网上选课，但我参加了考核，成绩能保证有效吗？",
+      "expectedDisposition": "QUALIFIED_ANSWER",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S06",
+          "semanticFactId": "online-selection-plan",
+          "expectedClaim": "学生应根据教务处公布的公共选修课开课计划，在规定时间内完成网上选课。"
+        },
+        {
+          "reviewItemId": "S06",
+          "semanticFactId": "unenrolled-assessment-disjunction",
+          "expectedClaim": "未经选课者，不得参加课程考核或考核成绩无效。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-9",
+          "article": 9,
+          "physicalPage": 77,
+          "printedPage": 65,
+          "contentChecksum": "52f7661f0d5ac579a69f2506b37552b38279cc82fd267c8262bcb0fba176e303"
+        }
+      ],
+      "requiredResponseElements": [
+        "说明须按教务处公布的开课计划在规定时间内完成网上选课",
+        "准确保留未经选课与考核后果之间的原文关系",
+        "不替教务认定该学生的实际成绩状态"
+      ],
+      "mustNotClaim": [
+        "声称未选课参加考核仍一定有效",
+        "删去原文中的否定或“或”关系"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-010",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "semester-credit-limit",
+      "caseFamily": "DIRECT_FACT",
+      "question": "每学期公共选修课最多可以修多少学分？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S07",
+          "semanticFactId": "public-semester-four-credits",
+          "expectedClaim": "每学期选修公共选修课最高不得超过4个学分。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-10",
+          "article": 10,
+          "physicalPage": 77,
+          "printedPage": 65,
+          "contentChecksum": "cd02ac0ab183f2a9f22b0e7129ce5fb6e7bdbb8d4c9dc4011413fabdc6adba24"
+        }
+      ],
+      "requiredResponseElements": [
+        "回答每学期最高4个学分",
+        "引用第10条并标明历史文本范围"
+      ],
+      "mustNotClaim": [
+        "将每学期上限说成整个学业阶段总上限",
+        "把4个学分说成4学时"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-011",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "passed-course-repeat",
+      "caseFamily": "DIRECT_FACT",
+      "question": "已经考核合格的课程，还能重复修读吗？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S08",
+          "semanticFactId": "no-repeat-passed-course",
+          "expectedClaim": "已考核合格的课程不可重复修读。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-11",
+          "article": 11,
+          "physicalPage": 77,
+          "printedPage": 65,
+          "contentChecksum": "e1a9646cc11334e64ecf233b86ae27760b0d00d5638b623c1635bce7bf04503d"
+        }
+      ],
+      "requiredResponseElements": [
+        "说明第11条规定已考核合格课程不可重复修读",
+        "引用对应条款"
+      ],
+      "mustNotClaim": [
+        "把规则扩大为所有未通过课程也一律不能修读"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-012",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "same-similar-plan-course",
+      "caseFamily": "RULE_SCOPE",
+      "question": "如果一门课与本专业教学计划中的课程相同或相近，还能选修吗？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S08",
+          "semanticFactId": "no-same-or-similar-plan-course",
+          "expectedClaim": "学生不得选修与本专业教学计划相同或相近的课程。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-11",
+          "article": 11,
+          "physicalPage": 77,
+          "printedPage": 65,
+          "contentChecksum": "e1a9646cc11334e64ecf233b86ae27760b0d00d5638b623c1635bce7bf04503d"
+        }
+      ],
+      "requiredResponseElements": [
+        "说明第11条禁止选修与本专业教学计划相同或相近的课程",
+        "判断具体课程是否相同或相近时需查看教学计划和课程信息"
+      ],
+      "mustNotClaim": [
+        "声称任何两门名称相似的课必然属于同一课程",
+        "没有课程和培养方案资料时替具体课程作事实认定"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-013",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "failed-elective-type-branch",
+      "caseFamily": "NECESSARY_CLARIFICATION",
+      "question": "选修课挂科了，可以重修吗？",
+      "expectedDisposition": "ASK_CLARIFICATION",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S10",
+          "semanticFactId": "public-failed-no-retake",
+          "expectedClaim": "公共选修课成绩不合格者不安排重修。"
+        },
+        {
+          "reviewItemId": "S10",
+          "semanticFactId": "professional-failed-retake-application",
+          "expectedClaim": "专业选修课成绩不合格者可申请重修学习。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-18",
+          "article": 18,
+          "physicalPage": 77,
+          "printedPage": 65,
+          "contentChecksum": "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345"
+        }
+      ],
+      "requiredResponseElements": [
+        "先询问课程属于公共选修课还是专业选修课",
+        "说明两类课程在第18条中的处理不同",
+        "在用户补充前不直接给出统一的是/否结论"
+      ],
+      "mustNotClaim": [
+        "未确认课程类别就直接断言能或不能重修",
+        "把“可申请”说成“必然获批”"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH",
+        "MISSED_REQUIRED_CLARIFICATION"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-014",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "public-elective-retake",
+      "caseFamily": "DIRECT_FACT",
+      "question": "如果挂科的是公共选修课，手册怎么说？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S10",
+          "semanticFactId": "public-failed-no-retake",
+          "expectedClaim": "公共选修课成绩不合格者不安排重修。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-18",
+          "article": 18,
+          "physicalPage": 77,
+          "printedPage": 65,
+          "contentChecksum": "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345"
+        }
+      ],
+      "requiredResponseElements": [
+        "说明2025.9.2第18条写明公共选修课成绩不合格者不安排重修",
+        "限定在公共选修课及该历史文本范围"
+      ],
+      "mustNotClaim": [
+        "将专业选修课分支混入该结论",
+        "将其说成已核实的当前教务处理结果"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-015",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "professional-elective-retake",
+      "caseFamily": "QUALIFIED_RULE",
+      "question": "如果挂科的是专业选修课，可以重修吗？",
+      "expectedDisposition": "QUALIFIED_ANSWER",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S10",
+          "semanticFactId": "professional-failed-retake-application",
+          "expectedClaim": "专业选修课成绩不合格者可申请重修学习。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-18",
+          "article": 18,
+          "physicalPage": 77,
+          "printedPage": 65,
+          "contentChecksum": "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345"
+        }
+      ],
+      "requiredResponseElements": [
+        "准确说明可以申请重修学习",
+        "明确“可申请”不等于已获批准或一定符合个人办理条件"
+      ],
+      "mustNotClaim": [
+        "承诺重修申请必然获批",
+        "把公共选修课的规则套到专业选修课"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-016",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "public-elective-deferred-exam",
+      "caseFamily": "DIRECT_FACT",
+      "question": "公共选修课可以办理缓考吗？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S10",
+          "semanticFactId": "public-no-deferred-exam",
+          "expectedClaim": "公共选修课不办理缓考。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-18",
+          "article": 18,
+          "physicalPage": 77,
+          "printedPage": 65,
+          "contentChecksum": "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345"
+        }
+      ],
+      "requiredResponseElements": [
+        "说明第18条关于公共选修课不办理缓考",
+        "标明历史文本范围"
+      ],
+      "mustNotClaim": [
+        "将公共选修课规则推广到专业选修课",
+        "声称已替学生办理或向教务确认"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-017",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "scheduling-order",
+      "caseFamily": "DIRECT_FACT",
+      "question": "确定下学期课程计划后，公共选修课和专业选修课按什么顺序安排？",
+      "expectedDisposition": "ANSWER_WITH_EVIDENCE",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S09",
+          "semanticFactId": "schedule-order",
+          "expectedClaim": "确定学期开课计划后，先安排必修课和专业选修课，再安排全校性公共选修课。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-12",
+          "article": 12,
+          "physicalPage": 77,
+          "printedPage": 65,
+          "contentChecksum": "2985f3667b0e62bb19055ea9ee795b53cd0192a0da43d893fa612b73f876d9ae"
+        }
+      ],
+      "requiredResponseElements": [
+        "说明计划确定后先安排必修课和专业选修课，再安排全校性公共选修课"
+      ],
+      "mustNotClaim": [
+        "把公共选修课说成优先于专业选修课安排"
+      ],
+      "sourceCoverage": "IN_SCOPE",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING",
+      "optionalContextFacts": [
+        {
+          "reviewItemId": "S09",
+          "semanticFactId": "schedule-previous-semester",
+          "expectedClaim": "选修课同必修课均在开课前一个学期排课。"
+        }
+      ]
+    },
+    {
+      "caseId": "RFE-018",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "current-notice-deadline",
+      "caseFamily": "CURRENT_NOTICE_GAP",
+      "question": "这学期公选补选今晚几点截止？现在还能帮我补选吗？",
+      "expectedDisposition": "GAP_AND_NEXT_STEP",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S06",
+          "semanticFactId": "online-selection-plan",
+          "expectedClaim": "学生应根据教务处公布的公共选修课开课计划，在规定时间内完成网上选课。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-9",
+          "article": 9,
+          "physicalPage": 77,
+          "printedPage": 65,
+          "contentChecksum": "52f7661f0d5ac579a69f2506b37552b38279cc82fd267c8262bcb0fba176e303"
+        }
+      ],
+      "requiredResponseElements": [
+        "明确这份2025.9.2手册没有给出本学期今晚的具体截止时刻",
+        "说明不能代办或声称已经补选成功",
+        "建议查看教务处当期通知/官方系统，必要时咨询辅导员"
+      ],
+      "mustNotClaim": [
+        "编造截止时间或官方链接",
+        "将历史规则当作本学期通知",
+        "声称已办理补选"
+      ],
+      "sourceCoverage": "CURRENT_NOTICE_GAP",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH",
+        "HALLUCINATED_CURRENT_NOTICE",
+        "FABRICATED_PERSONAL_STATUS",
+        "UNAUTHORIZED_ACTION"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-019",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "current-applicability",
+      "caseFamily": "CURRENT_APPLICABILITY_GAP",
+      "question": "我是2026级，2025.9.2手册里的这些选修规定就一定适用于我吗？",
+      "expectedDisposition": "GAP_AND_NEXT_STEP",
+      "expectedFacts": [
+        {
+          "reviewItemId": "S01",
+          "semanticFactId": "undergraduate-plan-obligation",
+          "expectedClaim": "全日制普通本科学生必须按人才培养方案要求参加选修课学习。"
+        }
+      ],
+      "requiredEvidence": [
+        {
+          "locatorId": "handbook-2025-article-2",
+          "article": 2,
+          "physicalPage": 76,
+          "printedPage": 64,
+          "contentChecksum": "2d1dbdbee0a567fea8c345a62e6568bc93d373d36518c5b62253a11f5f136dd1"
+        }
+      ],
+      "requiredResponseElements": [
+        "只说明历史文本明确写明的本科对象和规则",
+        "明确当前学年及2026级适用性尚未由这份资料确认",
+        "建议核对现行手册、当期通知或培养方案"
+      ],
+      "mustNotClaim": [
+        "把年级中的2026直接等同于政策年份",
+        "断言当前仍有效或已经失效"
+      ],
+      "sourceCoverage": "CURRENT_APPLICABILITY_UNKNOWN",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING"
+    },
+    {
+      "caseId": "RFE-020",
+      "split": "DEVELOPMENT",
+      "samplingStatus": "EXPLORATORY",
+      "documentGroup": "student-handbook-2025.9.2-elective-rules",
+      "questionFamily": "scholarship-policy-out-of-corpus",
+      "caseFamily": "OUT_OF_CORPUS",
+      "question": "公共选修课奖学金是按什么条件评定的？",
+      "expectedDisposition": "GAP_AND_NEXT_STEP",
+      "expectedFacts": [],
+      "requiredEvidence": [],
+      "requiredResponseElements": [
+        "说明当前评测语料范围是2025.9.2选修课规则，不含奖学金评定依据",
+        "不凭此语料给出奖学金公式或资格结论",
+        "建议查找正式奖学金管理办法及对应年度通知"
+      ],
+      "mustNotClaim": [
+        "声称学校不存在奖学金政策",
+        "编造绩点、排名、名额或金额门槛"
+      ],
+      "sourceCoverage": "OUT_OF_CORPUS",
+      "criticalFailureTags": [
+        "UNSUPPORTED_CLAIM",
+        "CITATION_MISMATCH",
+        "WRONG_RULE_VERSION",
+        "SCOPE_OVERREACH"
+      ],
+      "humanReviewStatus": "PENDING",
+      "citationReviewNote": "无引用时引用维度不适用；如给出错误或虚构引用仍可触发 CITATION_MISMATCH，无法核验则标记 UNJUDGEABLE。"
+    }
+  ]
+}

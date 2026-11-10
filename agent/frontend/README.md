@@ -14,9 +14,9 @@ Vue3 校园工作台已经连接受控后端：登录与退出、学分提交/�
 .\knowledge\scripts\start-controlled-web-demo.cmd
 ```
 
-默认网页 `http://127.0.0.1:58080/campus/login`。启动器隐藏设置 `user-a`、`user-b`、`maintainer` 密码，建立本次专用库并构建页面；`r` 重启保持本次库，`q` 退出删除本次临时数据。不是生产账号系统，无开放注册。
+默认网页 `http://127.0.0.1:58080/rules`。启动器隐藏设置 `user-a`、`user-b`、`maintainer` 密码，建立本次专用库并构建页面；`r` 重启保持本次库，`q` 退出删除本次临时数据。不是生产账号系统，无开放注册。
 
-页面路由：`/campus/login`、`/campus/run?submissionKey=...`、`/campus/history?runId=...`、`/campus/conversation?sessionId=...`。旧runId链接仍可读取本人任务，不会附上不相干的提交键。请求同源 `/api/zhku/controlled-preview/v1`；身份/CSRF/资料许可都由Java裁决。ID不是权限，防连点不是后端幂等。页面不恢复完整聊天；答案隐藏不能解释成执行失败。
+页面路由：`/rules`、`/login`、`/register`、`/account`。旧页面链接统一引导到规则查证；原受控 v1 API 代理仍保留，后端身份、CSRF 和资料许可继续由 Java 裁决。
 
 3C提交操作：首次提交生成键并冻结原请求；网络结果不明时优先“确认本次提交”，不会自动POST重试。只有当前页面仍持有原请求快照才允许手动重发同一次提交；刷新只保留最多5条用户/键/Run编号/时间元数据，不能重发丢失的原课程。“新建任务”才生成新键。401后同一账号重新登录可以查询；明确退出或切换账号会清理旧提示和结果。`UNCONFIRMED`不是未受理证明，`INTERRUPTED`不表示自动续跑。
 
@@ -33,4 +33,6 @@ node --test agent/frontend/tests/controlled-*.test.mjs
 
 已有受控服务可单独使用 `.\start-nginx-preview.cmd -BackendPort <实际端口>`；停止 `.\start-nginx-preview.cmd -Action Stop`。完整启动器使用每次独立ProjectName并负责自己的清理，不停止这个独立默认项目。[Nginx职责与故障定位](../../docs/manual/nginx-local-preview.md)。
 
-旧通用页面独立保留，但本Nginx只代理校园受控API，旧 `/api/ai/manus/chat` 为404，不能从这里演示通用Agent。不重新启用旧外部代理。
+用户入口统一为 `/rules`，旧通用和校园实验页面已移除。Nginx 保留受控 v1/v2 API 代理；通用助手 API 不在本次展示范围。
+
+默认构建及启动器使用 student 入口，未知入口模式兼容回到 student。离线 replay 只通过显式构建启用：在本目录运行 `.\start-nginx-preview.cmd -BackendPort <回放后端实际端口> -EntryMode replay`，页面仍为 `/rules`，需配套同步回放后端。切回默认模式需重新构建；指定 EntryMode 时不能使用 SkipBuild。仅检查配置可运行 `.\start-nginx-preview.cmd -Action Check`，无需启动后端或容器。

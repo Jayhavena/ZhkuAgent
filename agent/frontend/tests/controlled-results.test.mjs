@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { runFacts, historyFacts, submissionFacts, safeReturnPath, stateLabel, visibilityMessage } from '../src/state/controlled-results.js'
+import { runFacts, historyFacts, submissionFacts, stateLabel, visibilityMessage } from '../src/state/controlled-results.js'
 
 test('submission projection matches actual live/archived contract and hides unconfirmed cached body', () => {
   const live = submissionFacts({ runId: 'x', location: 'LIVE', live: { run: { state: 'SUCCEEDED', status: 'ANSWERED', answer: '旧正文' }, resultVisibility: 'HIDDEN' } })
@@ -45,13 +45,6 @@ test('visible real response is text plus response source, without fabricated tot
   assert.deepEqual(facts.source, source)
   assert.equal('totalCredits' in facts, false)
 })
-test('return route permits only internal campus pages', () => {
-  assert.equal(safeReturnPath('/campus/history?runId=synthetic'), '/campus/history?runId=synthetic')
-  for (const path of ['https://example.invalid', '//example.invalid', '/super-agent', '/campus/login', '/campus/run\\evil']) {
-    assert.equal(safeReturnPath(path), '/campus/run')
-  }
-})
-
 test('cancel and timeout labels wait for termination instead of promising completion', () => {
   const pending = runFacts({ run: { state: 'CANCELLED', terminated: false, stopReason: 'USER_REQUEST' }, resultVisibility: 'NOT_APPLICABLE' })
   assert.equal(stateLabel(pending), '正在取消')

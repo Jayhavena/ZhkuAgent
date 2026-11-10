@@ -9,7 +9,6 @@ import { ruleCheckConditionLabel } from '../state/rule-check-labels.js'
 
 // 测试可注入渲染状态；正式入口仍只从独立v2客户端取得结果，不提供URL资料自证参数。
 const runtime = inject('rule-check-runtime', null)
-const replayEntry = import.meta.env.VITE_ENTRY_MODE === 'replay'
 const session = runtime?.session || ruleCheckSession, api = runtime?.client || ruleCheckClient
 const flow = runtime?.workflow || createRuleCheckWorkflow(), state = flow.state
 const username = ref(''), password = ref(''), question = ref(''), choice = ref(''), loginError = ref('')
@@ -80,7 +79,7 @@ function newQuestion() { flow.reset(); question.value = ''; choice.value = '' }
 <template>
   <main class="rule-page">
     <header class="rule-header"><RouterLink to="/" class="rule-brand">仲园规则查证</RouterLink>
-      <nav aria-label="查证导航"><template v-if="!replayEntry"><RouterLink to="/campus/run">学分实验</RouterLink><RouterLink to="/super-agent">通用助手实验</RouterLink></template>
+      <nav aria-label="查证导航"><RouterLink v-if="session.state.actor" to="/account">账号</RouterLink><template v-else><RouterLink to="/login">登录</RouterLink><RouterLink to="/register">注册</RouterLink></template>
         <button v-if="session.state.actor" type="button" :disabled="session.state.identityBusy" @click="logout">退出登录</button></nav>
     </header>
     <section class="rule-intro"><h1>先找到依据，再理解规则。</h1><p>用你的话提问，确认必要条件，逐条核对原文。</p>

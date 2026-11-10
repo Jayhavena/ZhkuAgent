@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "e13-20261029T0842",
+  "caseId": "E13-0842",
+  "title": "E13 单题真实 Live：原始非法响应被 fail-closed（2026-10-29 08:42）",
+  "createdAt": "2026-11-05",
+  "projection": "TERMINAL_ONLY",
+  "taskId": "93a2348c-0c01-4483-b98c-edbc7dd2490a",
+  "turnId": "e4802ab4-a04a-45eb-988c-47e1e7db1fde",
+  "runId": "b5377453-ffac-4c1e-bbd4-06e980876b8f",
+  "version": 2,
+  "sourceArtifacts": [
+    {
+      "role": "TERMINAL_SNAPSHOT",
+      "path": "docs/evidence/agent-eval/2026-10-29-e13/prepare-offline-20261029-b/task-results.jsonl",
+      "sha256": "c371b1ce0fd140070bc8dfde5134748756ca0498a3d940eb14393c03fbd76a85",
+      "committed": true
+    },
+    {
+      "role": "PROVIDER_TRACE",
+      "path": "docs/evidence/agent-eval/2026-10-29-e13/prepare-offline-20261029-b/provider-traces.jsonl",
+      "sha256": "18038aea7fe5f98405d7750fc9193508b9911283e2fe2a146bedf4d4a482c0a4",
+      "committed": true
+    },
+    {
+      "role": "REDACTED_REVIEW",
+      "path": "knowledge/src/test/resources/three-question-regression/e13-review-redacted-20261029T0842.json",
+      "sha256": "8d9808170df68f9dd53434d4e24adb5122204d7d818c4d2eff205aa68ef9ba25",
+      "committed": true
+    }
+  ],
+  "actions": [],
+  "review": {
+    "protocolRevision": "RULE_PUBLICATION_REVIEW_02",
+    "inputFingerprint": "4bdde2eefe7f56cb10c7dbd71e0cb45d2c5400dcb45c3c5eeb07970428ca3390",
+    "requirements": [
+      {
+        "id": "r1",
+        "span": {
+          "subquestionId": "q1",
+          "excerpt": "这学期公选补选今晚几点关"
+        },
+        "dimension": "UNKNOWN",
+        "subject": "UNSPECIFIED",
+        "recognition": "UNCLASSIFIED",
+        "necessaryConditionIds": []
+      },
+      {
+        "id": "r2",
+        "span": {
+          "subquestionId": "q1",
+          "excerpt": "现在还能帮我补上吗"
+        },
+        "dimension": "STUDY_ARRANGEMENT",
+        "subject": "PUBLIC_ELECTIVE",
+        "recognition": "IDENTIFIED",
+        "necessaryConditionIds": []
+      }
+    ],
+    "bindings": [
+      {
+        "requirementId": "r2",
+        "factId": "S06/GENERAL:online-selection-plan",
+        "role": "CORE"
+      },
+      {
+        "requirementId": "r2",
+        "factId": "S06/GENERAL:unenrolled-assessment-disjunction",
+        "role": "CORE"
+      }
+    ],
+    "unresolvedDemands": [
+      {
+        "span": {
+          "subquestionId": "q1",
+          "excerpt": "这学期公选补选今晚几点关"
+        },
+        "reason": "UNSUPPORTED_DIMENSION"
+      }
+    ]
+  },
+  "capabilities": [],
+  "capabilitiesProvenance": "e13-review-redacted-20261029T0842.json 对应的审核输入 capabilities 为空；RuleAgentE13PublicationCapabilityTest 以空列表断言门禁拒绝。",
+  "terminal": {
+    "schemaVersion": 3,
+    "taskId": "93a2348c-0c01-4483-b98c-edbc7dd2490a",
+    "turnId": "e4802ab4-a04a-45eb-988c-47e1e7db1fde",
+    "runId": "b5377453-ffac-4c1e-bbd4-06e980876b8f",
+    "version": 2,
+    "taskStatus": "FAILED",
+    "runState": "FAILED",
+    "terminated": true,
+    "result": {
+      "publishedVersion": 2,
+      "originatingRunId": "b5377453-ffac-4c1e-bbd4-06e980876b8f",
+      "catalogueVersion": "cat-185474a729cee7e485944f1b12baea78dddd25526093a6295e6e9ec8e98f0f12",
+      "referenceRevision": "2025.9.2",
+      "coverage": "NONE",
+      "items": [
+        {
+          "id": "q1",
+          "coverage": "NONE",
+          "claims": [],
+          "issues": [
+            {
+              "id": "i-INVALID_MODEL_RESPONSE",
+              "kind": "PROCESSING_FAILURE",
+              "reasonCode": "INVALID_MODEL_RESPONSE",
+              "message": "本轮模型响应未通过协议或语义核验，无法确认可信结论；不能将核验失败误当作资料不存在。",
+              "nextStep": "可核对原文或重新发起查证；本轮不作无依据结论。"
+            }
+          ],
+          "clarification": []
+        }
+      ],
+      "evidence": [],
+      "evidenceRelations": []
+    },
+    "execution": {
+      "mode": "ONLINE",
+      "modelAttemptCount": 4,
+      "toolStepCount": 3,
+      "providerResponseReceived": true,
+      "answerSource": "NONE",
+      "replayCoverage": "NOT_APPLICABLE"
+    }
+  },
+  "losses": [
+    {
+      "field": "actions",
+      "reason": "原始动作序列未入基线（provider-exchanges.jsonl 排除）；不构造动作"
+    },
+    {
+      "field": "review exact rejection code",
+      "reason": "原始回执没有更细粒度 Gate 拒绝码；不得推断 CAPABILITY_UNAVAILABLE"
+    },
+    {
+      "field": "raw invalid response text",
+      "reason": "原始请求/响应正文未入基线；只能验证终态 fail-closed"
+    },
+    {
+      "field": "observations",
+      "reason": "未归档任何 ToolObservation"
+    }
+  ],
+  "notes": [
+    "review 来自已入库的脱敏审核响应，不是从报告反推。",
+    "终态直接来自 task-results.jsonl 的 snapshot。",
+    "0842 不构造动作序列，避免把报告文字伪装成真实事件。"
+  ]
+}

@@ -1,4 +1,4 @@
-import { ruleCheckSession } from '../state/rule-check-session.js'
+import { ruleCheckSession, broadcastRuleLogin } from '../state/rule-check-session.js'
 export const PREFIX = '/api/zhku/controlled-preview/v2'
 export class RuleCheckError extends Error {
   constructor(code, status = 0) { super(code); this.code = code; this.status = status }
@@ -143,6 +143,14 @@ export function createRuleCheckClient({ session = ruleCheckSession, fetchImpl = 
   }
   return {
     csrf, me, cancelResults,
+    async account() {
+      if (session.state.identityBusy) throw new RuleCheckError('AUTH_TRANSITION')
+      const epoch = session.state.epoch, actorId = session.state.actor?.userId
+      const value = await request('GET', '/auth/account')
+      current(epoch)
+      if (!actorId || value.userId !== actorId || !text(value.loginName, 32)) throw new RuleCheckError('BAD_RESPONSE')
+      return value
+    },
     async taskRequest(method, path, body) {
       if (!/^\/tasks(?:\/|$)/.test(path) || !["GET", "POST"].includes(method)) throw new RuleCheckError("INVALID_TASK_REQUEST")
       if (session.state.identityBusy) throw new RuleCheckError("AUTH_TRANSITION")
@@ -154,13 +162,43 @@ export function createRuleCheckClient({ session = ruleCheckSession, fetchImpl = 
       if (!located(value)) throw new RuleCheckError("BAD_RESPONSE")
       return value
     },
-    async login(username, password) {
+    async register(username, password, confirmPassword) {
+      if (session.state.identityBusy) throw new RuleCheckError('AUTH_TRANSITION')
+      session.state.identityBusy = true
+      try {
+        const epoch = session.state.epoch, token = session.csrf || await csrf()
+        current(epoch)
+        return await request('POST', '/auth/register', { username, password, confirmPassword }, { token })
+      } finally { session.state.identityBusy = false }
+    },
+    async changePassword(currentPassword, newPassword, confirmPassword) {
+      if (session.state.identityBusy) throw new RuleCheckError('AUTH_TRANSITION')
+      session.state.identityBusy = true
+      try {
+        const epoch = session.state.epoch, token = session.csrf || await csrf()
+        current(epoch)
+        const result = await request('PUT', '/auth/password', { currentPassword, newPassword, confirmPassword }, { token })
+        // 修改密码可能使现有会话失效，立即清除旧身份和结果，避免继续展示过期数据。
+        session.clear('AUTH_EXPIRED'); cancelResults()
+        return result
+      } catch (error) {
+        // 响应丢失不等于改密失败；旧身份及其他窗口的内容都不能继续被信任。
+        if (error.code === 'NETWORK_UNAVAILABLE' || error.code === 'BAD_RESPONSE') { session.clear('AUTH_EXPIRED'); cancelResults() }
+        throw error
+      } finally { session.state.identityBusy = false }
+    },
+    async login(username, password, rememberMe = false) {
       if (session.state.identityBusy) throw new RuleCheckError('AUTH_TRANSITION')
       session.state.identityBusy = true
       try {
         session.clear(); cancelResults(); const epoch = session.state.epoch
         const token = await csrf(); current(epoch)
-        await request('POST', '/auth/login', new URLSearchParams({ username, password }).toString(), { form: true, token })
+        try {
+          await request('POST', '/auth/login', new URLSearchParams({ username, password, 'remember-me': String(rememberMe) }).toString(), { form: true, token })
+        } finally {
+          // 即使响应丢失，服务端也可能已经更换 Cookie；其他窗口不能保留旧主体。
+          if (session === ruleCheckSession) broadcastRuleLogin()
+        }
         current(epoch); session.csrf = null; await csrf(); return await readActor()
       } finally { session.state.identityBusy = false }
     },

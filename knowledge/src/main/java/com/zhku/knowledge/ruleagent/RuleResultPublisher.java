@@ -50,7 +50,8 @@ public final class RuleResultPublisher {
             if(review!=null){
                 var coverage=review.questions().get(p.subquestionId());
                 if(coverage==null)throw new Rejected(ReasonCode.INVALID_MODEL_RESPONSE);
-                if(coverage.demandUnresolved())add(issues,ReasonCode.QUESTION_UNDERSTANDING_UNRESOLVED);
+                // 需求已识别但资料/能力不覆盖（实时截止时间、代办）是正常的资料终态；只有真正没理解需求才算处理失败。
+                if(coverage.demandUnresolved())add(issues,coverage.unsupportedDemand()?ReasonCode.UNSUPPORTED_DEMAND:ReasonCode.QUESTION_UNDERSTANDING_UNRESOLVED);
                 else if(!coverage.uncoveredRequirementIds().isEmpty())add(issues,ReasonCode.ANSWER_COVERAGE_INCOMPLETE);
             }
             for(String id:p.factIds()){
@@ -130,6 +131,8 @@ public final class RuleResultPublisher {
         if(scope.actualOfferingRequired())add(issues,ReasonCode.CURRENT_NOTICE_MISSING);
     }
     private boolean allowedIssue(String q,ReasonCode reason){
+        // 核验器已判定该子问题属“资料/能力不覆盖”时，允许模型如实申报该数据缺口，而不是被迫编造事实或改写为其它原因。
+        if(reason==ReasonCode.UNSUPPORTED_DEMAND)return review!=null&&review.questions().containsKey(q)&&review.questions().get(q).unsupportedDemand();
         if(broker.observations(q).stream().anyMatch(o->o.reasonCode()==reason))return true;
         if(reason==ReasonCode.REVIEWED_FACT_COVERAGE_GAP)return broker.observations(q).stream().anyMatch(o->o.dataLevel()==DataLevel.VERIFIED_EVIDENCE);
         if(reason==ReasonCode.DETAIL_NOT_IN_REVIEWED_TEXT)return broker.facts(q).stream().map(this::entry).anyMatch(e->!e.template().evidenceGaps().isEmpty()||RuleCheckClauseOperations.option(e).operands().stream().anyMatch(o->Set.of("GRADE_WEIGHTS","CURRENT_DEADLINE","PUBLICATION_DATE").contains(o)));
@@ -145,5 +148,10 @@ public final class RuleResultPublisher {
     private void relate(String q,String target,EvidenceRole role,List<Evidence> quotes){for(var e:quotes){proofs.putIfAbsent(e.id(),e);var relation=new EvidenceRelation(e.id(),q,role,target);if(!relations.contains(relation))relations.add(relation);}}
     private Published build(List<Subquestion> items,TaskStatus status,UUID token){var coverage=items.stream().allMatch(q->q.coverage()==Coverage.COMPLETE)?Coverage.COMPLETE:items.stream().anyMatch(q->!q.claims().isEmpty())?Coverage.PARTIAL:Coverage.NONE;return new Published(status,new ResultEnvelope(input.version(),run,broker.tools.catalogueVersion(),broker.tools.referenceRevision(),coverage,items,List.copyOf(proofs.values()),relations),token);}
     private static void add(Map<ReasonCode,Issue> issues,ReasonCode r){issues.putIfAbsent(r,issue(r));}
-    static Issue issue(ReasonCode r){String message=switch(r){case RETRIEVAL_NO_MATCH->"本次检索未找到可用依据，不能据此断定资料没有规定。";case MISSING_CONDITION->"还缺影响结论的必要条件。";case DETAIL_NOT_IN_REVIEWED_TEXT,REVIEWED_FACT_COVERAGE_GAP->"已取得的审核资料不足以支持完整结论。";case PERSONAL_RECORD_NOT_AVAILABLE->"可以解释一般规则，尚未核验个人记录与资格。";case CURRENT_APPLICABILITY_UNKNOWN,CURRENT_NOTICE_MISSING->"这里只能解释历史文本，当期安排或现行适用性尚未核实。";case QUESTION_UNDERSTANDING_UNRESOLVED->"已确认的部分保留；其余需求的理解或核验尚未完成。";case INVALID_MODEL_RESPONSE->"本轮模型响应未通过协议或语义核验，无法确认可信结论；不能将核验失败误当作资料不存在。";case ANSWER_COVERAGE_INCOMPLETE->"已确认的部分保留；本轮尚未回答全部需求，不能把漏答当作资料缺失。";case CANCELLED->"本轮已取消。";case BUDGET_EXCEEDED,NO_PROGRESS->"本轮达到执行边界，未完成的部分保留未知。";default->"本轮处理未完成，不能将处理失败当作资料缺失。";};return new Issue("i-"+r.name(),r.kind,r,message,r==ReasonCode.MISSING_CONDITION?"请补充下方必要条件。":"可核对原文或重新发起查证；本轮不作无依据结论。");}
+    static Issue issue(ReasonCode r){
+        String message=switch(r){case RETRIEVAL_NO_MATCH->"本次检索未找到可用依据，不能据此断定资料没有规定。";case MISSING_CONDITION->"还缺影响结论的必要条件。";case DETAIL_NOT_IN_REVIEWED_TEXT,REVIEWED_FACT_COVERAGE_GAP->"已取得的审核资料不足以支持完整结论。";case UNSUPPORTED_DEMAND->"已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。";case PERSONAL_RECORD_NOT_AVAILABLE->"可以解释一般规则，尚未核验个人记录与资格。";case CURRENT_APPLICABILITY_UNKNOWN,CURRENT_NOTICE_MISSING->"这里只能解释历史文本，当期安排或现行适用性尚未核实。";case QUESTION_UNDERSTANDING_UNRESOLVED->"已确认的部分保留；其余需求的理解或核验尚未完成。";case INVALID_MODEL_RESPONSE->"本轮模型响应未通过协议或语义核验，无法确认可信结论；不能将核验失败误当作资料不存在。";case ANSWER_COVERAGE_INCOMPLETE->"已确认的部分保留；本轮尚未回答全部需求，不能把漏答当作资料缺失。";case CANCELLED->"本轮已取消。";case BUDGET_EXCEEDED,NO_PROGRESS->"本轮达到执行边界，未完成的部分保留未知。";default->"本轮处理未完成，不能将处理失败当作资料缺失。";};
+        // 资料不足与能力边界必须给出可执行下一步；代办类需求还要说明系统不代替学生操作，避免误以为已办成。
+        String nextStep=switch(r){case MISSING_CONDITION->"请补充下方必要条件。";case UNSUPPORTED_DEMAND->"请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。";default->"可核对原文或重新发起查证；本轮不作无依据结论。";};
+        return new Issue("i-"+r.name(),r.kind,r,message,nextStep);
+    }
 }

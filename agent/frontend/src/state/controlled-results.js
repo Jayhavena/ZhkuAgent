@@ -29,12 +29,6 @@ export function historyFacts(detail) {
     source: visible ? detail.result?.source ?? null : null, admittedAt: detail.admittedAt,
     closedAt: detail.closedAt, provenance: detail.provenance }
 }
-export function safeReturnPath(value) {
-  if (typeof value !== 'string' || /[\\\x00-\x1f]/.test(value)) return '/campus/run'
-  const url = new URL(value, 'http://campus.local')
-  return url.origin === 'http://campus.local' && /^\/campus\/(run|history|conversation)$/.test(url.pathname)
-    ? url.pathname + url.search : '/campus/run'
-}
 export function stateLabel(facts) {
   if (facts?.archiveStatus === 'INTERRUPTED') return '处理已中断'
   if (facts?.archiveStatus === 'ADMITTED' || facts?.location === 'UNCONFIRMED') return '执行情况暂未确认'

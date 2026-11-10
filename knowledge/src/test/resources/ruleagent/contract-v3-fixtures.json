@@ -491,6 +491,54 @@
       }
     },
     {
+      "name": "honest-unsupported-demand",
+      "value": {
+        "schemaVersion": 3,
+        "taskId": "22222222-2222-4222-8222-222222222222",
+        "turnId": "22222222-2222-4222-8222-222222222222",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "version": 1,
+        "taskStatus": "RESOLVED",
+        "runState": "INCOMPLETE",
+        "terminated": true,
+        "result": {
+          "publishedVersion": 1,
+          "originatingRunId": "22222222-2222-4222-8222-222222222222",
+          "catalogueVersion": "synthetic-v1",
+          "referenceRevision": "2025.9.2",
+          "coverage": "NONE",
+          "items": [
+            {
+              "id": "q1",
+              "coverage": "NONE",
+              "claims": [],
+              "issues": [
+                {
+                  "id": "i1",
+                  "kind": "DATA_GAP",
+                  "reasonCode": "UNSUPPORTED_DEMAND",
+                  "message": "合成未完成原因",
+                  "nextStep": "合成核对下一步"
+                }
+              ],
+              "clarification": []
+            }
+          ],
+          "evidence": [],
+          "evidenceRelations": []
+        },
+        "continuationToken": null,
+        "execution": {
+          "mode": "ONLINE",
+          "modelAttemptCount": 2,
+          "toolStepCount": 2,
+          "providerResponseReceived": true,
+          "answerSource": "LIVE_AGENT",
+          "replayCoverage": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
       "name": "replay-not-covered",
       "value": {
         "schemaVersion": 3,
