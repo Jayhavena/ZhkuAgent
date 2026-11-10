@@ -144,7 +144,13 @@ class RuleAgentTaskHttpTest {
             assertThat(b.get("/tasks/"+task+"/originals/"+originalToken).statusCode()).isEqualTo(404);
             assertThat(a.get("/tasks/"+task+"/originals/"+UUID.randomUUID()).statusCode()).isEqualTo(404);
             assertThat(a.get("/tasks/"+task+"/originals/"+originalToken).statusCode()).isEqualTo(200);
-            originalCurrent.set(false);assertThat(a.get("/tasks/"+task+"/originals/"+originalToken).statusCode()).isEqualTo(409);originalCurrent.set(true);
+            originalCurrent.set(false);
+            assertThat(a.get("/tasks/"+task+"/originals/"+originalToken).statusCode()).isEqualTo(409);
+            // 刷新/恢复读取的也是已发布快照，不能绕过原文入口继续泄露已撤销的结论。
+            var withdrawn=a.get("/tasks/"+task);
+            assertThat(withdrawn.statusCode()).isEqualTo(409);
+            assertThat(withdrawn.body()).doesNotContain(QUOTE);
+            originalCurrent.set(true);
             for(String question:List.of("部分","缺证","故障","取消","理解未完成","漏答")){
                 var t=JSON.readTree(a.post("/tasks",Map.of("question",question,"clientRequestId",UUID.randomUUID()),true).body());String id=t.path("taskId").asText();
                 if(question.equals("取消")){
