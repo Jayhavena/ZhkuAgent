@@ -1,0 +1,133 @@
+{
+  "release": "student-trial-20261110",
+  "version": "0.1.0-rc.1",
+  "status": "CONTROLLED_ENGINEERING_TRIAL_CANDIDATE",
+  "repository": "https://github.com/Jayhavena/ZhkuAgent",
+  "branch": "release/g2-student-trial-20261110",
+  "baseBranch": "release/g1-reviewed-20261110",
+  "code": {
+    "commit": "0a08ebffd7a5dfb0ca1642fb318ce3e712ad9210",
+    "tree": "2b100b74ed5f94c175b1ddac0a5b4ebc96f66bf7",
+    "g1Delivery": "94a89aa3b10a3fcd364fe3d96dd15ae67b3bd7e1",
+    "g1Signoff": "ba3efc54dbf2ee7e5c34a396ccaa9a45bb3ede35",
+    "g2Evidence": "a35be4b9ef3d10e0052b4726d64546ab2079ab3e",
+    "reviewHead": "96e6fb09"
+  },
+  "frontend": {
+    "version": "0.1.0-rc.1",
+    "loadedAssets": [
+      {
+        "bytes": 129623,
+        "path": "/assets/index-853f1355.js",
+        "sha256": "a3adca2d96e552875dfe7c152334d16aefbf3cb225332ce318b80f38d16da2cf"
+      },
+      {
+        "bytes": 827,
+        "path": "/assets/index-30a10a57.css",
+        "sha256": "30a10a57b19562b19ee53a1e87a438880172594e4389a9f9468a36bdcf9c6aa5"
+      },
+      {
+        "bytes": 42800,
+        "path": "/assets/RuleCheckView-14d70cf6.js",
+        "sha256": "0aba918bc22d6d0025b27d0a75032012f0be33c59918bef860d331c3dbeece97"
+      },
+      {
+        "bytes": 21287,
+        "path": "/assets/RuleCheckView-4d6ae977.css",
+        "sha256": "4d6ae97787cf6ba72b51769c6adc273fd82b4710d9e77c4cf8f5d14e0416322b"
+      }
+    ],
+    "sourceFilesHashed": 36,
+    "loadedAssetsMatchBuiltDist": true,
+    "recordedNodeTests": 201,
+    "recordedNote": "201 Node tests and Vite build were recorded before the final browser acceptance; this manifest does not re-run them."
+  },
+  "backend": {
+    "version": "0.1.0-rc.1",
+    "compiledClassHashes": [
+      {
+        "class": "RuleAgentTaskController",
+        "classSha256": "c9accd8da42c45fcdf477fb2335c1a416d10a7c86b54fae86b262a76f4eb11c2"
+      },
+      {
+        "class": "RulePublicationGate",
+        "classSha256": "d2010877cf17425645fdcf84feeb0273c5ff4c1e62652d8b36dbcc4682c218c0"
+      },
+      {
+        "class": "RuleAgentProvider",
+        "classSha256": "f1dbc45ed4e22e5b8ee888d897021f68b2e6c884dde2ba13fc307f5bf328c075"
+      },
+      {
+        "class": "RulePublicationProtocol",
+        "classSha256": "683d8f8aa030dfca7563b7490a0a54784155bf522f663e35d82784a6efaec876"
+      }
+    ],
+    "recordedExtendedGroup": {
+      "tests": 32,
+      "passed": 31,
+      "skipped": 1,
+      "failed": 0
+    },
+    "recordedNote": "The extended backend group was recorded during the C2 fix; the final browser acceptance separately ran the reviewed lease host."
+  },
+  "database": {
+    "engine": "PostgreSQL 16 + pgvector 0.8.6",
+    "image": "pgvector/pgvector:0.8.6-pg16-bookworm",
+    "schemaVersion": "23",
+    "migrationFileCount": 19,
+    "initSql": "knowledge/infra/init/001-enable-pgvector.sql",
+    "acceptanceMode": "isolated ephemeral database; no shared database write",
+    "acceptanceTarget": "jdbc:postgresql://127.0.0.1:55524/zhkuagent_rulecheck_e2e",
+    "persistentTrialHost": "knowledge/scripts/start-persistent-rule-check.cmd uses a dedicated persistent identity database; it is not the shared demo database."
+  },
+  "acceptance": {
+    "mode": "SIMULATED_ENGINEERING_REPLAY_REAL_IDENTITY_REVIEWED_ASSETS",
+    "verdict": "PASS_WITH_EXPLICIT_LIMITS",
+    "browserLeaseJUnit": 1,
+    "browserCases": 12,
+    "accountSecurityTests": 11,
+    "accountSecurityProvenance": "SYNTHETIC_FIXTURES",
+    "sourceDrift": 0,
+    "providerCalls": 0,
+    "resourcesClosed": true,
+    "connectionsAfterTests": 0,
+    "evidenceFile": "docs/evidence/g2-student-acceptance-20261110/acceptance.json"
+  },
+  "g1": {
+    "deliveryCommit": "94a89aa3b10a3fcd364fe3d96dd15ae67b3bd7e1",
+    "signoffCommit": "ba3efc54dbf2ee7e5c34a396ccaa9a45bb3ede35",
+    "knowledgeSrcFiles": 10,
+    "byteIdenticalFiles": 10,
+    "tests": {
+      "total": 128,
+      "passed": 127,
+      "skipped": 1,
+      "failed": 0,
+      "errors": 0
+    },
+    "blockingFindings": 0
+  },
+  "g3g4": {
+    "evidenceCommit": "86771a7cba95a8de42d7eca3dc6dac9ef31451c4",
+    "pullRequest": 2,
+    "cases": 2,
+    "pass": 2,
+    "fail": 0,
+    "notEvaluable": 0,
+    "providerCalls": 8,
+    "invoice": "UNVERIFIED"
+  },
+  "invoice": {
+    "amountCny": null,
+    "status": "UNVERIFIED"
+  },
+  "limits": [
+    "Real model quality is not verified by G2; the browser matrix uses engineering replay with zero provider calls.",
+    "G3/G4 P02 evidence is a separate docs-only PR #2 and is not part of this branch.",
+    "Actual RMB invoice is UNVERIFIED; the CNY 12 cap is an authorization ceiling, not a bill.",
+    "G1 sign-off is an independent engineering receipt, not a human approval or school business signature.",
+    "No production deployment, HTTPS/Secure Cookie validation, external invite scope, or real student model trial is included.",
+    "The source tree of candidate 0a08ebff must not be changed while citing a35be4b9 evidence."
+  ],
+  "releaseHeadNote": "Resolve the exact delivered head with `git rev-parse release/g2-student-trial-20261110` or the G2 PR head; a file cannot contain its own commit SHA."
+}
