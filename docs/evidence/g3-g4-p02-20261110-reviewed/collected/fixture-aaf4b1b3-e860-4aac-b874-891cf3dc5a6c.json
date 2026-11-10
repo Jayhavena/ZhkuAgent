@@ -1,0 +1,83 @@
+{
+  "schemaVersion" : 1,
+  "fixtureId" : "collected-aaf4b1b3-e860-4aac-b874-891cf3dc5a6c",
+  "caseId" : "collected-aaf4b1b3-e860-4aac-b874-891cf3dc5a6c",
+  "title" : "采集自 live-5ecc89a52f364c38bf99bab6d6cd94ff / run aaf4b1b3-e860-4aac-b874-891cf3dc5a6c",
+  "projection" : "FULL_EVENT_SEQUENCE",
+  "taskId" : "407119f8-7934-4178-915c-d9c6daa16c51",
+  "turnId" : "b109543e-5064-4713-8fed-58c3c205fe8a",
+  "runId" : "aaf4b1b3-e860-4aac-b874-891cf3dc5a6c",
+  "version" : 2,
+  "exceptionalFailure" : false,
+  "sourceArtifacts" : [ {
+    "role" : "TERMINAL_SNAPSHOT",
+    "path" : "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-5ecc89a52f364c38bf99bab6d6cd94ff/task-results.json",
+    "sha256" : "4f921abc40e69c0f2b1e0d7922f93eeed376d95dd95823f8cb8a0473f9cb990e"
+  }, {
+    "role" : "RUN_OUTCOME",
+    "path" : "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-5ecc89a52f364c38bf99bab6d6cd94ff/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-outcome.json",
+    "sha256" : "e9c2be3ff0a7a31e03535e6a367270532ea3f3bf7db98c10d56b6fe12ae091cd"
+  } ],
+  "actions" : [ {
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "type" : "ASK_NECESSARY_CONDITION",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  } ],
+  "terminal" : {
+    "taskStatus" : "WAITING_USER",
+    "runState" : "INCOMPLETE",
+    "coverage" : "NONE",
+    "issues" : [ {
+      "kind" : "CLARIFICATION",
+      "reasonCode" : "MISSING_CONDITION"
+    } ],
+    "items" : [ {
+      "claims" : [ ]
+    } ],
+    "evidence" : [ {
+      "id" : "aa2f45e2-e238-400b-a5d3-92783f915bf2:0-48",
+      "sourceId" : "1c4f26a6-5bf3-4f5c-9674-9b7e6c3c96b1",
+      "chunkId" : "41a040e5-f1b9-3149-81fc-ba5edd189562",
+      "revision" : "2025.9.2"
+    } ],
+    "evidenceRelations" : [ {
+      "targetId" : "courseType",
+      "evidenceId" : "aa2f45e2-e238-400b-a5d3-92783f915bf2:0-48",
+      "role" : "CLARIFICATION"
+    } ]
+  },
+  "losses" : [ "observation.candidates[*].excerpt：检索候选原文不进入夹具", "issues[*].message/nextStep：用户可见文案不进入夹具", "provider 请求/响应原文与宿主日志不进入夹具" ],
+  "notes" : [ "动作来自 outcome.events，观察只保留 status/dataLevel/reasonCode" ]
+}

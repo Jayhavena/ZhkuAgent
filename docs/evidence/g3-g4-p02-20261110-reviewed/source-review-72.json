@@ -1,0 +1,660 @@
+{
+  "sourceFreezeManifestSha256": "6cd4667d230171eee7aa36210616661efd5359149eea348d75f6824a5924e853",
+  "reviewedCount": 72,
+  "counts": {
+    "INCLUDE_EXACT": 8,
+    "DERIVE_ALLOWLIST": 3,
+    "EXCLUDE": 52,
+    "DERIVE_IDENTITY": 9
+  },
+  "files": [
+    {
+      "sourcePath": "authorization-and-evaluation/approval-state.json",
+      "sha256": "f8c9e3ddfeb0ed8d686a2fe409088f6a0126209850310aacb87c7684ef4175fe",
+      "bytes": 392,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "INCLUDE_EXACT",
+      "reason": "Reviewed structured evidence; no request/response bodies or private host paths",
+      "target": "approval-state.json"
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/authorization.json",
+      "sha256": "c2613ab8f33020fd66dd7a3f08dcbd7efe1d94bb7d7dc8b679b865423a038d18",
+      "bytes": 792,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "DERIVE_ALLOWLIST",
+      "reason": "Retain approval scope and limits; omit free-form context and linked local documents",
+      "target": "authorization-summary.json"
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/authorized-environment-check.json",
+      "sha256": "b6dbd8d8eb962acac8485cc6d105bcbf56dfee6d6dab8beb9d2efae0068b7a72",
+      "bytes": 339,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/authorized-package-check.log",
+      "sha256": "7a0782136fa6d76cece45fc6102a8d21d03e3cc4023bc4898e3bcc33a16596c2",
+      "bytes": 248,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/candidate-identity.json",
+      "sha256": "391785c7cdba9db00317d6c881eec9a6200ca4d3c116eda3ec03e80ef5b3904a",
+      "bytes": 764,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/candidate-source-manifest.json",
+      "sha256": "8e7340cf56c21302fe0e8c9560edb22fc7440ec9aa835a95f67d05c29ce15c53",
+      "bytes": 194538,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/collected/collection.json",
+      "sha256": "0bdc636edca7bd8d5fbf578b932be73569ae53fabfb6621d09d062ab4956287a",
+      "bytes": 2321,
+      "owner": "G4_EVALUATION",
+      "decision": "DERIVE_ALLOWLIST",
+      "reason": "Omit absolute evidenceDirectory; retain source hashes, collection status and run metadata",
+      "target": "collected/collection-summary.json"
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/collected/fixture-6304aea4-792c-403e-901b-19f8bcc096f3.json",
+      "sha256": "a9a430360395b9bd6aed5566df0183ba3e16672b850361a3f64c1b3147bbc035",
+      "bytes": 3047,
+      "owner": "G4_EVALUATION",
+      "decision": "INCLUDE_EXACT",
+      "reason": "Reviewed structured evidence; no request/response bodies or private host paths",
+      "target": "collected/fixture-6304aea4-792c-403e-901b-19f8bcc096f3.json"
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/collected/fixture-aaf4b1b3-e860-4aac-b874-891cf3dc5a6c.json",
+      "sha256": "170966eb21d0ddec25bb0a402f01a590919adb16758fc63d481fae6e8c873157",
+      "bytes": 3032,
+      "owner": "G4_EVALUATION",
+      "decision": "INCLUDE_EXACT",
+      "reason": "Reviewed structured evidence; no request/response bodies or private host paths",
+      "target": "collected/fixture-aaf4b1b3-e860-4aac-b874-891cf3dc5a6c.json"
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/DELIVERY.md",
+      "sha256": "ce6ab0de725c5047ef622f178952cb358cf7b2b4f5f25850cafba82e2febe186",
+      "bytes": 3723,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/eval-collect.log",
+      "sha256": "7b692c62675449a07d7618c32b8f64fbb0540f9bac47df0ca9193621b442f70a",
+      "bytes": 195,
+      "owner": "G4_EVALUATION",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/eval-exit.json",
+      "sha256": "7fc844dc980dfd1946c69621504d0a9afa44f7293804146072bb46192b800dd1",
+      "bytes": 51,
+      "owner": "G4_EVALUATION",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/eval-regression-retry.log",
+      "sha256": "2b63bae443137e67c1d42a59478e5bf4fe40bd40c305ca3ad3368d19a84cf333",
+      "bytes": 4169,
+      "owner": "G4_EVALUATION",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/eval-regression.log",
+      "sha256": "27c4e2008ee245997639a3215977a5b5c4da204a7d3e1c396926707d88dd453c",
+      "bytes": 2462,
+      "owner": "G4_EVALUATION",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/eval-run.log",
+      "sha256": "43d22c1f0af83125018b209405385f7d1489644120b774ceb7b99e93366236b5",
+      "bytes": 304,
+      "owner": "G4_EVALUATION",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/eval-suite-template.json",
+      "sha256": "1a86ffa43131c02ea641839d7353a7d2cff54218d0a97c5aed07cb4b4bd60f49",
+      "bytes": 2119,
+      "owner": "G4_EVALUATION",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/eval-suite.json",
+      "sha256": "df5ec2cb8197fab281934f2c3a3c05a10dd9c687f3e7ca9719eb9fab3efec00f",
+      "bytes": 2191,
+      "owner": "G4_EVALUATION",
+      "decision": "INCLUDE_EXACT",
+      "reason": "Reviewed structured evidence; no request/response bodies or private host paths",
+      "target": "eval-suite.json"
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/evaluation/collected/g3-20261110-p02/collection.json",
+      "sha256": "c31f651f57d018e9de24b261b1da71fe568e09ea587ac468a52665a111107267",
+      "bytes": 2299,
+      "owner": "G4_EVALUATION",
+      "decision": "EXCLUDE",
+      "reason": "Duplicate collection; canonical reviewed projections included once",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/evaluation/collected/g3-20261110-p02/fixture-6304aea4-792c-403e-901b-19f8bcc096f3.json",
+      "sha256": "a9a430360395b9bd6aed5566df0183ba3e16672b850361a3f64c1b3147bbc035",
+      "bytes": 3047,
+      "owner": "G4_EVALUATION",
+      "decision": "EXCLUDE",
+      "reason": "Duplicate collection; canonical reviewed projections included once",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/evaluation/collected/g3-20261110-p02/fixture-aaf4b1b3-e860-4aac-b874-891cf3dc5a6c.json",
+      "sha256": "170966eb21d0ddec25bb0a402f01a590919adb16758fc63d481fae6e8c873157",
+      "bytes": 3032,
+      "owner": "G4_EVALUATION",
+      "decision": "EXCLUDE",
+      "reason": "Duplicate collection; canonical reviewed projections included once",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/evaluation/report.json",
+      "sha256": "f8904402ae377919f95adac2492ad43c8a9b2a363c020ad4530471cdb5414352",
+      "bytes": 2051,
+      "owner": "G4_EVALUATION",
+      "decision": "INCLUDE_EXACT",
+      "reason": "Reviewed structured evidence; no request/response bodies or private host paths",
+      "target": "report.json"
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/evaluation/report.md",
+      "sha256": "184661022cef42dd1f636a8aafa07b21e37a6f91ba545123e46bb3eb3fcec256",
+      "bytes": 764,
+      "owner": "G4_EVALUATION",
+      "decision": "INCLUDE_EXACT",
+      "reason": "Reviewed structured evidence; no request/response bodies or private host paths",
+      "target": "report.md"
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/evaluator-identity.json",
+      "sha256": "0f123c5734ae87c9ca1b9eb1a09cb85f05c9643dadd2438d0e6c841a85efd4f4",
+      "bytes": 3871,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/execution-artifact-manifest.json",
+      "sha256": "57aa2df2596eb1183e0d7f912108af316cbbe60125e8853b9ff4b24e93fafb36",
+      "bytes": 8404,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/execution-receipt.json",
+      "sha256": "a577287716ec40a0959692a9188235a1d1afb5ce52d010b394ad1d1a7ebc631e",
+      "bytes": 926,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "DERIVE_ALLOWLIST",
+      "reason": "Retain counters and unverified invoice boundary only",
+      "target": "usage-summary.json"
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/final-verification.json",
+      "sha256": "d69b726fe599860d1b89616a4fa5c5e0408f5f95f772b20b97f2826df7a75d35",
+      "bytes": 225,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/frontend-dist-manifest.json",
+      "sha256": "c5123e3a017e68b1e9c7b167be581fb1f83f2dda9f5bf91fa15502bdd5800093",
+      "bytes": 1268,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/G3-review.md",
+      "sha256": "e1eb1a0d5e74fc075121a0c5d8469ff25d2a342fc9187095da23ac8e9e310b79",
+      "bytes": 4691,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/launch-result.json",
+      "sha256": "f718447d764ef5f48d9d2c354022a95693dc04f7e0f9e92defb84c2d6bdfcf4b",
+      "bytes": 105,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/live-directories-before.json",
+      "sha256": "c57b3264aee48861680e9bbe2217a5c2313eb718a06c4abe73c4203bb29964aa",
+      "bytes": 41,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/package-check.log",
+      "sha256": "d8480899dc57171c0bc427bb8a727fa2b0dcf94a20cb21df256d57c3c2e294d1",
+      "bytes": 248,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/probe-launch.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "EXCLUDE",
+      "reason": "Nonessential preparation/history/host metadata; not needed for minimal evaluation delivery",
+      "target": null
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/request-package.json",
+      "sha256": "d2a8f81856e26dac3a1d85f1f399f83e49faf77aa8ea9cf0f609f232af5c5407",
+      "bytes": 90055,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "DERIVE_IDENTITY",
+      "reason": "Package includes reviewed policy text, prompts and facts: local-only; retain digest",
+      "target": "execution-identity.json"
+    },
+    {
+      "sourcePath": "authorization-and-evaluation/resource-check.json",
+      "sha256": "e03b629b8cb91e5ade5cb19694e714820e17342ead3b8b23e69a11d04f249386",
+      "bytes": 152,
+      "owner": "G3_AUTHORIZATION_AND_CLOSEOUT",
+      "decision": "INCLUDE_EXACT",
+      "reason": "Reviewed structured evidence; no request/response bodies or private host paths",
+      "target": "resource-check.json"
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-1-PROPOSED_ACTION.json",
+      "sha256": "02a41ae017cda25f8fefff9ad655eac5942da426bc18bc39e3957bc38192c52f",
+      "bytes": 422,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-1-REQUEST.json",
+      "sha256": "b0bad2768aa835934b249a2973fe695d150576e9201227f2e3775335ec9a2e78",
+      "bytes": 5698,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-1-RESPONSE.json",
+      "sha256": "98e5ef05369afb023091aa2b28abf093578307a33dc1950f74e3f9ff27590f65",
+      "bytes": 854,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-2-PROPOSED_ACTION.json",
+      "sha256": "92b1b785e93ab35dd95e92a6f70955a9e25c97d418956653129bad28c76c0b76",
+      "bytes": 429,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-2-REQUEST.json",
+      "sha256": "a1b543a5ed01838081976e90e37dec207e974d4e5acc548270c42852106eebf7",
+      "bytes": 11738,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-2-RESPONSE.json",
+      "sha256": "74f85534971205d9706e04966049a4976b34500c94261b2081baad9f2e9250ff",
+      "bytes": 878,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-3-PROPOSED_ACTION.json",
+      "sha256": "5278b6a9a7fca10013d374d9e83c7b3b146aa44b2bf415c8b29b883052dbd0ee",
+      "bytes": 473,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-3-REQUEST.json",
+      "sha256": "92c0bbec8e9503d7328ba447e2e668bf63396b51a8cad8b5fb08fe91bc68528b",
+      "bytes": 16970,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-3-RESPONSE.json",
+      "sha256": "4e95dfbe7e4055d23d0a4b2bc77fdd082d5774012c76cefe00c4913234a44da4",
+      "bytes": 1014,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-4-REQUEST.json",
+      "sha256": "07875f29e36f4e77191a88ad0ac13219f50fbfa8b2c8f4714deff37adc47af3c",
+      "bytes": 10595,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-4-RESPONSE.json",
+      "sha256": "3dfe40cb18790d1dccfbe8878ea0ec807f4b122ad644364855ed9d742c26211d",
+      "bytes": 1611,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-4-REVIEW_INPUT_SNAPSHOT.json",
+      "sha256": "4c72e784cd95a502747ad93e7d0b81e9a31e4450e0d8b107aa0867086195de04",
+      "bytes": 8963,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/6304aea4-792c-403e-901b-19f8bcc096f3-outcome.json",
+      "sha256": "7fa0f267530518f280520e0c4eb75a076e5c555b85e21d124c26f32ac580894c",
+      "bytes": 7611,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-1-PROPOSED_ACTION.json",
+      "sha256": "bad00e6856058e594a7e037a03aa664cd4c4fa0658ce920ad7435cfd17ad0017",
+      "bytes": 422,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-1-REQUEST.json",
+      "sha256": "6cc60d94733567e378e5afc3ae7b3ebe2c7e1d241a6fe6c5fc5ad72c20f2c534",
+      "bytes": 5665,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-1-RESPONSE.json",
+      "sha256": "ccda17fff2229765db7ed1b1c6fd256939fb0f0b9bf891499d0000bbf440d041",
+      "bytes": 854,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-2-PROPOSED_ACTION.json",
+      "sha256": "a60d8cad2226d8fddca9d120232c0fce06aa6dfb8669d694ce4d8a2306f92907",
+      "bytes": 429,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-2-REQUEST.json",
+      "sha256": "0417d65e28e091e4885670146a73736a41487851628b1d3574c16fc958e8e9ac",
+      "bytes": 11705,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-2-RESPONSE.json",
+      "sha256": "1d966f150210eda79ffba8b7f326c88635ccfafe1a265576cc843b8702930135",
+      "bytes": 878,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-3-PROPOSED_ACTION.json",
+      "sha256": "52e4bba2e5fab70d77f996cf9f79a90c8f9af716e4fcce1ca6243c5a892a7181",
+      "bytes": 819,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-3-REQUEST.json",
+      "sha256": "e5b8a0775f9feaa16cb8a808d3c779af6c091aed25a94c98431a692127e786b4",
+      "bytes": 16937,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-3-RESPONSE.json",
+      "sha256": "2cc407fee81c710c8d5feecb2125e0ce3a990884c31ee72da2a4924a9144b497",
+      "bytes": 1327,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-4-REQUEST.json",
+      "sha256": "d49a9b4d1e7d486d827c1b6e9c6b4de8a65a3ab493a74fe21643d86a7c5a056a",
+      "bytes": 10562,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-4-RESPONSE.json",
+      "sha256": "6ff42be2a1694e0c89d1f7081feea269aa124564607df6aec1ada00cbaa59262",
+      "bytes": 2232,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-4-REVIEW_INPUT_SNAPSHOT.json",
+      "sha256": "03a077bceef07bbc8f4e93e9f30eb3fcd29c9da2e23329dc1fcb1fb7d0193577",
+      "bytes": 8938,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/aaf4b1b3-e860-4aac-b874-891cf3dc5a6c-outcome.json",
+      "sha256": "e9c2be3ff0a7a31e03535e6a367270532ea3f3bf7db98c10d56b6fe12ae091cd",
+      "bytes": 7818,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/host.log",
+      "sha256": "39043848cf8f679fea7d511898a3602f7440aeea088104f26ff5495b1334a53f",
+      "bytes": 3972,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/probe-result.json",
+      "sha256": "76d99ffd8beb172eb2581feee0fe8d800019f6221c9e429bf06083c3f701ad37",
+      "bytes": 242,
+      "owner": "G3_EXECUTION",
+      "decision": "INCLUDE_EXACT",
+      "reason": "Reviewed structured evidence; no request/response bodies or private host paths",
+      "target": "probe-result.json"
+    },
+    {
+      "sourcePath": "execution/provider-traces.jsonl",
+      "sha256": "e54f920760e9cb6e1c8b145a0a6c53b6d8d39d3ec3b310336a0c2efac0ecc9fd",
+      "bytes": 17653,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "execution/task-results.json",
+      "sha256": "4f921abc40e69c0f2b1e0d7922f93eeed376d95dd95823f8cb8a0473f9cb990e",
+      "bytes": 4330,
+      "owner": "G3_EXECUTION",
+      "decision": "EXCLUDE",
+      "reason": "Local-only raw request/response/proposed action/review input/outcome/trace/terminal snapshot or host log; may contain policy text, user text or internal runtime data",
+      "target": null
+    },
+    {
+      "sourcePath": "grader-identity.json",
+      "sha256": "75be96bef50a0f1f36a0ce85f049739856468172863cd85fcec73d414602c919",
+      "bytes": 1137,
+      "owner": "GRADER_IDENTITY",
+      "decision": "DERIVE_IDENTITY",
+      "reason": "Record frozen Grader/collector source hashes without copying product source",
+      "target": "grader-identity.json"
+    },
+    {
+      "sourcePath": "grader-source/knowledge/src/main/java/com/zhku/knowledge/eval/chain/AgentEvalChainMain.java",
+      "sha256": "605767c94791de58e255e2af0e86dae65f4e3a77cd6512fe10989c1fee4aad0c",
+      "bytes": 4268,
+      "owner": "GRADER_IDENTITY",
+      "decision": "DERIVE_IDENTITY",
+      "reason": "Record frozen Grader/collector source hashes without copying product source",
+      "target": "grader-identity.json"
+    },
+    {
+      "sourcePath": "grader-source/knowledge/src/main/java/com/zhku/knowledge/eval/chain/EvalChainReport.java",
+      "sha256": "53052a3c4f2f17e7458cb816c2c3be31c4d43ced84eab0cff8677c2df5be8eda",
+      "bytes": 6898,
+      "owner": "GRADER_IDENTITY",
+      "decision": "DERIVE_IDENTITY",
+      "reason": "Record frozen Grader/collector source hashes without copying product source",
+      "target": "grader-identity.json"
+    },
+    {
+      "sourcePath": "grader-source/knowledge/src/main/java/com/zhku/knowledge/eval/chain/EvalChainRunner.java",
+      "sha256": "866e07c3993fe165c2d9611ad7e21ec540b542caa6301cce1fb9b2cb90957da1",
+      "bytes": 8684,
+      "owner": "GRADER_IDENTITY",
+      "decision": "DERIVE_IDENTITY",
+      "reason": "Record frozen Grader/collector source hashes without copying product source",
+      "target": "grader-identity.json"
+    },
+    {
+      "sourcePath": "grader-source/knowledge/src/main/java/com/zhku/knowledge/eval/chain/EvalChainSuite.java",
+      "sha256": "5056cc57523e157dbda0c15f36ad18cfa2bd20ecff5d4f007b92e73ef58e2f28",
+      "bytes": 6881,
+      "owner": "GRADER_IDENTITY",
+      "decision": "DERIVE_IDENTITY",
+      "reason": "Record frozen Grader/collector source hashes without copying product source",
+      "target": "grader-identity.json"
+    },
+    {
+      "sourcePath": "grader-source/knowledge/src/main/java/com/zhku/knowledge/eval/chain/EvalEvidenceCollector.java",
+      "sha256": "08f296d5164a7984ac896b35325eafa0b828030db5b0fd732d53cb55efe99b83",
+      "bytes": 15481,
+      "owner": "GRADER_IDENTITY",
+      "decision": "DERIVE_IDENTITY",
+      "reason": "Record frozen Grader/collector source hashes without copying product source",
+      "target": "grader-identity.json"
+    },
+    {
+      "sourcePath": "grader-source/knowledge/src/main/java/com/zhku/knowledge/eval/chain/EvalTraceFixture.java",
+      "sha256": "f413f6e75fad85f779549e1ce50c1be59676748b3f258b73a74de9650f8847b7",
+      "bytes": 16454,
+      "owner": "GRADER_IDENTITY",
+      "decision": "DERIVE_IDENTITY",
+      "reason": "Record frozen Grader/collector source hashes without copying product source",
+      "target": "grader-identity.json"
+    },
+    {
+      "sourcePath": "grader-source/knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentTraceEvaluator.java",
+      "sha256": "fa8694acc8d2ab849df4ada750f608a2c7316005365f4ed1245cf35c00911650",
+      "bytes": 8312,
+      "owner": "GRADER_IDENTITY",
+      "decision": "DERIVE_IDENTITY",
+      "reason": "Record frozen Grader/collector source hashes without copying product source",
+      "target": "grader-identity.json"
+    }
+  ]
+}
