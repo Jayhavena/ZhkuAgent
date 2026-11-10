@@ -12,7 +12,11 @@ export function createRuleTaskWorkflow({client=ruleTaskClient,session=ruleCheckS
   const guard=()=>{const g=generation,e=session.state.epoch;return()=>alive&&g===generation&&e===session.state.epoch}
   function stopPolling(){if(timer!==null)unschedule(timer);timer=null;state.polling=false}
   function reset(){generation++;originalGeneration++;stopPolling();client.cancelResults();Object.assign(state,{question:'',ticket:null,snapshot:null,pending:null,busy:false,cancelRequested:false,error:'',original:null,originalBusy:false,evidenceUnavailable:false})}
-  const stop=watch(()=>session.state.epoch,()=>{reset();state.recent=[];if(session.state.reason!=='AUTH_EXPIRED')history.clear()},{flush:'sync'})
+  // clear先递增epoch，再写reason；此处只撤回内容，不能用上一轮reason误删恢复元数据。
+  const stop=watch(()=>session.state.epoch,()=>{reset();state.recent=[]},{flush:'sync'})
+  const stopReason=watch(()=>session.state.reason,reason=>{
+    if(['LOGOUT','LOGOUT_UNCONFIRMED','IDENTITY_CHANGED','IDENTITY_CHANGED_ELSEWHERE'].includes(reason))history.clear()
+  },{flush:'sync'})
   function recent(){state.recent=usable()?history.list(session.state.actor.userId):[]}
   function remember(ticket){if(!usable())return;history.remember(session.state.actor.userId,ticket);recent()}
   async function resume(taskId){
@@ -71,6 +75,6 @@ export function createRuleTaskWorkflow({client=ruleTaskClient,session=ruleCheckS
     async clarify(value){const s=state.snapshot,c=s?.result?.items.flatMap(q=>q.clarification)[0];if(s?.taskStatus!=='WAITING_USER'||!c||!c.allowedValues.includes(value)){state.error='请只确认本轮要求的条件。';return}await mutate('MESSAGE',{message:value,continuationToken:s.continuationToken,expectedVersion:s.version,clientRequestId:keyFactory()})},
     async cancel(){const s=state.snapshot,t=state.ticket;if(!t||s&&s.taskStatus!=='ACTIVE'||state.cancelRequested)return;await mutate('CANCEL',{runId:t.runId,expectedVersion:s?.version??t.version,clientRequestId:keyFactory()})},
     async openOriginal(token){if(!usable()||!state.snapshot?.result||state.evidenceUnavailable||!state.snapshot.result.evidence.some(e=>e.originalToken===token))return;const current=guard(),originalRound=++originalGeneration;state.original=null;state.originalBusy=true;try{const value=await client.original(state.ticket.taskId,token);if(current()&&originalRound===originalGeneration)state.original=value}catch(error){if(current()&&originalRound===originalGeneration&&error.code!=='STALE_RESPONSE'){if([404,409].includes(error.status))state.evidenceUnavailable=true;state.error=[404,409].includes(error.status)?'依据资格或版本已变化，旧结果暂停展示；请重新查证。':'原文查询未确认，请稍后重试。'}}finally{if(current()&&originalRound===originalGeneration)state.originalBusy=false}},
-    dispose(){alive=false;stop();reset()}
+    dispose(){alive=false;stop();stopReason();reset()}
   }
 }

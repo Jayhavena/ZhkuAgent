@@ -224,6 +224,7 @@ async function login() {
   try {
     await pending
     if (session.state.epoch === epoch) session.state.reason = ''
+    if (alive) await flow.restoreLatest()
   } catch (error) {
     if (error.code !== 'STALE_RESPONSE') {
       const unknown = error.code === 'NETWORK_UNAVAILABLE' || error.code === 'BAD_RESPONSE'

@@ -47,8 +47,17 @@ test('expired server task is removed and delayed restore cannot cross identity c
   const session=createControlledSession();session.state.actor={userId:owner,role:'USER'}
   let resolve;const client={cancelResults(){},snapshot:()=>new Promise(r=>{resolve=r})}
   const flow=createRuleTaskWorkflow({client,session,history});const pending=flow.restoreLatest();session.clear('AUTH_EXPIRED');resolve(complete());await pending
-  assert.equal(flow.state.snapshot,null);assert.equal(flow.state.ticket,null);flow.dispose()
+  assert.equal(flow.state.snapshot,null);assert.equal(flow.state.ticket,null);assert.equal(history.list(owner).length,1);flow.dispose()
   session.state.actor={userId:owner,role:'USER'}
-  const expired=createRuleTaskWorkflow({client:{cancelResults(){},snapshot:async()=>{throw{status:409}}},session,history})
-  await expired.restoreLatest();assert.equal(expired.state.snapshot,null);assert.deepEqual(history.list(owner),[]);expired.dispose()
+  let expiredReads=0
+  const expired=createRuleTaskWorkflow({client:{cancelResults(){},snapshot:async()=>{expiredReads++;throw{status:409}}},session,history})
+  await expired.restoreLatest();assert.equal(expiredReads,1);assert.match(expired.state.error,/过期/);assert.equal(expired.state.snapshot,null);assert.deepEqual(history.list(owner),[]);expired.dispose()
+})
+test('explicit logout clears metadata after the epoch-first session transition',async()=>{
+  const history=createTaskHistory({storage:()=>storageObject,now:()=>0}),storageObject=storage()
+  history.remember(owner,receipt)
+  const session=createControlledSession();session.state.actor={userId:owner,role:'USER'}
+  const flow=createRuleTaskWorkflow({client:{cancelResults(){},snapshot:async()=>complete()},session,history})
+  await flow.restoreLatest();session.clear('LOGOUT')
+  assert.deepEqual(history.list(owner),[]);assert.equal(flow.state.snapshot,null);flow.dispose()
 })
