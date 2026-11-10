@@ -327,6 +327,8 @@ watch(
   <main ref="appEl" class="rule-app" :class="{ 'rule-app--conversation': hasConversation && student }">
     <RuleHeader :actor="session.state.actor" :identity-busy="session.state.identityBusy" :can-ask-new="hasConversation && student" :new-question-disabled="authChecking || state.busy || !!state.pending || active" @logout="logout" @new-question="newQuestion" />
 
+    <p v-if="student && state.error && !hasConversation" class="mode-notice" role="alert">{{ state.error }}</p>
+
     <details v-if="student && state.recent?.length" class="mode-notice" data-testid="recent-tasks">
       <summary>本标签页最近查证（最多 5 条）</summary>
       <p>仅恢复本标签页约 15 分钟内的任务；退出或换账号会清除记录，不支持服务器重启或跨设备历史。</p>

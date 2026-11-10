@@ -11,6 +11,12 @@ after(()=>server.close())
 const {default:Page}=await server.ssrLoadModule('/src/views/RuleCheckView.vue')
 const data=JSON.parse(await readFile(new URL('../../../knowledge/src/test/resources/ruleagent/contract-v3-fixtures.json',import.meta.url),'utf8'))
 async function render(snapshot=null,actor={role:'USER'},extra={},session={},simulated=false,httpFixture=false){const app=createSSRApp(Page),router=createRouter({history:createMemoryHistory(),routes:[{path:'/rules',component:{render:()=>null}}]});app.use(router);await router.push('/rules');await router.isReady();app.provide('rule-task-runtime',{simulated,httpFixture,session:{state:{actor,epoch:0,identityBusy:false,...session}},client:{},workflow:{state:{snapshot,ticket:snapshot?{taskId:snapshot.taskId}:null,question:'合成问题',busy:false,polling:false,error:'',...extra},reset(){},dispose(){}}});return renderToString(app)}
+
+test('inaccessible restored task explains failure even when no conversation remains',async()=>{
+  const html=await render(null,{role:'USER'},{question:'',error:'这条任务已过期或不可访问，请新建查证。',recent:[]})
+  assert.match(html,/这条任务已过期或不可访问，请新建查证。/)
+  assert.match(html,/role="alert"/)
+})
 test('fixed simulation scope is visible before login and does not claim general answers',async()=>{
   const html=await render(null,null,{},{},true)
   assert.match(html,/工程模拟：仅支持下方固定问题，不调用在线模型/)
