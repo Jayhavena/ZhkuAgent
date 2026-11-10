@@ -34,6 +34,7 @@ import static com.zhku.knowledge.ruleagent.RulePublicationContract.SemanticAsses
 import static com.zhku.knowledge.ruleagent.RulePublicationContract.UnresolvedDemand;
 import static com.zhku.knowledge.ruleagent.RulePublicationContract.UnresolvedReason;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * E13“今晚补选几点关？帮我补上”的离线终态：正常查证完成但缺少当期依据时，
@@ -47,7 +48,7 @@ class RuleAgentE13InsufficientMaterialTerminalTest {
     final ObjectMapper json = new ObjectMapper().findAndRegisterModules();
     final UUID sourceId = UUID.randomUUID(), chunkId = UUID.randomUUID();
     final RuleCheckRuleTemplate.EvidenceBinding binding = new RuleCheckRuleTemplate.EvidenceBinding(
-            sourceId, chunkId, "2025.9.2", "0".repeat(64), 0, FACT.length(), FACT);
+            sourceId, chunkId, "2025.9.2", "8D892CB3476CB71AB88A58A692811F02D37B6C2B645783118ECAB3CC0DB8AC3C", 0, FACT.length(), FACT);
     final RuleCheckRuleTemplate template = new RuleCheckRuleTemplate(RULE, "2025.9.2",
             RuleCheckRuleTemplate.ReviewState.APPROVED, "local-fixture", LocalDate.of(2025, 9, 2),
             List.of(new RuleCheckRuleTemplate.Fact("TIME", FACT, true, Map.of(), List.of(binding))),
@@ -60,14 +61,16 @@ class RuleAgentE13InsufficientMaterialTerminalTest {
     final RuleAgentRunner.Input input = new RuleAgentRunner.Input(owner, taskId, 3L, QUESTION,
             List.of(new RuleAgentRunner.Question("q1", QUESTION)), Map.of());
 
-    RuleAgentEvidenceTools tools() {
+    RuleAgentEvidenceTools tools() { return tools(true); }
+
+    RuleAgentEvidenceTools tools(boolean match) {
         var candidate = new RetrievedChunk(binding.chunkId(), binding.quote(), "LOCAL", "LOCAL", 1,
                 binding.revision(), binding.checksum(), binding.sourceId());
         var current = new RuleCheckEvidenceSnapshot("LOCAL", binding.sourceId(), binding.chunkId(),
                 binding.revision(), binding.checksum(), binding.quote(), true);
         return new RuleAgentEvidenceTools(owner, taskId,
                 new RuleCheckRuntimeSettings("p", "c", "s", "2025.9.2", 20, 5),
-                () -> List.of(entry), (query, limit) -> List.of(candidate),
+                () -> List.of(entry), (query, limit) -> match ? List.of(candidate) : List.of(),
                 (snapshot, candidate1) -> Optional.of(current), audit -> { }, Clock.systemUTC());
     }
 
@@ -99,7 +102,7 @@ class RuleAgentE13InsufficientMaterialTerminalTest {
     }
 
     RuleAgentRunner.Outcome run(UnresolvedReason reason) {
-        return new RuleAgentRunner(decision(reason), new RuleActionBroker(tools()), Clock.systemUTC(), review(reason))
+        return new RuleAgentRunner(decision(reason), new RuleActionBroker(tools(reason != UnresolvedReason.UNCLASSIFIED_DEMAND)), Clock.systemUTC(), review(reason))
                 .run(AgentRunContext.create(QUESTION), input);
     }
 
@@ -145,4 +148,110 @@ class RuleAgentE13InsufficientMaterialTerminalTest {
                 .hasSize(1);
         assertThat(out.snapshot().execution().modelAttemptCount()).isLessThanOrEqualTo(3);
     }
+    @Test
+    void savedMixedReviewPassesGuardAndRealPublicationPipeline() throws Exception {
+        var content = unsupportedReview(true);
+        var response = (com.fasterxml.jackson.databind.node.ObjectNode) json.valueToTree(Map.of("choices",
+                List.of(Map.of("message", Map.of("content", content.toString())))));
+        // 仅修改本地副本：两个独立需求都明确声明自身能力边界，不能借第一个片段掩盖第二个。
+
+        RuleSemanticReviewPort reviewer = (safe, timeout) -> {
+            try {
+                content.put("inputFingerprint", safe.inputFingerprint());
+                ((com.fasterxml.jackson.databind.node.ObjectNode) response.path("choices").get(0).path("message")).put("content", content.toString());
+                com.zhku.knowledge.ruleagent.web.RuleAgentE13Policy.reviewBoundary(response);
+                return RulePublicationProtocol.decode(content.toString(), safe);
+            } catch (Exception e) { throw new IllegalStateException(e); }
+        };
+        var out = new RuleAgentRunner(decision(UnresolvedReason.UNSUPPORTED_DIMENSION), new RuleActionBroker(tools()), Clock.systemUTC(), reviewer)
+                .run(AgentRunContext.create(QUESTION), input);
+        assertThat(out.snapshot().taskStatus()).isEqualTo(TaskStatus.RESOLVED);
+        assertThat(out.snapshot().runState()).isEqualTo(com.zhku.agent.agent.runtime.AgentRunState.INCOMPLETE);
+        assertThat(out.snapshot().result().coverage()).isEqualTo(RuleAgentContract.Coverage.NONE);
+        assertThat(out.snapshot().result().items()).singleElement().satisfies(item -> {
+            assertThat(item.claims()).isEmpty();
+            assertThat(item.issues()).singleElement().satisfies(issue -> {
+                assertThat(issue.kind()).isEqualTo(IssueKind.DATA_GAP);
+                assertThat(issue.reasonCode()).isEqualTo(ReasonCode.UNSUPPORTED_DEMAND);
+            });
+        });
+    }
+
+    com.fasterxml.jackson.databind.node.ObjectNode unsupportedReview(boolean coverSecond) throws Exception {
+        var content = RuleAgentE13PublicationCapabilityTest.savedReview();
+        ((com.fasterxml.jackson.databind.node.ArrayNode) content.path("bindings")).removeAll();
+        var second = (com.fasterxml.jackson.databind.node.ObjectNode) content.path("requirements").get(1);
+        second.put("dimension", "UNKNOWN").put("subject", "UNSPECIFIED").put("recognition", "UNCLASSIFIED");
+        if (coverSecond) ((com.fasterxml.jackson.databind.node.ArrayNode) content.path("unresolvedDemands"))
+                .add(json.valueToTree(Map.of("span", Map.of("subquestionId", "q1", "excerpt", "现在还能帮我补上吗"),
+                        "reason", "UNSUPPORTED_DIMENSION")));
+        return content;
+    }
+
+    @Test void oneUnsupportedSpanCannotBlessAnotherUnclassifiedDemand() throws Exception {
+        var content = unsupportedReview(false);
+        var response = json.valueToTree(Map.of("choices", List.of(Map.of("message", Map.of("content", content.toString())))));
+        assertThatThrownBy(() -> com.zhku.knowledge.ruleagent.web.RuleAgentE13Policy.reviewBoundary(response))
+                .isInstanceOf(IllegalStateException.class);
+        // 即使绕过测试宿主守卫，生产 Gate + Publisher 也不能把缺自身覆盖的需求发布成正常资料不足。
+        RuleSemanticReviewPort reviewer = (safe, timeout) -> {
+            content.put("inputFingerprint", safe.inputFingerprint());
+            return RulePublicationProtocol.decode(content.toString(), safe);
+        };
+        var out = new RuleAgentRunner(decision(UnresolvedReason.UNCLASSIFIED_DEMAND),
+                new RuleActionBroker(tools(false)), Clock.systemUTC(), reviewer).run(AgentRunContext.create(QUESTION), input);
+        assertThat(out.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);
+        assertThat(out.snapshot().result().items().getFirst().issues()).anySatisfy(issue ->
+                assertThat(issue.reasonCode()).isEqualTo(ReasonCode.QUESTION_UNDERSTANDING_UNRESOLVED));
+        assertThat(out.snapshot().result().items().getFirst().claims()).isEmpty();
+    }
+
+    @Test
+    void partialOrMixedGapCannotBecomeResolvedDataGapThroughRunnerAndPublisher() throws Exception {
+        for (boolean mixed : List.of(false,true)) {
+            var content = RuleAgentE13PublicationCapabilityTest.savedReview();
+            ((com.fasterxml.jackson.databind.node.ArrayNode) content.path("bindings")).removeAll();
+            if (mixed) {
+                ((com.fasterxml.jackson.databind.node.ArrayNode) content.path("unresolvedDemands")).add(
+                    json.valueToTree(Map.of("span", Map.of("subquestionId","q1",
+                        "excerpt","现在还能帮我补上吗"),"reason","AMBIGUOUS_SCOPE")));
+            } else {
+                ((com.fasterxml.jackson.databind.node.ObjectNode) content.path("unresolvedDemands").get(0).path("span"))
+                    .put("excerpt","今晚");
+            }
+            RuleSemanticReviewPort reviewer = (safe,timeout) -> {
+                content.put("inputFingerprint",safe.inputFingerprint());
+                return RulePublicationProtocol.decode(content.toString(),safe);
+            };
+            var out = new RuleAgentRunner(decision(UnresolvedReason.UNCLASSIFIED_DEMAND),
+                new RuleActionBroker(tools(false)),Clock.systemUTC(),reviewer)
+                .run(AgentRunContext.create(QUESTION),input);
+            assertThat(out.snapshot().taskStatus()).as("mixed="+mixed).isEqualTo(TaskStatus.FAILED);
+            assertThat(out.snapshot().result().items().getFirst().issues()).anySatisfy(issue ->
+                assertThat(issue.reasonCode()).isEqualTo(ReasonCode.QUESTION_UNDERSTANDING_UNRESOLVED));
+            assertThat(out.snapshot().result().items().getFirst().issues()).noneSatisfy(issue ->
+                assertThat(issue.reasonCode()).isEqualTo(ReasonCode.UNSUPPORTED_DEMAND));
+            assertThat(out.snapshot().result().items().getFirst().claims()).isEmpty();
+        }
+    }
+
+    /**
+     * 决策提示曾让模型自报 SCOPE_LIMIT/CURRENT_APPLICABILITY_UNKNOWN，但发布器并不接受该组合。
+     * 该拒绝行为保持：未获允许的适用性声明不能被发布成资料不足，也不能反过来变成技术成功。
+     */
+    @Test
+    void selfReportedApplicabilityLimitIsRejectedByPublisher() {
+        var capabilities = RuleFactCapabilityCatalogue.fromReviewed(List.of(entry));
+        var safe = RulePublicationContract.input(input, List.of(), capabilities);
+        var assessment = review(UnresolvedReason.UNSUPPORTED_DIMENSION).assess(safe, Duration.ofSeconds(1));
+        var proposal = new Finish(List.of(new Proposal("q1", List.of(),
+                List.of(new RuleAgentContract.ProposedIssue(IssueKind.SCOPE_LIMIT,
+                        ReasonCode.CURRENT_APPLICABILITY_UNKNOWN)), null)));
+        var coverage = new RulePublicationGate(capabilities).assess(input, proposal, assessment, List.of());
+        assertThatThrownBy(() -> new RuleResultPublisher(new RuleActionBroker(tools()), input,
+                UUID.randomUUID(), coverage).finish(proposal))
+                .isInstanceOfSatisfying(RuleAgentRunner.Rejected.class,
+                        rejected -> assertThat(rejected.reason).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE));
+    }
+
 }

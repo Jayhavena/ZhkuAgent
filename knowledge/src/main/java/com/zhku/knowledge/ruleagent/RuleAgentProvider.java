@@ -74,7 +74,8 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         结束时items每项填写subquestionId、factIds、issues、operation；字段和限制以响应JSON Schema为准。
         FINISH必须覆盖所有子问题。能确认的事实与缺口可以共存，issues为kind/reasonCode对象。
         健康检索未命中可用DATA_GAP/RETRIEVAL_NO_MATCH；详情无依据可用DATA_GAP/DETAIL_NOT_IN_REVIEWED_TEXT。
-        不能确定当期适用用SCOPE_LIMIT/CURRENT_APPLICABILITY_UNKNOWN；其他对象用SCOPE_LIMIT/MATERIAL_SCOPE_MISMATCH。
+        宿主发布只接受这些模型自报缺口：资料不足以覆盖经核验的需求用DATA_GAP/UNSUPPORTED_DEMAND；检索健康但无命中用DATA_GAP/RETRIEVAL_NO_MATCH；已读事实模板本身标注原文缺详情时才用DATA_GAP/DETAIL_NOT_IN_REVIEWED_TEXT。
+        不要自报SCOPE_LIMIT、CURRENT_APPLICABILITY_UNKNOWN或MATERIAL_SCOPE_MISMATCH：当期适用性、个人记录与当期通知由宿主依据已读原文和页面条件判断。
         不得输出Schema枚举以外的动作；主张正文与原文关系由宿主核验后发布。operation本批使用null。
         """;
     static final String REVIEW_SYSTEM="""
@@ -83,6 +84,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         独立识别每个原子问题的完整需求，比较两侧分别列需求；不得省略未支持或未理解的部分。
         需求跨度以excerpt逐字回显原questions.text中的连续原文片段，不改写、不数坐标；inputFingerprint原样回传，必要字段及枚举只用合同允许值。
         只将input中实际已读且能力匹配的事实绑定到需求；辅助例外不能充当主需求的CORE依据。
+        绑定只能使用input.capabilities列出的已登记事实能力；capabilities为空时bindings必须为空，可读或可检索不等于可发布。
         必要条件只列当前需求确实依赖的 when 键，已知条件不能重复追问。
         %s
         IDENTIFIED只用于已识别且能力支持的需求，此时dimension禁止UNKNOWN、subject禁止UNSPECIFIED。

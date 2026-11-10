@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "g3-20261110-p02",
+  "blocks": [
+    {
+      "blockId": "g3-20261110-p02",
+      "kind": "EVIDENCE_BUNDLE",
+      "evidenceDir": "docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-5ecc89a52f364c38bf99bab6d6cd94ff",
+      "cases": [
+        {
+          "caseId": "G3-P02-CLARIFY",
+          "title": "真实两轮首轮：必要追问而非抢答",
+          "runId": "aaf4b1b3-e860-4aac-b874-891cf3dc5a6c",
+          "expectedVerdict": "PASS",
+          "expectedDetails": [
+            "EXPECTATIONS_MET"
+          ],
+          "expectation": {
+            "taskStatus": "WAITING_USER",
+            "runState": "INCOMPLETE",
+            "coverage": "NONE",
+            "requiredActions": [
+              "SEARCH_REVIEWED_RULES",
+              "READ_VERIFIED_RULE",
+              "ASK_NECESSARY_CONDITION",
+              "PUBLICATION_REVIEW"
+            ],
+            "issueReason": "MISSING_CONDITION",
+            "expectClaims": false,
+            "observedAction": "SEARCH_REVIEWED_RULES",
+            "observationStatus": "SUCCEEDED",
+            "requireEvidenceLinks": false,
+            "expectRejectedUnknownTool": false
+          }
+        },
+        {
+          "caseId": "G3-P02-RESOLVE",
+          "title": "真实两轮续答：结论带证据链",
+          "runId": "6304aea4-792c-403e-901b-19f8bcc096f3",
+          "expectedVerdict": "PASS",
+          "expectedDetails": [
+            "EXPECTATIONS_MET"
+          ],
+          "expectation": {
+            "taskStatus": "RESOLVED",
+            "runState": "SUCCEEDED",
+            "coverage": "COMPLETE",
+            "requiredActions": [
+              "SEARCH_REVIEWED_RULES",
+              "READ_VERIFIED_RULE",
+              "FINISH_CHECK",
+              "PUBLICATION_REVIEW"
+            ],
+            "issueReason": null,
+            "expectClaims": true,
+            "observedAction": "READ_VERIFIED_RULE",
+            "observationStatus": "SUCCEEDED",
+            "requireEvidenceLinks": true,
+            "expectRejectedUnknownTool": false
+          }
+        }
+      ]
+    }
+  ]
+}

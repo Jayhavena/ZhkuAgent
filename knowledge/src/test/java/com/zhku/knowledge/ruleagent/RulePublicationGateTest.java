@@ -135,6 +135,67 @@ class RulePublicationGateTest {
         assertThat(result.questions().get("q1").demandUnresolved()).isTrue();
     }
 
+    /**
+     * 未识别需求不能靠同一子问题里另一个资料缺口蒙混过关；否则“尚未理解”会被发布成正常资料不足。
+     * 缺口只覆盖已识别需求时，未被识别的需求必须保留未解决语义。
+     */
+    @Test void unclassifiedRequirementIsNotMaskedByAnotherDemandGap() {
+        var caps=catalogue(arrangement);
+        var original=input("专业选修怎么修，另外那个安排是指什么？");
+        var reviewInput=RulePublicationContract.input(original,arrangement,caps);
+        var review=new SemanticAssessment(REVISION,reviewInput.inputFingerprint(),List.of(
+            new Requirement("r1",new DemandSpan("q1",0,4),Dimension.STUDY_ARRANGEMENT,Subject.PROFESSIONAL_ELECTIVE,Recognition.IDENTIFIED,List.of()),
+            new Requirement("r2",new DemandSpan("q1",5,9),Dimension.UNKNOWN,Subject.UNSPECIFIED,Recognition.UNCLASSIFIED,List.of())),
+            List.of(new SemanticBinding("r1",professional.id(),BindingRole.CORE)),
+            List.of(new UnresolvedDemand(new DemandSpan("q1",0,4),UnresolvedReason.UNSUPPORTED_DIMENSION)));
+        var result=new RulePublicationGate(caps).assess(original,proposal(professional.id()),review,arrangement);
+        assertThat(result.questions().get("q1").demandUnresolved()).isTrue();
+        assertThat(result.questions().get("q1").unsupportedDemand()).isFalse();
+    }
+
+    /** 契约允许的路径：当期通知/代办类需求本就无法由历史原文识别，须由自己的资料缺口声明覆盖才能结束为资料不足。 */
+    @Test void gapDemandCoveringItsOwnUnclassifiedRequirementStaysDataGap() {
+        var caps=catalogue(arrangement);
+        var original=input("专业选修怎么修，公选补选今晚几点关？");
+        var reviewInput=RulePublicationContract.input(original,arrangement,caps);
+        int split=original.question().indexOf("公选");
+        var review=new SemanticAssessment(REVISION,reviewInput.inputFingerprint(),List.of(
+            new Requirement("r1",new DemandSpan("q1",0,split),Dimension.STUDY_ARRANGEMENT,Subject.PROFESSIONAL_ELECTIVE,Recognition.IDENTIFIED,List.of()),
+            new Requirement("r2",new DemandSpan("q1",split,original.question().length()),Dimension.UNKNOWN,Subject.UNSPECIFIED,Recognition.UNCLASSIFIED,List.of())),
+            List.of(new SemanticBinding("r1",professional.id(),BindingRole.CORE)),
+            List.of(new UnresolvedDemand(new DemandSpan("q1",split,original.question().length()),UnresolvedReason.UNSUPPORTED_DIMENSION)));
+        var result=new RulePublicationGate(caps).assess(original,proposal(professional.id()),review,arrangement);
+        assertThat(result.questions().get("q1").unsupportedDemand()).isTrue();
+    }
+
+    @Test void partialOverlapDoesNotCoverUnclassifiedRequirement() {
+        var unknown = new Requirement("r1",new DemandSpan("q1",2,10),
+            Dimension.UNKNOWN,Subject.UNSPECIFIED,Recognition.UNCLASSIFIED,List.of());
+        var partial = new SemanticAssessment(REVISION,"0".repeat(64),List.of(unknown),List.of(),
+            List.of(new UnresolvedDemand(new DemandSpan("q1",0,5),UnresolvedReason.UNSUPPORTED_DIMENSION)));
+        var complete = new SemanticAssessment(REVISION,"0".repeat(64),List.of(unknown),List.of(),
+            List.of(new UnresolvedDemand(new DemandSpan("q1",0,10),UnresolvedReason.UNSUPPORTED_DIMENSION)));
+        assertThat(RulePublicationGate.unsupportedDemand(partial,"q1")).isFalse();
+        assertThat(RulePublicationGate.unsupportedDemand(complete,"q1")).isTrue();
+    }
+
+    @Test void mixedUnresolvedReasonsCannotBeClassifiedAsOnlyDataGap() {
+        var unknown = new Requirement("r1",new DemandSpan("q1",0,10),
+            Dimension.UNKNOWN,Subject.UNSPECIFIED,Recognition.UNCLASSIFIED,List.of());
+        var mixed = new SemanticAssessment(REVISION,"0".repeat(64),List.of(unknown),List.of(),List.of(
+            new UnresolvedDemand(new DemandSpan("q1",0,10),UnresolvedReason.UNSUPPORTED_DIMENSION),
+            new UnresolvedDemand(new DemandSpan("q1",3,9),UnresolvedReason.AMBIGUOUS_SCOPE)));
+        assertThat(RulePublicationGate.unsupportedDemand(mixed,"q1")).isFalse();
+    }
+
+    @Test void ambiguousRequirementIsNotAnExplicitlyUnsupportedUnknown() {
+        var ambiguous = new Requirement("r1",new DemandSpan("q1",0,10),
+            Dimension.UNKNOWN,Subject.UNSPECIFIED,Recognition.AMBIGUOUS,List.of());
+        var review = new SemanticAssessment(REVISION,"0".repeat(64),List.of(ambiguous),List.of(),
+            List.of(new UnresolvedDemand(new DemandSpan("q1",0,10),UnresolvedReason.UNSUPPORTED_DIMENSION)));
+        assertThat(RulePublicationGate.unsupportedDemand(review,"q1")).isFalse();
+    }
+
     @Test void reviewInputExcludesOwnerProposalAndOriginalTokens()throws Exception {
         var caps=catalogue(arrangement);
         var original=input("比较修读安排");
