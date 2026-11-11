@@ -67,7 +67,8 @@ param(
     [switch]$BuildOnly,
     [ValidatePattern('^[a-z0-9][a-z0-9-]{0,31}$')][string]$InstanceName,
     [string]$HandbookPdf = '',
-    [string]$AssetsRoot = ''
+    [string]$AssetsRoot = '',
+    [ValidateSet('SIMULATED','ONLINE')][string]$ExecutionMode = 'SIMULATED'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -346,11 +347,30 @@ function Invoke-Check {
 
 # ---------- Start ----------
 
+function Get-StudentEnvironmentValue {
+    param([string]$Name)
+    foreach ($scope in @('Process','User','Machine')) {
+        $value = [Environment]::GetEnvironmentVariable($Name,$scope)
+        if (-not [string]::IsNullOrWhiteSpace($value)) { return $value }
+    }
+    return $null
+}
+
 function New-RuleContainerName {
     return ('zhkuagent-rulecheck-rules-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
 }
 
 function Invoke-Start {
+    # 真实模型入口只由命令行显式选择；环境中残留的ONLINE不能让默认启动外发。
+    if ($ExecutionMode -eq 'ONLINE') {
+        foreach ($name in @('DASHSCOPE_API_KEY','ZHKU_RULE_AGENT_AUTHORIZATION_ID','ZHKU_RULE_AGENT_CALL_ALLOWANCE')) {
+            if (-not (Get-StudentEnvironmentValue $name)) { throw ('在线模式缺少环境配置：' + $name) }
+        }
+        $allowance = 0
+        if (-not [int]::TryParse((Get-StudentEnvironmentValue 'ZHKU_RULE_AGENT_CALL_ALLOWANCE'),[ref]$allowance) -or $allowance -lt 1 -or $allowance -gt 24) {
+            throw '在线模式要求1至24次显式宿主调用额度'
+        }
+    }
     $script:stage = 'preflight'
     if ($IdentityPort -eq 54329 -or $RulePort -eq 54329 -or $BackendPort -eq 54329) { throw '端口 54329 是用户共享演示库，禁止使用' }
     if ($IdentityPort -eq $RulePort -or $IdentityPort -eq $BackendPort -or $RulePort -eq $BackendPort) { throw '身份库、规则库、宿主端口必须互不相同' }
@@ -480,9 +500,12 @@ function Invoke-Start {
     $state['ruleContainer'] = $ruleContainer
     $state['rulePassword'] = $rulePassword
     $state['hostJar'] = $jarPath
-    $state['handbookPdf'] = $HandbookPdf
+    $state['executionMode'] = $ExecutionMode
+    if ($HandbookPdf -or -not $state['handbookPdf']) { $state['handbookPdf'] = $HandbookPdf }
     # 源码从固定提交构建，审核原件可在独立只读目录；原有指纹/资格校验仍在连接前执行。
-    $state['assetsRoot'] = if ($AssetsRoot) { (Resolve-Path -LiteralPath $AssetsRoot).Path } else { $root }
+    if ($AssetsRoot -or -not $state['assetsRoot']) {
+        $state['assetsRoot'] = if ($AssetsRoot) { (Resolve-Path -LiteralPath $AssetsRoot).Path } else { $root }
+    }
     $state['hostPid'] = $null
     $state['supervisorPid'] = $null
     $state['lastAction'] = 'Start'
@@ -697,6 +720,17 @@ function Invoke-Supervisor {
         foreach ($name in @('ZHKU_RULECHECK_TASK_BATCH_DIRECTORY', 'ZHKU_RULECHECK_TASK_PACKAGE_SHA256', 'ZHKU_RULECHECK_TASK_SUMMARY_SHA256', 'DASHSCOPE_API_KEY')) {
             [void]$variables.Remove($name)
         }
+        $mode = if ($state['executionMode']) { [string]$state['executionMode'] } else { 'SIMULATED' }
+        $variables['ZHKU_STUDENT_EXECUTION_MODE'] = $mode
+        foreach ($name in @('ZHKU_RULE_AGENT_MODE','ZHKU_RULE_AGENT_AUTHORIZATION_ID','ZHKU_RULE_AGENT_CALL_ALLOWANCE')) { [void]$variables.Remove($name) }
+        if ($mode -eq 'ONLINE') {
+            $variables['ZHKU_RULE_AGENT_MODE'] = 'ONLINE'
+            foreach ($name in @('DASHSCOPE_API_KEY','ZHKU_RULE_AGENT_AUTHORIZATION_ID','ZHKU_RULE_AGENT_CALL_ALLOWANCE')) {
+                $value = Get-StudentEnvironmentValue $name
+                if (-not $value) { throw ('监管进程无法读取在线环境配置：' + $name) }
+                $variables[$name] = $value
+            }
+        }
         $process = [Diagnostics.Process]::Start($info)
         $log.WriteLine(('host pid=' + $process.Id))
         $stderrTask = $process.StandardError.ReadToEndAsync()
@@ -734,6 +768,9 @@ function Invoke-Supervisor {
                         hostPid = $process.Id
                         startedAt = (Get-Date).ToString('o')
                         backendPort = $backendPort
+                        executionMode = $mode
+                        onlineEnabled = ($mode -eq 'ONLINE')
+                        simulatedQuestion = if ($mode -eq 'SIMULATED') { '我这门选修课没过，能不能重修？' } else { $null }
                         identityDbPort = $identityPort
                         ruleDbPort = $rulePort
                         identityContainer = $identityContainerName

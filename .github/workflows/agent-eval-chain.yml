@@ -31,7 +31,7 @@ jobs:
         run: |
           mkdir -p "$PWD/target/trial-evidence"
           mvn -B -pl knowledge -am test \
-            -Dtest=RuleCheckCoverageRepairTest,RuleCheckDisabledRetrievalTest,RuleCheckEvidenceFirstTest,HybridRetrievalServiceTest,RulePublicationGateTest,RuleAgentProviderTest,RuleAgentTaskHttpTest,RuleAgentE13PublicationCapabilityTest \
+            -Dtest=RuleCheckCoverageRepairTest,RuleCheckDisabledRetrievalTest,RuleCheckEvidenceFirstTest,HybridRetrievalServiceTest,RulePublicationGateTest,RuleAgentProviderTest,RuleAgentTaskHttpTest,RuleAgentE13PublicationCapabilityTest,PersistentRuleCheckLocalHostTest,PersistentStudentTaskConfigurationTest,RuleAgentSimulatedDemoTest \
             -Dsurefire.failIfNoSpecifiedTests=false \
             -Dzhku.rulecheck.evidenceDir="$PWD/target/trial-evidence"
       - uses: actions/setup-node@v4

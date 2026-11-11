@@ -28,10 +28,22 @@ public final class PersistentRuleCheckLocalHost {
         String[] options = options(args, environment);
         // 启动后所有退出路径（包括读取异常）都释放Application拥有的资源。
         try (AutoCloseable context = starter.start(options)) {
-            System.out.println("RULECHECK_HOST_READY 离线回放，不是在线模型");
-            var reader = new BufferedReader(input);
-            String line;
-            while ((line = reader.readLine()) != null && !line.equals("STOP")) { }
+            try {
+                System.out.println("RULECHECK_HOST_READY execution=" + mode(environment));
+                var reader = new BufferedReader(input);
+                String line;
+                while ((line = reader.readLine()) != null && !line.equals("STOP")) { }
+            } finally {
+                // 先禁止新任务并等待工作线程退出，再让Spring卸载目录和身份库；不能把停止请求当成资源已释放。
+                if(context instanceof org.springframework.context.ConfigurableApplicationContext app
+                        && app.getBeansOfType(com.zhku.knowledge.ruleagent.RuleAgentTaskStore.class).size()==1) {
+                    app.getBean(com.zhku.knowledge.ruleagent.RuleAgentTaskStore.class).close();
+                    var executor=app.getBean("ruleAgentHttpExecutor",java.util.concurrent.ExecutorService.class);
+                    executor.shutdownNow();
+                    if(!executor.awaitTermination(25,java.util.concurrent.TimeUnit.SECONDS))
+                        throw new IllegalStateException("学生任务线程未退出");
+                }
+            }
         }
     }
 
@@ -41,7 +53,20 @@ public final class PersistentRuleCheckLocalHost {
         int port = Integer.parseInt(required(environment, "ZHKU_RULECHECK_PORT"));
         if (port < 1024 || port > 65535) throw new IllegalArgumentException("监听端口非法");
         boolean taskReplay = environment.apply("ZHKU_RULECHECK_TASK_BATCH_DIRECTORY") != null;
+        String execution=mode(environment);
+        if(execution.equals("ONLINE")) {
+            var env=new java.util.HashMap<String,String>();
+            for(String key:List.of("ZHKU_RULE_AGENT_MODE","DASHSCOPE_API_KEY","ZHKU_RULE_AGENT_AUTHORIZATION_ID"))
+                env.put(key,required(environment,key));
+            com.zhku.knowledge.ruleagent.RuleAgentProvider.Settings.environment(env);
+            int allowance=Integer.parseInt(required(environment,"ZHKU_RULE_AGENT_CALL_ALLOWANCE"));
+            if(allowance<1||allowance>24)throw new IllegalArgumentException("在线宿主额度必须为1至24");
+        }
         var options = new ArrayList<>(List.of(
+                "--zhku.persistent-student.enabled=true", "--zhku.rule-agent-http.enabled=true",
+                "--zhku.rule-agent-launch.enabled=true", "--zhku.rule-agent-launch.executor="+execution,
+                "--zhku.rule-agent-http.online-enabled="+execution.equals("ONLINE"),
+                "--zhku.rule-agent-http.reviewed-tools-enabled=true",
                 "--server.port=" + port, "--spring.main.banner-mode=off", "--logging.level.root=ERROR",
                 "--zhku.db.url=" + required(environment, "ZHKU_DB_URL"), "--zhku.db.username=zhkuagent",
                 "--zhku.rule-check-preview.enabled=true", "--zhku.rule-check-preview.initialize=true",
@@ -60,6 +85,8 @@ public final class PersistentRuleCheckLocalHost {
             options.add("--zhku.rule-check-preview.task-package-sha256=" + required(environment, "ZHKU_RULECHECK_TASK_PACKAGE_SHA256"));
             options.add("--zhku.rule-check-preview.task-summary-sha256=" + required(environment, "ZHKU_RULECHECK_TASK_SUMMARY_SHA256"));
         }
+        if(execution.equals("ONLINE"))
+            options.add("--logging.level.com.zhku.knowledge.controlled.PersistentStudentTaskConfiguration=INFO");
         // URL和凭据边界仍由application()原有initializer校验，不在此绕过或复制。
         return options.toArray(String[]::new);
     }
@@ -67,6 +94,12 @@ public final class PersistentRuleCheckLocalHost {
     private static String required(Function<String, String> environment, String name) {
         String value = environment.apply(name);
         if (value == null || value.isBlank()) throw new IllegalArgumentException("缺少启动环境：" + name);
+        return value;
+    }
+    private static String mode(Function<String,String> environment) {
+        String value=environment.apply("ZHKU_STUDENT_EXECUTION_MODE");
+        if(value==null)value="SIMULATED";
+        if(!List.of("SIMULATED","ONLINE").contains(value))throw new IllegalArgumentException("学生执行模式非法");
         return value;
     }
 }

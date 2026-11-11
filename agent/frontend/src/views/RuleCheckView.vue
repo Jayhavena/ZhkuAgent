@@ -12,7 +12,8 @@ import { createRuleTaskWorkflow } from '../state/rule-task-workflow.js'
 import { ruleCheckConditionLabel } from '../state/rule-check-labels.js'
 
 const runtime = inject('rule-task-runtime', null)
-const simulated = runtime?.simulated ?? import.meta.env.VITE_DEMO_MODE === 'simulated'
+const hostInfo = ref(null)
+const simulated = computed(() => hostInfo.value?.mode === 'SIMULATED' || (runtime?.simulated ?? import.meta.env.VITE_DEMO_MODE === 'simulated'))
 const httpFixture = runtime?.httpFixture ?? import.meta.env.VITE_DEMO_MODE === 'http-fixture'
 const session = runtime?.session || ruleCheckSession
 const api = runtime?.client || ruleTaskClient
@@ -126,8 +127,8 @@ const issueLabels = {
   CONFLICT: '依据存在冲突',
   REPLAY_MISS: '回放未覆盖'
 }
-const sampleQuestions = computed(() => simulated
-  ? ['我这门选修课没过，能不能重修？']
+const sampleQuestions = computed(() => simulated.value
+  ? [hostInfo.value?.simulatedQuestion || '我这门选修课没过，能不能重修？']
   : ['公共选修课有什么学分要求？', '课程没通过后怎么办？'])
 
 const relatedEvidence = item => result.value.evidence.filter(evidence =>
@@ -206,6 +207,10 @@ onMounted(async () => {
     return
   }
   await checkLogin()
+  // 持久宿主运行模式由当前服务端声明；旧宿主无此可选端点时仍沿用原合同，不能据此推断在线成功。
+  if (alive && student.value && api.runtimeInfo) {
+    try { const info = await api.runtimeInfo(); if (alive) hostInfo.value = info } catch { /* 兼容未提供模式端点的既有宿主。 */ }
+  }
   if (alive) await flow.restoreLatest()
 })
 onUnmounted(() => {
