@@ -35,13 +35,18 @@ public final class PersistentRuleCheckLocalHost {
                 while ((line = reader.readLine()) != null && !line.equals("STOP")) { }
             } finally {
                 // 先禁止新任务并等待工作线程退出，再让Spring卸载目录和身份库；不能把停止请求当成资源已释放。
-                if(context instanceof org.springframework.context.ConfigurableApplicationContext app
-                        && app.getBeansOfType(com.zhku.knowledge.ruleagent.RuleAgentTaskStore.class).size()==1) {
+                if(context instanceof org.springframework.context.ConfigurableApplicationContext app) {
+                    int stores=app.getBeansOfType(com.zhku.knowledge.ruleagent.RuleAgentTaskStore.class).size();
+                    if(stores!=1) {
+                        if(stores!=0||app.getEnvironment().getProperty("zhku.persistent-student.enabled",Boolean.class,false))
+                            throw new IllegalStateException("学生任务仓储必须唯一，不能跳过退出核验");
+                    } else {
                     app.getBean(com.zhku.knowledge.ruleagent.RuleAgentTaskStore.class).close();
                     var executor=app.getBean("ruleAgentHttpExecutor",java.util.concurrent.ExecutorService.class);
                     executor.shutdownNow();
                     if(!executor.awaitTermination(25,java.util.concurrent.TimeUnit.SECONDS))
                         throw new IllegalStateException("学生任务线程未退出");
+                    }
                 }
             }
         }
@@ -58,6 +63,10 @@ public final class PersistentRuleCheckLocalHost {
             var env=new java.util.HashMap<String,String>();
             for(String key:List.of("ZHKU_RULE_AGENT_MODE","DASHSCOPE_API_KEY","ZHKU_RULE_AGENT_AUTHORIZATION_ID"))
                 env.put(key,required(environment,key));
+            // 复用供应商守卫的混用规则，直接Java启动也必须在Spring/数据库/监听之前拒绝旧回放变量。
+            for(String key:List.of("ZHKU_RULECHECK_TASK_BATCH_DIRECTORY","ZHKU_RULECHECK_TASK_PACKAGE_SHA256","ZHKU_RULECHECK_TASK_SUMMARY_SHA256")) {
+                String value=environment.apply(key);if(value!=null)env.put(key,value);
+            }
             com.zhku.knowledge.ruleagent.RuleAgentProvider.Settings.environment(env);
             int allowance=Integer.parseInt(required(environment,"ZHKU_RULE_AGENT_CALL_ALLOWANCE"));
             if(allowance<1||allowance>24)throw new IllegalArgumentException("在线宿主额度必须为1至24");

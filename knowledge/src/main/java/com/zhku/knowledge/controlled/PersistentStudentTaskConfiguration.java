@@ -40,8 +40,8 @@ public class PersistentStudentTaskConfiguration {
             // 仅保存白名单用量元数据，不保存请求/响应正文或密钥；额度归宿主，澄清不能重新领额度。
             var log=org.slf4j.LoggerFactory.getLogger(PersistentStudentTaskConfiguration.class);
             return new RuleAgentOnlineHttpConfiguration.Options(settings,()->System.getenv("DASHSCOPE_API_KEY"),
-                trace->log.info("STUDENT_PROVIDER purpose={} phase={} status={} reason={} inputTokens={} outputTokens={}",
-                    trace.purpose(),trace.phase(),trace.status(),trace.reason(),trace.inputTokens(),trace.outputTokens()),allowance);
+                trace->log.info("STUDENT_PROVIDER taskId={} runId={} purpose={} phase={} status={} reason={} inputTokens={} outputTokens={}",
+                    trace.taskId(),trace.runId(),trace.purpose(),trace.phase(),trace.status(),trace.reason(),trace.inputTokens(),trace.outputTokens()),allowance);
         }
     }
 }

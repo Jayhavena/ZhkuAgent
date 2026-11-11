@@ -21,7 +21,7 @@ class PersistentStudentTaskConfigurationTest {
         runner().run(c->{assertThat(c).hasNotFailed();assertThat(c).doesNotHaveBean(RuleAgentSimulatedDemoFactory.class);
             assertThat(c).doesNotHaveBean(PersistentStudentRuntimeController.class);});
     }
-    @Test void runtimeControllerCannotPolluteLegacyApplicationScanning() {
+    @Test void runtimeControllerConditionKeepsLegacyConfigurationOff() {
         new ApplicationContextRunner().withUserConfiguration(PersistentStudentRuntimeController.class)
             .run(c->{assertThat(c).hasNotFailed();assertThat(c).doesNotHaveBean(PersistentStudentRuntimeController.class);});
     }

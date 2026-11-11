@@ -3,9 +3,9 @@ import {validateRuleAgentSnapshot} from './rule-agent-contract.js'
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x)
 const requireId=x=>{if(!uuid(x))throw new RuleCheckError('INVALID_TASK_REQUEST');return x}
 export function validateRuntimeInfo(x){
-  if(!x||Object.keys(x).length!==2||!['SIMULATED','ONLINE'].includes(x.mode)
-    ||(x.mode==='SIMULATED'?(typeof x.simulatedQuestion!=='string'||!x.simulatedQuestion.trim()||x.simulatedQuestion.length>2048):x.simulatedQuestion!==null))throw new RuleCheckError('BAD_RESPONSE')
-  return x
+  if(!x||Object.keys(x).some(k=>!['mode','simulatedQuestion'].includes(k))||!['SIMULATED','ONLINE'].includes(x.mode)
+    ||(x.mode==='SIMULATED'?(typeof x.simulatedQuestion!=='string'||!x.simulatedQuestion.trim()||x.simulatedQuestion.length>2048):x.simulatedQuestion!=null))throw new RuleCheckError('BAD_RESPONSE')
+  return {mode:x.mode,simulatedQuestion:x.simulatedQuestion??null}
 }
 export function validateAccepted(x){
   const keys=['taskId','turnId','runId','version','duplicate']
