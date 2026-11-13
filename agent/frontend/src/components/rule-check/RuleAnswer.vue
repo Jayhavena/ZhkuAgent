@@ -43,7 +43,7 @@ const issueTone = kind => gapKinds.has(kind) ? 'gap' : kind === 'PROCESSING_FAIL
             <button v-for="(evidence, index) in claimCitations(leadClaim.item, leadClaim.claim)" :key="evidence.id" class="inline-ref" type="button" data-testid="inline-ref" :aria-label="'依据 ' + (index + 1) + '：查看对应证据'" @click="$emit('focusEvidence', evidence.id)">依据 {{ index + 1 }}</button>
           </p>
           <p v-if="result.publishedVersion < state.snapshot.version" class="inline-status">以下为上一轮已确认内容，本轮补充仍在处理。</p>
-          <p v-if="state.snapshot.execution.mode === 'ENGINEERING_REPLAY'" class="mode-notice mode-notice--inline">工程回放使用已封存的响应，不代表在线模型能力。</p>
+          <p v-if="state.snapshot.execution.mode === 'ENGINEERING_REPLAY'" class="mode-notice mode-notice--inline">{{ state.snapshot.execution.answerSource === 'SEALED_REPLAY' ? '工程回放使用已封存的响应，不代表在线模型能力。' : '当前为零模型工程验证，不代表在线模型能力。' }}</p>
         </header>
         <!-- 需要澄清时先给选择控件：这是该状态唯一可执行的操作，放在说明之前避免用户以为无事可做。 -->
         <RuleClarification v-if="waitingForClarification && nextCondition" :choice="choice" :next-condition="nextCondition" :busy="state.busy" :pending="state.pending" @update:choice="$emit('update:choice', $event)" @clarify="$emit('clarify', $event)" @new-question="$emit('newQuestion')" />

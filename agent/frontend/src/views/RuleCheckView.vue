@@ -12,7 +12,9 @@ import { createRuleTaskWorkflow } from '../state/rule-task-workflow.js'
 import { ruleCheckConditionLabel } from '../state/rule-check-labels.js'
 
 const runtime = inject('rule-task-runtime', null)
-const simulated = runtime?.simulated ?? import.meta.env.VITE_DEMO_MODE === 'simulated'
+const hostInfo = ref(null)
+const modeError = ref('')
+const simulated = computed(() => hostInfo.value?.mode === 'SIMULATED' || (runtime?.simulated ?? import.meta.env.VITE_DEMO_MODE === 'simulated'))
 const httpFixture = runtime?.httpFixture ?? import.meta.env.VITE_DEMO_MODE === 'http-fixture'
 const session = runtime?.session || ruleCheckSession
 const api = runtime?.client || ruleTaskClient
@@ -126,8 +128,8 @@ const issueLabels = {
   CONFLICT: '依据存在冲突',
   REPLAY_MISS: '回放未覆盖'
 }
-const sampleQuestions = computed(() => simulated
-  ? ['我这门选修课没过，能不能重修？']
+const sampleQuestions = computed(() => modeError.value ? [] : simulated.value
+  ? [hostInfo.value?.simulatedQuestion || '我这门选修课没过，能不能重修？']
   : ['公共选修课有什么学分要求？', '课程没通过后怎么办？'])
 
 const relatedEvidence = item => result.value.evidence.filter(evidence =>
@@ -192,6 +194,8 @@ watch(() => state.snapshot, () => {
   selectedEvidenceId.value = ''
 })
 watch(() => session.state.epoch, () => {
+  hostInfo.value = null
+  modeError.value = ''
   question.value = ''
   username.value = ''
   password.value = ''
@@ -224,6 +228,7 @@ async function login() {
   try {
     await pending
     if (session.state.epoch === epoch) session.state.reason = ''
+    await loadRuntimeInfo()
     if (alive) await flow.restoreLatest()
   } catch (error) {
     if (error.code !== 'STALE_RESPONSE') {
@@ -245,12 +250,30 @@ async function checkLogin() {
   try {
     await api.me()
     if (alive) session.state.reason = ''
+    await loadRuntimeInfo()
   } catch (error) {
     if (alive && error.code !== 'STALE_RESPONSE' && error.status !== 401) {
       loginError.value = '暂时无法核对登录状态，请稍后重试。'
     }
   } finally {
     if (alive) authChecking.value = false
+  }
+}
+async function loadRuntimeInfo() {
+  if (!alive || !student.value || !api.runtimeInfo) return
+  const epoch = session.state.epoch
+  try {
+    const info = await api.runtimeInfo()
+    if (alive && epoch === session.state.epoch && student.value) {
+      hostInfo.value = info
+      modeError.value = ''
+    }
+  } catch {
+    // 模式读取失败不能被呈现成在线；并且换账号后迟到的响应不得覆盖新会话。
+    if (alive && epoch === session.state.epoch && student.value) {
+      hostInfo.value = null
+      modeError.value = '暂时无法确认当前服务的执行模式，请稍后刷新或重试。'
+    }
   }
 }
 async function logout() {
@@ -328,6 +351,7 @@ watch(
     <RuleHeader :actor="session.state.actor" :identity-busy="session.state.identityBusy" :can-ask-new="hasConversation && student" :new-question-disabled="authChecking || state.busy || !!state.pending || active" @logout="logout" @new-question="newQuestion" />
 
     <p v-if="student && state.error && !hasConversation" class="mode-notice" role="alert">{{ state.error }}</p>
+    <p v-if="student && modeError" class="mode-notice" role="status">{{ modeError }}</p>
 
     <details v-if="student && state.recent?.length" class="mode-notice" data-testid="recent-tasks">
       <summary>本标签页最近查证（最多 5 条）</summary>

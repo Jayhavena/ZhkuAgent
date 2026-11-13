@@ -12,7 +12,7 @@ import com.zhku.knowledge.security.RuleCheckPreviewSecurityConfiguration;
 /** 显式装配避免旧匿名、治理、Agent入口被同目录扫描带入。 */
 @SpringBootConfiguration(proxyBeanMethods=false)
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class,FlywayAutoConfiguration.class,UserDetailsServiceAutoConfiguration.class})
-@Import({RuleCheckPreviewConfiguration.class,RuleCheckPreviewSecurityConfiguration.class,RuleCheckAuthController.class,RuleCheckController.class,com.zhku.knowledge.ruleagent.web.RuleAgentHttpConfiguration.class})
+@Import({RuleCheckPreviewConfiguration.class,RuleCheckPreviewSecurityConfiguration.class,RuleCheckAuthController.class,RuleCheckController.class,com.zhku.knowledge.ruleagent.web.RuleAgentHttpConfiguration.class,com.zhku.knowledge.controlled.PersistentStudentTaskConfiguration.class})
 public class RuleCheckPreviewApplication {
     public static SpringApplication application() {
         var application=new SpringApplication(RuleCheckPreviewApplication.class);
