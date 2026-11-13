@@ -149,7 +149,8 @@ class RuleCheckPreviewConfigurationTest {
         var imports=RuleCheckPreviewApplication.class.getAnnotation(Import.class);assertThat(imports).isNotNull();
         assertThat(imports.value()).containsExactlyInAnyOrder(RuleCheckPreviewConfiguration.class,
                 RuleCheckPreviewSecurityConfiguration.class,RuleCheckAuthController.class,RuleCheckController.class,
-                com.zhku.knowledge.ruleagent.web.RuleAgentHttpConfiguration.class);
+                com.zhku.knowledge.ruleagent.web.RuleAgentHttpConfiguration.class,
+                com.zhku.knowledge.controlled.PersistentStudentTaskConfiguration.class);
     }
     @Test void profileYamlKeepsEntryAndInitializationClosedByDefault() throws Exception {
         var resource=new ClassPathResource("application-zhku-rule-check-preview.yml");assertThat(resource.exists()).isTrue();
