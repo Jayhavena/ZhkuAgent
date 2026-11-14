@@ -73,7 +73,17 @@ public final class RulePublicationGate {
             boolean issues=!item.issues().isEmpty();
             complete&=uncovered.isEmpty()&&!unresolved&&!issues;
             hasCovered|=!covered.isEmpty();
-            assessments.put(item.subquestionId(),new QuestionAssessment(covered,uncovered,unresolved,unsupported,issues));
+            // 已读能力本可覆盖却未选中的事实是漏答，不能被洗成资料缺口；缺条件也不算能力不存在。
+            var available=new HashSet<>(catalogue.publicationFactIds(List.copyOf(read.values())));
+            var gaps=new LinkedHashSet<String>();
+            for(String id:uncovered){
+                var requirement=requirements.get(id);
+                if(requirement.recognition()!=Recognition.IDENTIFIED)continue;
+                boolean supported=available.stream().map(catalogue::find).flatMap(Optional::stream)
+                    .anyMatch(c->c.dimension()==requirement.dimension()&&c.subject()==requirement.subject()&&c.allowedRoles().contains(BindingRole.CORE));
+                if(!supported)gaps.add(id);
+            }
+            assessments.put(item.subquestionId(),new QuestionAssessment(covered,uncovered,unresolved,unsupported,issues,gaps));
         }
         // 辅助例外不完成主需求；漏选已读事实也不能借核验器看过它而自称完整。
         return new PublicationAssessment(complete?Verdict.COMPLETE:hasCovered?Verdict.PARTIAL:Verdict.UNRESOLVED,accepted,assessments);

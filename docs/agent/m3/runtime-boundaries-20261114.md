@@ -55,3 +55,17 @@ M3仍未结项：资料缺失与审核事实能力不足的归因需要继续核
 主Agent按已记录的仓库根、默认fork及显式PDF/evidenceDir参数复跑11类，242项通过，0失败/错误/跳过（m3-object-course-final.log）。审查者使用forkCount=0并缺PDF参数的93项复跑有路径错误，不能作为相同命令的反证；其新增两条Factory正例、纯提取与Store确实通过。测试路径仍有既有cwd依赖，本轮没有把基础设施差异藏成代码失败或更改原始测试记录。
 
 审查F2保留为已知边界：跨度目前是本机任务级投影，独立核验输入仍只有条件值与问题原文，没有自动核对声明跨度；合成核验只证明接线，不证明会识破任意误声明。提取器仍是有限启发式，不能据此宣称所有中文语序安全。审查F3确认无fact原文回退应保留，不能机械要求acceptedBinding；下一步需避免完整覆盖被伪缺口降为PARTIAL，并区分能力缺口与原文详情缺失。旧evidence-first类别提取器与本轮Task API不是同一路径，其问题另列，未合并或宣称已修。
+
+## M3-04 由Gate区分事实能力缺口与漏答（待最终审查）
+
+主Agent没有直接采用审查建议的“只要uncovered非空即允许缺口”：漏选已读可用事实同样会产生uncovered，仍会错误归因。采用更窄的聚合：QuestionAssessment增加内部factCapabilityGapRequirementIds，只有已识别需求且当前已读、指纹匹配的能力目录没有对应dimension/subject/CORE能力才加入；不因用户条件未补齐就把已存在能力记成缺失。该字段是本机Gate结果，不增加模型响应合同或学生HTTP字段。
+
+Publisher要求该子问题真实成功读取过VERIFIED_EVIDENCE/VERIFIED_FACT，并由Gate确认能力缺口，才自动产生REVIEWED_FACT_COVERAGE_GAP。已读事实能力可覆盖但未选中的需求仍为ANSWER_COVERAGE_INCOMPLETE/FAILED；完整覆盖不能借早先无fact读取自报缺口。无法理解的需求仍沿用原处理，不能被缺口码掩盖。无独立核验的旧legacy路径保持原兼容边界，未声称同样完成新语义验收。
+
+4项新增合成反例先全部失败（m3-gap-red.log）：原文无fact的诚实回退实际FAILED、完整Claim伪缺口及漏选事实伪缺口未被拒绝、两类缺口文案相同。局部修复后Gate/E13/新增4项共28项通过（m3-gap-local.log），随后增加合法的“已有Claim同时缺另一需求能力”用例，验证宿主不依赖模型自报标签自动归因。fixture使用真实EvidenceTools、Broker、Gate、Publisher，两块合成原文的事实需要完整绑定：先只读一块确实得到VERIFIED_EVIDENCE，再读齐得到VERIFIED_FACT；不伪造观察，不连接供应商。
+
+决策提示词同步允许经宿主确认的REVIEWED_FACT_COVERAGE_GAP；其文案明确“当前审核事实能力未覆盖，不能据此断言原文没有规定”，与模板标注详情缺失区分。不放宽Claim、checksum、when、独立核验或原文资格守卫。尚未证明真实模型会正确使用新码，也未补做M2真实账单或真实供应商失败。
+
+扩大回归第一次未通过（m3-gap-final.log）：新增两例构造了协议禁止的空Proposal（2 error），新增提示词使旧固定载荷字节断言由4935变为5122（1 fail）。未修改旧业务状态期望；删除非法构造并以合法Claim+能力缺口用例替换，ProviderTest同步当前合成载荷字节基线和中文说明。该失败记录保留，不作为成功证据。
+
+最终主Agent在仓库根以默认fork、显式evidenceDir与既有已核对PDF属性运行前述11类加RuleAgentGapAttributionTest，247项通过，0失败/错误/跳过（knowledge/target/m3-gap-final-verified.log，BUILD SUCCESS）。无真实供应商/DB/浏览器调用。新增内部Gate缺口归因需要独立审查后再讨论M3结项；F2来源标注、旧evidence-first提取与测试cwd依赖仍是已知范围边界，未声称已修复。M3代码未push、未入main/CI，M2-BILL/M2-FAIL仍待补证。
