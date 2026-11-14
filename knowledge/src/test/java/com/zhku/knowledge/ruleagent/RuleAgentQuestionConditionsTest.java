@@ -12,6 +12,12 @@ import static org.assertj.core.api.Assertions.*;
 @Timeout(15)
 class RuleAgentQuestionConditionsTest {
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"公选课挂了，能重修体育课吗","公选课没过，可以重修必修课吗","公选课挂了，能申请重修高数吗","公选课不过，能补考英语吗","专选课挂了，能重修高数吗","公选课挂了，能补考法语吗"})
+    void aDifferentCourseAfterThePredicateCannotInheritBackgroundCategory(String text){
+        assertThat(extract(text)).isEmpty();
+    }
+
     private static List<RuleAgentQuestionConditions.Declared> extract(String text) {
         return RuleAgentQuestionConditions.extract(text, List.of(new RuleAgentRunner.Question("q1", text)));
     }

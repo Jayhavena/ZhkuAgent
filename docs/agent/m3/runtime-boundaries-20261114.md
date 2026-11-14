@@ -47,3 +47,11 @@ M3-02最终选择上节9类加RuleAgentKnownConditionActionTest，共199项通�
 验证：纯提取/Store/Factory局部93项通过（m3-first-question-local.log）；再扩大为上一检查点10类加RuleAgentQuestionConditionsTest，共231项通过，0失败/错误/跳过（knowledge/target/m3-first-question-final.log）。命令参数沿用上节离线选类、evidenceDir与本机PDF路径。未连接数据库、真实供应商或浏览器；没有新增真实模型调用，不能推断新版本质量分数或持久学生HTTP ONLINE验收通过。
 
 M3仍未结项：资料缺失与审核事实能力不足的归因需要继续核对和修复；本轮变更尚未进入main/CI。M2-BILL实际账单与M2-FAIL真实失败补证继续保留。
+
+## M3-03 独立审查后的宾语作用域修补
+
+独立审查completed，请求OpenCode/opencode-go/deepseek-v4.1-flash，executedModel仍未提供。主Agent确认其F1：谓词后的另一课程宾语会被误作省略主语，导致首问条件误填。新增5句分别在纯提取器和Store先复现，共16次测试中10次失败（m3-object-course-red.log）。修复不是只增加课程词：跨分句继承改为整句匹配有限规则谓词，不能仅匹配谓词开头；另加未在课程词表的“法语”反例。原有“公选课没过，能重修吗”和条件从句正例保留。
+
+主Agent按已记录的仓库根、默认fork及显式PDF/evidenceDir参数复跑11类，242项通过，0失败/错误/跳过（m3-object-course-final.log）。审查者使用forkCount=0并缺PDF参数的93项复跑有路径错误，不能作为相同命令的反证；其新增两条Factory正例、纯提取与Store确实通过。测试路径仍有既有cwd依赖，本轮没有把基础设施差异藏成代码失败或更改原始测试记录。
+
+审查F2保留为已知边界：跨度目前是本机任务级投影，独立核验输入仍只有条件值与问题原文，没有自动核对声明跨度；合成核验只证明接线，不证明会识破任意误声明。提取器仍是有限启发式，不能据此宣称所有中文语序安全。审查F3确认无fact原文回退应保留，不能机械要求acceptedBinding；下一步需避免完整覆盖被伪缺口降为PARTIAL，并区分能力缺口与原文详情缺失。旧evidence-first类别提取器与本轮Task API不是同一路径，其问题另列，未合并或宣称已修。

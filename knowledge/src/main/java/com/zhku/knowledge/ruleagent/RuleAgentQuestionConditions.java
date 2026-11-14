@@ -143,9 +143,10 @@ public final class RuleAgentQuestionConditions {
      * 例如“公选课没过，能重修吗”；“体育课能重修吗”不会被当作省略。
      */
     private static final Pattern BARE_PREDICATE = Pattern.compile(
-        "^(?:能否|能不能|可不可以|是不是|会不会|要不要|需不需要|该不该|有没有|算不算|"
-            + "能|可以|是否|会|要|需要|应该|应当|该|怎么|怎样|如何|为什么|为啥|什么|哪|多少|多久|"
-            + "重修|补考|缓考|退课|退选|选课|考试|成绩|学分|申请|办理|查询|通过|计入|认定|算)");
+        "(?:能否|能不能|可不可以|是不是|会不会|要不要|需不需要|该不该|有没有|算不算|"
+            + "能|可以|是否|会|要|需要|应该|应当|该|怎么|怎样|如何|为什么|为啥|不|不能|不可以)*"
+            + "(?:重修|补考|缓考|退课|退选|选课|考试|成绩|学分|申请|办理|查询|通过|计入|认定|算)+"
+            + "(?:吗|呢|么|嘛|吧)?");
 
     private RuleAgentQuestionConditions() {
     }
@@ -295,7 +296,9 @@ public final class RuleAgentQuestionConditions {
                 }
             }
         }
-        return BARE_PREDICATE.matcher(probe).find();
+        // 不能只认谓词开头：“能重修体育课吗”的宾语仍引入另一课程。
+        // 整个省略分句都必须属于有限规则谓词，未知课程名也保持未知，而非继续穷举课程词。
+        return BARE_PREDICATE.matcher(probe).matches();
     }
 
     /**

@@ -36,7 +36,7 @@ class RuleAgentTaskStoreTest {
         }
     }
     @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings={"我公选课没过，必修课能重修吗","公选课能缓考吗？必修课能退吗？","公选课能退？培养方案查询。","不是公选课能缓考吗","听说公选课能缓考吗","公选课能缓考吗；能退课吗"})
+    @org.junit.jupiter.params.provider.ValueSource(strings={"我公选课没过，必修课能重修吗","公选课能缓考吗？必修课能退吗？","公选课能退？培养方案查询。","不是公选课能缓考吗","听说公选课能缓考吗","公选课能缓考吗；能退课吗","公选课挂了，能重修体育课吗","公选课没过，可以重修必修课吗","公选课挂了，能申请重修高数吗","公选课不过，能补考英语吗","专选课挂了，能重修高数吗"})
     void ambiguousFirstQuestionCannotSeedSharedConditions(String question){
         try(var s=store()){
             var a=s.create(owner,new CreateTask(question,UUID.randomUUID()));
