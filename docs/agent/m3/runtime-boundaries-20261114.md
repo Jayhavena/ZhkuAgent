@@ -87,3 +87,11 @@ Publisher要求该子问题真实成功读取过VERIFIED_EVIDENCE/VERIFIED_FACT�
 第二批3项测试全通过，0失败/错误/跳过。受控已审资料真实SQL/迁移/检索/读取/引用审计与Runtime参与，决策和语义核验仍是可编程测试端口，不调用模型、不证明自然语言质量。六个发布场景C01/C02/C03均RESOLVED/COMPLETE且2条Claim，C04为FAILED/PARTIAL、保留1条Claim、唯一ANSWER_COVERAGE_INCOMPLETE，C05为RESOLVED/COMPLETE且3条Claim，C06为FAILED/INVALID_MODEL_RESPONSE、0 Claim。另两项涵盖必要澄清实际工具链和多问题阈值运算。
 
 Flyway实际与预期迁移均23，测试后业务连接0，sourceDrift=0，containerExited=true、resourcesVerified=true、无遗留新Java，55539不再监听。脱敏元数据及原始证据文件SHA见db-regression-a42bdab0.json；原始批次包含受控正文，保留本机docs/evidence，不暂存或共享。该批没有HTTP或浏览器，因此不能称当前持久学生HTTP ONLINE已验收。M3目前已完成这些工程修复检查点及独立复核；整体真实模型行为/账单/负向失败验证仍未补齐。未push、未合main，后续M4需先明确18个本地提交中M2证据与M3代码的集成范围，不能把整分支当作一个小修直接合入。
+
+## 固定版本HTTP复验与下一批准备
+
+当前被测SHA 93dc4a1c630bbbc29ba715e3a4292b0c0d418d9c，从源码重新构建persistent.jar（摘要见http-93dc4a1c/build.json）。专用实例m3-http-20261114：backend58190、identity55540、rules55541，SIMULATED，资料使用既有已核对只读资产根及显式PDF。数据库操作前重新核对Process/User/Machine凭据；启动器为专用库创建独立随机凭据，没有写共享演示库。
+
+仓库HTTP脚本initial 14项和Restart -SkipBuild后的restart 14项均通过：注册/登录、CSRF、任务及续答幂等、WAITING_USER必要澄清、原文访问与跨账号隔离、RESOLVED、回放未覆盖、取消或已完成冲突、退出401。重启账号保留、旧任务失效；本批没有浏览器。Stop退出0、hostExitCode=0，实际host进程退出，规则容器不存在，身份容器exited且专用卷保留；58190/55540/55541均无监听。脱敏HTTP回执见http-93dc4a1c/，不含Cookie/CSRF/口令/原文。
+
+随后仅Prepare/CheckPackage新M3最小两轮Probe：244c5d272cdd2e3bf2d39601bf1254c8a75a63ee189e6786ebfbdd3a26cdc596，零调用/零数据库准备校验通过、绑定器23项通过；6个私有冻结文件逐字节备份。本批未授权、未执行，建议预算1元/最多10次/两run，不沿用M2票据。范围、披露与限制详见eval/m3-minimal-20261114/README.md（相对于docs/agent为eval/m3-minimal-20261114）。工程验收已补齐本次关键HTTP，真实复测依然待新授权；不能声称新版真实质量已证明。
