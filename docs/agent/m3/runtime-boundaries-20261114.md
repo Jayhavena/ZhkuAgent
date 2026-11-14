@@ -77,3 +77,13 @@ Publisher要求该子问题真实成功读取过VERIFIED_EVIDENCE/VERIFIED_FACT�
 主Agent补两项合成回归（只改测试，不改运行逻辑）：实际读取齐两块、取得两项可用事实，只提议一项且不自报gap，发布结果必须FAILED/PARTIAL、保留已核验Claim、issues恰为ANSWER_COVERAGE_INCOMPLETE；已读条件型能力存在而userConditions为空时，Gate可以保留需求未覆盖，但factCapabilityGapRequirementIds必须为空，不能把缺条件当能力不存在。两类定向共27项通过，0失败/错误/跳过（knowledge/target/m3-review-followup.log）。
 
 保留产品边界：VERIFIED_EVIDENCE既可能是审核事实未登记，也可能是多块事实只读取了一部分；当前缺口码仅表示“本轮当前已读事实能力未覆盖”，不证明目录永远没有该能力或原文没有规定。现有hasUnreadFact只影响READ可用性，未增加“发布前必须穷尽所有候选”的强制要求。此处选择记录，不以无关重构扩张M3范围；如产品要求区分，需另行设计采集状态。
+
+## 当前修复版本的真实临时库补验
+
+测试代码SHA a42bdab00ea3380c8c83702439706432001e317f（生产代码仍为d6d3a2f6）。先执行ensure-zhku-postgres.cmd -DockerOnly，确认Docker Linux引擎就绪、共享演示库未操作。重新检查数据库凭证，进程无值、Windows用户级可用，由既有导入器注入；验收启动器为本批临时实例另生成随机口令，不入命令行/报告。仅使用127.0.0.1:55539/zhkuagent_rulecheck_e2e、无挂载卷的独立临时容器。
+
+首次执行遗漏显式PDF路径，3项因NoSuchFileException出错，未进入业务断言；批次m3-loop-db-20261114-a42bdab0保留，resourcesVerified=true。主Agent修正自己的调用环境，第二批m3-loop-db-20261114-a42bdab0-pdf通过子进程JAVA_TOOL_OPTIONS注入已核对PDF绝对路径，finally恢复原进程选项；未改测试、原始批次或批准资产。命令使用verify-rule-check-refactor.cmd -Mode Database -Tests RuleAgentLoopDatabaseTest -Port 55539 -EvidenceRoot docs/evidence/m3-runtime-20261114及独立Phase。
+
+第二批3项测试全通过，0失败/错误/跳过。受控已审资料真实SQL/迁移/检索/读取/引用审计与Runtime参与，决策和语义核验仍是可编程测试端口，不调用模型、不证明自然语言质量。六个发布场景C01/C02/C03均RESOLVED/COMPLETE且2条Claim，C04为FAILED/PARTIAL、保留1条Claim、唯一ANSWER_COVERAGE_INCOMPLETE，C05为RESOLVED/COMPLETE且3条Claim，C06为FAILED/INVALID_MODEL_RESPONSE、0 Claim。另两项涵盖必要澄清实际工具链和多问题阈值运算。
+
+Flyway实际与预期迁移均23，测试后业务连接0，sourceDrift=0，containerExited=true、resourcesVerified=true、无遗留新Java，55539不再监听。脱敏元数据及原始证据文件SHA见db-regression-a42bdab0.json；原始批次包含受控正文，保留本机docs/evidence，不暂存或共享。该批没有HTTP或浏览器，因此不能称当前持久学生HTTP ONLINE已验收。M3目前已完成这些工程修复检查点及独立复核；整体真实模型行为/账单/负向失败验证仍未补齐。未push、未合main，后续M4需先明确18个本地提交中M2证据与M3代码的集成范围，不能把整分支当作一个小修直接合入。
