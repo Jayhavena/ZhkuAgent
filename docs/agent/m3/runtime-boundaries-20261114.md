@@ -35,3 +35,15 @@ Runner在ActionState禁止某动作时统一返回BUDGET_EXCEEDED/STOPPED。复�
 当前尚未装配首问声明，不能把此检查点说成首问显式PUBLIC已修复；缺口原因/能力不足的归因仍排在M3后段。M2-BILL/M2-FAIL待补证不变。
 
 M3-02最终选择上节9类加RuleAgentKnownConditionActionTest，共199项通过，0失败/错误/跳过；日志knowledge/target/m3-known-condition-final.log。2项初始反例失败记录为m3-known-condition-red.log，先局部92项通过再扩大。既有真实预算/无进展、缺条件追问、续答发布与引用/原文守卫未放宽。没有额外调用真实模型或数据库，不能称真实质量分数提高。
+
+## M3-03 首问声明装配与条件型发布
+
+纯提取模块来自独立工作树提交74bd8ca345fddc720f6933f3c59afb8d88c11ef6，父级逐段阅读后迁入为4074e034。子任务请求OpenCode/opencode-go/deepseek-v4.1-flash；返回记录未证明供应商实际执行模型，不把配置身份写成执行证明。模块只输出PUBLIC/PROFESSIONAL用户声明及原文UTF-16跨度；多子问题、另一课程主体、否定/比较/转述/身份与无法判断的作用域保持未知。有限启发式仍可能漏提取，不承诺通用中文理解。
+
+主Agent先新增TaskStore→实际OnlineFactory→实际工具/Broker→发布Gate集成反例。公共选修课/专业选修课首问均先失败：期望RESOLVED，实际WAITING_USER（m3-first-question-red.log，2项失败）。随后在Slot创建时装配声明到既有userConditions；声明跨度单独保存为任务级firstQuestionDeclarations，只读、不可变、Owner隔离，始终指向首问，不混入后续回复文本或扩展HTTP合同。没有把声明转为Evidence或绕过独立发布核验。
+
+两条集成正例现在单轮完成：SEARCH→READ→FINISH→独立PUBLICATION_REVIEW，4次本机合成HTTP交换；分别只发布匹配PUBLIC/PROFESSIONAL的S10/RETAKE_ONLY条件事实，完整覆盖、Claim具有证据关系、无澄清、仅一条任务历史、端口关闭。重复create仍只排一个工作项。新增Store反例锁定另一主体、多问、否定/转述不写入条件，并验证emoji前缀跨度与跨Session拒绝读取。原有缺条件→追问→续答的两轮用例继续通过。
+
+验证：纯提取/Store/Factory局部93项通过（m3-first-question-local.log）；再扩大为上一检查点10类加RuleAgentQuestionConditionsTest，共231项通过，0失败/错误/跳过（knowledge/target/m3-first-question-final.log）。命令参数沿用上节离线选类、evidenceDir与本机PDF路径。未连接数据库、真实供应商或浏览器；没有新增真实模型调用，不能推断新版本质量分数或持久学生HTTP ONLINE验收通过。
+
+M3仍未结项：资料缺失与审核事实能力不足的归因需要继续核对和修复；本轮变更尚未进入main/CI。M2-BILL实际账单与M2-FAIL真实失败补证继续保留。

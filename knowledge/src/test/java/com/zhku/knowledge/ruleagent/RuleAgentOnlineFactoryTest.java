@@ -380,6 +380,33 @@ class RuleAgentOnlineFactoryTest {
         assertThat(traces).noneMatch(t->t.purpose()==RuleAgentProvider.Purpose.PUBLICATION_REVIEW);
         assertThat(factory.resourcesClosed()).isTrue();
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"公共选修课,PUBLIC,public-failed-no-retake","专业选修课,PROFESSIONAL,professional-failed-retake-application"})
+    void explicitFirstQuestionReachesConditionalClaimWithoutClarification(String category,String value,String fact)throws Exception{
+        conditional=true;start(4);
+        var queue=new ArrayDeque<Runnable>();
+        try(var store=new RuleAgentTaskStore(queue::add,factory,Clock.systemUTC(),RuleAgentTaskStore.DEFAULT_LIMITS)){
+            var request=new CreateTask(category+"没过，能重修吗？",UUID.randomUUID());
+            var accepted=store.create(fixture.owner,request);
+            assertThat(store.create(fixture.owner,request).runId()).isEqualTo(accepted.runId());
+            assertThat(queue).hasSize(1);queue.remove().run();
+            var result=store.snapshot(fixture.owner,accepted.taskId());
+            assertThat(result.taskStatus()).isEqualTo(TaskStatus.RESOLVED);
+            assertThat(result.result().coverage()).isEqualTo(Coverage.COMPLETE);
+            var item=result.result().items().getFirst();
+            assertThat(item.clarification()).isEmpty();
+            assertThat(item.claims()).singleElement().satisfies(claim->{
+                assertThat(claim.factId()).isEqualTo("S10/RETAKE_ONLY:"+fact);
+                assertThat(claim.when()).containsEntry("courseType",value);
+                assertThat(result.result().evidenceRelations()).anyMatch(link->link.role()==EvidenceRole.CLAIM&&link.targetId().equals(claim.id()));
+            });
+            assertThat(result.result().evidence()).isNotEmpty();
+            assertThat(store.history(fixture.owner,accepted.taskId())).singleElement().satisfies(turn->assertThat(turn.conditions()).containsEntry("courseType",value));
+            assertThat(calls).hasValue(4);
+            assertThat(traces.stream().filter(t->t.purpose()==RuleAgentProvider.Purpose.PUBLICATION_REVIEW&&t.phase()==RuleAgentProvider.Phase.RECEIVED).count()).isEqualTo(1);
+            assertThat(factory.resourcesClosed()).isTrue();
+        }
+    }
     @Test void realTaskStoreTokenContinuesThroughOnlineFactoryAndSharesBatchQuota()throws Exception{
         conditional=true;
         start(8);
