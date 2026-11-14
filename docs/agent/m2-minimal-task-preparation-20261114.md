@@ -37,3 +37,9 @@
 第一次扩大选类加入RuleAgentOnlineFactoryTest，合计73项出现8个环境性错误：诊断evidenceDir缺失与本机手册默认路径不可用。失败日志保留knowledge/target/m2-preflight.log；装配/守卫/Grader独立复跑日志为m2-preflight-green.log。后续显式指定已核对PDF路径和已创建输出目录重新跑Factory类，结果另以最终检查点记录为准。离线Factory测试即使使用loopback HTTP也不等于真实供应商调用。
 
 指定PDF和输出目录后Factory类46项中43通过、3错误，均为包准备路径跨盘`IllegalArgumentException: 'other' has different root`（C盘工作区与D盘已核对PDF）。日志m2-factory-green.log名称不代表通过；未覆盖或修改资料、未运行供应商。该项阻断本机新包冻结；后续须修正资产身份路径表达或在同盘正确布局独立验证，禁止绕过资料指纹。当前检查点只保存已通过的新增装配测试及准备方案，不把M2或完整Factory回归标成完成。
+
+## 准备链修复检查点
+
+独立审查completed，请求OpenCode/deepseek-v4.1-flash，executedModel=null；主Agent独立核对后：外置手册使用稳定逻辑身份`@external/student-handbook.pdf`，内部资产仍用相对路径，原PDF SHA校验未改；新批次启动器规范化包路径并要求位于证据根下、证据和launcher日志跟随新包父目录、显式HandbookPdf传给真实Java子进程。不拷贝PDF、不开放草案外发、不构建/执行真实Probe。
+
+新增逻辑键测试先因缺方法编译失败，修复后`Reviewed2025RuntimeAssetsTest`与`RuleAgentOnlineFactoryTest`共58项通过，0失败/错误/跳过（含原先3项跨盘包准备测试）；PowerShell语法解析通过。日志knowledge/target/m2-assets-red.log、m2-assets-green.log。后续一次性票据、Grader失败报告、两run绑定、外发披露和新包零调用Check仍待完成；本次没有真实调用授权和费用结论。

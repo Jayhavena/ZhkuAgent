@@ -5,6 +5,13 @@ import java.nio.file.*;
 import org.junit.jupiter.api.*;
 import static org.assertj.core.api.Assertions.*;
 class Reviewed2025RuntimeAssetsTest {
+ @Test void externalHandbookHasStableLogicalKeyWithoutCrossDriveRelativize() {
+  Path root=Path.of("checkout").toAbsolutePath(),external=root.resolveSibling("outside").resolve("handbook.pdf");
+  assertThat(Reviewed2025ControlledCatalogue.assetKey(root,external)).isEqualTo("@external/student-handbook.pdf");
+  assertThat(Reviewed2025ControlledCatalogue.assetKey(root,root.resolve("docs/file.json"))).isEqualTo("docs/file.json");
+  if(System.getProperty("os.name").startsWith("Windows"))
+   assertThat(Reviewed2025ControlledCatalogue.assetKey(Path.of("C:/repo"),Path.of("D:/handbook.pdf"))).isEqualTo("@external/student-handbook.pdf");
+ }
  @Test void zeroCallPackageBindsTopicRuntimeAsset() throws Exception {
   var method=RuleAgentOnlineProbeHost.class.getDeclaredMethod("packageNode",Path.class);method.setAccessible(true);
   var pack=(JsonNode)method.invoke(null,Path.of("..").toAbsolutePath().normalize());
@@ -42,7 +49,7 @@ class Reviewed2025RuntimeAssetsTest {
   Path original=Path.of("..").toAbsolutePath().normalize(),root=temporary.resolve("checkout");Files.createDirectories(root);
   try(var trial=new Reviewed2025ControlledCatalogue(original)) {
    for(var asset:trial.runtimeAssetManifest()) {
-    String relative=asset.get("path");if(relative.equals(missing))continue;
+    String relative=asset.get("path");if(relative.equals(missing)||relative.startsWith("@external/"))continue;
     Path target=root.resolve(relative).normalize();Files.createDirectories(target.getParent());Files.copy(original.resolve(relative).normalize(),target);
    }
   }
