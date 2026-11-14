@@ -45,3 +45,5 @@
 新增逻辑键测试先因缺方法编译失败，修复后`Reviewed2025RuntimeAssetsTest`与`RuleAgentOnlineFactoryTest`共58项通过，0失败/错误/跳过（含原先3项跨盘包准备测试）；PowerShell语法解析通过。日志knowledge/target/m2-assets-red.log、m2-assets-green.log。后续一次性票据、Grader失败报告、两run绑定、外发披露和新包零调用Check仍待完成；本次没有真实调用授权和费用结论。
 
 第二检查点：新增ProbeBatchClaim，在真实Probe通过全部身份校验后、构造数据源/模型之前，以CREATE_NEW写用户级`~/.zhkuagent/probe-claims/<packageSha>.used`；失败也保留，Prepare/Check不触碰票据。测试验证重复SHA拒绝、换SHA独立、路径逃逸拒绝。EvalChain CLI在collect/run输入缺失、损坏等异常时写regressionPassed=false的NOT_EVALUABLE报告，仍返回1；报告只保存异常类型，不含可能带私有JSON的异常正文。输出目录本身不可写等基础设施故障仍可能无法保存报告，不承诺不可实现的绝对落盘。新增测试与旧链路回归10项通过，0失败/错误/跳过；测试不写真实用户票据、不连接DB/供应商。尚需新批次包准备/Check、严格两run绑定和披露；不把本检查点称为M2已就绪。
+
+最终准备回执（仍未授权）：独立组件提交f3a9ff84经主Agent复核补正57105f54，绑定器22项、汇总Java89项通过；新包Prepare/CheckPackage均通过，包SHA为8d2d086efba7027ccb6ecdb731fff83409f03d0f5db66a58e9d03e619c06e895。完整披露/固定二进制私有保留，脱敏摘要与准入范围见`docs/agent/eval/m2-minimal-20261114/preflight/REVIEW-PACKET.md`及manifest.json。合成缺证据链已由真实Grader CLI生成失败报告，不冒充真实执行报告。后续仅文档提交不改变候选源码57105f54；尚待最后只读复核与用户新授权，严禁在此之前执行Probe。
