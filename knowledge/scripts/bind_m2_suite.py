@@ -271,6 +271,7 @@ def _second_run_claims(second: Any) -> tuple[int | None, int | None]:
         if isinstance(relation, dict)
         and relation.get("role") == "CLAIM"
         and isinstance(relation.get("targetId"), str)
+        and isinstance(relation.get("evidenceId"), str)
         and relation.get("evidenceId") in evidence_ids
     }
     linked_claims = [

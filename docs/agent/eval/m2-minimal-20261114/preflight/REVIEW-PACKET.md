@@ -33,3 +33,17 @@
 5. 执行入口为独立RuleAgentOnlineProbeHost，具有完整trace/exchange/outcome/终态保存，不冒充持久学生HTTP在线实测。后者目前只做工厂/配置正向装配测试，完整持久ONLINE业务仍未验证。
 
 尚待独立复核本次修订及冻结包，再请求用户明确批准新外发范围/10次调用/费用上限。没有授权前不得运行Probe。当前仅本地提交，未push、未部署、未改变main或既有质量成绩。
+
+## 最终复核与补正（待用户授权）
+
+独立只读审查completed，配置OpenCode/opencode-go/deepseek-v4.1-flash，执行模型元数据未提供，不据此证明供应商实际模型身份。其核对包/固定jar/源码369项摘要及原始模板一致，认为可请求新授权，同时指出坏evidenceId可使绑定器崩溃、缺资产测试可能被PDF缺失掩盖、README重建jar会破坏冻结身份。
+
+主Agent复现list/dict evidenceId导致TypeError，增加字符串守卫，绑定器23项通过。缺资产测试现在先证明完整临时副本可构造包，再删除指定文件并断言异常指向该文件，12项通过；此前89项执行命令已显式指定PDF，因此不直接采信“此前3项必然是假阳性”的断言，但原断言确实不够精确。当前无需修改生产代码、jar、请求包或模板；修正README为直接启动固定jar内Grader，不运行install/package，所有报告用全新out。
+
+显式PDF路径和SHA在manifest.json中记录；prepared私有副本不包含PDF，执行必须传HandbookPdf且再次校验字节。envelope字段model/stream/enable_thinking/max_completion_tokens/response_format/messages已补入动态披露；更新的绑定器与披露保存在私有prepared/reviewed-v2，旧副本保留。重新CheckPackage仍passed=true、providerCalls=0、databaseOperations=0，包SHA不变。
+
+来源核验是额外必需步骤：本次必须使用新建live目录，记录开始结束时间，将本包用户级claim票据复制到证据目录；核对task/run身份、provider trace与本包SHA，绝不把绑定器对旧证据也能PASS当成本批成功。结构合法的旧证据或篡改证据不能仅靠本绑定器识别，报告须另记provenance核对。Grader PASS后仍须核原始factId/when/checksum/span。
+
+### 审查操作偏差
+
+子审查自报一次误将学校条款/语义字段值打印进入委派审查会话，违反父级“只输出计数/哈希、不打印原文”的明确约束。材料已进入委派模型上下文，不能采信其“未外发”的自述；无法独立核验委派供应商实际模型和处理范围。该会话应按私有材料管理，本报告不重复条款正文。未因此执行本批DashScope业务模型或数据库操作，业务调用仍为0；这不等于所有审查环节均未发生数据传输。此前已向用户说明该偏差。

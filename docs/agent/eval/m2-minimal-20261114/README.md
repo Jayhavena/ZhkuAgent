@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | `suite-template.json` | 预冻结的两个 case 期望，`runId` 全为 `null`，`evidenceDir` 是占位符 | **冻结**。失败时不得为了让输出好看而修改 |
 | `knowledge/scripts/bind_m2_suite.py` | 离线绑定器：填入两个真实 `runId` 和 `evidenceDir`，并做 Grader 之外的结构守卫 | 代码变更须单独评审 |
-| `knowledge/scripts/tests/test_bind_m2_suite.py` | 合成快照单元测试，20 项 | 随绑定器维护 |
+| `knowledge/scripts/tests/test_bind_m2_suite.py` | 合成快照单元测试，23 项 | 随绑定器维护 |
 
 旧文件 `knowledge/src/test/resources/agent-eval-chain/suite-v1.json` 和 `docs/agent/eval/chain/2026-11-08/report.md` 是历史回放资产，**不得修改、不得拿它们的 runId/结果充当本批结果**。
 
@@ -88,32 +88,21 @@ Windows 终端同样可用 `python knowledge\scripts\bind_m2_suite.py ...`。`--
 
 ## 生成现有 Grader Evaluation Report
 
-先构建类路径（详见 `docs/agent/eval/chain/README.md`）：
-
-```bash
-mvn -q -pl knowledge -am -Dmaven.test.skip=true install
-mvn -q -pl knowledge dependency:build-classpath -Dmdep.outputFile=target/cp.txt
-```
+本批直接使用请求包已绑定的`controlled.jar`内置Grader，不需要重新构建类路径。在Check/Probe之前禁止运行Maven install/package或改写冻结jar；如丢失，从本机私有prepared副本按SHA恢复原字节。需要重新打包则必须冻结新包并重新授权。其他批次单独维护Grader时使用仓库mvnw.cmd，而非假设用户终端存在全局mvn。
 
 可选：先单独采集，确认 Collector 状态。
 
-```bash
-java -cp "knowledge/target/classes;<dependency-classpath>" \
-  com.zhku.knowledge.eval.chain.AgentEvalChainMain collect \
-  --evidence docs/evidence/rule-agent-provider/<日期>/<批次>/live-<sha> \
-  --out target/m2-collected --repo-root .
+```powershell
+java '-Dloader.main=com.zhku.knowledge.eval.chain.AgentEvalChainMain' -cp knowledge/target/knowledge-0.1.0-rc.1-controlled.jar org.springframework.boot.loader.launch.PropertiesLauncher collect --evidence docs/evidence/rule-agent-provider/<日期>/<批次>/live-<guid> --out target/m2-collected-<新名称> --repo-root .
 ```
 
 运行绑定后的套件（`run` 会自动采集）：
 
-```bash
-java -cp "knowledge/target/classes;<dependency-classpath>" \
-  com.zhku.knowledge.eval.chain.AgentEvalChainMain run \
-  --suite docs/agent/eval/m2-minimal-20261114/out/suite.json \
-  --out docs/agent/eval/m2-minimal-20261114/out --repo-root .
+```powershell
+java '-Dloader.main=com.zhku.knowledge.eval.chain.AgentEvalChainMain' -cp knowledge/target/knowledge-0.1.0-rc.1-controlled.jar org.springframework.boot.loader.launch.PropertiesLauncher run --suite docs/agent/eval/m2-minimal-20261114/out/suite.json --out target/m2-report-<新名称> --repo-root .
 ```
 
-报告为 `out/report.json`、`out/report.md`。只有在下面两条同时成立时才可把报告当作 M2 验收材料：
+报告为新输出目录内的`report.json`、`report.md`。现有报告写入会覆盖同名文件，因此每次必须使用全新的--out，不删除失败记录重跑。只有在下面两条同时成立时才可把报告当作 M2 验收材料：
 
 1. `binding.json` 的 `status` 是 `PASS`，且 `suiteGenerated` 为 `true`；
 2. Grader 报告 `regressionPassed: true`，两个 case 均为 `PASS`（`EXPECTATIONS_MET`），CLI 退出码为 `0`。
@@ -124,7 +113,7 @@ java -cp "knowledge/target/classes;<dependency-classpath>" \
 - 手工填 `runId`、复制历史 runId，或用 `suite-v1.json`/旧报告回放冒充本次结果；
 - 把 `binding.json` 当作 Grader 判定，或把 `NOT_EVALUABLE` 当作通过。
 
-`<dependency-classpath>`必须替换为`knowledge/target/cp.txt`的实际内容，不能把txt文件路径当作classpath目录。Windows PowerShell可用`$m2cp='knowledge/target/classes;'+(Get-Content knowledge/target/cp.txt -Raw).Trim()`，再用`java -cp $m2cp ...`。Linux/macOS分隔符改为冒号。以上反斜杠换行示意用于shell；PowerShell请用一行命令。
+执行前确认新live目录尚不存在，并记录本包SHA、执行开始时间及结束时间。执行后将用户级`probe-claims/<包SHA>.used`复制到该新live目录，核对其中包SHA与本次授权一致；核对原始task-results中的taskId/runId与新provider trace，不以绑定器对旧证据也能PASS来替代来源核验。Grader通过后仍须单独核对公共选修的factId/when及原始checksum/span；结构守卫不证明这些内容。
 
 ## 绑定器的职责边界
 

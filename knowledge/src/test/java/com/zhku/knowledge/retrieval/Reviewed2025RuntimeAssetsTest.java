@@ -47,15 +47,24 @@ class Reviewed2025RuntimeAssetsTest {
  @org.junit.jupiter.params.provider.ValueSource(strings={"docs/product/rule-check-c05-topic-catalogue.json","docs/evidence/rule-agent-evidence/2026-10-13/t02-01/human-confirmation.json","docs/evidence/rule-check-refactor/2026-10-09/b03-student-qualification-01/presented-review.md"})
  void packagePreflightRejectsMissingActualDependency(String missing,@org.junit.jupiter.api.io.TempDir Path temporary) throws Exception {
   Path original=Path.of("..").toAbsolutePath().normalize(),root=temporary.resolve("checkout");Files.createDirectories(root);
+  String previous=System.getProperty("zhku.t06.handbookPdf");
+  System.setProperty("zhku.t06.handbookPdf",Reviewed2025ControlledCatalogue.handbookPdf(original).toString());
+  try {
   try(var trial=new Reviewed2025ControlledCatalogue(original)) {
    for(var asset:trial.runtimeAssetManifest()) {
-    String relative=asset.get("path");if(relative.equals(missing)||relative.startsWith("@external/"))continue;
+    String relative=asset.get("path");if(relative.startsWith("@external/"))continue;
     Path target=root.resolve(relative).normalize();Files.createDirectories(target.getParent());Files.copy(original.resolve(relative).normalize(),target);
    }
   }
   String capability="knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleFactCapabilityCatalogue.java";
   Files.createDirectories(root.resolve(capability).getParent());Files.copy(original.resolve(capability),root.resolve(capability));
   var method=RuleAgentOnlineProbeHost.class.getDeclaredMethod("packageNode",Path.class);method.setAccessible(true);
-  assertThatThrownBy(()->method.invoke(null,root)).isInstanceOf(java.lang.reflect.InvocationTargetException.class).hasCauseInstanceOf(NoSuchFileException.class);
+  // 先证明完整副本能准备包，再删目标文件；否则PDF缺失也会让这个负例空洞通过。
+  assertThat(method.invoke(null,root)).isNotNull();
+  Files.delete(root.resolve(missing));
+  assertThatThrownBy(()->method.invoke(null,root)).isInstanceOf(java.lang.reflect.InvocationTargetException.class)
+      .hasCauseInstanceOf(NoSuchFileException.class).satisfies(error->
+          assertThat(error.getCause().getMessage()).contains(root.resolve(missing).toString()));
+  } finally {if(previous==null)System.clearProperty("zhku.t06.handbookPdf");else System.setProperty("zhku.t06.handbookPdf",previous);}
  }
 }

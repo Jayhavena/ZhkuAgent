@@ -34,6 +34,12 @@ def sha256(data: bytes) -> str:
 
 
 class BindM2SuiteTest(unittest.TestCase):
+    def test_unhashable_evidence_identity_cannot_crash(self):
+        for invalid in ([], {}):
+            second = self.second_run()
+            second["result"]["evidenceRelations"][0]["evidenceId"] = invalid
+            self.assertEqual(binder._second_run_claims(second), (1, 0))
+
     def test_task_identity_must_be_uuid(self):
         self.assertIsNone(binder._entry_identity(self.first_run(taskId="not-a-task-uuid")))
 
