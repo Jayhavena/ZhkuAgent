@@ -84,7 +84,9 @@ class RuleAgentRunnerTest {
         var o=run(tools(true,true,false),(v,t)->reply(new Read("q1",List.of(UUID.randomUUID()))));assertThat(o.snapshot().result().items().getFirst().claims()).isEmpty();
         var input=new RuleAgentRunner.Input(owner,task,1,"选修课程类别有哪些？",List.of(new RuleAgentRunner.Question("q1","选修课程类别有哪些？")),Map.of("kind","A"));
         var repeated=new RuleAgentRunner(responding(true),new RuleActionBroker(tools(true,true,true)),clock).run(AgentRunContext.create(input.question()),input);
-        assertThat(repeated.snapshot().taskStatus()).isNotEqualTo(TaskStatus.WAITING_USER);
+        assertThat(repeated.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);
+        assertThat(repeated.snapshot().result().items().getFirst().issues().getFirst().reasonCode()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);
+        assertThat(repeated.snapshot().execution().modelAttemptCount()).isEqualTo(3);
     }
     @Test void cancellationDiscardsLateModelReplyAndClosesOwnedPort()throws Exception{
         var input=RuleAgentRunner.Input.single(owner,task,"选修课程类别有哪些？");var context=AgentRunContext.create(input.question());var closed=new java.util.concurrent.atomic.AtomicBoolean();

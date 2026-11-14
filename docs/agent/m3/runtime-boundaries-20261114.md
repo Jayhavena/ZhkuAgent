@@ -23,3 +23,15 @@ Runner在ActionState禁止某动作时统一返回BUDGET_EXCEEDED/STOPPED。复�
 上述多为已有测试，本轮新增测试仅针对M3-01，不把重跑旧测试称为新建全部覆盖。尚待独立审查必要澄清/适用性等覆盖空洞及旧质量修复未集成范围；本检查点不证明真实Agent质量提升、真实供应商失败停止或长期稳定性。
 
 验证：初始新增测试1项失败（期望FAILED、实际STOPPED）；首次扩大选类192项仅旧预算预留用例失败，收窄修复并参数化后194项全通过，0错误/跳过。日志依次knowledge/target/m3-action-red.log、m3-boundaries-green.log（该文件名不是成功结论）、m3-boundaries-final.log。命令在仓库根用mvnw.cmd -o -pl knowledge -am、显式选类RuleAgentRunnerTest,RuleAgentProviderTest,RuleAgentTaskStoreTest,RulePublicationGateTest,RuleAgentE13PublicationCapabilityTest,RuleCheckApplicabilityTest,RuleCheckOriginalEvidenceServiceTest,RuleAgentOnlineFactoryTest,AgentEvalChainRegressionTest，附-Dsurefire.failIfNoSpecifiedTests=false、已创建-Dzhku.rulecheck.evidenceDir=<根>/knowledge/target/m3-evidence及-Dzhku.t06.handbookPdf=<本机已核对PDF>。读取审核原件做离线包/资料验证，不连接数据库/真实供应商；Provider与Factory测试的HTTP为本机合成loopback。
+
+## M3-02 已知条件重复追问与确定性拒绝
+
+独立只读审查请求OpenCode/opencode-go/deepseek-v4.1-flash，completed、executedModel未提供；主Agent核对后保留M3-01原样。审查发现旧precheck的INVALID只记录事件、继续循环，重复提议最终变NO_PROGRESS/STOPPED，掩盖真实协议错误；主Agent用既有legacy Runner与实际Provider适配器的loopback Factory分别复现FAILED预期落成STOPPED，2项先失败。
+
+修复：确定性发布前置INVALID直接失败，不额外尝试至无进展；独立能力目录没有未知已审条件时，从下一动作和实际Schema/feedback移除ASK。只收窄能力，不授权事实、不替代Gate；若模型仍追问已知/不存在的条件，应INVALID而不是BUDGET。尚有未知条件时ASK可用，独立必要性仍要核验。
+
+本机Factory反例明确让模拟供应商无视Schema追问PUBLIC：宿主在第3次决策停止为FAILED/INVALID，0次独立核验、不再重试、端口关闭。对实际HTTP请求的Schema及executionState同时断言ASK缺失；原有同task必要澄清两轮正常流程继续回归。迁入旧分支中仅4项纯Schema/状态单测（RuleAgentKnownConditionActionTest），没有迁入旧数据、旧整包代码或质量结论。
+
+当前尚未装配首问声明，不能把此检查点说成首问显式PUBLIC已修复；缺口原因/能力不足的归因仍排在M3后段。M2-BILL/M2-FAIL待补证不变。
+
+M3-02最终选择上节9类加RuleAgentKnownConditionActionTest，共199项通过，0失败/错误/跳过；日志knowledge/target/m3-known-condition-final.log。2项初始反例失败记录为m3-known-condition-red.log，先局部92项通过再扩大。既有真实预算/无进展、缺条件追问、续答发布与引用/原文守卫未放宽。没有额外调用真实模型或数据库，不能称真实质量分数提高。

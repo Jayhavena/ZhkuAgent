@@ -22,6 +22,7 @@ class RuleAgentOnlineFactoryTest {
     final RuleAgentRunnerTest fixture=new RuleAgentRunnerTest();
     final UUID staleReplacementChunk=UUID.randomUUID();
     boolean conditional;
+    boolean repeatKnownCondition;
     boolean invalidReviewFingerprint;
     final List<RuleAgentProvider.Exchange> exchanges=new CopyOnWriteArrayList<>();
     boolean studyArrangement;
@@ -141,7 +142,7 @@ class RuleAgentOnlineFactoryTest {
                         if(readSelection.equals("save"))savedSet=set;
                     }
                 }
-                else if(conditional&&!view.path("userConditions").has("courseType")){
+                else if(conditional&&(!view.path("userConditions").has("courseType")||repeatKnownCondition)){
                     var ids=new ArrayList<String>();view.path("facts").forEach(f->ids.add(f.path("id").asText()));
                     action=new Ask("q1","courseType","合成必要条件",ids);
                 }else{
@@ -363,6 +364,21 @@ class RuleAgentOnlineFactoryTest {
         assertThat(calls).hasValue(0);
         var output=java.nio.file.Path.of(System.getProperty("zhku.rulecheck.evidenceDir"),"p01-request-package.json");
         new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(output.toFile(),pack);
+    }
+    @Test void repeatedKnownConditionIsAbsentFromWireAndFailsWithoutReviewOrRetry()throws Exception{
+        conditional=true;repeatKnownCondition=true;start(8);
+        var input=new RuleAgentRunner.Input(fixture.owner,fixture.task,1,"公选课能重修吗？",
+            List.of(new RuleAgentRunner.Question("q1","公选课能重修吗？")),Map.of("courseType","PUBLIC"));
+        var outcome=factory.open(fixture.owner,fixture.task).run(AgentRunContext.create(input.question()),input);
+        assertThat(outcome.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);
+        assertThat(outcome.snapshot().result().items().getFirst().issues().getFirst().reasonCode()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);
+        assertThat(lastDecisionView.path("executionState").path("allowedActions").toString()).doesNotContain("ASK_NECESSARY_CONDITION");
+        var requests=exchanges.stream().filter(e->e.direction()==RuleAgentProvider.Direction.REQUEST).toList();
+        var wire=new ObjectMapper().readTree(requests.getLast().body());
+        assertThat(wire.path("response_format").path("json_schema").path("schema").toString()).doesNotContain("ASK_NECESSARY_CONDITION");
+        assertThat(calls).hasValue(3);assertThat(outcome.snapshot().execution().modelAttemptCount()).isEqualTo(3);
+        assertThat(traces).noneMatch(t->t.purpose()==RuleAgentProvider.Purpose.PUBLICATION_REVIEW);
+        assertThat(factory.resourcesClosed()).isTrue();
     }
     @Test void realTaskStoreTokenContinuesThroughOnlineFactoryAndSharesBatchQuota()throws Exception{
         conditional=true;
