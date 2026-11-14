@@ -82,8 +82,12 @@ public final class RuleAgentRunner {
                 try{
                     var action=RuleAgentJson.readAction(reply.actionJson());name=name(action);String fingerprint=json(action);
                     if(view.state()!=null&&!view.state().allowedActions().contains(name)){
-                        events.add(new Event(decisionAttempt,name,null,ReasonCode.BUDGET_EXCEEDED));
-                        published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.BUDGET_EXCEEDED);break;
+                        // 没有候选/事实/观察就不能读取/追问/发布；与为独立核验预留资源而禁用动作分开归因。
+                        boolean missingInput=action instanceof Read&&view.state().candidates().isEmpty()
+                            ||action instanceof Ask&&view.facts().isEmpty()||action instanceof Finish&&view.observations().isEmpty();
+                        ReasonCode rejected=missingInput?ReasonCode.INVALID_MODEL_RESPONSE:ReasonCode.BUDGET_EXCEEDED;
+                        events.add(new Event(decisionAttempt,name,null,rejected));
+                        published=new RuleResultPublisher(broker,input,context.runId()).failed(rejected);break;
                     }
                     if(fingerprint.equals(previous)){published=new RuleResultPublisher(broker,input,context.runId()).failed(ReasonCode.NO_PROGRESS);events.add(new Event(attempts,name,null,ReasonCode.NO_PROGRESS));break;}previous=fingerprint;
                     String q=action instanceof Search s?s.subquestionId():action instanceof Read r?r.subquestionId():action instanceof Ask a?a.subquestionId():null;
