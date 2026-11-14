@@ -43,3 +43,5 @@
 独立审查completed，请求OpenCode/deepseek-v4.1-flash，executedModel=null；主Agent独立核对后：外置手册使用稳定逻辑身份`@external/student-handbook.pdf`，内部资产仍用相对路径，原PDF SHA校验未改；新批次启动器规范化包路径并要求位于证据根下、证据和launcher日志跟随新包父目录、显式HandbookPdf传给真实Java子进程。不拷贝PDF、不开放草案外发、不构建/执行真实Probe。
 
 新增逻辑键测试先因缺方法编译失败，修复后`Reviewed2025RuntimeAssetsTest`与`RuleAgentOnlineFactoryTest`共58项通过，0失败/错误/跳过（含原先3项跨盘包准备测试）；PowerShell语法解析通过。日志knowledge/target/m2-assets-red.log、m2-assets-green.log。后续一次性票据、Grader失败报告、两run绑定、外发披露和新包零调用Check仍待完成；本次没有真实调用授权和费用结论。
+
+第二检查点：新增ProbeBatchClaim，在真实Probe通过全部身份校验后、构造数据源/模型之前，以CREATE_NEW写用户级`~/.zhkuagent/probe-claims/<packageSha>.used`；失败也保留，Prepare/Check不触碰票据。测试验证重复SHA拒绝、换SHA独立、路径逃逸拒绝。EvalChain CLI在collect/run输入缺失、损坏等异常时写regressionPassed=false的NOT_EVALUABLE报告，仍返回1；报告只保存异常类型，不含可能带私有JSON的异常正文。输出目录本身不可写等基础设施故障仍可能无法保存报告，不承诺不可实现的绝对落盘。新增测试与旧链路回归10项通过，0失败/错误/跳过；测试不写真实用户票据、不连接DB/供应商。尚需新批次包准备/Check、严格两run绑定和披露；不把本检查点称为M2已就绪。

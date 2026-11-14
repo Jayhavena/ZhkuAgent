@@ -83,7 +83,10 @@ public final class RuleAgentOnlineProbeHost {
         }
         String url=required("ZHKU_DB_URL");var matcher=java.util.regex.Pattern.compile("^jdbc:postgresql://127\\.0\\.0\\.1:([0-9]{4,5})/zhkuagent_rulecheck_e2e$").matcher(url);
         if(!matcher.matches()||Integer.parseInt(matcher.group(1))==54329)throw new IllegalArgumentException("拒绝原库或非专用临时库");
-        Path evidence=root.resolve(required("ZHKU_RULE_AGENT_EVIDENCE")).normalize();if(!evidence.startsWith(root.resolve("docs/evidence/rule-agent-provider"))||Files.exists(evidence))throw new IllegalArgumentException("证据目录越界或已存在");Files.createDirectories(evidence);
+        Path evidence=root.resolve(required("ZHKU_RULE_AGENT_EVIDENCE")).normalize();if(!evidence.startsWith(root.resolve("docs/evidence/rule-agent-provider"))||Files.exists(evidence))throw new IllegalArgumentException("证据目录越界或已存在");
+        // CheckPackage不消耗；真正执行在任何数据源/模型之前原子占用用户级票据，失败也不得重试。
+        ProbeBatchClaim.acquire(Path.of(System.getProperty("user.home"),".zhkuagent","probe-claims"),sha(bytes));
+        Files.createDirectories(evidence);
         var db=new DriverManagerDataSource(url,"zhkuagent",required("ZHKU_DB_PASSWORD"));Flyway.configure().dataSource(db).locations("classpath:db/migration").load().migrate();
         Clock clock=Clock.systemUTC();var owner=new Owner(UUID.randomUUID(),UUID.randomUUID());var traces=new ArrayList<RuleAgentProvider.Trace>();
         var executor=new ThreadPoolExecutor(2,2,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<>(4),Thread.ofPlatform().name("zhku-rule-probe-",0).factory(),new ThreadPoolExecutor.AbortPolicy());
