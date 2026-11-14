@@ -17,11 +17,13 @@ class RuleAgentGapAttributionTest {
     RuleFactCapabilityCatalogue catalogue;
     RuleActionBroker broker;
 
-    void read(boolean complete)throws Exception{
+    void read(boolean complete)throws Exception{read(complete,false);}
+    void read(boolean complete,boolean includeSecondFact)throws Exception{
         var bindings=List.of(fixture.chunk,second).stream().map(chunk->new RuleCheckRuleTemplate.EvidenceBinding(
             fixture.source,chunk,"2025.9.2",hash(),0,fixture.text.length(),fixture.text)).toList();
         var fact=new RuleCheckRuleTemplate.Fact("elective-category-distinction","合成分类说明",true,Map.of(),bindings);
-        var rule=new RuleCheckRuleTemplate("S02/GENERAL","2025.9.2",RuleCheckRuleTemplate.ReviewState.APPROVED,"SYNTHETIC",LocalDate.of(2026,11,14),List.of(fact),List.of(),List.of(),List.of());
+        var facts=includeSecondFact?List.of(fact,new RuleCheckRuleTemplate.Fact("public-course-subcategories","合成公选分类说明",true,Map.of(),bindings)):List.of(fact);
+        var rule=new RuleCheckRuleTemplate("S02/GENERAL","2025.9.2",RuleCheckRuleTemplate.ReviewState.APPROVED,"SYNTHETIC",LocalDate.of(2026,11,14),facts,List.of(),List.of(),List.of());
         var entry=new RuleCheckApplicationService.CatalogEntry(rule,"合成范围",new RuleCheckApplicabilityGuard.Coverage(Set.of(RuleCheckApplicabilityGuard.Audience.UNDERGRADUATE)),RuleCheckTopicGuard.Coverage.declared(RuleCheckTopicGuard.Topic.CATEGORY));
         catalogue=RuleFactCapabilityCatalogue.fromReviewed(List.of(entry));
         var tools=new RuleAgentEvidenceTools(fixture.owner,fixture.task,new RuleCheckRuntimeSettings("p","c","s","2025.9.2",20,5),()->List.of(entry),
@@ -65,6 +67,26 @@ class RuleAgentGapAttributionTest {
     @Test void factCapabilityGapAndTextDetailHaveDifferentExplanations(){
         assertThat(RuleResultPublisher.issue(ReasonCode.REVIEWED_FACT_COVERAGE_GAP).message())
             .isNotEqualTo(RuleResultPublisher.issue(ReasonCode.DETAIL_NOT_IN_REVIEWED_TEXT).message());
+    }
+    @Test void omittedAvailableFactWithoutGapLabelRemainsExplicitProcessingFailure()throws Exception{
+        read(true,true);
+        var general=broker.facts().stream().filter(f->f.definition().id().equals("elective-category-distinction")).findFirst().orElseThrow();
+        var publicCourse=broker.facts().stream().filter(f->f.definition().id().equals("public-course-subcategories")).findFirst().orElseThrow();
+        var proposal=new Finish(List.of(new Proposal("q1",List.of(general.id()),List.of(),null)));
+        var safe=RulePublicationContract.input(input,broker.facts(),catalogue);
+        var span=new DemandSpan("q1",0,input.question().length());
+        var semantic=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(
+            new Requirement("r1",span,Dimension.CATEGORY,Subject.GENERAL_UNDERGRADUATE,Recognition.IDENTIFIED,List.of()),
+            new Requirement("r2",span,Dimension.CATEGORY,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED,List.of())),
+            List.of(new SemanticBinding("r1",general.id(),BindingRole.CORE),new SemanticBinding("r2",publicCourse.id(),BindingRole.CORE)),List.of());
+        var assessment=new RulePublicationGate(catalogue).assess(input,proposal,semantic,broker.facts());
+        assertThat(assessment.questions().get("q1").uncoveredRequirementIds()).containsExactly("r2");
+        assertThat(assessment.questions().get("q1").factCapabilityGapRequirementIds()).isEmpty();
+        var published=new RuleResultPublisher(broker,input,run,assessment).finish(proposal);
+        assertThat(published.status()).isEqualTo(TaskStatus.FAILED);
+        assertThat(published.result().coverage()).isEqualTo(Coverage.PARTIAL);
+        assertThat(published.result().items().getFirst().claims()).hasSize(1);
+        assertThat(published.result().items().getFirst().issues()).extracting(Issue::reasonCode).containsExactly(ReasonCode.ANSWER_COVERAGE_INCOMPLETE);
     }
     @Test void hostAddsCapabilityGapBesideValidClaimWithoutModelGapLabel()throws Exception{
         read(true);

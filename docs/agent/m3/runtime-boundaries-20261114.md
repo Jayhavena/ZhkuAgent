@@ -69,3 +69,11 @@ Publisher要求该子问题真实成功读取过VERIFIED_EVIDENCE/VERIFIED_FACT�
 扩大回归第一次未通过（m3-gap-final.log）：新增两例构造了协议禁止的空Proposal（2 error），新增提示词使旧固定载荷字节断言由4935变为5122（1 fail）。未修改旧业务状态期望；删除非法构造并以合法Claim+能力缺口用例替换，ProviderTest同步当前合成载荷字节基线和中文说明。该失败记录保留，不作为成功证据。
 
 最终主Agent在仓库根以默认fork、显式evidenceDir与既有已核对PDF属性运行前述11类加RuleAgentGapAttributionTest，247项通过，0失败/错误/跳过（knowledge/target/m3-gap-final-verified.log，BUILD SUCCESS）。无真实供应商/DB/浏览器调用。新增内部Gate缺口归因需要独立审查后再讨论M3结项；F2来源标注、旧evidence-first提取与测试cwd依赖仍是已知范围边界，未声称已修复。M3代码未push、未入main/CI，M2-BILL/M2-FAIL仍待补证。
+
+## M3-04 最终独立复核与回归补充
+
+独立复核d6d3a2f6结论“不阻断本提交”，请求OpenCode/opencode-go/deepseek-v4.1-flash，未取得供应商executedModel证明。其亲跑新增5项+Gate20项共25通过、载荷字节1项通过、首问纯提取29项及Store26项通过；与主Agent的247项汇总分别记录，不声称独立复跑全部。
+
+主Agent补两项合成回归（只改测试，不改运行逻辑）：实际读取齐两块、取得两项可用事实，只提议一项且不自报gap，发布结果必须FAILED/PARTIAL、保留已核验Claim、issues恰为ANSWER_COVERAGE_INCOMPLETE；已读条件型能力存在而userConditions为空时，Gate可以保留需求未覆盖，但factCapabilityGapRequirementIds必须为空，不能把缺条件当能力不存在。两类定向共27项通过，0失败/错误/跳过（knowledge/target/m3-review-followup.log）。
+
+保留产品边界：VERIFIED_EVIDENCE既可能是审核事实未登记，也可能是多块事实只读取了一部分；当前缺口码仅表示“本轮当前已读事实能力未覆盖”，不证明目录永远没有该能力或原文没有规定。现有hasUnreadFact只影响READ可用性，未增加“发布前必须穷尽所有候选”的强制要求。此处选择记录，不以无关重构扩张M3范围；如产品要求区分，需另行设计采集状态。
