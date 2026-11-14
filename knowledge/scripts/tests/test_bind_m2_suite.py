@@ -34,6 +34,14 @@ def sha256(data: bytes) -> str:
 
 
 class BindM2SuiteTest(unittest.TestCase):
+    def test_task_identity_must_be_uuid(self):
+        self.assertIsNone(binder._entry_identity(self.first_run(taskId="not-a-task-uuid")))
+
+    def test_malformed_relation_container_cannot_crash_or_pass(self):
+        second = self.second_run()
+        second["result"]["evidenceRelations"] = 42
+        self.assertEqual(binder._second_run_claims(second), (1, 0))
+
     def setUp(self):
         self._temp = tempfile.TemporaryDirectory()
         self.addCleanup(self._temp.cleanup)

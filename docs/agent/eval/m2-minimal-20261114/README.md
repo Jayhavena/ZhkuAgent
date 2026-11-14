@@ -98,7 +98,7 @@ mvn -q -pl knowledge dependency:build-classpath -Dmdep.outputFile=target/cp.txt
 可选：先单独采集，确认 Collector 状态。
 
 ```bash
-java -cp "knowledge/target/classes;target/cp.txt" \
+java -cp "knowledge/target/classes;<dependency-classpath>" \
   com.zhku.knowledge.eval.chain.AgentEvalChainMain collect \
   --evidence docs/evidence/rule-agent-provider/<日期>/<批次>/live-<sha> \
   --out target/m2-collected --repo-root .
@@ -107,7 +107,7 @@ java -cp "knowledge/target/classes;target/cp.txt" \
 运行绑定后的套件（`run` 会自动采集）：
 
 ```bash
-java -cp "knowledge/target/classes;target/cp.txt" \
+java -cp "knowledge/target/classes;<dependency-classpath>" \
   com.zhku.knowledge.eval.chain.AgentEvalChainMain run \
   --suite docs/agent/eval/m2-minimal-20261114/out/suite.json \
   --out docs/agent/eval/m2-minimal-20261114/out --repo-root .
@@ -123,6 +123,8 @@ java -cp "knowledge/target/classes;target/cp.txt" \
 - 改模板的期望、动作或 claim/链接要求来迎合输出；
 - 手工填 `runId`、复制历史 runId，或用 `suite-v1.json`/旧报告回放冒充本次结果；
 - 把 `binding.json` 当作 Grader 判定，或把 `NOT_EVALUABLE` 当作通过。
+
+`<dependency-classpath>`必须替换为`knowledge/target/cp.txt`的实际内容，不能把txt文件路径当作classpath目录。Windows PowerShell可用`$m2cp='knowledge/target/classes;'+(Get-Content knowledge/target/cp.txt -Raw).Trim()`，再用`java -cp $m2cp ...`。Linux/macOS分隔符改为冒号。以上反斜杠换行示意用于shell；PowerShell请用一行命令。
 
 ## 绑定器的职责边界
 

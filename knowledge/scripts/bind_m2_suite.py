@@ -225,7 +225,7 @@ def _entry_identity(entry: Any) -> dict[str, str] | None:
     task_id = entry.get("taskId")
     if not isinstance(run_id, str) or not RUN_ID_PATTERN.match(run_id):
         return None
-    if not isinstance(task_id, str) or not task_id.strip():
+    if not isinstance(task_id, str) or not RUN_ID_PATTERN.fullmatch(task_id):
         return None
     return {"runId": run_id, "taskId": task_id.strip().lower()}
 
@@ -255,14 +255,19 @@ def _second_run_claims(second: Any) -> tuple[int | None, int | None]:
         for item in items:
             if isinstance(item, dict) and isinstance(item.get("claims"), list):
                 claims.extend(claim for claim in item["claims"] if isinstance(claim, dict))
+    evidence = result.get("evidence")
+    relations = result.get("evidenceRelations")
+    # 损坏容器不能让绑定器崩溃并丢失失败回执；按无有效关系处理，交由结构守卫拒绝。
+    evidence = evidence if isinstance(evidence, list) else []
+    relations = relations if isinstance(relations, list) else []
     evidence_ids = {
         evidence["id"]
-        for evidence in (result.get("evidence") or [])
+        for evidence in evidence
         if isinstance(evidence, dict) and isinstance(evidence.get("id"), str)
     }
     linked_targets = {
         relation["targetId"]
-        for relation in (result.get("evidenceRelations") or [])
+        for relation in relations
         if isinstance(relation, dict)
         and relation.get("role") == "CLAIM"
         and isinstance(relation.get("targetId"), str)
