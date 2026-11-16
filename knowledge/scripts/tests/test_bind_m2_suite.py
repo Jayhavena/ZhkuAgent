@@ -204,6 +204,13 @@ class BindM2SuiteTest(unittest.TestCase):
         self.assertEqual(binder.EXIT_FAIL, self.invoke())
         self.assertEqual([RUN_SECOND, None], [c["runId"] for c in self.binding()["cases"]])
 
+    def test_single_stopped_prefix_fails_first_and_leaves_continuation_unbound(self):
+        self.write_results([self.first_run(taskStatus="STOPPED", runState="CANCELLED")])
+        self.assertEqual(binder.EXIT_FAIL, self.invoke())
+        self.assert_reason(self.binding(), "FIRST_RUN_STATE_MISMATCH")
+        self.assertEqual([RUN_FIRST, None], [c["runId"] for c in self.binding()["cases"]])
+        self.assertTrue(self.binding()["expectationsUnchanged"])
+
     def test_unpublished_outcome_is_not_invented_as_published_first_run(self):
         self.results.unlink()
         snapshot = self.first_run(taskStatus="FAILED", runState="FAILED", terminated=True)

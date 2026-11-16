@@ -27,6 +27,9 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - name: 本地试用契约（无数据库及供应商）
         run: |
           mkdir -p "$PWD/target/trial-evidence"

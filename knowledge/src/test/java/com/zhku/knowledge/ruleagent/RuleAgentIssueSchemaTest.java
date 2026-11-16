@@ -35,6 +35,11 @@ class RuleAgentIssueSchemaTest {
         assertThat(accepts(issueSchema(),invalid)).isFalse();
         assertThatThrownBy(()->new ProposedIssue(IssueKind.CONFLICT,ReasonCode.CANCELLED)).isInstanceOf(IllegalArgumentException.class);
     }
+    @Test void bothIssueFieldsAreRequired(){
+        assertThat(accepts(issueSchema(),json.valueToTree(Map.of("kind","CONFLICT")))).isFalse();
+        assertThat(accepts(issueSchema(),json.valueToTree(Map.of("reasonCode","CANCELLED")))).isFalse();
+        assertThat(accepts(issueSchema(),json.createObjectNode())).isFalse();
+    }
     @Test void everyDomainPairHasExactlyTheSameSchemaAcceptance(){
         for(var kind:IssueKind.values())for(var reason:ReasonCode.values()){
             boolean expected=reason.kind==kind;
