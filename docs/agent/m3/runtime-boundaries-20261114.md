@@ -101,3 +101,7 @@ Flyway实际与预期迁移均23，测试后业务连接0，sourceDrift=0，cont
 用户明确授权后执行新包244c5d27…cdc596一次，实际2次DECISION/HTTP200后首轮失败，输入2547、输出95 tokens。模型在SEARCH后未READ，提议FINISH_CHECK，issue组合CONFLICT/CANCELLED违反领域配对约束；宿主ACTION_PARAMETER_INVALID→INVALID_MODEL_RESPONSE/FAILED，0 Claim、无续答/独立核验、无自动重试，资源关闭，单次票据已消耗。新缺陷M3-LIVE-01为Schema分开列举kind/reason、缺少二者配对约束。既有失败绑定器因task-results缺失不能绑定两run，Grader原生结果2 NOT_EVALUABLE、regressionPassed=false；与实际运行FAILED分开记录。
 
 详见docs/agent/eval/m3-minimal-20261114/execution-20261116/RESULT.md及配套审计。本批只形成失败Trace/终态，没有成功规则Evidence。费用目录价估算0.0022941元，实际账单null/UNVERIFIED；Preview默认profile未登录费用控制台。不得据此更新旧20题成功率或宣布M3真实质量通过。下一步先离线处理Schema配对/失败采集，真实调用需新包新授权。
+
+## M3-LIVE-01 离线修复检查点
+
+Schema已按ReasonCode.kind约束合法配对；Probe先写实际发布终态再判批次是否成功，失败首轮可留下单条前缀；绑定器按前缀顺序绑定首轮，不伪造未发生续答，也不倒填未发布历史outcome。合成本机Provider/TaskStore/Collector/Grader回归验证1 FAIL+1 NOT_EVALUABLE，CI配置加入新守卫；289 Java与26 Python通过。细节、初始失败与限制见schema-failure-capture-20261116.md。旧真实失败报告保持原样；真实复验尚未执行，新包尚未冻结/授权，M3不因离线修复直接结项。

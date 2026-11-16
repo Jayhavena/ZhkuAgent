@@ -192,6 +192,25 @@ class BindM2SuiteTest(unittest.TestCase):
         self.assertEqual([RUN_FIRST, None], [case["runId"] for case in suite["blocks"][0]["cases"]])
         self.assertFalse(binding["cases"][1]["bound"])
 
+    def test_single_failed_published_run_is_bound_as_first_and_fails(self):
+        self.write_results([self.first_run(taskStatus="FAILED", runState="FAILED")])
+        self.assertEqual(binder.EXIT_FAIL, self.invoke())
+        self.assertEqual([RUN_FIRST, None], [c["runId"] for c in self.binding()["cases"]])
+        self.assert_reason(self.binding(), "FIRST_RUN_STATE_MISMATCH")
+        self.assertTrue(self.binding()["expectationsUnchanged"])
+
+    def test_single_resolved_prefix_is_not_guessed_to_be_continuation(self):
+        self.write_results([self.second_run()])
+        self.assertEqual(binder.EXIT_FAIL, self.invoke())
+        self.assertEqual([RUN_SECOND, None], [c["runId"] for c in self.binding()["cases"]])
+
+    def test_unpublished_outcome_is_not_invented_as_published_first_run(self):
+        self.results.unlink()
+        snapshot = self.first_run(taskStatus="FAILED", runState="FAILED", terminated=True)
+        (self.evidence / (RUN_FIRST + "-outcome.json")).write_text(json.dumps({"snapshot": snapshot, "events": []}), encoding="utf-8")
+        self.assertEqual(binder.EXIT_NOT_EVALUABLE, self.invoke())
+        self.assertEqual([None, None], [c["runId"] for c in self.binding()["cases"]])
+
     def test_second_run_from_another_task_fails_and_stays_unbound(self):
         self.write_results([self.first_run(), self.second_run(taskId=OTHER_TASK_ID)])
         self.assertEqual(binder.EXIT_FAIL, self.invoke())

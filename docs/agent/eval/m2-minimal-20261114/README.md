@@ -138,3 +138,7 @@ python -m unittest discover -s knowledge/scripts/tests -p "test_bind_m2_suite.py
 - 模板与绑定器已离线准备并通过单元测试。
 - 尚未获得 M2 真实调用授权；尚无本批 `task-results.json`、`suite.json`、`binding.json` 或 Evaluation Report。
 - 失败停止、费用、模型实际用量等仍以真实执行时的记录为准；本文不构成调用授权或费用结论。
+
+## 2026-11-16 失败前缀绑定修复（不改历史报告）
+
+新Probe会在每次取得TaskStore发布终态时保存task-results.json，失败也不等整批成功。数组是时间顺序前缀：唯一条目只能绑定首轮，首轮FAILED/STOPPED或提前RESOLVED均按首轮预期不符记FAIL，第二run不存在则留null；唯一成功条目不会被推测成续答。只有合法首轮WAITING_USER但缺续答时保持NOT_EVALUABLE。未发布outcome不能证明数组轮次，绑定器不据此伪造发布或补历史文件；已归档报告保持原字节。模板与全部期望不变，输出仍拒绝覆盖。当前绑定器合成单测26项；旧章节测试数属于当时记录。

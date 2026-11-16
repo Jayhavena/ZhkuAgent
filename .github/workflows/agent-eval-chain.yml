@@ -31,9 +31,11 @@ jobs:
         run: |
           mkdir -p "$PWD/target/trial-evidence"
           mvn -B -pl knowledge -am test \
-            -Dtest=RuleCheckPreviewConfigurationTest,RuleCheckCoverageRepairTest,RuleCheckDisabledRetrievalTest,RuleCheckEvidenceFirstTest,HybridRetrievalServiceTest,RulePublicationGateTest,RuleAgentProviderTest,RuleAgentTaskHttpTest,RuleAgentE13PublicationCapabilityTest,PersistentRuleCheckLocalHostTest,PersistentStudentTaskConfigurationTest,RuleAgentSimulatedDemoTest \
+            -Dtest=RuleAgentIssueSchemaTest,RuleAgentProbeFailureCaptureTest,RuleCheckPreviewConfigurationTest,RuleCheckCoverageRepairTest,RuleCheckDisabledRetrievalTest,RuleCheckEvidenceFirstTest,HybridRetrievalServiceTest,RulePublicationGateTest,RuleAgentProviderTest,RuleAgentTaskHttpTest,RuleAgentE13PublicationCapabilityTest,PersistentRuleCheckLocalHostTest,PersistentStudentTaskConfigurationTest,RuleAgentSimulatedDemoTest \
             -Dsurefire.failIfNoSpecifiedTests=false \
             -Dzhku.rulecheck.evidenceDir="$PWD/target/trial-evidence"
+      - name: 两轮证据绑定与失败前缀回归（纯标准库）
+        run: python3 -m unittest discover -s knowledge/scripts/tests -p "test_bind_m2_suite.py" -v
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

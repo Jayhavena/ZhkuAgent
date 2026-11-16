@@ -344,13 +344,13 @@ def _analyse_runs(entries: list[Any], reasons: list[str]) -> tuple[str | None, s
                 _add(reasons, "SECOND_RUN_CLAIM_MISSING")
             if not linked_count:
                 _add(reasons, "SECOND_RUN_EVIDENCE_LINK_MISSING")
-    elif len(entries) == 1 and identities[0] is not None:
-        # 无法确认配对时按状态把唯一 run 放到对应 case；另一 case 留 null。
-        if statuses[0] == FIRST_STATUS:
-            first_run = identities[0]["runId"]
-        elif statuses[0] == SECOND_STATUS:
-            second_run = identities[0]["runId"]
-            checks["secondRoundStatusMatches"] = True
+    elif len(entries) == 1 and identities[0] is not None and statuses[0] is not None:
+        # 已发布数组是按运行顺序写入的前缀；唯一条目只能是首轮，不能看见成功状态就猜成续答。
+        # 即便首轮失败也绑定真实runId，让Grader评分失败；不存在的第二轮仍留空。
+        first_run = identities[0]["runId"]
+        checks["firstRoundStatusMatches"] = statuses[0] == FIRST_STATUS
+        if not checks["firstRoundStatusMatches"]:
+            _add(reasons, "FIRST_RUN_STATE_MISMATCH")
     return first_run, second_run, checks
 
 

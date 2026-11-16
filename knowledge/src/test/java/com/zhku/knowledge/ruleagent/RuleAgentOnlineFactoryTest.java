@@ -24,6 +24,7 @@ class RuleAgentOnlineFactoryTest {
     boolean conditional;
     boolean repeatKnownCondition;
     boolean invalidReviewFingerprint;
+    boolean invalidIssuePair;
     final List<RuleAgentProvider.Exchange> exchanges=new CopyOnWriteArrayList<>();
     boolean studyArrangement;
     Runnable onOriginalRead=()->{};
@@ -113,6 +114,7 @@ class RuleAgentOnlineFactoryTest {
                     action=review(view.path("input"));
                 }
                 else if(view.path("observations").isEmpty())action=new Search("q1",studyArrangement?view.path("question").asText():"课程类别");
+                else if(invalidIssuePair)action=json.readTree("{\"type\":\"FINISH_CHECK\",\"items\":[{\"subquestionId\":\"q1\",\"factIds\":[],\"issues\":[{\"kind\":\"CONFLICT\",\"reasonCode\":\"CANCELLED\"}],\"operation\":null}]}");
                 else if(view.path("facts").isEmpty()){
                     var set=view.path("candidateSetId").asText("old-protocol");
                     var candidates=view.path("currentCandidates");
