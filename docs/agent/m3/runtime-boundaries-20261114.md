@@ -95,3 +95,9 @@ Flyway实际与预期迁移均23，测试后业务连接0，sourceDrift=0，cont
 仓库HTTP脚本initial 14项和Restart -SkipBuild后的restart 14项均通过：注册/登录、CSRF、任务及续答幂等、WAITING_USER必要澄清、原文访问与跨账号隔离、RESOLVED、回放未覆盖、取消或已完成冲突、退出401。重启账号保留、旧任务失效；本批没有浏览器。Stop退出0、hostExitCode=0，实际host进程退出，规则容器不存在，身份容器exited且专用卷保留；58190/55540/55541均无监听。脱敏HTTP回执见http-93dc4a1c/，不含Cookie/CSRF/口令/原文。
 
 随后仅Prepare/CheckPackage新M3最小两轮Probe：244c5d272cdd2e3bf2d39601bf1254c8a75a63ee189e6786ebfbdd3a26cdc596，零调用/零数据库准备校验通过、绑定器23项通过；6个私有冻结文件逐字节备份。本批未授权、未执行，建议预算1元/最多10次/两run，不沿用M2票据。范围、披露与限制详见eval/m3-minimal-20261114/README.md（相对于docs/agent为eval/m3-minimal-20261114）。工程验收已补齐本次关键HTTP，真实复测依然待新授权；不能声称新版真实质量已证明。
+
+## 2026-11-16 M3真实复测：失败，未结项
+
+用户明确授权后执行新包244c5d27…cdc596一次，实际2次DECISION/HTTP200后首轮失败，输入2547、输出95 tokens。模型在SEARCH后未READ，提议FINISH_CHECK，issue组合CONFLICT/CANCELLED违反领域配对约束；宿主ACTION_PARAMETER_INVALID→INVALID_MODEL_RESPONSE/FAILED，0 Claim、无续答/独立核验、无自动重试，资源关闭，单次票据已消耗。新缺陷M3-LIVE-01为Schema分开列举kind/reason、缺少二者配对约束。既有失败绑定器因task-results缺失不能绑定两run，Grader原生结果2 NOT_EVALUABLE、regressionPassed=false；与实际运行FAILED分开记录。
+
+详见docs/agent/eval/m3-minimal-20261114/execution-20261116/RESULT.md及配套审计。本批只形成失败Trace/终态，没有成功规则Evidence。费用目录价估算0.0022941元，实际账单null/UNVERIFIED；Preview默认profile未登录费用控制台。不得据此更新旧20题成功率或宣布M3真实质量通过。下一步先离线处理Schema配对/失败采集，真实调用需新包新授权。

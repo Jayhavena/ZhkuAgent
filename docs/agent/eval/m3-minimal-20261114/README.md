@@ -1,6 +1,6 @@
-# M3 当前版本最小真实复测：已准备，未授权执行
+# M3 当前版本最小真实复测：冻结与执行记录
 
-源代码/HTTP被测提交：93dc4a1c630bbbc29ba715e3a4292b0c0d418d9c。生产修复为d6d3a2f6，补充测试为a42bdab0。manifest.json绑定本轮新包、jar、模板与绑定器摘要。Prepare/CheckPackage均0次供应商调用、0次数据库操作，绑定器23项通过。无本批真实结果、Trace或Evaluation Report。
+源代码/HTTP被测提交：93dc4a1c630bbbc29ba715e3a4292b0c0d418d9c。生产修复为d6d3a2f6，补充测试为a42bdab0。manifest.json绑定本轮新包、jar、模板与绑定器摘要。准备时Prepare/CheckPackage均0次供应商调用、0次数据库操作，绑定器23项通过。2026-11-16新授权后已执行并失败，Trace与原生Evaluation Report见末节及execution-20261116/；冻结manifest保持准备时历史状态。
 
 ## 申请的唯一批次
 
@@ -32,3 +32,7 @@ envelope还包含model、stream=false、enable_thinking=false、max_completion_t
 本轮只检查新版本必要澄清、已知PUBLIC续答、实际工具观察与发布链。它不是大规模质量评测，不能提高旧20题成功率；题面不含明确类别，因此不验证首问显式类别提取的真实模型行为，也不强迫产生第四个能力缺口码。它不能证明持久HTTP ONLINE或真实供应商故障停止。首问提取当前由纯/Store/合成Factory及零模型HTTP证明工程接线；能力缺口由合成Gate/Publisher回归验证。若产品要求相应真实场景，必须另冻结、另授权，不能在本批临时加题。
 
 本轮仅申请这个最小包。当前HTTP工程验收首启14项、重启14项通过，已停止服务；该结果与本批尚未执行的真实复测分别记录。
+
+## 2026-11-16 授权执行结果更新
+
+本包已获新授权并消耗一次票据，实际2次调用后首轮失败，未续答、不重试。原始冻结manifest仍保留“准备时未授权/0调用”的历史状态，不代表当前可再次执行；不得复用剩余额度。详见execution-20261116/RESULT.md及原生Grader报告。结果为FAILED，Grader两轮合同NOT_EVALUABLE，实际账单仍UNVERIFIED/null。

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "M2",
+  "blocks": [
+    {
+      "blockId": "m2-minimal-20261114",
+      "kind": "EVIDENCE_BUNDLE",
+      "evidenceDir": "docs/evidence/rule-agent-provider/2026-11-14/m3-minimal-93dc4a1c/live-c22108086e5745bda0f2316ca7b0c2f0",
+      "bundleCase": {
+        "caseId": "M2-BUNDLE-INCOMPLETE",
+        "title": "证据块缺失：没有终态快照时只能整块记 NOT_EVALUABLE",
+        "expectedVerdict": "NOT_EVALUABLE",
+        "expectedDetails": [
+          "COLLECTION_INCOMPLETE"
+        ]
+      },
+      "cases": [
+        {
+          "caseId": "M2-CLARIFY",
+          "title": "M2 首轮：必要追问，不抢答",
+          "runId": null,
+          "expectedVerdict": "PASS",
+          "expectedDetails": [
+            "EXPECTATIONS_MET"
+          ],
+          "expectation": {
+            "taskStatus": "WAITING_USER",
+            "runState": "INCOMPLETE",
+            "coverage": "NONE",
+            "requiredActions": [
+              "SEARCH_REVIEWED_RULES",
+              "READ_VERIFIED_RULE",
+              "ASK_NECESSARY_CONDITION",
+              "PUBLICATION_REVIEW"
+            ],
+            "issueReason": "MISSING_CONDITION",
+            "expectClaims": false,
+            "observedAction": "SEARCH_REVIEWED_RULES",
+            "observationStatus": "SUCCEEDED",
+            "requireEvidenceLinks": false,
+            "expectRejectedUnknownTool": false
+          }
+        },
+        {
+          "caseId": "M2-RESOLVE",
+          "title": "M2 续答：结论带证据链",
+          "runId": null,
+          "expectedVerdict": "PASS",
+          "expectedDetails": [
+            "EXPECTATIONS_MET"
+          ],
+          "expectation": {
+            "taskStatus": "RESOLVED",
+            "runState": "SUCCEEDED",
+            "coverage": "COMPLETE",
+            "requiredActions": [
+              "SEARCH_REVIEWED_RULES",
+              "READ_VERIFIED_RULE",
+              "FINISH_CHECK",
+              "PUBLICATION_REVIEW"
+            ],
+            "issueReason": null,
+            "expectClaims": true,
+            "observedAction": "READ_VERIFIED_RULE",
+            "observationStatus": "SUCCEEDED",
+            "requireEvidenceLinks": true,
+            "expectRejectedUnknownTool": false
+          }
+        }
+      ]
+    }
+  ]
+}
