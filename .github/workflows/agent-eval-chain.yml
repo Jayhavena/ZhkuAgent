@@ -1,6 +1,6 @@
 name: agent-eval-chain
 
-# 评测链路回归：用已归档的真实 Agent 证据重放，跑现有 Grader 并产出报告。
+# 核心业务回归及归档 Grader 重放；选类与执行检查共用版本化清单，防止漏跑假绿。
 # 这里刻意不配置数据库、模型或浏览器凭证 —— CI 只验证链路契约，
 # 真实执行（RuleAgentOnlineProbeHost）必须由人工在受控环境发起。
 on:
@@ -27,13 +27,30 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - name: 本地试用契约（无数据库及供应商）
         run: |
           mkdir -p "$PWD/target/trial-evidence"
+          selector="$(python3 knowledge/scripts/verify_core_regression.py --selector)"
           mvn -B -pl knowledge -am test \
-            -Dtest=RuleCheckPreviewConfigurationTest,RuleCheckCoverageRepairTest,RuleCheckDisabledRetrievalTest,RuleCheckEvidenceFirstTest,HybridRetrievalServiceTest,RulePublicationGateTest,RuleAgentProviderTest,RuleAgentTaskHttpTest,RuleAgentE13PublicationCapabilityTest,PersistentRuleCheckLocalHostTest,PersistentStudentTaskConfigurationTest,RuleAgentSimulatedDemoTest \
+            -Dtest="$selector" \
             -Dsurefire.failIfNoSpecifiedTests=false \
             -Dzhku.rulecheck.evidenceDir="$PWD/target/trial-evidence"
+      - name: 核对所有核心类和21条固定要求均已执行
+        if: always()
+        run: python3 knowledge/scripts/verify_core_regression.py --reports knowledge/target/surefire-reports --summary target/core-regression-summary.json
+      - name: 两轮证据绑定与门禁负例（纯标准库）
+        run: |
+          python3 -m unittest discover -s knowledge/scripts/tests -p "test_bind_m2_suite.py" -v
+          python3 -m unittest discover -s knowledge/scripts/tests -p "test_verify_core_regression.py" -v
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: core-regression-summary
+          path: target/core-regression-summary.json
+          if-no-files-found: error
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

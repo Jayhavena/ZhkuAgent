@@ -55,6 +55,21 @@ class RulePublicationGateTest {
         return new Finish(List.of(new Proposal("q1",List.of(ids),List.of(),null)));
     }
 
+    @Test void missingUserConditionCannotBeRecastAsMissingReadCapability(){
+        var conditional=fact("S10/RETAKE_ONLY","public-failed-no-retake",Map.of("courseType","PUBLIC"));
+        var facts=List.of(conditional);var caps=catalogue(facts);
+        var original=input("这门选修课没过，能重修吗？");
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var requirement=new Requirement("r1",new DemandSpan("q1",0,original.question().length()),Dimension.RETAKE,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED,List.of("courseType"));
+        var semantic=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(requirement),List.of(),List.of());
+        var finish=new Finish(List.of(new Proposal("q1",List.of(),List.of(new ProposedIssue(IssueKind.DATA_GAP,ReasonCode.REVIEWED_FACT_COVERAGE_GAP)),null)));
+        var result=new RulePublicationGate(caps).assess(original,finish,semantic,facts);
+        assertThat(original.userConditions()).isEmpty();
+        assertThat(result.questions().get("q1").uncoveredRequirementIds()).containsExactly("r1");
+        assertThat(result.questions().get("q1").factCapabilityGapRequirementIds()).isEmpty();
+        assertThat(result.questions().get("q1").coveredRequirementIds()).isEmpty();
+    }
+
     @Test void bothSidesCompleteForDifferentQuestionExpressions() {
         var caps=catalogue(arrangement);
         for(String question:List.of("专业选修课和公共选修课在修读安排上有什么不同？","专选和公选在选课修读上哪里不一样？")) {

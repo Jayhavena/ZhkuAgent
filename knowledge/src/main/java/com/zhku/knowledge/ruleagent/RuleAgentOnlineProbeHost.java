@@ -83,7 +83,10 @@ public final class RuleAgentOnlineProbeHost {
         }
         String url=required("ZHKU_DB_URL");var matcher=java.util.regex.Pattern.compile("^jdbc:postgresql://127\\.0\\.0\\.1:([0-9]{4,5})/zhkuagent_rulecheck_e2e$").matcher(url);
         if(!matcher.matches()||Integer.parseInt(matcher.group(1))==54329)throw new IllegalArgumentException("拒绝原库或非专用临时库");
-        Path evidence=root.resolve(required("ZHKU_RULE_AGENT_EVIDENCE")).normalize();if(!evidence.startsWith(root.resolve("docs/evidence/rule-agent-provider"))||Files.exists(evidence))throw new IllegalArgumentException("证据目录越界或已存在");Files.createDirectories(evidence);
+        Path evidence=root.resolve(required("ZHKU_RULE_AGENT_EVIDENCE")).normalize();if(!evidence.startsWith(root.resolve("docs/evidence/rule-agent-provider"))||Files.exists(evidence))throw new IllegalArgumentException("证据目录越界或已存在");
+        // CheckPackage不消耗；真正执行在任何数据源/模型之前原子占用用户级票据，失败也不得重试。
+        ProbeBatchClaim.acquire(Path.of(System.getProperty("user.home"),".zhkuagent","probe-claims"),sha(bytes));
+        Files.createDirectories(evidence);
         var db=new DriverManagerDataSource(url,"zhkuagent",required("ZHKU_DB_PASSWORD"));Flyway.configure().dataSource(db).locations("classpath:db/migration").load().migrate();
         Clock clock=Clock.systemUTC();var owner=new Owner(UUID.randomUUID(),UUID.randomUUID());var traces=new ArrayList<RuleAgentProvider.Trace>();
         var executor=new ThreadPoolExecutor(2,2,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<>(4),Thread.ofPlatform().name("zhku-rule-probe-",0).factory(),new ThreadPoolExecutor.AbortPolicy());
@@ -93,25 +96,50 @@ public final class RuleAgentOnlineProbeHost {
             try(var factory=new RuleAgentOnlineFactory(RuleAgentProvider.Settings.environment(System.getenv()),()->System.getenv("DASHSCOPE_API_KEY"),(actor,task)->new RuleAgentEvidenceTools(actor,task,settings,()->{try{return RuleArticle4Overlay.apply(root,catalogue.reviewedCatalogue(root));}catch(Exception invalid){throw new IllegalArgumentException("目录不可用");}},JdbcLexicalCandidateRetriever.forChineseBigramEvaluation(db,new RetrievalEligibilityFilter(clock),settings.profileId(),settings.requiredScope(),settings.chunkingVersion()),new JdbcRuleCheckEvidenceReader(db,settings.profileId(),settings.chunkingVersion(),settings.requiredScope()),new JdbcRuleCheckCitationAuditRepository(db,settings.profileId(),settings.chunkingVersion(),settings.requiredScope()),clock),trace->{synchronized(traces){try{Files.writeString(evidence.resolve("provider-traces.jsonl"),JSON.writeValueAsString(trace)+"\n",StandardCharsets.UTF_8,StandardOpenOption.CREATE,StandardOpenOption.APPEND);traces.add(trace);}catch(Exception failure){throw new IllegalStateException("调用审计未保存");}}},exchange->{try{Files.write(evidence.resolve(exchange.runId()+"-"+exchange.attempt()+"-"+exchange.direction()+".json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(exchange),StandardOpenOption.CREATE_NEW);}catch(Exception failure){throw new IllegalStateException("受控交换未保存");}},maximum,clock)){
                 RuleAgentTaskStore.Factory recording=(actor,task)->{var actual=factory.open(actor,task);return new RuleAgentTaskStore.Work(){public RuleAgentRunner.Outcome run(com.zhku.agent.agent.runtime.AgentRunContext context,RuleAgentRunner.Input input){var output=actual.run(context,input);recordOutcome(evidence,outcomes,output);return output;}public boolean revalidate(ResultEnvelope previous){return actual.revalidate(previous);}};};
                 try(var store=new RuleAgentTaskStore(executor,recording,clock,RuleAgentTaskStore.DEFAULT_LIMITS)){
-                    var outputs=new ArrayList<TaskSnapshot>();
-                    for(JsonNode test:pack.path("cases")){
-                        var accepted=store.create(owner,new CreateTask(test.path("question").asText(),UUID.randomUUID()));TaskSnapshot output=waitFor(store,owner,accepted.taskId());outputs.add(output);
-                        if(!publishedMatches(outcomes.get(output.runId()),output)||!p02WaitingPassed(outcomes.get(output.runId())))throw new IllegalStateException("P02首轮未形成合格必要追问，停止本批");
-                        // 回复是申请中预登记的用户输入，不是模型答案；首轮必须先独立核验必要性。
-                        var reply=new Message(test.path("reply").asText(),output.continuationToken(),output.version(),UUID.randomUUID());
-                        var resumed=store.message(owner,accepted.taskId(),reply);
-                        var duplicate=store.message(owner,accepted.taskId(),reply);
-                        if(!duplicate.duplicate()||!duplicate.runId().equals(resumed.runId()))throw new IllegalStateException("重复续答产生额外run");
-                        var completed=waitFor(store,owner,accepted.taskId());outputs.add(completed);
-                        if(!publishedMatches(outcomes.get(completed.runId()),completed)||!p02Passed(outcomes.get(output.runId()),outcomes.get(completed.runId())))throw new IllegalStateException("P02续答未达发布标准，停止本批");
-                        if(!store.message(owner,accepted.taskId(),reply).runId().equals(resumed.runId()))throw new IllegalStateException("终态重复续答变化");
-                    }
-                    passed=outputs.size()==2&&publishedMatches(outcomes.get(outputs.get(0).runId()),outputs.get(0))&&publishedMatches(outcomes.get(outputs.get(1).runId()),outputs.get(1))&&p02Passed(outcomes.get(outputs.get(0).runId()),outcomes.get(outputs.get(1).runId()));
-                    Files.write(evidence.resolve("task-results.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(outputs),StandardOpenOption.CREATE_NEW);
+                    passed=runP02Tasks(store,owner,pack.path("cases"),evidence,outcomes);
                 }finally{used=maximum-factory.remainingCalls();factory.close();closed=factory.resourcesClosed();}
             }
         }finally{executor.shutdownNow();closed=closed&&executor.awaitTermination(3,TimeUnit.SECONDS);Files.write(evidence.resolve("probe-result.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("passed",passed&&closed,"resourcesClosed",closed,"allowanceConsumed",used,"maximumProviderCalls",maximum,"caseSelection","P02_CONTINUATION_01","languageQualityNotScored",true,"budgetRevision",BUDGET_REVISION)),StandardOpenOption.CREATE_NEW);}
         if(!passed||!closed)throw new IllegalStateException("真实探针未达退出标准；不重试");
+    }
+    static boolean runP02Tasks(RuleAgentTaskStore store,Owner owner,JsonNode cases,Path evidence,Map<UUID,RuleAgentRunner.Outcome> outcomes)throws Exception {
+        var outputs=new ArrayList<TaskSnapshot>();
+        for(JsonNode test:cases){
+            var accepted=store.create(owner,new CreateTask(test.path("question").asText(),UUID.randomUUID()));TaskSnapshot output=waitFor(store,owner,accepted.taskId());appendPublishedSnapshot(evidence,outputs,output);
+            if(!publishedMatches(outcomes.get(output.runId()),output)||!p02WaitingPassed(outcomes.get(output.runId())))throw new IllegalStateException("P02首轮未形成合格必要追问，停止本批");
+            // 回复是申请中预登记的用户输入，不是模型答案；首轮必须先独立核验必要性。
+            var reply=new Message(test.path("reply").asText(),output.continuationToken(),output.version(),UUID.randomUUID());
+            var resumed=store.message(owner,accepted.taskId(),reply);
+            var duplicate=store.message(owner,accepted.taskId(),reply);
+            if(!duplicate.duplicate()||!duplicate.runId().equals(resumed.runId()))throw new IllegalStateException("重复续答产生额外run");
+            var completed=waitFor(store,owner,accepted.taskId());appendPublishedSnapshot(evidence,outputs,completed);
+            if(!publishedMatches(outcomes.get(completed.runId()),completed)||!p02Passed(outcomes.get(output.runId()),outcomes.get(completed.runId())))throw new IllegalStateException("P02续答未达发布标准，停止本批");
+            if(!store.message(owner,accepted.taskId(),reply).runId().equals(resumed.runId()))throw new IllegalStateException("终态重复续答变化");
+        }
+        boolean passed=outputs.size()==2&&publishedMatches(outcomes.get(outputs.get(0).runId()),outputs.get(0))&&publishedMatches(outcomes.get(outputs.get(1).runId()),outputs.get(1))&&p02Passed(outcomes.get(outputs.get(0).runId()),outcomes.get(outputs.get(1).runId()));
+        return passed;
+    }
+    /** 发布结果先落盘再判成功；失败不得只留outcome，也不能伪造尚未发生的续答。 */
+    static void appendPublishedSnapshot(Path evidence,List<TaskSnapshot> prior,TaskSnapshot published)throws Exception {
+        if(!published.terminated()||published.taskStatus()==TaskStatus.ACTIVE||prior.size()>=2)
+            throw new IllegalArgumentException("只保存本批真实终态前缀");
+        if(!prior.isEmpty()){
+            var first=prior.getFirst();
+            if(!first.taskId().equals(published.taskId())||first.runId().equals(published.runId())||published.version()<=first.version())
+                throw new IllegalArgumentException("终态身份或顺序不一致");
+        }
+        var next=new ArrayList<>(prior);next.add(published);
+        var target=evidence.resolve("task-results.json");var writer=JSON.writerWithDefaultPrettyPrinter();
+        byte[] bytes=writer.writeValueAsBytes(next);
+        if(prior.isEmpty())Files.write(target,bytes,StandardOpenOption.CREATE_NEW);
+        else{
+            // 第二轮只能更新本次亲自写入的前缀；崩溃时保留已落盘首轮，拒绝覆盖历史或被改写的文件。
+            if(!Arrays.equals(Files.readAllBytes(target),writer.writeValueAsBytes(prior)))throw new IllegalStateException("已发布终态前缀变化");
+            var pending=evidence.resolve("task-results.next.json");Files.write(pending,bytes,StandardOpenOption.CREATE_NEW);
+            try{Files.move(pending,target,StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING);}
+            finally{Files.deleteIfExists(pending);}
+        }
+        prior.add(published);
     }
     static void recordOutcome(Path evidence,Map<UUID,RuleAgentRunner.Outcome> outcomes,RuleAgentRunner.Outcome output) {
         try {Files.write(evidence.resolve(output.snapshot().runId()+"-outcome.json"),JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(output),StandardOpenOption.CREATE_NEW);}
@@ -121,7 +149,7 @@ public final class RuleAgentOnlineProbeHost {
     }
     static boolean publishedMatches(RuleAgentRunner.Outcome o,TaskSnapshot published) {
         if(o==null||published==null)return false;var actual=o.snapshot();
-        // turnId由任务仓拥有；其余发布身份/结果须一致，拒绝ACTIVE、失败或被替换的快照。
+        // turnId由任务仓拥有；其余发布身份/结果须一致，失败也必须准确匹配；能匹配不代表通过P02成功闸门。
         return actual.taskId().equals(published.taskId())&&actual.runId().equals(published.runId())&&actual.version()==published.version()
             &&actual.taskStatus()==published.taskStatus()&&actual.runState()==published.runState()&&actual.terminated()==published.terminated()
             &&Objects.equals(actual.result(),published.result())&&Objects.equals(actual.continuationToken(),published.continuationToken())

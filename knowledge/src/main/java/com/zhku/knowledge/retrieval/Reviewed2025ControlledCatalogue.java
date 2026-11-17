@@ -197,8 +197,13 @@ public class Reviewed2025ControlledCatalogue implements AutoCloseable {
     }
     private byte[] readBytes(Path path) throws Exception {
         byte[] bytes=Files.readAllBytes(path);
-        assetHashes.put(root.toAbsolutePath().normalize().relativize(path.toAbsolutePath().normalize()).toString().replace('\\','/'),sha(bytes));
+        assetHashes.put(assetKey(root,path),sha(bytes));
         return bytes;
+    }
+    static String assetKey(Path root,Path path) {
+        Path base=root.toAbsolutePath().normalize(),asset=path.toAbsolutePath().normalize();
+        // 唯一外置运行资产是显式PDF；逻辑键不泄漏本机路径，字节SHA与原件校验仍由调用处执行。
+        return asset.startsWith(base)?base.relativize(asset).toString().replace('\\','/'):"@external/student-handbook.pdf";
     }
     JsonNode read(Path path) throws Exception{return mapper.readTree(readBytes(path));}
     /** 建库前读取实际运行依赖；草案只作本机选题描述，hash不授予外发或政策解释资格。 */

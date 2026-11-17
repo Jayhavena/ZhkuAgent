@@ -1,0 +1,82 @@
+{
+  "checks": {
+    "packageMatchesAuthorizedSha": true,
+    "sameTaskTwoDistinctRuns": true,
+    "firstRunNecessaryClarification": true,
+    "secondRunResolved": true,
+    "oneCorrectPublicClaim": true,
+    "allEightCallsHttp200": true,
+    "responseModelMatches": true,
+    "actualToolObservationsRecorded": true,
+    "bothPublicationReviewsAccepted": true,
+    "claimEvidenceLinkExists": true,
+    "claimTextAndWhenMatchReviewedFact": true,
+    "evidenceEqualsReviewedBinding": true,
+    "quoteSpanAndBytesMatchFrozenOriginal": true,
+    "localExchangeDigestsMatch": true,
+    "requestCountAndModelMatch": true,
+    "requestPromptsFromFrozenPack": true,
+    "actualQuotesWithinDisclosedMaximum": true,
+    "actualFactTextsWithinDisclosedMaximum": true,
+    "noForbiddenContextKeys": true
+  },
+  "allChecksPassed": true,
+  "checksCount": 19,
+  "sameTaskId": "1df4eca4-5432-4bc1-84cf-74c7e5c2fab0",
+  "runs": [
+    {
+      "runId": "c5061667-def2-44ad-82ca-3c3e71956d40",
+      "taskStatus": "WAITING_USER",
+      "runState": "INCOMPLETE",
+      "actions": [
+        "SEARCH_REVIEWED_RULES",
+        "READ_VERIFIED_RULE",
+        "ASK_NECESSARY_CONDITION",
+        "PUBLICATION_REVIEW"
+      ],
+      "execution": {
+        "mode": "ONLINE",
+        "modelAttemptCount": 4,
+        "toolStepCount": 3,
+        "providerResponseReceived": true,
+        "answerSource": "LIVE_AGENT",
+        "replayCoverage": "NOT_APPLICABLE"
+      }
+    },
+    {
+      "runId": "0bd41ecc-60e5-4a68-9cb1-b62cbe335890",
+      "taskStatus": "RESOLVED",
+      "runState": "SUCCEEDED",
+      "actions": [
+        "SEARCH_REVIEWED_RULES",
+        "READ_VERIFIED_RULE",
+        "FINISH_CHECK",
+        "PUBLICATION_REVIEW"
+      ],
+      "execution": {
+        "mode": "ONLINE",
+        "modelAttemptCount": 4,
+        "toolStepCount": 3,
+        "providerResponseReceived": true,
+        "answerSource": "LIVE_AGENT",
+        "replayCoverage": "NOT_APPLICABLE"
+      }
+    }
+  ],
+  "providerCalls": 8,
+  "purposeCounts": {
+    "DECISION": 6,
+    "PUBLICATION_REVIEW": 2
+  },
+  "responseModels": [
+    "qwen3.8-flash"
+  ],
+  "inputTokens": 14625,
+  "outputTokens": 1023,
+  "exchangeFiles": 24,
+  "actualQuoteOccurrencesChecked": 54,
+  "actualFactOccurrencesChecked": 24,
+  "actualInvoiceCny": null,
+  "billingStatus": "UNVERIFIED",
+  "realFailureStopObserved": false
+}

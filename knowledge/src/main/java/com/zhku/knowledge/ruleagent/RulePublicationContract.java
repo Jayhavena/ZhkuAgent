@@ -116,10 +116,13 @@ public final class RulePublicationContract {
     }
     /** 核验器按子问题聚合覆盖结果；unsupportedDemand 区分“资料不覆盖该需求”与“尚未理解需求”。 */
     public record QuestionAssessment(Set<String> coveredRequirementIds,Set<String> uncoveredRequirementIds,
-                                     boolean demandUnresolved,boolean unsupportedDemand,boolean hasProposedIssues) {
+                                     boolean demandUnresolved,boolean unsupportedDemand,boolean hasProposedIssues,
+                                     Set<String> factCapabilityGapRequirementIds) {
+        public QuestionAssessment(Set<String> covered,Set<String> uncovered,boolean unresolved,boolean unsupported,boolean issues){this(covered,uncovered,unresolved,unsupported,issues,Set.of());}
         public QuestionAssessment {
             coveredRequirementIds=Set.copyOf(coveredRequirementIds);
             uncoveredRequirementIds=Set.copyOf(uncoveredRequirementIds);
+            factCapabilityGapRequirementIds=Set.copyOf(factCapabilityGapRequirementIds);
         }
     }
     public record PublicationAssessment(Verdict verdict,List<SemanticBinding> acceptedBindings,
