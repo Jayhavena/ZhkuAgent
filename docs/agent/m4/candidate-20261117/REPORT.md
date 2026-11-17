@@ -15,6 +15,8 @@
 
 相对官方主线没有前端代码、agent-runtime 或 SQL 迁移变化。M4 自身没有生产逻辑变化；当前生产与 M3 `365ee0c9` / 真实复测 `be762644` 一致。M3 的首启/重启 HTTP 证据适用于该生产源码，但不能冒充未来合入 main 后的验收。
 
+完整差异空白检查发现 M1 的 5 份原生 JSON 回执行尾 CR 被误报；仅为 m11/m12 两个确切回执目录增加 `whitespace=cr-at-eol`，不改 JSON 字节或摘要，不放宽其他目录。该属性变化不改变生产逻辑，后续新 Probe 包仍须绑定当时的属性及构建身份。
+
 ## 已实际验证
 
 [validation.json](validation.json) 保存源码身份、计数和本机原日志摘要；[core-regression.json](core-regression.json) 保存全部核心类计数。
