@@ -15,11 +15,13 @@
 
 相对官方主线没有前端代码、agent-runtime 或 SQL 迁移变化。M4 自身没有生产逻辑变化；当前生产与 M3 `365ee0c9` / 真实复测 `be762644` 一致。M3 的首启/重启 HTTP 证据适用于该生产源码，但不能冒充未来合入 main 后的验收。
 
-完整差异空白检查发现 M1 的 5 份原生 JSON 回执行尾 CR 被误报；仅为 m11/m12 两个确切回执目录增加 `whitespace=cr-at-eol`，不改 JSON 字节或摘要，不放宽其他目录。该属性变化不改变生产逻辑，后续新 Probe 包仍须绑定当时的属性及构建身份。
+完整差异空白检查发现 M1 的 5 份原生 JSON 回执行尾 CR 被误报；本次空白修复只为 m11/m12 两个确切回执目录增加 `whitespace=cr-at-eol`，不改 JSON 字节或摘要。M2/M3 三条属性规则随各自历史回执提交加入，不是本次空白修复新增的范围。属性变化不改变生产逻辑，后续新 Probe 包仍须绑定当时的属性及构建身份。
 
 ## 已实际验证
 
-[validation.json](validation.json) 保存源码身份、计数和本机原日志摘要；[core-regression.json](core-regression.json) 保存全部核心类计数。
+[validation.json](validation.json) 保存源码身份、计数和本机原日志摘要；原日志仅本机留档，未随仓发布，摘要不能替代独立重跑。[core-regression.json](core-regression.json) 保存全部核心类计数。
+
+M3 的 matrix.json 仍准确冻结当时 `8fd53b48` 的源码身份，不改写历史验收。M4 拆出资产测试后，OnlineFactoryTest 的文件摘要已变化，涉及 CLARIFY-MISSING、CLARIFY-KNOWN、DECLARE-EXPLICIT、CANCEL 四条；21 条要求按类名/方法名继续匹配，新旧源码摘要映射见 [matrix-rebinding.json](matrix-rebinding.json)。这四个业务方法的断言没有改变；CI 检查方法确实执行，不宣称当前文件仍等于 M3 历史哈希。
 
 - 按新 CI 同一清单执行：25 类 Java，345 项，0 失败/错误/跳过；21 条固定要求均执行。
 - 外置 PDF 单独显式提供，3 类资产检查共 16 项，0 失败/错误/跳过。
@@ -31,7 +33,7 @@
 
 ## 合并与交付条件
 
-本地验证完成；独立候选审查、远程两项 CI 和合入后验收尚待完成。PR 目标 main；头 SHA 变化需重新判断。不能直接推主线或创建正式发布标签。合入后按 [M4 手册](../README.md) 重新构建并在新专用实例执行 HTTP 首启、重启和资源回收，记录正式 main SHA、PR 和 CI 链接后才形成正式开发基线。
+本地验证完成；`7e110c27` 的独立审查无阻断，两项远程 CI 已成功，产物已由主 Agent 与审查者分别核对。见 [审查结论及保留项](REVIEW.md)、[固定头的远程回执](remote-ci-7e110c27.json)。本次后续纯文档修订仍须在新头上通过 CI，合入后验收尚未执行。PR #7 目标 main；不能直接推主线或创建正式发布标签。合入后按 [M4 手册](../README.md) 重新构建并在新专用实例执行 HTTP 首启、重启和资源回收，记录正式 main SHA、PR 和 CI 链接后才形成正式开发基线。
 
 恢复开发候选可检出上述工程 SHA；需要本机已核对外置资产及环境，不能用重新构建的 jar 去复用已经消耗的 Probe 票据。历史真实回执、评分预期和私有证据备份不变。
 
