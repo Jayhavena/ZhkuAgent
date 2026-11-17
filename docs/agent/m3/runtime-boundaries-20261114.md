@@ -107,3 +107,9 @@ Flyway实际与预期迁移均23，测试后业务连接0，sourceDrift=0，cont
 Schema已按ReasonCode.kind约束合法配对；Probe先写实际发布终态再判批次是否成功，失败首轮可留下单条前缀；绑定器按前缀顺序绑定首轮，不伪造未发生续答，也不倒填未发布历史outcome。合成本机Provider/TaskStore/Collector/Grader回归验证1 FAIL+1 NOT_EVALUABLE，CI配置加入新守卫；289 Java与26 Python通过。细节、初始失败与限制见schema-failure-capture-20261116.md。旧真实失败报告保持原样；真实复验尚未执行，新包尚未冻结/授权，M3不因离线修复直接结项。
 
 2026-11-17：f4b72a73离线修复独立复核无阻断。已补Schema缺字段与STOPPED回归、实际WAITING_USER/RESOLVED快照原子追加、真实Python绑定器→Grader组合；57 Java与27 Python通过，生产逻辑保持复核版本不变。CI显式安装Python3.11。旧真实失败/账单记录保留，新真实批次未准备或执行；离线修复检查点完成不等于M3真实任务成功结项。
+
+## 2026-11-17 新授权修复后真实复测通过
+
+用户明确授权重新冻结并执行，源be762644的新包3afb4f51…49c9fe仅运行一次，8次实际HTTP200（6决策+2独立核验）完成同task必要澄清及PUBLIC续答；首轮WAITING_USER，续答RESOLVED/COMPLETE、1条匹配条件Claim。新绑定器PASS、原生Grader两case PASS，19项补充原文/引用/外发/身份检查通过。完整脱敏记录见docs/agent/eval/m3-retest-20261117/RESULT.md，原始31文件私有归档。不是重放旧M2或旧失败数据。
+
+费用目录价估算0.0147814元，输入14852/输出1074 tokens，实际账单仍UNVERIFIED/null（当前Preview费用控制台未登录）。本批技术链通过，不能推出总体可靠性、显式首问与能力缺口码等场景都通过；旧失败及费用待办保留。票据消耗、无重试，临时资源已回收。未合main/未运行远程CI，后续M4仍需界定本地M2/M3提交整合范围。
