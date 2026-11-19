@@ -157,6 +157,7 @@ Before editing, confirm repository root, Worktree, branch, HEAD, staged/unstaged
 - Modify only files needed for the authorized task. No unrelated refactoring or opportunistic fixes.
 - One active write owner per file; do not write into another Agent's active Worktree.
 - Prefer isolated Worktrees for independent parallel implementation. Follow **docs/collaboration/parallel-development-and-integration-v1.md**.
+- Before proposing a manual Worktree or closing an existing one, follow **docs/collaboration/2026-11-19-p2-worktree-lifecycle.md** and run the read-only **scripts/check-worktree-lifecycle.ps1** preflight. Passing preflight never authorizes creation or removal; do not repurpose tool-managed or dirty Worktrees.
 - Use **git worktree list --porcelain** to inspect current registered Worktrees. Do not rely on historical Worktree lists or hardcoded branch snapshots.
 - Preserve each Worktree's independent index. Do not infer that reverse staged differences mean the index should be reset or rebuilt.
 - Never use destructive cleanup or broad operations as shortcuts, including **git reset --hard**, **git clean**, broad **git restore**, forced checkout/switch, or unreviewed stash restoration.
