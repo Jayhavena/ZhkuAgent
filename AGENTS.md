@@ -228,6 +228,7 @@ Follow **docs/git-commit-workflow.md**:
 - The repository uses one shared domain context. Follow **docs/agents/domain.md**.
 - **docs/decisions/** is the existing engineering decision ledger, separate from **docs/adr/**. Do not create missing glossary/ADR files or rename legacy files during unrelated work. For an explicit domain-modeling or ADR task, follow the domain documentation workflow.
 - For every non-trivial task, report actual scope, repository/Worktree/branch/HEAD, changed files, tests actually run, evidence, remaining risks/unverified behavior, and the next action or required authorization.
+- Use **scripts/check-task-delivery.ps1 -Mode Audit** as the unified read-only delivery preflight; provide the actual test evidence and relevant **-DocsRoot**. It does not run tests or infer PASS. Use **-Mode Closeout** only to delegate to the P2 Worktree check; it never removes a Worktree.
 - Distinguish implementation from verification, offline replay from real execution, and local acceptance from release/product acceptance.
 
 ### Documentation maintenance loop
