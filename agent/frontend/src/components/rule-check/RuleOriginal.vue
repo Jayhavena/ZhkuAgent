@@ -1,6 +1,6 @@
 <script setup>
 defineProps(['state', 'originalParts', 'originalLink'])
-defineEmits(['close'])
+defineEmits(['close', 'retryOriginal'])
 </script>
 
 <template>
@@ -29,6 +29,11 @@ defineEmits(['close'])
       <a v-if="originalLink" class="original-link" :href="originalLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" data-testid="original-link">打开原件</a>
     </template>
     <p v-else-if="state.evidenceUnavailable" class="original-unavailable">原文资格或版本已变化。请重新查证后再查看依据。</p>
+    <div v-else-if="state.originalError" class="original-retry" data-testid="original-error">
+      <!-- 原文取回失败只影响原文本身：重试针对原文，不引导用户去重新查询任务。 -->
+      <p class="original-unavailable">{{ state.originalError }}</p>
+      <button class="secondary-button" type="button" data-testid="retry-original" :disabled="state.originalBusy" @click="$emit('retryOriginal')">重试原文</button>
+    </div>
     <p v-else class="original-placeholder">原文正在加载，或暂时无法读取。可以稍后重试查证。</p>
   </aside>
 </template>

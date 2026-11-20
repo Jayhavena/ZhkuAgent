@@ -30,3 +30,49 @@ test('snapshot qualification rejection retracts cached answer and original witho
   assert.equal(flow.state.snapshot,null);assert.equal(flow.state.original,null);assert.equal(flow.state.ticket,null)
   assert.match(flow.state.error,/撤回/);assert.equal(calls.length,1);flow.dispose()
 })
+
+test('abandoning an unknown receipt unlocks a new question while the original request stays queryable',async()=>{
+  const session=createControlledSession();session.state.actor={userId:ID,role:'USER',authRevision:0}
+  const posts=[];const lookups=[];let attempts=0
+  const client={cancelResults(){},create:async(q,key)=>{posts.push(key);if(++attempts===1)throw{code:'NETWORK_UNAVAILABLE'};return ticket},snapshot:async()=>sample('complete'),lookup:async(action,key)=>{lookups.push(key);throw{code:'NETWORK_UNAVAILABLE'}}}
+  let n=0;const flow=createRuleTaskWorkflow({client,session,keyFactory:()=>`k${++n}`,schedule:fn=>0,unschedule(){},now:()=>0})
+  await flow.start('原始问题')
+  assert.equal(flow.state.pending.action,'CREATE');assert.equal(flow.state.ticket,null)
+  await flow.start('受理未知期间的新问题');assert.equal(posts.length,1)
+  flow.abandonPending()
+  assert.equal(flow.state.pending,null);assert.equal(flow.state.abandonedRequest.clientRequestId,'k1')
+  await flow.recover();assert.equal(lookups.length,1);assert.equal(flow.state.abandonedRequest.clientRequestId,'k1');assert.equal(flow.state.ticket,null)
+  await flow.start('新问题')
+  assert.equal(posts.length,2);assert.equal(posts[1],'k2');assert.equal(flow.state.abandonedRequest,null);assert.equal(flow.state.ticket.taskId,ID)
+  flow.dispose()
+})
+
+test('original network failure reports only to the original panel and a retry succeeds',async()=>{
+  const session=createControlledSession();session.state.actor={userId:ID,role:'USER',authRevision:0}
+  let fail=true;const reads=[];const timers=[]
+  const client={cancelResults(){},create:async()=>ticket,snapshot:async()=>sample('complete'),original:async(task,token)=>{reads.push(token);if(fail){fail=false;throw{code:'NETWORK_UNAVAILABLE'}}return{contextText:'合成正文'}}}
+  const flow=createRuleTaskWorkflow({client,session,keyFactory:()=>ID,schedule:fn=>{timers.push(fn);return timers.length},unschedule(){},now:()=>0})
+  await flow.start('问题');await timers.shift()()
+  const token=sample('complete').result.evidence[0].originalToken
+  await flow.openOriginal(token)
+  assert.equal(flow.state.error,'');assert.match(flow.state.originalError,/原文/);assert.equal(flow.state.originalToken,token)
+  await flow.openOriginal(flow.state.originalToken)
+  assert.equal(flow.state.original.contextText,'合成正文');assert.equal(flow.state.originalError,'');assert.equal(reads.length,2)
+  flow.dispose()
+})
+
+test('original eligibility conflict still withdraws cached display (protection unchanged)',async()=>{
+  const {flow,timers}=setup({original:async()=>{throw{status:409}}})
+  await flow.start('问题');await timers.shift()()
+  const token=sample('complete').result.evidence[0].originalToken
+  await flow.openOriginal(token)
+  assert.equal(flow.state.evidenceUnavailable,true);assert.match(flow.state.error,/重新查证/);assert.equal(flow.state.originalError,'')
+  flow.dispose()
+})
+
+test('evidence change preserves the original question for one-click recheck',async()=>{
+  const {flow,timers,calls}=setup({snapshot:async()=>{throw{status:409}}})
+  await flow.start('原始问题');await timers.shift()()
+  assert.equal(flow.state.evidenceUnavailable,true);assert.equal(flow.state.question,'');assert.equal(flow.state.lastQuestion,'原始问题');assert.equal(calls.length,1)
+  flow.dispose()
+})
