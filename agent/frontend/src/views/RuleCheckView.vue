@@ -298,16 +298,20 @@ async function submitQuestion() {
 function useExample(value) {
   if (!composerDisabled.value) question.value = value
 }
-function newQuestion() {
+function newQuestion(prefill) {
   if (active.value || state.pending || state.busy) return
   flow.reset()
-  question.value = ''
+  // 依据变化后的重查保留原问题：预填输入框由用户确认提交，仍走 start() 生成新 clientRequestId。
+  question.value = typeof prefill === 'string' ? prefill : ''
   choice.value = ''
   originalOpen.value = false
 }
 async function showOriginal(token) {
   originalOpen.value = true
   await flow.openOriginal(token)
+}
+async function retryOriginal() {
+  if (state.originalToken) await flow.openOriginal(state.originalToken)
 }
 // 行内引用：先选中该条依据，让「证据详情」显示对应内容，再按需打开原文。
 // 选中状态只影响展示，不改变任何业务状态，也不会自动发起原文请求（原文由用户显式点击触发）。
@@ -383,13 +387,13 @@ watch(
             <p class="user-question">{{ state.question || '校园规则问题' }}</p>
           </div>
 
-          <RuleAnswer v-model:choice="choice" :state="state" :result="result" :active="active" :identity-busy="session.state.identityBusy" :answer-kind="answerKind" :answer-status="answerStatus" :answer-title="answerTitle" :lead-claim="usesConclusionTitle ? leadClaim : null" :lead-claim-id="usesConclusionTitle ? leadClaim.claim.id : ''" :claim-citations="claimCitations" :explanation-lines="explanationLines" :evidence-rows="evidenceRows" :selected-evidence="selectedEvidence" :role-labels="roleLabels" :terminal="terminal" :has-processing-failure="hasProcessingFailure" :issue-labels="issueLabels" :condition-summary="conditionSummary" :waiting-for-clarification="waitingForClarification" :next-condition="nextCondition" :related-evidence="relatedEvidence" :evidence-focus-token="evidenceFocusToken" @cancel="flow.cancel" @recover="flow.recover" @refresh="flow.refresh" @new-question="newQuestion" @clarify="flow.clarify" @show-original="showOriginal" @focus-evidence="focusEvidence" />
+          <RuleAnswer v-model:choice="choice" :state="state" :result="result" :active="active" :identity-busy="session.state.identityBusy" :answer-kind="answerKind" :answer-status="answerStatus" :answer-title="answerTitle" :lead-claim="usesConclusionTitle ? leadClaim : null" :lead-claim-id="usesConclusionTitle ? leadClaim.claim.id : ''" :claim-citations="claimCitations" :explanation-lines="explanationLines" :evidence-rows="evidenceRows" :selected-evidence="selectedEvidence" :role-labels="roleLabels" :terminal="terminal" :has-processing-failure="hasProcessingFailure" :issue-labels="issueLabels" :condition-summary="conditionSummary" :waiting-for-clarification="waitingForClarification" :next-condition="nextCondition" :related-evidence="relatedEvidence" :evidence-focus-token="evidenceFocusToken" @cancel="flow.cancel" @recover="flow.recover" @abandon="flow.abandonPending" @refresh="flow.refresh" @new-question="newQuestion" @clarify="flow.clarify" @show-original="showOriginal" @focus-evidence="focusEvidence" />
         </div>
 
         <RuleComposer v-model:question="question" :disabled="composerDisabled" :waiting-for-clarification="waitingForClarification" :terminal="terminal" @submit="submitQuestion" />
       </div>
 
-      <RuleOriginal v-if="originalOpen" :state="state" :original-parts="originalParts" :original-link="originalLink" @close="closeOriginal" />
+      <RuleOriginal v-if="originalOpen" :state="state" :original-parts="originalParts" :original-link="originalLink" @close="closeOriginal" @retry-original="retryOriginal" />
     </section>
 
     <footer class="app-footer">ZhkuAgent 是校园规则查证辅助工具，不替代学校部门的正式认定或办理。</footer>

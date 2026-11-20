@@ -6,14 +6,15 @@ import {ruleTaskHistory} from './rule-task-history.js'
 
 /** 本地只管理请求和显示；任务成功、资料缺失、取消退出均取服务端快照。 */
 export function createRuleTaskWorkflow({client=ruleTaskClient,session=ruleCheckSession,history=ruleTaskHistory,keyFactory=()=>crypto.randomUUID(),schedule=(fn,ms)=>setTimeout(fn,ms),unschedule=id=>clearTimeout(id),now=()=>Date.now()}={}){
-  const state=reactive({question:'',ticket:null,snapshot:null,pending:null,busy:false,polling:false,cancelRequested:false,error:'',original:null,originalBusy:false,evidenceUnavailable:false,recent:[]})
+  const state=reactive({question:'',ticket:null,snapshot:null,pending:null,abandonedRequest:null,busy:false,polling:false,cancelRequested:false,error:'',original:null,originalBusy:false,originalError:'',originalToken:null,evidenceUnavailable:false,lastQuestion:'',recent:[]})
   let generation=0,originalGeneration=0,timer=null,alive=true,deadline=0
   const usable=()=>alive&&!session.state.identityBusy&&session.state.actor?.role==='USER'
   const guard=()=>{const g=generation,e=session.state.epoch;return()=>alive&&g===generation&&e===session.state.epoch}
   function stopPolling(){if(timer!==null)unschedule(timer);timer=null;state.polling=false}
-  function reset(){generation++;originalGeneration++;stopPolling();client.cancelResults();Object.assign(state,{question:'',ticket:null,snapshot:null,pending:null,busy:false,cancelRequested:false,error:'',original:null,originalBusy:false,evidenceUnavailable:false})}
+  // P0-B：reset 撤回任务现场，但保留上一次问题文本，供依据变化后一键重查；身份边界另行清空。
+  function reset(){generation++;originalGeneration++;stopPolling();client.cancelResults();const keep=state.question;Object.assign(state,{question:'',ticket:null,snapshot:null,pending:null,abandonedRequest:null,busy:false,cancelRequested:false,error:'',original:null,originalBusy:false,originalError:'',originalToken:null,evidenceUnavailable:false,lastQuestion:keep||state.lastQuestion})}
   // clear先递增epoch，再写reason；此处只撤回内容，不能用上一轮reason误删恢复元数据。
-  const stop=watch(()=>session.state.epoch,()=>{reset();state.recent=[]},{flush:'sync'})
+  const stop=watch(()=>session.state.epoch,()=>{reset();state.lastQuestion='';state.recent=[]},{flush:'sync'})
   const stopReason=watch(()=>session.state.reason,reason=>{
     if(['LOGOUT','LOGOUT_UNCONFIRMED','IDENTITY_CHANGED','IDENTITY_CHANGED_ELSEWHERE'].includes(reason))history.clear()
   },{flush:'sync'})
@@ -59,7 +60,7 @@ export function createRuleTaskWorkflow({client=ruleTaskClient,session=ruleCheckS
     validateAccepted(ticket)
     if(action!=='CREATE'&&state.ticket&&ticket.taskId!==state.ticket.taskId)throw new Error('BAD_RESPONSE')
     if(action==='MESSAGE'){state.snapshot=null;state.original=null;state.cancelRequested=false}
-    state.ticket=ticket;remember(ticket);state.pending=null;state.error='';if(action==='CANCEL')state.cancelRequested=true
+    state.ticket=ticket;remember(ticket);state.pending=null;state.abandonedRequest=null;state.error='';state.originalError='';if(action==='CANCEL')state.cancelRequested=true
     deadline=now()+900000;queuePoll(0)
   }
   async function mutate(action,body){
@@ -77,10 +78,13 @@ export function createRuleTaskWorkflow({client=ruleTaskClient,session=ruleCheckS
     state,reset,refresh,resume,
     async restoreLatest(){recent();if(!state.ticket&&state.recent.length)await resume(state.recent[0].taskId)},
     async start(question){if(!usable()||state.busy||state.pending||state.ticket&&state.snapshot?.taskStatus==='ACTIVE')return;if(typeof question!=='string'||!question.trim()||question.length>2048)return;reset();state.question=question;await mutate('CREATE',{question,clientRequestId:keyFactory()})},
-    async recover(){if(!usable()||state.busy||!state.pending)return;const current=guard(),pending={...state.pending};state.busy=true;try{const ticket=await client.lookup(pending.action,pending.clientRequestId);if(current())install(ticket,pending.action)}catch(error){if(current()&&error.code!=='STALE_RESPONSE')state.error='原请求受理情况仍未确认，请稍后按原请求查询。'}finally{if(current())state.busy=false}},
+    async recover(){const request=state.pending||state.abandonedRequest;if(!usable()||state.busy||!request)return;const current=guard(),pending={...request};state.busy=true;try{const ticket=await client.lookup(pending.action,pending.clientRequestId);if(current())install(ticket,pending.action)}catch(error){if(current()&&error.code!=='STALE_RESPONSE')state.error='原请求受理情况仍未确认，请稍后按原请求查询。'}finally{if(current())state.busy=false}},
+    // P0-B：放弃等待是用户显式动作；原 clientRequestId 仍可按原请求查询，新提交使用新键，不把受理未知当作未受理。
+    abandonPending(){if(!usable()||state.busy||!state.pending)return;state.abandonedRequest={...state.pending};state.pending=null;state.error='已停止等待本次结果。可稍后查询原请求；重新提问不会重复原请求。'},
     async clarify(value){const s=state.snapshot,c=s?.result?.items.flatMap(q=>q.clarification)[0];if(s?.taskStatus!=='WAITING_USER'||!c||!c.allowedValues.includes(value)){state.error='请只确认本轮要求的条件。';return}await mutate('MESSAGE',{message:value,continuationToken:s.continuationToken,expectedVersion:s.version,clientRequestId:keyFactory()})},
     async cancel(){const s=state.snapshot,t=state.ticket;if(!t||s&&s.taskStatus!=='ACTIVE'||state.cancelRequested)return;await mutate('CANCEL',{runId:t.runId,expectedVersion:s?.version??t.version,clientRequestId:keyFactory()})},
-    async openOriginal(token){if(!usable()||!state.snapshot?.result||state.evidenceUnavailable||!state.snapshot.result.evidence.some(e=>e.originalToken===token))return;const current=guard(),originalRound=++originalGeneration;state.original=null;state.originalBusy=true;try{const value=await client.original(state.ticket.taskId,token);if(current()&&originalRound===originalGeneration)state.original=value}catch(error){if(current()&&originalRound===originalGeneration&&error.code!=='STALE_RESPONSE'){if([404,409].includes(error.status))state.evidenceUnavailable=true;state.error=[404,409].includes(error.status)?'依据资格或版本已变化，旧结果暂停展示；请重新查证。':'原文查询未确认，请稍后重试。'}}finally{if(current()&&originalRound===originalGeneration)state.originalBusy=false}},
+    // P0-B：原文失败与任务失败分离——非资格类错误只写 originalError，避免结果区「继续查询」误导；originalToken 供面板重试。
+    async openOriginal(token){if(!usable()||!state.snapshot?.result||state.evidenceUnavailable||!state.snapshot.result.evidence.some(e=>e.originalToken===token))return;const current=guard(),originalRound=++originalGeneration;state.original=null;state.originalBusy=true;state.originalError='';state.originalToken=token;try{const value=await client.original(state.ticket.taskId,token);if(current()&&originalRound===originalGeneration)state.original=value}catch(error){if(current()&&originalRound===originalGeneration&&error.code!=='STALE_RESPONSE'){if([404,409].includes(error.status)){state.evidenceUnavailable=true;state.error='依据资格或版本已变化，旧结果暂停展示；请重新查证。'}else state.originalError='原文查询未确认，请稍后重试。'}}finally{if(current()&&originalRound===originalGeneration)state.originalBusy=false}},
     dispose(){alive=false;stop();stopReason();reset()}
   }
 }
