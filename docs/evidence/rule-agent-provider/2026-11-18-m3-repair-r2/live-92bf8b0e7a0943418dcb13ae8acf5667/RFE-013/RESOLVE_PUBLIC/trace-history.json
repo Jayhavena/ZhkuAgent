@@ -1,0 +1,146 @@
+[ {
+  "taskId" : "5695f893-b8d7-4619-ab52-b7565a1e8902",
+  "turnId" : "c5914322-b9cd-4ff0-9c6b-47ba6c596d16",
+  "runId" : "5ab89cda-9cdf-4632-a40f-ed93fed1aad7",
+  "version" : 2,
+  "taskStatus" : "WAITING_USER",
+  "runState" : "INCOMPLETE",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "92a16686-8683-3c80-92b7-dd1a2f5246a4",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "a0dac8cd-317e-3c65-8955-d6e9cbd4e493",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "fa0451b4-9af4-3fe5-99c9-ea717d666bbf",
+    "type" : "ASK_NECESSARY_CONDITION",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "50561ba3-fdcb-3aff-8031-14a32526a1c6",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  } ],
+  "result" : {
+    "coverage" : "NONE",
+    "evidence" : [ {
+      "id" : "82eba52a-e32d-4a85-8df2-fe111028b660:0-48",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "d2581ab9-ad90-38f6-8b44-e297c71ef583",
+      "revision" : "2025.9.2"
+    } ],
+    "evidenceRelations" : [ {
+      "targetId" : "courseType",
+      "evidenceId" : "82eba52a-e32d-4a85-8df2-fe111028b660:0-48",
+      "role" : "CLARIFICATION"
+    } ],
+    "items" : [ {
+      "claims" : [ ]
+    } ],
+    "issues" : [ {
+      "kind" : "CLARIFICATION",
+      "reasonCode" : "MISSING_CONDITION"
+    } ]
+  }
+}, {
+  "taskId" : "5695f893-b8d7-4619-ab52-b7565a1e8902",
+  "turnId" : "139f8c13-342b-406c-93de-df8b77951776",
+  "runId" : "91a4c67d-b179-4b45-826b-2a3121976cb4",
+  "version" : 4,
+  "taskStatus" : "FAILED",
+  "runState" : "FAILED",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "da963f01-f117-3a97-a82b-3961dd5d62d5",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "7cd84e1e-28a8-3769-8aa5-6f0160e1a171",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "73913cfb-afc7-3311-987d-0adf93db70f2",
+    "type" : "FINISH_CHECK",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "8818b737-bb4c-3c6c-b2be-e3ea221a8eca",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  } ],
+  "result" : {
+    "coverage" : "PARTIAL",
+    "evidence" : [ {
+      "id" : "82eba52a-e32d-4a85-8df2-fe111028b660:0-48",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "d2581ab9-ad90-38f6-8b44-e297c71ef583",
+      "revision" : "2025.9.2"
+    } ],
+    "evidenceRelations" : [ {
+      "targetId" : "c0",
+      "evidenceId" : "82eba52a-e32d-4a85-8df2-fe111028b660:0-48",
+      "role" : "CLAIM"
+    } ],
+    "items" : [ {
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "sha256:07efa61f5622c917da766fb285348b2f7db47678a10e0fda0dfdd5a8e8fa6e4e"
+      } ]
+    } ],
+    "issues" : [ {
+      "kind" : "PROCESSING_FAILURE",
+      "reasonCode" : "ANSWER_COVERAGE_INCOMPLETE"
+    } ]
+  }
+} ]

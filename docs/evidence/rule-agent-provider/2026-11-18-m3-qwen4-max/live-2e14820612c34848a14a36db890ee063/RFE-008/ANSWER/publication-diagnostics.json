@@ -1,0 +1,76 @@
+{
+  "relevanceExclusions" : [ {
+    "attempt" : 4,
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis", "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits", "S05/PERSONAL_CREDIT_DEFICIT:online-general-half" ],
+      "rejectedFact" : {
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis",
+        "dimension" : "STUDY_ARRANGEMENT",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "4d02351498c8b32a90b8bfc9e432fd3d2e207dde1a2e528c362142f5c412bea1"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "GRADUATION_CREDITS",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "identity" : {
+    "caseId" : "RFE-008",
+    "taskId" : "ea2a4d2b-4927-4625-893c-4253aa70939a",
+    "runId" : "4e136379-c803-4615-a781-ce4630e86819",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen4-max",
+    "configurationSha256" : "f3dae14844718c502c6111ee20e0837a6fccc965bc42e4dd38df5becdb72e198"
+  },
+  "captureSha256" : "3959fb8eaa1fb699f9ae40c781913c9d0d62055e75ec260714c86b3cdd10307b",
+  "semanticReviews" : [ {
+    "attempt" : 4,
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "eb974d24369005c1cc2db01f881c806e55fcd712602336e9b2df76aefc245638",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 20
+        },
+        "dimension" : "GRADUATION_CREDITS",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r1",
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ {
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 6,
+          "endExclusive" : 15
+        },
+        "reason" : "UNSUPPORTED_DIMENSION"
+      } ]
+    },
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "relevanceRejections" : [ ]
+}

@@ -1,0 +1,77 @@
+{
+  "identity" : {
+    "caseId" : "RFE-002",
+    "taskId" : "4a24800f-c0f5-4c8b-b076-a48379f089d3",
+    "runId" : "09b93f09-9b9b-4e65-912d-52c495b896bb",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "f1d842acfb2eeeeeabc91bb9e71870c1741827faff0cafd535f77adde5dd80b1"
+  },
+  "captureSha256" : "7a489722d15d4938bf011d0a3a5d8b05bc0cd483192fd6b3260deb54dbc32613",
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "f534368de9b9f660dc7df880f7e90bfbd066b7459b5f09e5d2485054550e949f",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 22
+        },
+        "dimension" : "CATEGORY",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S01/GENERAL:undergraduate-plan-obligation",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r1",
+        "factId" : "S02/GENERAL:elective-category-distinction",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ {
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 12,
+          "endExclusive" : 22
+        },
+        "reason" : "UNSUPPORTED_DIMENSION"
+      } ]
+    },
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 5
+  } ],
+  "relevanceRejections" : [ {
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S01/GENERAL:undergraduate-plan-obligation" ],
+      "rejectedFact" : {
+        "factId" : "S01/GENERAL:undergraduate-plan-obligation",
+        "dimension" : "STUDY_ARRANGEMENT",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "4046cf36fbd9a2b5ea7d614210f4611e482baa207af2ba52540907c2270836a6"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "CATEGORY",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S02/GENERAL:elective-category-distinction",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "attempt" : 5,
+    "action" : "PUBLICATION_REVIEW",
+    "code" : "FACT_NOT_RELEVANT"
+  } ],
+  "relevanceExclusions" : [ ]
+}

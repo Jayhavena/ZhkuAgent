@@ -1,0 +1,65 @@
+{
+  "identity" : {
+    "caseId" : "RFE-004",
+    "taskId" : "bf548798-662a-48aa-bab7-3a6127987894",
+    "runId" : "5b597e40-4dd0-4acf-8a18-280d978739f2",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "3aa65e7308d719b25f8ced554ab4d532b56068430979892572c27fb170bf1f29"
+  },
+  "relevanceExclusions" : [ {
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S03/GENERAL:hours-principle", "S03/GENERAL:hours-upper-limit" ],
+      "rejectedFact" : {
+        "factId" : "S03/GENERAL:hours-principle",
+        "dimension" : "HOURS_NORMAL",
+        "subject" : "PUBLIC_ELECTIVE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "80b9b72d65cdd39ec742d764d5f8a3080b77302a4f5615a44de2df449084b3e9"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "HOURS_LIMIT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S03/GENERAL:hours-upper-limit",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "relevanceRejections" : [ ],
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "1f82c6e9565645a8cf2f7bb15184b91a3f8451dd46a3f2d94e715a2ba9565adc",
+      "requirements" : [ {
+        "id" : "req_hours_limit_check",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 22
+        },
+        "dimension" : "HOURS_LIMIT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "req_hours_limit_check",
+        "factId" : "S03/GENERAL:hours-upper-limit",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    },
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "captureSha256" : "20c86dbac046cd9ac76b955822e100c9c38a0b16f720e2883e80983a2b66ae23"
+}

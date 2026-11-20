@@ -1,0 +1,73 @@
+{
+  "identity" : {
+    "caseId" : "RFE-006",
+    "taskId" : "4d5baa47-4c76-4784-a86b-63741c2c0f37",
+    "runId" : "ced5b528-5cf3-4603-a461-5e8dd7ba6e91",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "f1d842acfb2eeeeeabc91bb9e71870c1741827faff0cafd535f77adde5dd80b1"
+  },
+  "captureSha256" : "621f2be1948594ccf1f08957c69ab029d6434f342eeded2c840ac9ffbb3a2282",
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "f286332f1a137696a3284ccf9405ac14aa77c896785ace31cf19ac24bdfef8f8",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 23
+        },
+        "dimension" : "ENROLLMENT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S04/ACTUAL_CLASS_OPENING:campus-enrollment-general-range",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r1",
+        "factId" : "S04/ACTUAL_CLASS_OPENING:campus-below-thirty",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    },
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ],
+  "relevanceRejections" : [ {
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S04/GENERAL:campus-enrollment-general-range" ],
+      "rejectedFact" : {
+        "factId" : "S04/GENERAL:campus-enrollment-general-range",
+        "dimension" : "ENROLLMENT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "6636357b84c1901a909b0d90cd4282bc5e8be59430c879bcb77432ae51430f63"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "ENROLLMENT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S04/ACTUAL_CLASS_OPENING:campus-enrollment-general-range",
+          "role" : "CORE"
+        }, {
+          "factId" : "S04/ACTUAL_CLASS_OPENING:campus-below-thirty",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "code" : "FACT_NOT_RELEVANT"
+  } ],
+  "relevanceExclusions" : [ ]
+}

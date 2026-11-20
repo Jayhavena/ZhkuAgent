@@ -1,0 +1,72 @@
+[ {
+  "taskId" : "0900e646-6218-4f05-b502-394fc3632b7d",
+  "turnId" : "eba9aa42-db5e-48c0-9616-6a9fb32246ae",
+  "runId" : "fc62d3e0-f407-4dbc-8499-bde525837225",
+  "version" : 2,
+  "taskStatus" : "WAITING_USER",
+  "runState" : "INCOMPLETE",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "0aaf280a-5a18-3cc7-88c0-a5800e1540b9",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "b8cd7cb5-2fa5-32e8-a41d-ee2da2203316",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "61241c4a-d802-3556-b3ce-8488b4973a85",
+    "type" : "ASK_NECESSARY_CONDITION",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "684c60cb-6abd-372e-9c77-a2f56816082f",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  } ],
+  "result" : {
+    "coverage" : "NONE",
+    "evidence" : [ {
+      "id" : "7cfdd4b8-91b2-4660-8ae0-df3b548ac6f3:0-48",
+      "sourceId" : "8255598c-f623-4cc6-afcb-8a333a8998c0",
+      "chunkId" : "49ed2795-8ecb-3df5-bdc6-b8ce48db6575",
+      "revision" : "2025.9.2"
+    } ],
+    "evidenceRelations" : [ {
+      "targetId" : "courseType",
+      "evidenceId" : "7cfdd4b8-91b2-4660-8ae0-df3b548ac6f3:0-48",
+      "role" : "CLARIFICATION"
+    } ],
+    "items" : [ {
+      "claims" : [ ]
+    } ],
+    "issues" : [ {
+      "kind" : "CLARIFICATION",
+      "reasonCode" : "MISSING_CONDITION"
+    } ]
+  }
+} ]

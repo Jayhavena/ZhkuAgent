@@ -1,0 +1,50 @@
+{
+  "semanticReviews" : [ ],
+  "captureSha256" : "27b53bbb7ad351e7aebbf6d210ddf48b0dd4abe74d838bd0e44b4a6c355aa97a",
+  "identity" : {
+    "caseId" : "RFE-008",
+    "taskId" : "179f27c0-dbc3-4e9c-9a6b-a5768edfadf5",
+    "runId" : "e3565932-4da3-4eff-a722-018622549605",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "10c489086697042f029304c29550f7e2f35a8eabb4c9a49a776f5006bc5a7574"
+  },
+  "relevanceExclusions" : [ ],
+  "relevanceRejections" : [ {
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis", "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits", "S05/PERSONAL_CREDIT_DEFICIT:online-general-half" ],
+      "rejectedFact" : {
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:online-general-half",
+        "dimension" : "NETWORK_PROPORTION",
+        "subject" : "PUBLIC_ELECTIVE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "c7b13039304f7537794c3b0dc04b10d50584fb82830827d65ee23ab172464e5a"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "STUDY_ARRANGEMENT",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis",
+          "role" : "CORE"
+        } ]
+      }, {
+        "ordinal" : 2,
+        "dimension" : "GRADUATION_CREDITS",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "code" : "FACT_NOT_RELEVANT",
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ]
+}

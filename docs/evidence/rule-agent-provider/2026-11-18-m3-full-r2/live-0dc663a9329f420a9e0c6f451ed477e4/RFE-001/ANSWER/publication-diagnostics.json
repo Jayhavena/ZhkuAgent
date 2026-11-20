@@ -1,0 +1,55 @@
+{
+  "identity" : {
+    "caseId" : "RFE-001",
+    "taskId" : "1d6578ad-6ba8-4702-960d-b0fcf5ad007c",
+    "runId" : "08e61d44-d728-46fe-b60e-e9ce07f690f2",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "3aa65e7308d719b25f8ced554ab4d532b56068430979892572c27fb170bf1f29"
+  },
+  "relevanceExclusions" : [ ],
+  "relevanceRejections" : [ ],
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "8622e26702009c004361641dfd23b8dd1fc5d64dc9e1da71d7d460f2c87a85c0",
+      "requirements" : [ {
+        "id" : "req-1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 10
+        },
+        "dimension" : "CATEGORY",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      }, {
+        "id" : "req-2",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 10,
+          "endExclusive" : 21
+        },
+        "dimension" : "CATEGORY",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "req-1",
+        "factId" : "S02/GENERAL:elective-category-distinction",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "req-2",
+        "factId" : "S02/GENERAL:public-course-subcategories",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    },
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "captureSha256" : "5d5a917219e98c2eb8530d5b1b5ac328f4e4a9ec122ef702e3e12c9201fc4d93"
+}

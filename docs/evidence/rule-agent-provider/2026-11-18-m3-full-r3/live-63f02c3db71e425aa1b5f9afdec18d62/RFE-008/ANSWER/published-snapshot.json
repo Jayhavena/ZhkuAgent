@@ -1,0 +1,60 @@
+{
+  "schemaVersion" : 3,
+  "taskId" : "96e627c9-f87e-4c41-8b5a-ab4184ffd466",
+  "turnId" : "56d91732-f6f8-4534-8384-3a9d608a038d",
+  "runId" : "8a05f846-504e-4af3-8811-7f659b09d07a",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "INCOMPLETE",
+  "terminated" : true,
+  "result" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "8a05f846-504e-4af3-8811-7f659b09d07a",
+    "catalogueVersion" : "cat-32242f6391b017efc3e59e5662106fbd5fd070c4eab053b3662156884ca333ce",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "PARTIAL",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "PARTIAL",
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits",
+        "text" : "依据2025.9.2历史文本：学生应按人才培养方案要求，在规定学习年限内修读专业选修课和公共选修课并取得规定学分。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      } ],
+      "issues" : [ {
+        "id" : "i-PERSONAL_RECORD_NOT_AVAILABLE",
+        "kind" : "DATA_GAP",
+        "reasonCode" : "PERSONAL_RECORD_NOT_AVAILABLE",
+        "message" : "手册没有提供你的个人成绩、已修学分或适用培养方案，无法据此计算还差多少学分或判定毕业资格。",
+        "nextStep" : "请核对个人成绩单、已修学分和对应培养方案，或咨询教务/辅导员；本系统只解释已审核规则原文。"
+      } ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ {
+      "id" : "d3d7a52e-be59-4409-89bf-15ea22396429:0-119",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "f0a840b2-48c3-374c-b0b3-d7af48d15d64",
+      "revision" : "2025.9.2",
+      "checksum" : "056217b8775854fbadb44fff38af48c1ed37e1c3b0c92563e1681186387ffeb2",
+      "startInclusive" : 0,
+      "endExclusive" : 119,
+      "quote" : "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。"
+    } ],
+    "evidenceRelations" : [ {
+      "evidenceId" : "d3d7a52e-be59-4409-89bf-15ea22396429:0-119",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c0"
+    } ]
+  },
+  "execution" : {
+    "mode" : "ONLINE",
+    "modelAttemptCount" : 4,
+    "toolStepCount" : 3,
+    "providerResponseReceived" : true,
+    "answerSource" : "LIVE_AGENT",
+    "replayCoverage" : "NOT_APPLICABLE"
+  }
+}

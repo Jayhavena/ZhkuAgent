@@ -1,0 +1,89 @@
+{
+  "relevanceExclusions" : [ {
+    "attempt" : 4,
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S02/GENERAL:elective-category-distinction", "S02/GENERAL:public-course-subcategories", "T02/ARTICLE4:professional-elective-study-arrangement", "T02/ARTICLE4:public-elective-self-selection" ],
+      "rejectedFact" : {
+        "factId" : "T02/ARTICLE4:professional-elective-study-arrangement",
+        "dimension" : "STUDY_ARRANGEMENT",
+        "subject" : "PROFESSIONAL_ELECTIVE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "23cc19d4a3d31bfcb57d9a9c052b20bcbcbfef1ab275d04b70d1512f596ba0b0"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "CATEGORY",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S02/GENERAL:elective-category-distinction",
+          "role" : "CORE"
+        } ]
+      }, {
+        "ordinal" : 2,
+        "dimension" : "CATEGORY",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S02/GENERAL:public-course-subcategories",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "identity" : {
+    "caseId" : "RFE-001",
+    "taskId" : "e36cdc9e-1ac7-493e-894f-43aa1a927977",
+    "runId" : "f88da12d-ec2f-4219-9bd3-fb1b0c2933fd",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen4-max",
+    "configurationSha256" : "f3dae14844718c502c6111ee20e0837a6fccc965bc42e4dd38df5becdb72e198"
+  },
+  "captureSha256" : "ab06af6593b535f0b7fcaa176cfeb539eadf167af45e0928bd4c0ac154b2797d",
+  "semanticReviews" : [ {
+    "attempt" : 4,
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "cb1ea18a8e2db853a03667e92194541452a1e70318e730020451f8faa958da62",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 10
+        },
+        "dimension" : "CATEGORY",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      }, {
+        "id" : "r2",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 10,
+          "endExclusive" : 21
+        },
+        "dimension" : "CATEGORY",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S02/GENERAL:elective-category-distinction",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r2",
+        "factId" : "S02/GENERAL:public-course-subcategories",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    },
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "relevanceRejections" : [ ]
+}

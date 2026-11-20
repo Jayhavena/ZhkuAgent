@@ -1,0 +1,47 @@
+{
+  "relevanceExclusions" : [ ],
+  "identity" : {
+    "caseId" : "RFE-002",
+    "taskId" : "20120a38-ce02-44a5-836f-2e6c64f06b7a",
+    "runId" : "46d1822a-e692-4d34-a7cf-256bc67512fb",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen4-max",
+    "configurationSha256" : "f3dae14844718c502c6111ee20e0837a6fccc965bc42e4dd38df5becdb72e198"
+  },
+  "captureSha256" : "5fc165788bede1eaf70973a9499ab02687b43bb3a4521f8b560e08c02edb0f94",
+  "semanticReviews" : [ {
+    "attempt" : 4,
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "ba876582f418500526f0135945e26d16c07da88169f03d1faa0b30558bbdfcc6",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 11
+        },
+        "dimension" : "STUDY_ARRANGEMENT",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S01/GENERAL:undergraduate-plan-obligation",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ {
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 12,
+          "endExclusive" : 22
+        },
+        "reason" : "UNSUPPORTED_DIMENSION"
+      } ]
+    },
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "relevanceRejections" : [ ]
+}

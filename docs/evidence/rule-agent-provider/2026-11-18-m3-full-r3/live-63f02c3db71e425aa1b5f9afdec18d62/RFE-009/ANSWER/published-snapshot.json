@@ -1,0 +1,60 @@
+{
+  "schemaVersion" : 3,
+  "taskId" : "231dd067-95c3-46fa-8739-ba52ae2efca3",
+  "turnId" : "84108f22-f9e8-4194-af6d-2d95b724b73a",
+  "runId" : "29d94a9e-c113-41b4-851b-7e1cfbd88d78",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "INCOMPLETE",
+  "terminated" : true,
+  "result" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "29d94a9e-c113-41b4-851b-7e1cfbd88d78",
+    "catalogueVersion" : "cat-32242f6391b017efc3e59e5662106fbd5fd070c4eab053b3662156884ca333ce",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "PARTIAL",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "PARTIAL",
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "S06/GENERAL:unenrolled-assessment-disjunction",
+        "text" : "依据2025.9.2历史文本：未经选课者，不得参加课程考核或考核成绩无效。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      } ],
+      "issues" : [ {
+        "id" : "i-PERSONAL_RECORD_NOT_AVAILABLE",
+        "kind" : "DATA_GAP",
+        "reasonCode" : "PERSONAL_RECORD_NOT_AVAILABLE",
+        "message" : "本系统没有核验你的选课记录、考核记录和成绩状态，不能替你认定这次成绩是否有效。",
+        "nextStep" : "请以教务系统个人记录和任课教师/教务处确认为准；本系统只解释已审核规则原文。"
+      } ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ {
+      "id" : "308c79ff-f7ef-4825-9742-527d95762887:0-61",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "406234e5-88df-331b-8850-29c6938bcf5c",
+      "revision" : "2025.9.2",
+      "checksum" : "52f7661f0d5ac579a69f2506b37552b38279cc82fd267c8262bcb0fba176e303",
+      "startInclusive" : 0,
+      "endExclusive" : 61,
+      "quote" : "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。"
+    } ],
+    "evidenceRelations" : [ {
+      "evidenceId" : "308c79ff-f7ef-4825-9742-527d95762887:0-61",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c0"
+    } ]
+  },
+  "execution" : {
+    "mode" : "ONLINE",
+    "modelAttemptCount" : 4,
+    "toolStepCount" : 3,
+    "providerResponseReceived" : true,
+    "answerSource" : "LIVE_AGENT",
+    "replayCoverage" : "NOT_APPLICABLE"
+  }
+}

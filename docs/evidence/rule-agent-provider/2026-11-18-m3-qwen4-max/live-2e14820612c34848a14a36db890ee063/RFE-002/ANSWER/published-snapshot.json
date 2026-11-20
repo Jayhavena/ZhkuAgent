@@ -1,0 +1,60 @@
+{
+  "schemaVersion" : 3,
+  "taskId" : "20120a38-ce02-44a5-836f-2e6c64f06b7a",
+  "turnId" : "447f4606-5c01-4329-8968-29815e186c58",
+  "runId" : "46d1822a-e692-4d34-a7cf-256bc67512fb",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "INCOMPLETE",
+  "terminated" : true,
+  "result" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "46d1822a-e692-4d34-a7cf-256bc67512fb",
+    "catalogueVersion" : "cat-1c1c3f9fab2d888e51c518d662994bbb50f59013c6b155de1543f785c94cca94",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "PARTIAL",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "PARTIAL",
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "S01/GENERAL:undergraduate-plan-obligation",
+        "text" : "依据2025.9.2历史文本：全日制普通本科学生必须按人才培养方案要求参加选修课学习。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      } ],
+      "issues" : [ {
+        "id" : "i-MATERIAL_SCOPE_MISMATCH",
+        "kind" : "SCOPE_LIMIT",
+        "reasonCode" : "MATERIAL_SCOPE_MISMATCH",
+        "message" : "本手册只核验全日制普通本科学生的选修规则；没有提供研究生或其他培养类别的规则，不能把本科条文直接推广。",
+        "nextStep" : "请核对研究生培养方案或对应规定，不要以本科条文代替研究生规则。"
+      } ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ {
+      "id" : "c96b9fde-42e7-4065-97f3-d2601ccf9347:0-36",
+      "sourceId" : "cf151036-1c0a-4777-bf80-4033804c9685",
+      "chunkId" : "431563f4-1783-3802-9855-7998baf2608d",
+      "revision" : "2025.9.2",
+      "checksum" : "2d1dbdbee0a567fea8c345a62e6568bc93d373d36518c5b62253a11f5f136dd1",
+      "startInclusive" : 0,
+      "endExclusive" : 36,
+      "quote" : "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。"
+    } ],
+    "evidenceRelations" : [ {
+      "evidenceId" : "c96b9fde-42e7-4065-97f3-d2601ccf9347:0-36",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c0"
+    } ]
+  },
+  "execution" : {
+    "mode" : "ONLINE",
+    "modelAttemptCount" : 4,
+    "toolStepCount" : 3,
+    "providerResponseReceived" : true,
+    "answerSource" : "LIVE_AGENT",
+    "replayCoverage" : "NOT_APPLICABLE"
+  }
+}

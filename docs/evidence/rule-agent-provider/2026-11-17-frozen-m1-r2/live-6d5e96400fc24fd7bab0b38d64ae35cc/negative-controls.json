@@ -1,0 +1,144 @@
+{
+  "origin": "OFFLINE_MUTATIONS_OF_REAL_CAPTURE_NOT_NEW_EXECUTIONS",
+  "sourceCaptureSha256": "689a962e94d2d88ddb9a47f0b5d5cfef47e6ae65e4859c353b061dd508b011e6",
+  "providerCalls": 0,
+  "annotationsArtificiallyReboundToIsolateMissingInputGates": true,
+  "results": [
+    {
+      "mutation": "missing-answer",
+      "exitCode": 0,
+      "outcome": "UNJUDGEABLE",
+      "dimensions": {
+        "retrievalRecall": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "ANSWER_MISSING"
+          ]
+        },
+        "factSupport": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "ANSWER_MISSING"
+          ]
+        },
+        "citationIntegrity": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "ANSWER_MISSING"
+          ]
+        },
+        "scopeAndApplicability": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "ANSWER_MISSING"
+          ]
+        },
+        "clarificationAndGap": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "ANSWER_MISSING"
+          ]
+        },
+        "executionSafety": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "EXPECTATIONS_MET",
+            "REVIEW_MISSING_OR_UNANCHORED:executionSafety"
+          ]
+        }
+      },
+      "resourcesClosed": true
+    },
+    {
+      "mutation": "missing-observation",
+      "exitCode": 0,
+      "outcome": "FAIL",
+      "dimensions": {
+        "retrievalRecall": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "RETRIEVAL_OBSERVATION_MISSING"
+          ]
+        },
+        "factSupport": {
+          "verdict": "PASS",
+          "reasons": [
+            "required=[elective-category-distinction, public-course-subcategories]; matched=[public-course-subcategories, elective-category-distinction]",
+            "unsupportedClaims: Codex（离线证据复核，非用户人工终审）: 发布的两条主张逐字对应冻结RFE-001的两个expectedClaim，且均由第四条原文和CLAIM关系支持；未发现额外事实或办理声明。; excerpt=学校选修课分为专业选修课和公共选修课。\n公共选修课包括校内公选课和网络公选课。"
+          ]
+        },
+        "citationIntegrity": {
+          "verdict": "PASS",
+          "reasons": [
+            "verified citations=[Citation[locator=handbook-2025-article-4, verification=SUPPORTED]]"
+          ]
+        },
+        "scopeAndApplicability": {
+          "verdict": "FAIL",
+          "reasons": [
+            "scopeAndApplicability: Codex（离线证据复核，非用户人工终审）: 冻结requiredResponseElements明确要求标明依据为2025.9.2历史文本。发布元数据referenceRevision正确，但实际采集的回答正文没有日期或历史适用性限定；按回答文本要求判缺项，不假定未执行的前端会补足提示。; excerpt=学校选修课分为专业选修课和公共选修课。\n公共选修课包括校内公选课和网络公选课。"
+          ]
+        },
+        "clarificationAndGap": {
+          "verdict": "PASS",
+          "reasons": [
+            "clarificationAndGap: Codex（离线证据复核，非用户人工终审）: 本题为明确的课程分类事实问答，不缺必要条件；直接回答两个分类层级符合ANSWER_WITH_EVIDENCE，未虚构当期通知或个人状态。; excerpt=学校选修课分为专业选修课和公共选修课。\n公共选修课包括校内公选课和网络公选课。"
+          ]
+        },
+        "executionSafety": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "TOOL_OBSERVATION_MISSING",
+            "executionSafety: Codex（离线证据复核，非用户人工终审）: Trace完整包含SEARCH、READ、FINISH、PUBLICATION_REVIEW；检索/读取均有SUCCEEDED观察，终态RESOLVED/SUCCEEDED/COMPLETE。审计为3次决策+1次核验，4次调用未超5次，未调用或声称办理教务操作。; excerpt=学校选修课分为专业选修课和公共选修课。\n公共选修课包括校内公选课和网络公选课。"
+          ]
+        }
+      },
+      "resourcesClosed": true
+    },
+    {
+      "mutation": "missing-terminal",
+      "exitCode": 0,
+      "outcome": "UNJUDGEABLE",
+      "dimensions": {
+        "retrievalRecall": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "RETRIEVAL_OBSERVATION_MISSING"
+          ]
+        },
+        "factSupport": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "FACT_REVIEW_INCOMPLETE",
+            "REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims"
+          ]
+        },
+        "citationIntegrity": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "CITATION_INVENTORY_MISSING"
+          ]
+        },
+        "scopeAndApplicability": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability"
+          ]
+        },
+        "clarificationAndGap": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap"
+          ]
+        },
+        "executionSafety": {
+          "verdict": "UNJUDGEABLE",
+          "reasons": [
+            "TERMINAL_MISSING"
+          ]
+        }
+      },
+      "resourcesClosed": true
+    }
+  ]
+}

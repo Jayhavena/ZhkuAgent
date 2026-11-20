@@ -1,0 +1,647 @@
+{
+  "reservationSha256" : "c67a9eaae15566ba2bb80fba33abd6193d755ee04c3ef1031c1f53aab00fa038",
+  "packageSha256" : "f3dae14844718c502c6111ee20e0837a6fccc965bc42e4dd38df5becdb72e198",
+  "startedAt" : "2026-11-18T09:10:17.570113400Z",
+  "approvalSha256" : "5f0949aee8d044a44f642970c6c81cb03d46d5bcfbe2fc2b8b172aef5d9192ef",
+  "plan" : {
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "selectionSha256" : "e90e50a1b811fe14f210987b19933be29fe75c7a8729054a0038264002cfb724",
+    "cases" : [ {
+      "caseId" : "RFE-001",
+      "question" : "学校选修课分哪几类？公共选修课又包括哪些？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-001",
+        "kind" : "ANSWER",
+        "question" : "学校选修课分哪几类？公共选修课又包括哪些？",
+        "questionSha256" : "ec46a1a75464579cd140e83f4f9bf2de81a97983f745201e550d79f7df915849",
+        "reply" : null,
+        "factIds" : [ "elective-category-distinction", "public-course-subcategories" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-001",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-002",
+      "question" : "学生手册写的选修课要求，研究生也一定适用吗？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-002",
+        "kind" : "ANSWER",
+        "question" : "学生手册写的选修课要求，研究生也一定适用吗？",
+        "questionSha256" : "e12fe440d453b14e042c4b3b7d7b8fab809d2a5455b6b0dcad7ce6d7519ac0ab",
+        "reply" : null,
+        "factIds" : [ "undergraduate-plan-obligation" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-002",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        }, {
+          "caseId" : "RFE-002",
+          "taskStatus" : "RESOLVED",
+          "runState" : "INCOMPLETE",
+          "coverage" : "PARTIAL",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-003",
+      "question" : "公共选修课的学时规定是什么？是不是必须正好16学时？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-003",
+        "kind" : "ANSWER",
+        "question" : "公共选修课的学时规定是什么？是不是必须正好16学时？",
+        "questionSha256" : "9d6f9e56910fca42080e88e16d3189d50a696b69c8d9860c2e9bf97575f4404a",
+        "reply" : null,
+        "factIds" : [ "hours-principle", "hours-upper-limit" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-003",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-004",
+      "question" : "有门公选课安排24学时，这能直接判定违规吗？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-004",
+        "kind" : "ANSWER",
+        "question" : "有门公选课安排24学时，这能直接判定违规吗？",
+        "questionSha256" : "99b1779c920bb7ffc71fbf8eed80e83491e53d0d8a77cb9b14b46416af18383f",
+        "reply" : null,
+        "factIds" : [ "hours-principle", "hours-upper-limit" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-004",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        }, {
+          "caseId" : "RFE-004",
+          "taskStatus" : "RESOLVED",
+          "runState" : "INCOMPLETE",
+          "coverage" : "PARTIAL",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-005",
+      "question" : "校内公选课只有29人选，按这份手册怎么规定？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-005",
+        "kind" : "ANSWER",
+        "question" : "校内公选课只有29人选，按这份手册怎么规定？",
+        "questionSha256" : "792f9b5c81a130baf951fb8296d6ea690c0517364330a48ec6a90123c26336eb",
+        "reply" : null,
+        "factIds" : [ "campus-below-thirty", "campus-enrollment-general-range" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-005",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        }, {
+          "caseId" : "RFE-005",
+          "taskStatus" : "RESOLVED",
+          "runState" : "INCOMPLETE",
+          "coverage" : "PARTIAL",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-006",
+      "question" : "一门校内公选课刚好30人报名，就一定会开课吗？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-006",
+        "kind" : "ANSWER",
+        "question" : "一门校内公选课刚好30人报名，就一定会开课吗？",
+        "questionSha256" : "e10808c35e0b37d34be2052077c5cf75b1a17de3b80ac3707e986afb90279716",
+        "reply" : null,
+        "factIds" : [ "campus-below-thirty", "campus-enrollment-general-range" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-006",
+          "taskStatus" : "RESOLVED",
+          "runState" : "INCOMPLETE",
+          "coverage" : "PARTIAL",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-007",
+      "question" : "网络公选课学分能不能超过培养方案要求选修课学分的一半？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-007",
+        "kind" : "ANSWER",
+        "question" : "网络公选课学分能不能超过培养方案要求选修课学分的一半？",
+        "questionSha256" : "c3ef70431661684f300ccb0c3d5fb9dafbe82845eaf4af9e1a523fc6d34270d2",
+        "reply" : null,
+        "factIds" : [ "online-general-half" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-007",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        }, {
+          "caseId" : "RFE-007",
+          "taskStatus" : "RESOLVED",
+          "runState" : "INCOMPLETE",
+          "coverage" : "PARTIAL",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-008",
+      "question" : "按这份手册，我现在还差多少学分才能毕业？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-008",
+        "kind" : "ANSWER",
+        "question" : "按这份手册，我现在还差多少学分才能毕业？",
+        "questionSha256" : "c8161055216150a55431b509b35f37a93246434ff08180621dd4b1ebc8b17a04",
+        "reply" : null,
+        "factIds" : [ "plan-required-credits" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-008",
+          "taskStatus" : "RESOLVED",
+          "runState" : "INCOMPLETE",
+          "coverage" : "PARTIAL",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : "PERSONAL_RECORD_NOT_AVAILABLE",
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-009",
+      "question" : "没有在网上选课，但我参加了考核，成绩能保证有效吗？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-009",
+        "kind" : "ANSWER",
+        "question" : "没有在网上选课，但我参加了考核，成绩能保证有效吗？",
+        "questionSha256" : "85e981946a203955cc58bbc94600e39c610a030214b3d5eb7ac619591c5ec006",
+        "reply" : null,
+        "factIds" : [ "online-selection-plan", "unenrolled-assessment-disjunction" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-009",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        }, {
+          "caseId" : "RFE-009",
+          "taskStatus" : "RESOLVED",
+          "runState" : "INCOMPLETE",
+          "coverage" : "PARTIAL",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-010",
+      "question" : "每学期公共选修课最多可以修多少学分？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-010",
+        "kind" : "ANSWER",
+        "question" : "每学期公共选修课最多可以修多少学分？",
+        "questionSha256" : "d5997731dbfadebecbe224b07d5b83d8b2c0e6bb6ad78a366d50e133523f26f7",
+        "reply" : null,
+        "factIds" : [ "public-semester-four-credits" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-010",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-011",
+      "question" : "已经考核合格的课程，还能重复修读吗？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-011",
+        "kind" : "ANSWER",
+        "question" : "已经考核合格的课程，还能重复修读吗？",
+        "questionSha256" : "3e9b11b7027ccf00ba0544c946d6e451587d195d2f2ab04514977aae5deea4ad",
+        "reply" : null,
+        "factIds" : [ "no-repeat-passed-course" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-011",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-012",
+      "question" : "如果一门课与本专业教学计划中的课程相同或相近，还能选修吗？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-012",
+        "kind" : "ANSWER",
+        "question" : "如果一门课与本专业教学计划中的课程相同或相近，还能选修吗？",
+        "questionSha256" : "c0ddd985dea4381639ac9aeb02bfde3fd798ba336f09f775ddd720c183aa5e29",
+        "reply" : null,
+        "factIds" : [ "no-same-or-similar-plan-course" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-012",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-013",
+      "question" : "选修课挂科了，可以重修吗？",
+      "clarificationReply" : "PUBLIC",
+      "conditionId" : "courseType",
+      "turns" : [ {
+        "caseId" : "RFE-013",
+        "kind" : "ASK",
+        "question" : "选修课挂科了，可以重修吗？",
+        "questionSha256" : "44ec1d05907e98352c71fbab432ab77c58feeab5ef5f53a90fb3028676cf2544",
+        "reply" : null,
+        "factIds" : [ ],
+        "alternatives" : [ {
+          "caseId" : "RFE-013",
+          "taskStatus" : "WAITING_USER",
+          "runState" : "INCOMPLETE",
+          "coverage" : "NONE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "ASK_NECESSARY_CONDITION" ],
+          "issueReason" : "MISSING_CONDITION",
+          "expectClaims" : false,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : false,
+          "expectRejectedUnknownTool" : false
+        } ]
+      }, {
+        "caseId" : "RFE-013",
+        "kind" : "RESOLVE_PUBLIC",
+        "question" : "选修课挂科了，可以重修吗？",
+        "questionSha256" : "44ec1d05907e98352c71fbab432ab77c58feeab5ef5f53a90fb3028676cf2544",
+        "reply" : "PUBLIC",
+        "factIds" : [ "public-failed-no-retake" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-013",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 10
+    }, {
+      "caseId" : "RFE-014",
+      "question" : "如果挂科的是公共选修课，手册怎么说？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-014",
+        "kind" : "ANSWER",
+        "question" : "如果挂科的是公共选修课，手册怎么说？",
+        "questionSha256" : "77a9c3d6b62ac22f1d6975ca37b584f1862d6a281a19cc2b43af2b2c06dbe8df",
+        "reply" : null,
+        "factIds" : [ "public-failed-no-retake" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-014",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-015",
+      "question" : "如果挂科的是专业选修课，可以重修吗？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-015",
+        "kind" : "ANSWER",
+        "question" : "如果挂科的是专业选修课，可以重修吗？",
+        "questionSha256" : "668cc2f8d1f488a1f425dda5ad9cc6441c59f7c8a09ec02915e1e66a23566035",
+        "reply" : null,
+        "factIds" : [ "professional-failed-retake-application" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-015",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        }, {
+          "caseId" : "RFE-015",
+          "taskStatus" : "RESOLVED",
+          "runState" : "INCOMPLETE",
+          "coverage" : "PARTIAL",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-016",
+      "question" : "公共选修课可以办理缓考吗？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-016",
+        "kind" : "ANSWER",
+        "question" : "公共选修课可以办理缓考吗？",
+        "questionSha256" : "037446f734e622ada0c475a4f691b1bb2a0600b0511b6af7578f34ff6b01281a",
+        "reply" : null,
+        "factIds" : [ "public-no-deferred-exam" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-016",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-017",
+      "question" : "确定下学期课程计划后，公共选修课和专业选修课按什么顺序安排？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-017",
+        "kind" : "ANSWER",
+        "question" : "确定下学期课程计划后，公共选修课和专业选修课按什么顺序安排？",
+        "questionSha256" : "4059c792fa3f9607b546d9c054b85f211b366f3a6c6c7adb95224f6624ebed39",
+        "reply" : null,
+        "factIds" : [ "schedule-order" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-017",
+          "taskStatus" : "RESOLVED",
+          "runState" : "SUCCEEDED",
+          "coverage" : "COMPLETE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-018",
+      "question" : "这学期公选补选今晚几点截止？现在还能帮我补选吗？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-018",
+        "kind" : "ANSWER",
+        "question" : "这学期公选补选今晚几点截止？现在还能帮我补选吗？",
+        "questionSha256" : "2d172d54501ba3e6e745df99811903e88c461dca4ea499479e42ad0508f9001a",
+        "reply" : null,
+        "factIds" : [ "online-selection-plan" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-018",
+          "taskStatus" : "RESOLVED",
+          "runState" : "INCOMPLETE",
+          "coverage" : "PARTIAL",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : "CURRENT_NOTICE_MISSING",
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-019",
+      "question" : "我是2026级，2025.9.2手册里的这些选修规定就一定适用于我吗？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-019",
+        "kind" : "ANSWER",
+        "question" : "我是2026级，2025.9.2手册里的这些选修规定就一定适用于我吗？",
+        "questionSha256" : "560bea5649b3d21b4852e01e9f0120e283e9b6863e0a0430750994188ec00735",
+        "reply" : null,
+        "factIds" : [ "undergraduate-plan-obligation" ],
+        "alternatives" : [ {
+          "caseId" : "RFE-019",
+          "taskStatus" : "RESOLVED",
+          "runState" : "INCOMPLETE",
+          "coverage" : "PARTIAL",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : "CURRENT_APPLICABILITY_UNKNOWN",
+          "expectClaims" : true,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : true,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    }, {
+      "caseId" : "RFE-020",
+      "question" : "公共选修课奖学金是按什么条件评定的？",
+      "clarificationReply" : null,
+      "conditionId" : null,
+      "turns" : [ {
+        "caseId" : "RFE-020",
+        "kind" : "ANSWER",
+        "question" : "公共选修课奖学金是按什么条件评定的？",
+        "questionSha256" : "65b35a5a6610dc01ad7e96c5d42c7a624ae3fd250052e01c699be0603f0e1f23",
+        "reply" : null,
+        "factIds" : [ ],
+        "alternatives" : [ {
+          "caseId" : "RFE-020",
+          "taskStatus" : "RESOLVED",
+          "runState" : "INCOMPLETE",
+          "coverage" : "NONE",
+          "requiredActions" : [ "SEARCH_REVIEWED_RULES", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+          "issueReason" : null,
+          "expectClaims" : false,
+          "observedAction" : null,
+          "observationStatus" : null,
+          "requireEvidenceLinks" : false,
+          "expectRejectedUnknownTool" : false
+        } ]
+      } ],
+      "maximumCalls" : 5
+    } ],
+    "maximumTasks" : 20,
+    "maximumRuns" : 21,
+    "maximumCalls" : 105,
+    "ownedProcessMillis" : 2550000
+  }
+}

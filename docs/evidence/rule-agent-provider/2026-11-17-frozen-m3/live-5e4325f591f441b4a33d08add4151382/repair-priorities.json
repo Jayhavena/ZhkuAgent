@@ -1,0 +1,228 @@
+{
+  "origin": "OBSERVED_REAL_FAILURE_LAYERS_NOT_UNPROVEN_ROOT_CAUSES",
+  "priorities": [
+    {
+      "priority": "P0",
+      "title": "结构化动作参数契约",
+      "affectedCases": [
+        "RFE-005",
+        "RFE-007",
+        "RFE-009",
+        "RFE-011",
+        "RFE-012",
+        "RFE-017"
+      ],
+      "observed": "第三次模型决策被ACTION_PARAMETERS:ACTION_PARAMETER_INVALID拒绝；前两步已有成功检索/读取。",
+      "nextAction": "先核对模型动作输出与宿主schema/参数映射，补字段级脱敏拒绝诊断和离线协议夹具；不能凭缺失的原始报文猜具体错误字段。",
+      "acceptance": "该六题的对应拒绝消失，动作参数能按同一协议通过校验；再以独立获批真实包复验，不能只看HTTP200。",
+      "evidence": [
+        {
+          "caseId": "RFE-005",
+          "kind": "ANSWER",
+          "capturePath": "RFE-005/ANSWER/capture.json",
+          "captureSha256": "86e2c2e39b29063b7f84f2df59dc9d059f9e9d00e358ed0ecf71219d66f49d0d",
+          "providerTracePath": "RFE-005/provider-traces.jsonl",
+          "providerTraceSha256": "2e613fd387c42acf77c3c427fd053949c3ee40ba0964d1b4177195e3fd605b11"
+        },
+        {
+          "caseId": "RFE-007",
+          "kind": "ANSWER",
+          "capturePath": "RFE-007/ANSWER/capture.json",
+          "captureSha256": "b954bd5314ae10edb55eb7d3c8ca1ba65f3b4304db0ef3abc3fadffcba6150de",
+          "providerTracePath": "RFE-007/provider-traces.jsonl",
+          "providerTraceSha256": "1e34a19fda20ec9d02f30f13933945203c867decab7f204cc6e7461fd5c7d967"
+        },
+        {
+          "caseId": "RFE-009",
+          "kind": "ANSWER",
+          "capturePath": "RFE-009/ANSWER/capture.json",
+          "captureSha256": "0871e278ef6d8d3bce743033baa3dbd1bc63e2a5b01dc63f9faf83eff813fd87",
+          "providerTracePath": "RFE-009/provider-traces.jsonl",
+          "providerTraceSha256": "66c85f7498d4f321b505a0a860a16938f78a221aa477e53cb9710bdf96485d01"
+        },
+        {
+          "caseId": "RFE-011",
+          "kind": "ANSWER",
+          "capturePath": "RFE-011/ANSWER/capture.json",
+          "captureSha256": "5d79bf8ce616e1a44097234d97923506701ad3e32590ca589d9093ab0c40d7ea",
+          "providerTracePath": "RFE-011/provider-traces.jsonl",
+          "providerTraceSha256": "5ae993b082e3471cd456be3ce8ae41496233a339d66788ec71d28b3b51b863ac"
+        },
+        {
+          "caseId": "RFE-012",
+          "kind": "ANSWER",
+          "capturePath": "RFE-012/ANSWER/capture.json",
+          "captureSha256": "73df5bf973ed31555944a6d66d2f26f0a32e5558ac369d11fc26780f9f18ba38",
+          "providerTracePath": "RFE-012/provider-traces.jsonl",
+          "providerTraceSha256": "68e338b0d109565976e693a626082541ef98f4886c96171bb15caad16ff362d9"
+        },
+        {
+          "caseId": "RFE-017",
+          "kind": "ANSWER",
+          "capturePath": "RFE-017/ANSWER/capture.json",
+          "captureSha256": "c70ed39bb0ba7944a7bb0b9df523a8708d8c6c67098f29069000e00652fbf667",
+          "providerTracePath": "RFE-017/provider-traces.jsonl",
+          "providerTraceSha256": "a403f6a37dd666966d8e51c405f9564a33cc66ac0c07f342ebad11be32021776"
+        }
+      ]
+    },
+    {
+      "priority": "P0",
+      "title": "发布核验链路",
+      "affectedCases": [
+        "RFE-001",
+        "RFE-004",
+        "RFE-008",
+        "RFE-019"
+      ],
+      "observed": "001/004/019的PUBLICATION_REVIEW记录FACT_NOT_RELEVANT；008的核验响应被REVIEW_JSON:REVIEW_JSON_INVALID拒绝。",
+      "nextAction": "核对候选结论、证据关系与核验输入的映射及核验JSON协议，补可解释的输入/输出诊断。现有记录不足以区分错误结论与核验误拒，保留该根因边界。",
+      "acceptance": "每次拒绝能定位到同run的候选主张/证据与字段，且正确候选可稳定完成发布；不放宽门禁掩盖失败。",
+      "evidence": [
+        {
+          "caseId": "RFE-001",
+          "kind": "ANSWER",
+          "capturePath": "RFE-001/ANSWER/capture.json",
+          "captureSha256": "ac4659646d37d92cdea1a8dde16e869f7c66b49668dd3f5f69ec4a8fad16b856",
+          "providerTracePath": "RFE-001/provider-traces.jsonl",
+          "providerTraceSha256": "972e155695ee813af30088b77b29bdd317baa5bcb07536443ca63108ed018dbd"
+        },
+        {
+          "caseId": "RFE-004",
+          "kind": "ANSWER",
+          "capturePath": "RFE-004/ANSWER/capture.json",
+          "captureSha256": "e02103faaf221a9fe3c20411883e2c2ff48cc09fe78c02bbed43c7a620e16e04",
+          "providerTracePath": "RFE-004/provider-traces.jsonl",
+          "providerTraceSha256": "d4392b062cafe3479ea435f966672cfe734b7fda293d4cf53a091f8b4e03dd2b"
+        },
+        {
+          "caseId": "RFE-008",
+          "kind": "ANSWER",
+          "capturePath": "RFE-008/ANSWER/capture.json",
+          "captureSha256": "5213569d57ca48ad270d0295f497b4d016277fed1c545516e5c3c9107ad5f1a3",
+          "providerTracePath": "RFE-008/provider-traces.jsonl",
+          "providerTraceSha256": "97d889ff13939e45e47b5e509e96a717985e338522422249ab0035ab1fd32d51"
+        },
+        {
+          "caseId": "RFE-019",
+          "kind": "ANSWER",
+          "capturePath": "RFE-019/ANSWER/capture.json",
+          "captureSha256": "52ed8fd77ddae4a90d43c05e13d610a20a14677c3f88a4f947123136b6dba507",
+          "providerTracePath": "RFE-019/provider-traces.jsonl",
+          "providerTraceSha256": "5dcdef7c7ce20a92d587a1e98132f7f05d2f33046ee64faf3a2aaac0620fb8d2"
+        }
+      ]
+    },
+    {
+      "priority": "P1",
+      "title": "结束与修复动作的进展",
+      "affectedCases": [
+        "RFE-002",
+        "RFE-006",
+        "RFE-014",
+        "RFE-015",
+        "RFE-016",
+        "RFE-018",
+        "RFE-020"
+      ],
+      "observed": "002/006/014/018/020为BUDGET_EXCEEDED，015/016为NO_PROGRESS；部分FINISH_CHECK重复或被拒。",
+      "nextAction": "检查被拒结束动作后的修复路径、重复判定与核验预留；明确具体预算触发点，优先减少无效步骤。BUDGET_EXCEEDED不是110秒超时的同义词。",
+      "acceptance": "在原有单run5次/110秒上限内完成合法终态，或保留具体可解释的失败原因；不自动增加额度/重试。",
+      "evidence": [
+        {
+          "caseId": "RFE-002",
+          "kind": "ANSWER",
+          "capturePath": "RFE-002/ANSWER/capture.json",
+          "captureSha256": "0ab58a146d196cd20d5379522986abc1bc89eecdd0fb3176440fb01f3086d43c",
+          "providerTracePath": "RFE-002/provider-traces.jsonl",
+          "providerTraceSha256": "bfacc9671d7fc36e749578debcdb11780714402f9f939e53aeb79d13d6365e76"
+        },
+        {
+          "caseId": "RFE-006",
+          "kind": "ANSWER",
+          "capturePath": "RFE-006/ANSWER/capture.json",
+          "captureSha256": "1598a81dfa0fb7ed4106b0a9a73237c14fe32d2b6a533275f770cf605f27ea35",
+          "providerTracePath": "RFE-006/provider-traces.jsonl",
+          "providerTraceSha256": "d9cc053f97a7ce8f4f8f5bc1f2012769a84b909161ccc051ac06842751fffb9d"
+        },
+        {
+          "caseId": "RFE-014",
+          "kind": "ANSWER",
+          "capturePath": "RFE-014/ANSWER/capture.json",
+          "captureSha256": "92628c8099f68aa8a7dc9dd5c8d6faaca1a0746b004f00388a604eb642820017",
+          "providerTracePath": "RFE-014/provider-traces.jsonl",
+          "providerTraceSha256": "7a2c085f7fa75027d01700a32835867210905c77839d0e8c7b621efd7c07f972"
+        },
+        {
+          "caseId": "RFE-015",
+          "kind": "ANSWER",
+          "capturePath": "RFE-015/ANSWER/capture.json",
+          "captureSha256": "2cbf83a6dc92899c446d93af19889c9bb84ba52d14e80d8a4e18c73f6f843def",
+          "providerTracePath": "RFE-015/provider-traces.jsonl",
+          "providerTraceSha256": "ca0885d20d164036d97efbdb13292b263c86c6b48ba8256c3ed47a274da896df"
+        },
+        {
+          "caseId": "RFE-016",
+          "kind": "ANSWER",
+          "capturePath": "RFE-016/ANSWER/capture.json",
+          "captureSha256": "d90d58ba5e963dec205b12eaf1b94ee05bfdad5433a4ed7b604ddd9e52627a31",
+          "providerTracePath": "RFE-016/provider-traces.jsonl",
+          "providerTraceSha256": "18664c196550a16358199a6fe3fd2a78b778c27b28bd33e56a9d770cf9a452ed"
+        },
+        {
+          "caseId": "RFE-018",
+          "kind": "ANSWER",
+          "capturePath": "RFE-018/ANSWER/capture.json",
+          "captureSha256": "b6a76e61877b5264cbc10ecd77e6818fa68020203e8b0f527ba0507d1d69fe89",
+          "providerTracePath": "RFE-018/provider-traces.jsonl",
+          "providerTraceSha256": "392a037bf05e554adf2c66086159a12a62b3db7eab170fefca4b62884a31a0eb"
+        },
+        {
+          "caseId": "RFE-020",
+          "kind": "ANSWER",
+          "capturePath": "RFE-020/ANSWER/capture.json",
+          "captureSha256": "7b8efb4332e7b193282234b89eab54e31107f96649d4e8af99c632c712b831d8",
+          "providerTracePath": "RFE-020/provider-traces.jsonl",
+          "providerTraceSha256": "bf6b02dcc6adbefcb7c8d1a8a6e9e7f292ab879705f4bf12fcb1581280ff93c2"
+        }
+      ]
+    },
+    {
+      "priority": "P1",
+      "title": "答案与澄清的必要说明",
+      "affectedCases": [
+        "RFE-010",
+        "RFE-013"
+      ],
+      "observed": "010正确给4学分但漏历史文本限定；013正确追问/选择PUBLIC，但ASK没解释两类课程处理不同。",
+      "nextAction": "让发布答案携带题卡要求的历史范围，让必要澄清包含分支差异说明，继续使用既有Grader及正文判定口径。",
+      "acceptance": "010正文明确2025.9.2历史依据；013 ASK说明分支差异且不提前统一判断，PUBLIC续答保持正确。",
+      "evidence": [
+        {
+          "caseId": "RFE-010",
+          "kind": "ANSWER",
+          "capturePath": "RFE-010/ANSWER/capture.json",
+          "captureSha256": "11e3dfb9ec1e66d709a99561f2ceeb6a51b42a4f8317f04004cee2ecda157a05",
+          "providerTracePath": "RFE-010/provider-traces.jsonl",
+          "providerTraceSha256": "88a1d9f59e01bc99bb1807cab0abc50a62450dce6097aa7da34dc7eddc68bb1d"
+        },
+        {
+          "caseId": "RFE-013",
+          "kind": "ASK",
+          "capturePath": "RFE-013/ASK/capture.json",
+          "captureSha256": "1d5f6bc2b47a4888ac7a6b4e14ee0095eb61306c3e0bd58d74dfe7b37d98790c",
+          "providerTracePath": "RFE-013/provider-traces.jsonl",
+          "providerTraceSha256": "2ef2904070ae1d151c97afaacf7e761a39546d443589d0f0ed47a19b955591f6"
+        },
+        {
+          "caseId": "RFE-013",
+          "kind": "RESOLVE_PUBLIC",
+          "capturePath": "RFE-013/RESOLVE_PUBLIC/capture.json",
+          "captureSha256": "d22d5450e83ca4b3fc70c02c9457fb3baaf613ddfafeb7764c8265bc60c271c9",
+          "providerTracePath": "RFE-013/provider-traces.jsonl",
+          "providerTraceSha256": "2ef2904070ae1d151c97afaacf7e761a39546d443589d0f0ed47a19b955591f6"
+        }
+      ]
+    }
+  ]
+}

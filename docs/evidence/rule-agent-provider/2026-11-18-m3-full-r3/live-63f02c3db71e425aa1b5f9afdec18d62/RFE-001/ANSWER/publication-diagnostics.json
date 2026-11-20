@@ -1,0 +1,89 @@
+{
+  "identity" : {
+    "caseId" : "RFE-001",
+    "taskId" : "dafae544-79cf-4b61-9b67-4c5512be0356",
+    "runId" : "93fa9350-3b11-49d8-ad37-700ed460e7b0",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "f1d842acfb2eeeeeabc91bb9e71870c1741827faff0cafd535f77adde5dd80b1"
+  },
+  "captureSha256" : "dea7963a4118765fbdb4c758e908be2927774b66b7fb4d67be46188aef638593",
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "28adc7e9c16f5055671036f53cdfc4a015764ba645244dfa58e8d63fb62913a4",
+      "requirements" : [ {
+        "id" : "req_elective_categories",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 10
+        },
+        "dimension" : "CATEGORY",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      }, {
+        "id" : "req_public_elective_subcategories",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 10,
+          "endExclusive" : 21
+        },
+        "dimension" : "CATEGORY",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "req_elective_categories",
+        "factId" : "S02/GENERAL:elective-category-distinction",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "req_public_elective_subcategories",
+        "factId" : "S02/GENERAL:public-course-subcategories",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    },
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ],
+  "relevanceRejections" : [ ],
+  "relevanceExclusions" : [ {
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S02/GENERAL:elective-category-distinction", "S02/GENERAL:public-course-subcategories", "T02/ARTICLE4:professional-elective-study-arrangement", "T02/ARTICLE4:public-elective-self-selection" ],
+      "rejectedFact" : {
+        "factId" : "T02/ARTICLE4:professional-elective-study-arrangement",
+        "dimension" : "STUDY_ARRANGEMENT",
+        "subject" : "PROFESSIONAL_ELECTIVE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "26c22bfde692c2864614a2f0e2acac9d4a4aad00f5cad16fc5b597ae727f5805"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "CATEGORY",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S02/GENERAL:elective-category-distinction",
+          "role" : "CORE"
+        } ]
+      }, {
+        "ordinal" : 2,
+        "dimension" : "CATEGORY",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S02/GENERAL:public-course-subcategories",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ]
+}

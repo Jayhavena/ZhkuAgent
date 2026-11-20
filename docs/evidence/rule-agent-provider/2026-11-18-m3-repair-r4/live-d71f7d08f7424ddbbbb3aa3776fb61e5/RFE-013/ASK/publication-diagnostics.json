@@ -1,0 +1,55 @@
+{
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "5dbc29c6b5c343846aa370fa7b8b834833887f042c19c7066c8e00dc7d9c6f3e",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 13
+        },
+        "dimension" : "RETAKE",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ "courseType" ]
+      }, {
+        "id" : "r2",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 13
+        },
+        "dimension" : "RETAKE",
+        "subject" : "PROFESSIONAL_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ "courseType" ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S10/RETAKE_ONLY:public-failed-no-retake",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r2",
+        "factId" : "S10/RETAKE_ONLY:professional-failed-retake-application",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    },
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "captureSha256" : "6cee47c19cfac3ae5c88432c3343213d180e66117bf44970f5213f65b6446efe",
+  "identity" : {
+    "caseId" : "RFE-013",
+    "taskId" : "ce7dae75-1908-4998-8ed5-a602be76fd91",
+    "runId" : "169789a1-049f-46a0-8780-575867d3365d",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "10c489086697042f029304c29550f7e2f35a8eabb4c9a49a776f5006bc5a7574"
+  },
+  "relevanceExclusions" : [ ],
+  "relevanceRejections" : [ ]
+}

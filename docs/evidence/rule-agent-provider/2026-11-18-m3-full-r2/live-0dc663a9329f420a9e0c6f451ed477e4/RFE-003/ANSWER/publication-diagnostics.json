@@ -1,0 +1,63 @@
+{
+  "identity" : {
+    "caseId" : "RFE-003",
+    "taskId" : "f2205e58-7999-4694-b2a1-9ceaa2b388e0",
+    "runId" : "a2ca1a03-7982-4775-8093-f5e15094fb4f",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "3aa65e7308d719b25f8ced554ab4d532b56068430979892572c27fb170bf1f29"
+  },
+  "relevanceExclusions" : [ ],
+  "relevanceRejections" : [ ],
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "96141d16abfffe325c4e4a3a01e9673740895724723ea552792d7fdf1d3e627b",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 14
+        },
+        "dimension" : "HOURS_NORMAL",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      }, {
+        "id" : "r2",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 14,
+          "endExclusive" : 26
+        },
+        "dimension" : "HOURS_LIMIT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S03/GENERAL:hours-principle",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r1",
+        "factId" : "S03/GENERAL:hours-upper-limit",
+        "role" : "CONDITION_EXCEPTION"
+      }, {
+        "requirementId" : "r2",
+        "factId" : "S03/GENERAL:hours-principle",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r2",
+        "factId" : "S03/GENERAL:hours-upper-limit",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    },
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "captureSha256" : "7bf9f5c6e06ceffc4d49c7059907c52f36472064469e1ab1f37312fd1cb18567"
+}

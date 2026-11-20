@@ -1,0 +1,40 @@
+{
+  "identity" : {
+    "caseId" : "RFE-008",
+    "taskId" : "f23d8a50-8f85-480e-a6be-909588f46f23",
+    "runId" : "bc1c7a5a-9773-48ed-a54d-e40d5f631cbb",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "f42b466b2216ee46c6d1fa2f3cabe179760a08cdb4908561d1a69a5e47189001"
+  },
+  "captureSha256" : "0e4a253982768f2467d45c2418abaddcc286fb26b3ccaa33d578f7c59c18f0a9",
+  "relevanceRejections" : [ {
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4,
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis", "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits" ],
+      "rejectedFact" : {
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis",
+        "dimension" : "STUDY_ARRANGEMENT",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "b6d070ca59690c74fa1ad7b7b36aa30e1bb8b9c6b1751fa216ca3bd30dd284d2"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "GRADUATION_CREDITS",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "code" : "FACT_NOT_RELEVANT"
+  } ],
+  "relevanceExclusions" : [ ]
+}

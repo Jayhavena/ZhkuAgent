@@ -1,0 +1,75 @@
+[ {
+  "taskId" : "96e627c9-f87e-4c41-8b5a-ab4184ffd466",
+  "turnId" : "56d91732-f6f8-4534-8384-3a9d608a038d",
+  "runId" : "8a05f846-504e-4af3-8811-7f659b09d07a",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "INCOMPLETE",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "b6a1e768-6c13-3576-a2a3-75c761d2f4e7",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "fc04fd37-f7a2-3cac-b64f-38ce54c53a84",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "3b7f2d42-d9c5-3ab4-aa7f-9e1c03149177",
+    "type" : "FINISH_CHECK",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "09ebf30d-1879-3a90-8de5-0fc3ca46baeb",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  } ],
+  "result" : {
+    "coverage" : "PARTIAL",
+    "evidence" : [ {
+      "id" : "d3d7a52e-be59-4409-89bf-15ea22396429:0-119",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "f0a840b2-48c3-374c-b0b3-d7af48d15d64",
+      "revision" : "2025.9.2"
+    } ],
+    "evidenceRelations" : [ {
+      "targetId" : "c0",
+      "evidenceId" : "d3d7a52e-be59-4409-89bf-15ea22396429:0-119",
+      "role" : "CLAIM"
+    } ],
+    "items" : [ {
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "sha256:90694b2f1d06ba3d2a99e0cc6f7e002af2199899ff198fd00cb4370d8a39b4d9"
+      } ]
+    } ],
+    "issues" : [ {
+      "kind" : "DATA_GAP",
+      "reasonCode" : "PERSONAL_RECORD_NOT_AVAILABLE"
+    } ]
+  }
+} ]

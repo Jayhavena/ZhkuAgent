@@ -1,0 +1,21 @@
+2026-11-18 M3 修复后 9 题复验包（r4）检查
+
+Package: docs/evidence/rule-agent-provider/2026-11-18-m3-repair-r4/request-package.json
+Package SHA-256: 10c489086697042f029304c29550f7e2f35a8eabb4c9a49a776f5006bc5a7574
+Selection: REPAIR_9 (9 cases / 10 runs / 50 calls maximum)
+Build: .\mvnw.cmd -q -pl knowledge -am -DskipTests package — EXIT 0
+
+Zero-call package check (launcher Check path):
+PASS ZERO_CALL_REPAIR_9_BATCH_CHECK 10c489086697042f029304c29550f7e2f35a8eabb4c9a49a776f5006bc5a7574
+
+Zero-call database/tool assembly:
+PASS 9_CASE_DATABASE_TOOL_ASSEMBLY providerCalls=0
+Assembly directory: docs/evidence/rule-agent-provider/2026-11-18-m3-repair-r4/assembly-83c1558c6fda424e8b697f1ff13aa0a4
+Container cleanup: cleanupSucceeded=true resourcesClosed=true timedOut=false exitCode=0
+
+Tests:
+Focused regression: 99 tests, 0 failures, 0 errors.
+Expanded regression: 529 tests; 2 RuleAgentRequestPathTest launcher-environment failures and 4 database tests without ZHKU_DB_URL remain environment-blocked; no other failures.
+Real model calls: 0.
+
+Checked at: 2026-11-18T13:28+08:00

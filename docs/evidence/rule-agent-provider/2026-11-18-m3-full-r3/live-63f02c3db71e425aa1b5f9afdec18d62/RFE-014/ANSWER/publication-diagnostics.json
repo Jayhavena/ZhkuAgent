@@ -1,0 +1,65 @@
+{
+  "identity" : {
+    "caseId" : "RFE-014",
+    "taskId" : "d806aed9-cd25-4e18-b839-05181e66517b",
+    "runId" : "f69903a1-9bf9-40db-8282-71f3452ab233",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "f1d842acfb2eeeeeabc91bb9e71870c1741827faff0cafd535f77adde5dd80b1"
+  },
+  "captureSha256" : "27036a7914804ff9b307d3ffa4fbace3b7e3d1fc640516b74f297c864249fef4",
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "2accdb1295d927267498e1ba02a383bf845199cbd68e7158fbb5e78d1520f013",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 18
+        },
+        "dimension" : "RETAKE",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S10/RETAKE_ONLY:public-failed-no-retake",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    },
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ],
+  "relevanceRejections" : [ ],
+  "relevanceExclusions" : [ {
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam", "S10/RETAKE_ONLY:public-failed-no-retake" ],
+      "rejectedFact" : {
+        "factId" : "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam",
+        "dimension" : "DEFERRED_EXAM",
+        "subject" : "PUBLIC_ELECTIVE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "b46c4b9ef9fd8ef72a77b8e18eab73fab0705e835d3694fb49b12f6e0b28d7bb"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "RETAKE",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S10/RETAKE_ONLY:public-failed-no-retake",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ]
+}

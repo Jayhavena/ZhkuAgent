@@ -1,0 +1,72 @@
+{
+  "relevanceExclusions" : [ {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis", "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits" ],
+      "rejectedFact" : {
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis",
+        "dimension" : "STUDY_ARRANGEMENT",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "d7e353cb7c2f511917567eb27b11cbbd59f97d5956137f064c7d1c32eea38aef"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "GRADUATION_CREDITS",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits",
+          "role" : "CORE"
+        } ]
+      } ]
+    }
+  } ],
+  "relevanceRejections" : [ ],
+  "semanticReviews" : [ {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "c78de05ba614e60c8323b91047cc967e8007b70c5b0329900550c71e6ee37cd7",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 20
+        },
+        "dimension" : "GRADUATION_CREDITS",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ {
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 6,
+          "endExclusive" : 15
+        },
+        "reason" : "UNSUPPORTED_DIMENSION"
+      } ]
+    }
+  } ],
+  "captureSha256" : "db74ebca6142496885a64b5da619cd6ecff8f7f4b06b83ca2a707351d7f9f112",
+  "identity" : {
+    "caseId" : "RFE-008",
+    "taskId" : "4b72dc16-b30f-45e3-bb2f-f98891a481cd",
+    "runId" : "703a4240-882a-4a42-bf24-659d8ff82b91",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "ec7c3b5b4baac7061a404eb848b50fc7782fef4893a350ce31ef45d6365430b5"
+  }
+}
