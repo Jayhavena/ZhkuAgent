@@ -84,6 +84,27 @@ public final class RuleFactCapabilityCatalogue {
             case "S02/GENERAL:public-course-subcategories" -> {dimension=Dimension.CATEGORY;subject=Subject.PUBLIC_ELECTIVE;}
             case "S03/GENERAL:hours-principle" -> {dimension=Dimension.HOURS_NORMAL;subject=Subject.PUBLIC_ELECTIVE;}
             case "S03/GENERAL:hours-upper-limit" -> {dimension=Dimension.HOURS_LIMIT;subject=Subject.PUBLIC_ELECTIVE;}
+            case "S01/GENERAL:undergraduate-plan-obligation" -> {
+                dimension=Dimension.STUDY_ARRANGEMENT;subject=Subject.GENERAL_UNDERGRADUATE;}
+            case "S04/GENERAL:campus-enrollment-general-range","S04/ACTUAL_CLASS_OPENING:campus-enrollment-general-range",
+                 "S04/GENERAL:campus-below-thirty","S04/ACTUAL_CLASS_OPENING:campus-below-thirty" -> {
+                dimension=Dimension.ENROLLMENT;subject=Subject.PUBLIC_ELECTIVE;}
+            case "S06/GENERAL:online-selection-plan","S06/CURRENT_ENTRY_OR_TIME:online-selection-plan",
+                 "S06/GENERAL:unenrolled-assessment-disjunction","S06/CURRENT_ENTRY_OR_TIME:unenrolled-assessment-disjunction" -> {
+                dimension=Dimension.UNENROLLED_EXAM;subject=Subject.PUBLIC_ELECTIVE;}
+            case "S08/GENERAL:no-same-or-similar-plan-course" -> {
+                dimension=Dimension.STUDY_ARRANGEMENT;subject=Subject.GENERAL_UNDERGRADUATE;}
+            case "S08/GENERAL:no-repeat-passed-course" -> {
+                dimension=Dimension.REPEAT_RESTRICTION;subject=Subject.GENERAL_UNDERGRADUATE;}
+            case "S09/GENERAL:schedule-previous-semester","S09/GENERAL:schedule-order" -> {
+                dimension=Dimension.SCHEDULE;subject=Subject.GENERAL_UNDERGRADUATE;}
+            // S05的同一事实会随“一般比例”与“个人学分缺口”两个审核条目下发；能力相同，缺口由核验需求与宿主问题边界区分。
+            case "S05/GENERAL:plan-selection-basis","S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis" -> {
+                dimension=Dimension.STUDY_ARRANGEMENT;subject=Subject.GENERAL_UNDERGRADUATE;}
+            case "S05/GENERAL:plan-required-credits","S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits" -> {
+                dimension=Dimension.GRADUATION_CREDITS;subject=Subject.GENERAL_UNDERGRADUATE;}
+            case "S05/GENERAL:online-general-half","S05/PERSONAL_CREDIT_DEFICIT:online-general-half" -> {
+                dimension=Dimension.NETWORK_PROPORTION;subject=Subject.PUBLIC_ELECTIVE;}
             case "S07/GENERAL:public-semester-four-credits" -> {dimension=Dimension.SEMESTER_CREDIT_LIMIT;subject=Subject.PUBLIC_ELECTIVE;}
             case "S10/RETAKE_ONLY:public-failed-no-retake" -> {dimension=Dimension.RETAKE;subject=Subject.PUBLIC_ELECTIVE;}
             case "S10/RETAKE_ONLY:professional-failed-retake-application" -> {dimension=Dimension.RETAKE;subject=Subject.PROFESSIONAL_ELECTIVE;}

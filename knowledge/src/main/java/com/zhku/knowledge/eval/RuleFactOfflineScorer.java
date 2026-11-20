@@ -46,12 +46,13 @@ public final class RuleFactOfflineScorer {
     }
     public record CitationCounts(long applicable, long passed, long failed, long unjudgeable, long notApplicable) {}
 
-    /** Only the explicitly versioned draft and its byte-pinned manifest are accepted. */
+    /** Accept the historical draft or reviewed frozen development v1.0 with a byte-pinned manifest. */
     public static Dataset load(Path datasetFile, Path manifestFile) throws IOException {
         byte[] bytes = Files.readAllBytes(datasetFile);
         JsonNode manifest = JSON.readTree(Files.readAllBytes(manifestFile));
         JsonNode data = JSON.readTree(bytes);
-        if (!"v3-review-draft".equals(data.path("datasetVersion").asText())
+        String version = data.path("datasetVersion").asText();
+        if (!("v3-review-draft".equals(version) || "v1.0".equals(version))
                 || !data.path("datasetVersion").asText().equals(manifest.path("datasetVersion").asText())
                 || !data.path("datasetId").asText().equals(manifest.path("datasetId").asText())
                 || !datasetFile.getFileName().toString().equals(manifest.path("datasetFile").asText())
@@ -62,6 +63,7 @@ public final class RuleFactOfflineScorer {
                 || manifest.path("caseCount").asInt(-1) != data.path("cases").size()) {
             throw new IllegalArgumentException("dataset or manifest mismatch");
         }
+        if ("v1.0".equals(version)) validateFrozen(data, manifest);
         JsonNode policy = data.path("scoringContract").path("citationApplicability");
         if (!"NOT_APPLICABLE".equals(policy.path("noRequiredEvidenceAndNoCitation").asText())
                 || !"VERIFY_EACH_CITATION".equals(policy.path("citationPresent").asText())
@@ -77,6 +79,35 @@ public final class RuleFactOfflineScorer {
             if (cases.putIfAbsent(id, value) != null) throw new IllegalArgumentException("duplicate case");
         }
         return new Dataset(cases);
+    }
+
+    private static void validateFrozen(JsonNode data, JsonNode manifest) {
+        if (!"FROZEN".equals(data.path("datasetStatus").asText())
+                || !"zhku-rule-fact-check-effect".equals(data.path("datasetId").asText())
+                || !"HISTORICAL_2025_09_02_DEVELOPMENT_EXPECTATIONS_ONLY".equals(data.path("freezeScope").asText())
+                || data.path("caseCount").asInt() != 20) {
+            throw new IllegalArgumentException("invalid frozen development identity");
+        }
+        for (String field : List.of("datasetStatus", "frozenAt", "reviewer", "freezeScope")) {
+            if (text(data, field).isBlank() || !data.path(field).equals(manifest.path(field)))
+                throw new IllegalArgumentException("frozen metadata mismatch: " + field);
+        }
+        try { java.time.OffsetDateTime.parse(text(data, "frozenAt")); }
+        catch (java.time.format.DateTimeParseException ex) {
+            throw new IllegalArgumentException("invalid frozen timestamp", ex);
+        }
+        Set<String> ids = new HashSet<>();
+        for (JsonNode item : data.path("cases")) {
+            String id = text(item, "caseId");
+            if (!ids.add(id) || !id.matches("RFE-(00[1-9]|01[0-9]|020)")
+                    || !"APPROVED".equals(item.path("humanReviewStatus").asText())
+                    || !"APPROVED".equals(item.path("humanReview").path("humanReviewStatus").asText())
+                    || !id.equals(item.path("humanReview").path("caseId").asText())) {
+                throw new IllegalArgumentException("unapproved or invalid frozen case: " + id);
+            }
+            text(item.path("humanReview"), "reviewer");
+            text(item.path("humanReview"), "reviewedAt");
+        }
     }
 
     /** matchedFactIds are externally verified; complete means all required facts were assessed. */

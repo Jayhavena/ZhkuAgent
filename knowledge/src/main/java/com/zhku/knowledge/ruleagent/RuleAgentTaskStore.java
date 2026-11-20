@@ -30,7 +30,7 @@ public final class RuleAgentTaskStore implements AutoCloseable {
         final UUID id;final Owner owner;final String question;final List<RuleAgentRunner.Question> questions;final Instant expires;
         long version=1;int runs=1,clarifications,attempts;UUID turn=UUID.randomUUID();AgentRunContext context;TaskSnapshot published;ResultEnvelope previous;Instant waitingExpires;Work work;
         Map<String,String> conditions=Map.of();final List<Turn> history=new ArrayList<>();List<RuleAgentRunTrace> traces=List.of();
-        Slot(Owner owner,String question,Instant expires,AgentRunContext context){this.id=UUID.randomUUID();this.owner=owner;this.question=question;this.expires=expires;this.questions=split(question);this.context=context;history.add(new Turn(turn,context.runId(),question,conditions,TaskStatus.ACTIVE,0));}
+        Slot(Owner owner,String question,Instant expires,AgentRunContext context){this.id=UUID.randomUUID();this.owner=owner;this.question=question;this.expires=expires;this.questions=split(question);this.context=context;this.conditions=initialConditions(questions);history.add(new Turn(turn,context.runId(),question,conditions,TaskStatus.ACTIVE,0));}
     }
     private record Ticket(Slot slot,long version,AgentRunContext context,UUID turn,Map<String,String> conditions){}
     public RuleAgentTaskStore(Executor executor,Factory factory,Clock clock,Limits limits){this.executor=Objects.requireNonNull(executor);this.factory=Objects.requireNonNull(factory);this.clock=Objects.requireNonNull(clock);this.limits=Objects.requireNonNull(limits);this.observer=null;this.dispatcher=null;}
@@ -144,6 +144,17 @@ public final class RuleAgentTaskStore implements AutoCloseable {
     private static Ticket ticket(Slot slot){return new Ticket(slot,slot.version,slot.context,slot.turn,slot.conditions);}
     private static String payload(Object value){try{return new ObjectMapper().writeValueAsString(value);}catch(Exception invalid){throw new Failure(Code.CONFLICT);}}
     private static List<RuleAgentRunner.Question> split(String question){var result=new ArrayList<RuleAgentRunner.Question>();for(String text:question.split("[；;]")){if(!text.isBlank())result.add(new RuleAgentRunner.Question("q"+(result.size()+1),text.trim()));}if(result.isEmpty()||result.size()>4)throw new Failure(Code.NEEDS_CONFIRMATION);return List.copyOf(result);}
+    private static final java.util.regex.Pattern EXPLICIT_COURSE_SCOPE = java.util.regex.Pattern.compile(
+        "^(?:如果(?:挂科|成绩不合格)的是(公共选修课|专业选修课)[，,](?:手册怎么说|可以重修吗|能重修吗)|(公共选修课|专业选修课)(?:可以|能)办理缓考吗)[？?]$");
+
+    static Map<String,String> initialConditions(List<RuleAgentRunner.Question> questions) {
+        // 条件表是任务级的，只接收单一问题中明确限定的类别，避免把一个子问题的条件用于另一个。
+        if (questions.size() != 1) return Map.of();
+        var match = EXPLICIT_COURSE_SCOPE.matcher(questions.getFirst().text());
+        if (!match.matches()) return Map.of();
+        String category = match.group(1) == null ? match.group(2) : match.group(1);
+        return Map.of("courseType", category.equals("公共选修课") ? "PUBLIC" : "PROFESSIONAL");
+    }
     private static String resolve(String message,Clarification condition){
         String text=message.trim();if(condition.allowedValues().contains(text))return text;
         if(text.matches("^(?:改问|换个问题|另外问|我想问|我要问).+"))throw new Failure(Code.NEW_TASK_REQUIRED);

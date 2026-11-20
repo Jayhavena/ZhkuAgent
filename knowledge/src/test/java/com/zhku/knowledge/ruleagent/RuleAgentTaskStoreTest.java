@@ -15,6 +15,24 @@ import static org.assertj.core.api.Assertions.*;
 
 @Timeout(15)
 class RuleAgentTaskStoreTest {
+    @Test void seedsOnlyAnExplicitSingleCourseBranchOnTheInitialRun() {
+        var examples=Map.of("如果挂科的是公共选修课，手册怎么说？","PUBLIC",
+                "如果挂科的是专业选修课，可以重修吗？","PROFESSIONAL",
+                "公共选修课可以办理缓考吗？","PUBLIC");
+        try(var store=store()){
+            for(var example:examples.entrySet()){
+                var accepted=store.create(owner,new CreateTask(example.getKey(),UUID.randomUUID()));
+                assertThat(store.history(owner,accepted.taskId()).getFirst().conditions()).containsOnlyKeys("courseType")
+                        .containsEntry("courseType",example.getValue());
+            }
+        }
+        for(String text:List.of("选修课挂科了，可以重修吗？","如果挂科的不是公共选修课，手册怎么说？",
+                "公共选修课或专业选修课可以办理缓考吗？","公共选修课可以办理缓考吗？专业选修课呢？")){
+            assertThat(RuleAgentTaskStore.initialConditions(List.of(new RuleAgentRunner.Question("q1",text)))).isEmpty();
+        }
+        assertThat(RuleAgentTaskStore.initialConditions(List.of(new RuleAgentRunner.Question("q1","公共选修课可以办理缓考吗？"),
+                new RuleAgentRunner.Question("q2","可以重修吗？")))).isEmpty();
+    }
     final Owner owner=new Owner(UUID.randomUUID(),UUID.randomUUID());final Queue<Runnable> queued=new ConcurrentLinkedQueue<>();final AtomicInteger decisions=new AtomicInteger();final AtomicBoolean revoked=new AtomicBoolean();
     final AtomicReference<Instant> time=new AtomicReference<>(Instant.parse("2026-10-13T08:00:00Z"));
     final Clock clock=new Clock(){public ZoneId getZone(){return ZoneOffset.UTC;}public Clock withZone(ZoneId zone){return this;}public Instant instant(){return time.get();}};
