@@ -20,6 +20,8 @@
 .\knowledge\scripts\ensure-zhku-postgres.cmd -CheckOnly
 ```
 
+> 漂移判定的工作区边界：完整模式与 `-RepairConfiguration` 的 Compose/SQL bind 路径随当前 worktree 解析。共享容器的 bind 锚定在它创建或修复时的工作区（当前为 `main`）；从其他 worktree 运行完整模式会如实报告 `SQL init bind path` 漂移。此时应回到锚定工作区运行入口完成验证，不要在其他 worktree 直接 `-RepairConfiguration` 把共享容器改绑到临时检出。
+
 旧入口 `scripts/zhku-preflight.ps1` 已委托同一实现；默认自动启动，旧 `-StartDocker` 参数继续兼容。希望把既有凭证继承到自己的 PowerShell 会话时使用点号调用：
 
 ```powershell
