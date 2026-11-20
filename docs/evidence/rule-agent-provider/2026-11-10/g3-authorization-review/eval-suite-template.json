@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "g3-20261110-p02",
+  "blocks": [
+    {
+      "blockId": "g3-20261110-p02",
+      "kind": "EVIDENCE_BUNDLE",
+      "evidenceDir": "__G3_ACTUAL_EVIDENCE_DIRECTORY_AFTER_EXECUTION__",
+      "cases": [
+        {
+          "caseId": "G3-P02-CLARIFY",
+          "title": "真实两轮首轮：必要追问而非抢答",
+          "runId": "__ACTUAL_RUN_ID_AFTER_EXECUTION__",
+          "expectedVerdict": "PASS",
+          "expectedDetails": [
+            "EXPECTATIONS_MET"
+          ],
+          "expectation": {
+            "taskStatus": "WAITING_USER",
+            "runState": "INCOMPLETE",
+            "coverage": "NONE",
+            "requiredActions": [
+              "SEARCH_REVIEWED_RULES",
+              "READ_VERIFIED_RULE",
+              "ASK_NECESSARY_CONDITION",
+              "PUBLICATION_REVIEW"
+            ],
+            "issueReason": "MISSING_CONDITION",
+            "expectClaims": false,
+            "observedAction": "SEARCH_REVIEWED_RULES",
+            "observationStatus": "SUCCEEDED",
+            "requireEvidenceLinks": false,
+            "expectRejectedUnknownTool": false
+          }
+        },
+        {
+          "caseId": "G3-P02-RESOLVE",
+          "title": "真实两轮续答：结论带证据链",
+          "runId": "__ACTUAL_RUN_ID_AFTER_EXECUTION__",
+          "expectedVerdict": "PASS",
+          "expectedDetails": [
+            "EXPECTATIONS_MET"
+          ],
+          "expectation": {
+            "taskStatus": "RESOLVED",
+            "runState": "SUCCEEDED",
+            "coverage": "COMPLETE",
+            "requiredActions": [
+              "SEARCH_REVIEWED_RULES",
+              "READ_VERIFIED_RULE",
+              "FINISH_CHECK",
+              "PUBLICATION_REVIEW"
+            ],
+            "issueReason": null,
+            "expectClaims": true,
+            "observedAction": "READ_VERIFIED_RULE",
+            "observationStatus": "SUCCEEDED",
+            "requireEvidenceLinks": true,
+            "expectRejectedUnknownTool": false
+          }
+        }
+      ]
+    }
+  ]
+}
