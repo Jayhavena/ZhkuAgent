@@ -1,0 +1,75 @@
+[ {
+  "taskId" : "e8d2dd78-63f6-4617-9f5a-a27559860102",
+  "turnId" : "60cf2d1b-1ec9-43f4-bacf-62eee3445035",
+  "runId" : "002566a0-24ed-4ef3-96e6-6f9a359db9b4",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "INCOMPLETE",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "993bf691-4ae7-3550-b552-8359447d0922",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "f933d586-2e30-3471-8b19-c46003ffb03e",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "4e5555a5-7c37-3778-89c4-f700b3e8760e",
+    "type" : "FINISH_CHECK",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "bbf323be-dd97-3438-ab12-40836ddd8019",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  } ],
+  "result" : {
+    "coverage" : "PARTIAL",
+    "evidence" : [ {
+      "id" : "7bf73347-1398-486c-b6e5-fc91daf6cd8f:0-36",
+      "sourceId" : "7a30da77-2af6-41ee-8b9a-ff5705e8bbae",
+      "chunkId" : "1caaa2ba-9c82-34cd-b332-6527db2bd26f",
+      "revision" : "2025.9.2"
+    } ],
+    "evidenceRelations" : [ {
+      "targetId" : "c0",
+      "evidenceId" : "7bf73347-1398-486c-b6e5-fc91daf6cd8f:0-36",
+      "role" : "CLAIM"
+    } ],
+    "items" : [ {
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "sha256:21144f986248fca141c037b642ff008ca037a44b1c509ec4f9b5e78a61db08c1"
+      } ]
+    } ],
+    "issues" : [ {
+      "kind" : "SCOPE_LIMIT",
+      "reasonCode" : "MATERIAL_SCOPE_MISMATCH"
+    } ]
+  }
+} ]

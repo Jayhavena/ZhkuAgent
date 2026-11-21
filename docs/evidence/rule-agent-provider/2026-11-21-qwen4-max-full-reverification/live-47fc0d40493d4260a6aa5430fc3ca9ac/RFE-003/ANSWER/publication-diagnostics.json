@@ -1,0 +1,63 @@
+{
+  "relevanceExclusions" : [ ],
+  "relevanceRejections" : [ ],
+  "semanticReviews" : [ {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "17339e1780a6b1822405e93b9bc00b520cd905468a76e5fd991c5b41d6e3246e",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 14
+        },
+        "dimension" : "HOURS_NORMAL",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      }, {
+        "id" : "r2",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 14,
+          "endExclusive" : 26
+        },
+        "dimension" : "HOURS_LIMIT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S03/GENERAL:hours-principle",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r1",
+        "factId" : "S03/GENERAL:hours-upper-limit",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r2",
+        "factId" : "S03/GENERAL:hours-upper-limit",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r2",
+        "factId" : "S03/GENERAL:hours-principle",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    }
+  } ],
+  "captureSha256" : "ab95a811a5c974d7e42231e81cf03b220b240cac75a3e2e9ec9076a4997f8114",
+  "identity" : {
+    "caseId" : "RFE-003",
+    "taskId" : "929df83f-527a-4977-b84c-816c75cc5f4f",
+    "runId" : "d24c2c31-fe04-499f-ade8-c33bdc332aa4",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen4-max",
+    "configurationSha256" : "a2ec27e046b1ca6518b972e0999732565f38421d10a74d9b06a9a2beb7a834df"
+  }
+}

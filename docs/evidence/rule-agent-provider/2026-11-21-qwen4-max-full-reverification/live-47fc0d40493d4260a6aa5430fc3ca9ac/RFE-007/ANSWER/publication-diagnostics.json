@@ -1,0 +1,65 @@
+{
+  "relevanceExclusions" : [ {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S05/GENERAL:online-general-half", "S05/GENERAL:plan-required-credits", "S05/GENERAL:plan-selection-basis" ],
+      "rejectedFact" : {
+        "factId" : "S05/GENERAL:plan-required-credits",
+        "dimension" : "GRADUATION_CREDITS",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "3a22b497c2165750bbbae2a9369190ba97f26f77fda462e2c35c5c12c77f0a0d"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "NETWORK_PROPORTION",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S05/GENERAL:online-general-half",
+          "role" : "CORE"
+        } ]
+      } ]
+    }
+  } ],
+  "relevanceRejections" : [ ],
+  "semanticReviews" : [ {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "ae14228c580d9fa75a73fb04e04334be1480966d77597f2a2dbb213b0fccda58",
+      "requirements" : [ {
+        "id" : "q1-network-proportion",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 27
+        },
+        "dimension" : "NETWORK_PROPORTION",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "q1-network-proportion",
+        "factId" : "S05/GENERAL:online-general-half",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    }
+  } ],
+  "captureSha256" : "a4184935e40fdbcb047668465550af4f18882751db9fce54afc9c577b3f96472",
+  "identity" : {
+    "caseId" : "RFE-007",
+    "taskId" : "4bbd5798-2a72-4cda-9c99-aea264fb29f3",
+    "runId" : "154062d5-5d22-4c8e-9720-bfa223da7520",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen4-max",
+    "configurationSha256" : "a2ec27e046b1ca6518b972e0999732565f38421d10a74d9b06a9a2beb7a834df"
+  }
+}

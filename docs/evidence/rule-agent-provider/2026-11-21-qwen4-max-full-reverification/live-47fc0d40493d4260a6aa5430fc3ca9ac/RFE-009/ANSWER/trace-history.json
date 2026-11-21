@@ -1,0 +1,82 @@
+[ {
+  "taskId" : "1aa259ce-7e00-4e3b-9e2f-17f7aae0012f",
+  "turnId" : "6ae46e4a-0da9-4572-bdbe-e8ed81c75932",
+  "runId" : "ce21816d-8af7-46f0-9e85-9ecf3d1f9328",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "INCOMPLETE",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "0b57c64e-a5cc-3250-9d2c-f77ebeb59261",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "01f5be13-8d72-3fa9-a6c3-363670e29923",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "ccb0c12c-4913-335f-a69b-08a4800c1aa1",
+    "type" : "FINISH_CHECK",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "b9374f92-5e59-34ae-afce-bac3484b8607",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  } ],
+  "result" : {
+    "coverage" : "PARTIAL",
+    "evidence" : [ {
+      "id" : "437a56e4-1f2b-45c3-9485-0dde47f0f71a:0-61",
+      "sourceId" : "7a30da77-2af6-41ee-8b9a-ff5705e8bbae",
+      "chunkId" : "eea3fe81-feeb-3490-9c8f-95d1c04f25ed",
+      "revision" : "2025.9.2"
+    } ],
+    "evidenceRelations" : [ {
+      "targetId" : "c0",
+      "evidenceId" : "437a56e4-1f2b-45c3-9485-0dde47f0f71a:0-61",
+      "role" : "CLAIM"
+    }, {
+      "targetId" : "c1",
+      "evidenceId" : "437a56e4-1f2b-45c3-9485-0dde47f0f71a:0-61",
+      "role" : "CLAIM"
+    } ],
+    "items" : [ {
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "sha256:df81a494e25d66ccb2b8df6f056182f2b4a2205b36969627026d143429bdb393"
+      }, {
+        "id" : "c1",
+        "factId" : "sha256:db2f63e5d1174583bc706598ddf7e368e2093d625bf68781a129e8b1895ceca8"
+      } ]
+    } ],
+    "issues" : [ {
+      "kind" : "DATA_GAP",
+      "reasonCode" : "PERSONAL_RECORD_NOT_AVAILABLE"
+    } ]
+  }
+} ]

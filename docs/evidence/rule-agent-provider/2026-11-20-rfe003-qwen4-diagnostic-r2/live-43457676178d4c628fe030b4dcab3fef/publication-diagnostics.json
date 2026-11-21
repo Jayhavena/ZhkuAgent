@@ -1,0 +1,55 @@
+{
+  "identity" : {
+    "caseId" : "RFE-003",
+    "taskId" : "b5fe9fbb-6100-463f-8570-fa458afad44b",
+    "runId" : "4f555368-1d32-4af1-b3a5-749efa4a481a",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen4-max",
+    "configurationSha256" : "c490257e7ddb63ac42666fce0907945c641f4e3bbfbebbb98a33c638f88d729e"
+  },
+  "relevanceExclusions" : [ ],
+  "relevanceRejections" : [ ],
+  "semanticReviews" : [ {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "93f55f992202cff0659de04c9a51baf31769b9537222ba8e5b78574791a1e6a8",
+      "requirements" : [ {
+        "id" : "q1-hours-normal",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 14
+        },
+        "dimension" : "HOURS_NORMAL",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      }, {
+        "id" : "q1-hours-limit",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 14,
+          "endExclusive" : 26
+        },
+        "dimension" : "HOURS_LIMIT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "q1-hours-normal",
+        "factId" : "S03/GENERAL:hours-principle",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "q1-hours-limit",
+        "factId" : "S03/GENERAL:hours-upper-limit",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    }
+  } ],
+  "captureSha256" : "65561d483fd3a19d0c97f840389352554c4a11ed7cccd97e513d59ffbd6c2dbd"
+}
