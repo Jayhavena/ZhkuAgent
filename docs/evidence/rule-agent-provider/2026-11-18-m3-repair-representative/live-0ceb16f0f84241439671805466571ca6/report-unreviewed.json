@@ -1,0 +1,886 @@
+{
+  "sources" : {
+    "RFE-001/ANSWER/annotation-pending.json" : "23255accb820d62e3b1c90104e0200840beab5e547d6f19f4ceb7f007c1032f6",
+    "RFE-001/ANSWER/capture.json" : "bd4a0ec1c716a71e203f10cdda1f1c38cf0a2f726892f31233993f287b166042",
+    "RFE-001/ANSWER/publication-diagnostics.json" : "fb54a3acb7a9a8ecc170b3fd209e7af8e219136204ede89441945981fec263fc",
+    "RFE-001/ANSWER/turn-finished.json" : "c7bf6daaeffede6b57020ca84cb2ffc743fee64b952da05f90bc1162d4965599",
+    "RFE-001/case-closeout.json" : "3740cf2feb17b5351b53ca667cc81a6e07d2be8148fbe517b17bc71641274a8a",
+    "RFE-001/case-started.json" : "81da91bf55685fa126c84a93fa9f63eda8746e32d0d4b9de76cc6e3ac4db5529",
+    "RFE-001/provider-traces.jsonl" : "cdce15e00eba506b396bd0420e44c908fb46daabc4a73c1e3c0da78c4ff25406",
+    "RFE-004/ANSWER/annotation-pending.json" : "332bf3200a05681856c0690aae6d057f9e36c09d565b26439defdbcefa89653a",
+    "RFE-004/ANSWER/capture.json" : "ac9733615d123cbf57b47e460004cdaa860f67295bb650c22e962024f8677257",
+    "RFE-004/ANSWER/publication-diagnostics.json" : "7c2dd753f55f45d145713aefc5d5cd61b513baa27139911e33d5ec31581a28dc",
+    "RFE-004/ANSWER/turn-finished.json" : "9ad94622cd20bb06fa778b135ea4d7eb17ba60d685180dceae2a20b42ae5e031",
+    "RFE-004/case-closeout.json" : "53ab08ddb752ef6360e4c86e847c3e8827fc9f4688b4e283a25551fa0e4e380f",
+    "RFE-004/case-started.json" : "76986a20bcffe18a2dfe92517f593075933d1d8c05cfe57b4b7b56994cac8208",
+    "RFE-004/provider-traces.jsonl" : "93e86a3b98051f28731c20823703cc5eefa1affd4feed090c04a77b245b931fa",
+    "RFE-007/ANSWER/annotation-pending.json" : "92ab1c0e8dc557fcb0e9f2eeee023e332d88d7d7b75dbd523a46b61a97d130eb",
+    "RFE-007/ANSWER/capture.json" : "3eb15f95d0938417f937db433932103e9cf02b76a08d5ecb0984ccbe7f91bd1c",
+    "RFE-007/ANSWER/publication-diagnostics.json" : "18c5b4c315ad392b792331cb81cfc50c2e381219e08639cb31ef0017c140ce15",
+    "RFE-007/ANSWER/turn-finished.json" : "06e5eb84af497f3c5119be29321f56100a75d9c27daa11552d605a95e90728b5",
+    "RFE-007/case-closeout.json" : "23642287965a5d97f789f71f9e6400c2cd7523bae16f7b5d56bcf41a84c0ba61",
+    "RFE-007/case-started.json" : "44940abf5fe0d28fe2f38e5607a4cdc7571f9fe6967fa690d3bfee2d8a1fe870",
+    "RFE-007/provider-traces.jsonl" : "2b17710dc80d31cc4272d984ff377f9afc28171e5c0385252aef4ce15c5f75db",
+    "RFE-008/ANSWER/annotation-pending.json" : "2002935d4a04d062ed55ea98e04a9b2f219c866dd4372b72a9bc1fd1b83c53a4",
+    "RFE-008/ANSWER/capture.json" : "d521dc90908130f1ab28afb5c02b435169eae604c5c1520e534772bc764c3071",
+    "RFE-008/ANSWER/publication-diagnostics.json" : "551816a3b14aa7028c9983d5a3b9dec63a6650cbf586f095cc3762689740ff2e",
+    "RFE-008/ANSWER/turn-finished.json" : "56c553cf083aaabd63cac6b58f2fec813acf3207c54a6d2d82f4f0e97fa1a3b5",
+    "RFE-008/case-closeout.json" : "97c9ac9af6b28a9b53e270439441d093337e6eb4b63aa728d8b3970b8ed29e54",
+    "RFE-008/case-started.json" : "aa5f5cfd9529657644e76004a2a46e491cb8a74b304fc90ded91d69246631542",
+    "RFE-008/provider-traces.jsonl" : "8a034b815de5c8987e246a44e19fb3293bf48623304ea0b97cc8a111a7f992ae",
+    "RFE-010/ANSWER/annotation-pending.json" : "43bd0396e96eb9605081e9a47d827c24c088cf19b7c367b96a80c093113b0cbb",
+    "RFE-010/ANSWER/capture.json" : "af6510d175792fe756008cd276f426a77252ca156d8e88bb74cb0c33f9390308",
+    "RFE-010/ANSWER/publication-diagnostics.json" : "75b144c6fc2f2bebf113ea68cf8e77a7f6ac799b9f56c6cfecafa68209db057f",
+    "RFE-010/ANSWER/turn-finished.json" : "c50bf960096dbd2460353a0bdd78a5c6b4735abe83d410357beb0eaab692f84f",
+    "RFE-010/case-closeout.json" : "64064f8ad7319ab94359bfa01bc653fd6d0a3041088e664fd1ff93bd7b4e0973",
+    "RFE-010/case-started.json" : "15611387f9b0468d25969090c42c39e96e432a71ad2f7a0d46b89cc40384f282",
+    "RFE-010/provider-traces.jsonl" : "46857f34eeeacd5f7a2f22795c2616eaeedfb691c02883c7614605e6d7213cce",
+    "RFE-013/ASK/annotation-pending.json" : "80f887baab47f99dd5afffa9ca7f16ac7c527a827b42fbba8b134e57a6d0f050",
+    "RFE-013/ASK/capture.json" : "0a7b363fa6f4c5ec88345379b6db7beb25c9e9fe19086d1ce08aecc7758d6cb8",
+    "RFE-013/ASK/publication-diagnostics.json" : "fee9fdefadedba7dd2e8ee77074a9c65920abeea53ef12e66758e3afa7116408",
+    "RFE-013/ASK/turn-finished.json" : "1ab5a194acb2bb107b83c071e26a527dd1cb857fd6684719d9eb63dc4c43c0da",
+    "RFE-013/RESOLVE_PUBLIC/annotation-pending.json" : "b34d6fa04aedb5039cfb52cf60ecf26dd7ee87d884ca7a217ba55d17b61d03ab",
+    "RFE-013/RESOLVE_PUBLIC/capture.json" : "fc26227fe7dcab377b8b4e09dd4f9db098462c6925faeee088c31d8b9eb092b9",
+    "RFE-013/RESOLVE_PUBLIC/publication-diagnostics.json" : "4e9c78f44fe74c6564b7bd9f81848f9f811b315af2f4ac750841655f1ea61a58",
+    "RFE-013/RESOLVE_PUBLIC/turn-finished.json" : "538384f7246fefa3814bf6b3923353c25f344f366eea87519affe4b2c42f2466",
+    "RFE-013/case-closeout.json" : "b0468cd64098b27602d15cd2f531805896b3b213d81ec25b3da4ed8784e3aaa5",
+    "RFE-013/case-started.json" : "26a5ad632144b26cfc3f4799ccf25053a7c26b1284a4e6e75e611fa761a051e1",
+    "RFE-013/provider-traces.jsonl" : "e13dbd582b4e34a9be37fadbed3530203254eefc8e4d91862ad2cebce0f73a2b",
+    "RFE-014/ANSWER/annotation-pending.json" : "3d6badfeed2a2dc2622e1460f8d4e15574ac772b21eb30ecc95f1c062eedd2a5",
+    "RFE-014/ANSWER/capture.json" : "f4d01831d05ba575c38bd030698c4a480ccf0f11dc800f0fa7b58ea3adc1b171",
+    "RFE-014/ANSWER/publication-diagnostics.json" : "e43855f946b858297a2f02c14b688f67240eb3ef6316d3494ed3f4ac35f3288e",
+    "RFE-014/ANSWER/turn-finished.json" : "e4b10ea8bbe2ef137b17b359c36a2391b85c6534e3cd24a166bfbe3933766da9",
+    "RFE-014/case-closeout.json" : "2abb4d94de3e38fd72194833f69d1590cfae46eb81c901c4a6b77d47c1c089e0",
+    "RFE-014/case-started.json" : "3985e9fb1983bd62a473e812a322038c9c302555995bf805182aed89fed1837e",
+    "RFE-014/provider-traces.jsonl" : "52cc13ce031ceee7adaa623e015de7f3d357181ce5d56bc321ce2172e603db5e",
+    "RFE-015/ANSWER/annotation-pending.json" : "7104405ac538c6d1936f3b1aacd083573afd55120192534f15d04ba2cd254968",
+    "RFE-015/ANSWER/capture.json" : "8a7215ecdbd8d39a387cdd452d8e991dfeb1f5890afb35ec3255a7f9d8786eab",
+    "RFE-015/ANSWER/publication-diagnostics.json" : "dc9bf2051baa24deb83c50d666456e695d6a86c9a53390f3df9d247347591655",
+    "RFE-015/ANSWER/turn-finished.json" : "7a62142a218425b6f354e688ec1f6dfe7325f4d5b77d8ade6f9469bdfbef4554",
+    "RFE-015/case-closeout.json" : "15ad049af4fe1641b300fe56d8c8b2baf4b65665dd1bfc119d6405e3871fdd78",
+    "RFE-015/case-started.json" : "372a843f6cd125ea4e66f969b94a32e62d9f94a3212695144c5e599582217ae7",
+    "RFE-015/provider-traces.jsonl" : "78f54eb0fe9e79cdc79ca9e1d705e2e1c9aab4d72f5d3479315aeae9e4740036",
+    "RFE-016/ANSWER/annotation-pending.json" : "b90fcfc8408c5ed95cc03cb4c3a53a08b3954feb531ff48aca030a66e160ca1b",
+    "RFE-016/ANSWER/capture.json" : "933841e2fa4a8af569f74b6762cde4a99814f13a5007535d7b314eb9053b84cb",
+    "RFE-016/ANSWER/publication-diagnostics.json" : "1715a1ffbc45ea124d20e864d1641d13d2179decee72b5015e2cad97edf661a2",
+    "RFE-016/ANSWER/turn-finished.json" : "2c78ff5c0f40077b5e16473b77113de17be720fb0c024bd521dbbba063fbda82",
+    "RFE-016/case-closeout.json" : "bbb3e6f19c64936d62ed1e96c1398220865c76f3ece8edf4fb40f35a7fb05edb",
+    "RFE-016/case-started.json" : "93aca2d3e3d8f5de84c6337fbd0c97a7da80eb22474bbd409c2cc763adaa1e3a",
+    "RFE-016/provider-traces.jsonl" : "a8a3ad0fd194d4cdf21dc26bd61b3cd294bc99793d53f7500f89df943e8faa45",
+    "baseline-identity.json" : "ad58253f89c3c49b16d868464cf70f5b66daa7b3874d9b24b0086aab7748d725",
+    "batch-closeout.json" : "536c03334fba7eea601b23c446cb28f3c362dcccc199dfc33f72aa7b6b53d2e1",
+    "batch-plan.json" : "bf94530e126484c289dccda66fddbfa2d02c16377c38d4db33590c76127afa22",
+    "execution-approval.json" : "6a8e1120b7cfd44e8a1b493e10aa2c69854dfe5b4ece8059207f3c113857ab41",
+    "execution-reserved.json" : "8817627d6b85f83ebdce4ebbff857b5d2821ef3fe5d0c2fce929b41ee803c1ce"
+  },
+  "executionIdentity" : {
+    "packageSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5",
+    "approvalSha256" : "6a8e1120b7cfd44e8a1b493e10aa2c69854dfe5b4ece8059207f3c113857ab41",
+    "reservationSha256" : "8817627d6b85f83ebdce4ebbff857b5d2821ef3fe5d0c2fce929b41ee803c1ce",
+    "authorizationEvidence" : "PACKAGE_BOUND_LOCAL_COPIES"
+  },
+  "qualityReport" : {
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "denominator" : 9,
+    "passed" : 0,
+    "failed" : 3,
+    "unjudgeable" : 6,
+    "errors" : 0,
+    "knownOutcomes" : 3,
+    "fullyEvaluable" : 0,
+    "casePassRate" : 0.0,
+    "knownOutcomeRatio" : 0.3333333333333333,
+    "fullyEvaluableRatio" : 0.0,
+    "cases" : {
+      "RFE-001" : {
+        "outcome" : "UNJUDGEABLE",
+        "fullyEvaluable" : false,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-4]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:FACT_REVIEW_INCOMPLETE", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:CITATION_INVENTORY_MISSING" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+          },
+          "executionSafety" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:EXPECTATIONS_MET", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-001",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-001",
+              "taskId" : "abb058bb-86c9-4f68-bfe0-039c4ed76ef5",
+              "runId" : "d49b6ec4-da93-4a73-bb7f-c33e115a74f7",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "UNJUDGEABLE",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-4]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "FACT_REVIEW_INCOMPLETE", "REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "CITATION_INVENTORY_MISSING" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+              },
+              "executionSafety" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "EXPECTATIONS_MET", "REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-001/ANSWER/capture.json",
+          "evidenceSha" : "bd4a0ec1c716a71e203f10cdda1f1c38cf0a2f726892f31233993f287b166042",
+          "error" : null,
+          "annotationPath" : "RFE-001/ANSWER/annotation-pending.json",
+          "annotationSha" : "23255accb820d62e3b1c90104e0200840beab5e547d6f19f4ceb7f007c1032f6"
+        } ]
+      },
+      "RFE-004" : {
+        "outcome" : "UNJUDGEABLE",
+        "fullyEvaluable" : false,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-5]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12]" ]
+          },
+          "factSupport" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:FACT_REVIEW_INCOMPLETE", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:CITATION_INVENTORY_MISSING" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+          },
+          "executionSafety" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:EXPECTATIONS_MET", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-004",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-004",
+              "taskId" : "8d4f5504-ed01-43b8-af04-4c842e00734b",
+              "runId" : "c08b50a2-d6d9-4a77-80ea-2745baac609d",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "UNJUDGEABLE",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-5]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12]" ]
+              },
+              "factSupport" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "FACT_REVIEW_INCOMPLETE", "REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "CITATION_INVENTORY_MISSING" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+              },
+              "executionSafety" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "EXPECTATIONS_MET", "REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-004/ANSWER/capture.json",
+          "evidenceSha" : "ac9733615d123cbf57b47e460004cdaa860f67295bb650c22e962024f8677257",
+          "error" : null,
+          "annotationPath" : "RFE-004/ANSWER/annotation-pending.json",
+          "annotationSha" : "332bf3200a05681856c0690aae6d057f9e36c09d565b26439defdbcefa89653a"
+        } ]
+      },
+      "RFE-007" : {
+        "outcome" : "FAIL",
+        "fullyEvaluable" : false,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-8]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:FACT_REVIEW_INCOMPLETE", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:CITATION_INVENTORY_MISSING" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+          },
+          "executionSafety" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:EXECUTION_FAILED_OR_STOPPED", "ANSWER:TERMINAL_ISSUE:ANSWER_COVERAGE_INCOMPLETE", "ANSWER:TERMINAL_ISSUE:DETAIL_NOT_IN_REVIEWED_TEXT" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-007",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-007",
+              "taskId" : "a4e06276-8223-4b15-ab8d-723979251c76",
+              "runId" : "ff76b46b-9a2d-4f85-9536-1e11391a424c",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "FAIL",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-8]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "FACT_REVIEW_INCOMPLETE", "REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "CITATION_INVENTORY_MISSING" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+              },
+              "executionSafety" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "EXECUTION_FAILED_OR_STOPPED", "TERMINAL_ISSUE:ANSWER_COVERAGE_INCOMPLETE", "TERMINAL_ISSUE:DETAIL_NOT_IN_REVIEWED_TEXT" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-007/ANSWER/capture.json",
+          "evidenceSha" : "3eb15f95d0938417f937db433932103e9cf02b76a08d5ecb0984ccbe7f91bd1c",
+          "error" : null,
+          "annotationPath" : "RFE-007/ANSWER/annotation-pending.json",
+          "annotationSha" : "92ab1c0e8dc557fcb0e9f2eeee023e332d88d7d7b75dbd523a46b61a97d130eb"
+        } ]
+      },
+      "RFE-008" : {
+        "outcome" : "FAIL",
+        "fullyEvaluable" : false,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-8]; observed=[handbook-2025-article-8, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-2, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:FACT_REVIEW_INCOMPLETE", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:CITATION_INVENTORY_MISSING" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+          },
+          "executionSafety" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:COVERAGE_MISMATCH", "ANSWER:ISSUE_REASON_MISMATCH", "ANSWER:CLAIM_PRESENCE_MISMATCH", "ANSWER:EVIDENCE_LINKS_MISSING", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-008",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-008",
+              "taskId" : "b0e58aa6-48b0-4e08-89b9-9bd1fb7dc8a5",
+              "runId" : "21ac4e40-504e-48a3-9d0c-809ea0e15706",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "FAIL",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-8]; observed=[handbook-2025-article-8, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-2, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "FACT_REVIEW_INCOMPLETE", "REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "CITATION_INVENTORY_MISSING" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+              },
+              "executionSafety" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "COVERAGE_MISMATCH", "ISSUE_REASON_MISMATCH", "CLAIM_PRESENCE_MISMATCH", "EVIDENCE_LINKS_MISSING", "REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-008/ANSWER/capture.json",
+          "evidenceSha" : "d521dc90908130f1ab28afb5c02b435169eae604c5c1520e534772bc764c3071",
+          "error" : null,
+          "annotationPath" : "RFE-008/ANSWER/annotation-pending.json",
+          "annotationSha" : "2002935d4a04d062ed55ea98e04a9b2f219c866dd4372b72a9bc1fd1b83c53a4"
+        } ]
+      },
+      "RFE-010" : {
+        "outcome" : "UNJUDGEABLE",
+        "fullyEvaluable" : false,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-10]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:FACT_REVIEW_INCOMPLETE", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:CITATION_INVENTORY_MISSING" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+          },
+          "executionSafety" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:EXPECTATIONS_MET", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-010",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-010",
+              "taskId" : "eaa2617d-a576-465b-ab8c-ddc9911db45b",
+              "runId" : "953bbc35-a485-4dca-9fe8-06f619a25cf8",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "UNJUDGEABLE",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-10]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "FACT_REVIEW_INCOMPLETE", "REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "CITATION_INVENTORY_MISSING" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+              },
+              "executionSafety" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "EXPECTATIONS_MET", "REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-010/ANSWER/capture.json",
+          "evidenceSha" : "af6510d175792fe756008cd276f426a77252ca156d8e88bb74cb0c33f9390308",
+          "error" : null,
+          "annotationPath" : "RFE-010/ANSWER/annotation-pending.json",
+          "annotationSha" : "43bd0396e96eb9605081e9a47d827c24c088cf19b7c367b96a80c093113b0cbb"
+        } ]
+      },
+      "RFE-013" : {
+        "outcome" : "UNJUDGEABLE",
+        "fullyEvaluable" : false,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ASK:required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]", "RESOLVE_PUBLIC:required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ASK:FACT_REVIEW_INCOMPLETE", "ASK:REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims", "RESOLVE_PUBLIC:FACT_REVIEW_INCOMPLETE", "RESOLVE_PUBLIC:REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ASK:CITATION_INVENTORY_MISSING", "RESOLVE_PUBLIC:CITATION_INVENTORY_MISSING" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ASK:REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability", "RESOLVE_PUBLIC:REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ASK:REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap", "RESOLVE_PUBLIC:REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+          },
+          "executionSafety" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ASK:EXPECTATIONS_MET", "ASK:REVIEW_MISSING_OR_UNANCHORED:executionSafety", "RESOLVE_PUBLIC:EXPECTATIONS_MET", "RESOLVE_PUBLIC:REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-013",
+          "kind" : "ASK",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-013",
+              "taskId" : "04453743-cf1b-4538-b4d6-742571c2757d",
+              "runId" : "1fd45b13-8f69-45ed-a171-d748e4000b07",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "UNJUDGEABLE",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "FACT_REVIEW_INCOMPLETE", "REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "CITATION_INVENTORY_MISSING" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+              },
+              "executionSafety" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "EXPECTATIONS_MET", "REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-013/ASK/capture.json",
+          "evidenceSha" : "0a7b363fa6f4c5ec88345379b6db7beb25c9e9fe19086d1ce08aecc7758d6cb8",
+          "error" : null,
+          "annotationPath" : "RFE-013/ASK/annotation-pending.json",
+          "annotationSha" : "80f887baab47f99dd5afffa9ca7f16ac7c527a827b42fbba8b134e57a6d0f050"
+        }, {
+          "caseId" : "RFE-013",
+          "kind" : "RESOLVE_PUBLIC",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-013",
+              "taskId" : "04453743-cf1b-4538-b4d6-742571c2757d",
+              "runId" : "3dc8ae85-8e01-44f0-adea-2ad80701f8cf",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "UNJUDGEABLE",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "FACT_REVIEW_INCOMPLETE", "REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "CITATION_INVENTORY_MISSING" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+              },
+              "executionSafety" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "EXPECTATIONS_MET", "REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-013/RESOLVE_PUBLIC/capture.json",
+          "evidenceSha" : "fc26227fe7dcab377b8b4e09dd4f9db098462c6925faeee088c31d8b9eb092b9",
+          "error" : null,
+          "annotationPath" : "RFE-013/RESOLVE_PUBLIC/annotation-pending.json",
+          "annotationSha" : "b34d6fa04aedb5039cfb52cf60ecf26dd7ee87d884ca7a217ba55d17b61d03ab"
+        } ]
+      },
+      "RFE-014" : {
+        "outcome" : "FAIL",
+        "fullyEvaluable" : false,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:FACT_REVIEW_INCOMPLETE", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:CITATION_INVENTORY_MISSING" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+          },
+          "executionSafety" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:EXECUTION_FAILED_OR_STOPPED", "ANSWER:TERMINAL_ISSUE:INVALID_MODEL_RESPONSE" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-014",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-014",
+              "taskId" : "01e2c5c0-ff6e-4539-a076-7cbc598f6849",
+              "runId" : "039bb3f1-b3e6-4b1a-96d8-d09326034d6a",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "FAIL",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "FACT_REVIEW_INCOMPLETE", "REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "CITATION_INVENTORY_MISSING" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+              },
+              "executionSafety" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "EXECUTION_FAILED_OR_STOPPED", "TERMINAL_ISSUE:INVALID_MODEL_RESPONSE" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-014/ANSWER/capture.json",
+          "evidenceSha" : "f4d01831d05ba575c38bd030698c4a480ccf0f11dc800f0fa7b58ea3adc1b171",
+          "error" : null,
+          "annotationPath" : "RFE-014/ANSWER/annotation-pending.json",
+          "annotationSha" : "3d6badfeed2a2dc2622e1460f8d4e15574ac772b21eb30ecc95f1c062eedd2a5"
+        } ]
+      },
+      "RFE-015" : {
+        "outcome" : "UNJUDGEABLE",
+        "fullyEvaluable" : false,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:FACT_REVIEW_INCOMPLETE", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:CITATION_INVENTORY_MISSING" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+          },
+          "executionSafety" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:EXPECTATIONS_MET", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-015",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-015",
+              "taskId" : "12a037ae-91e4-4568-a3f0-f270a274801d",
+              "runId" : "fbf7abf5-f86f-4ac7-a756-f14669fa0d3f",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "UNJUDGEABLE",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "FACT_REVIEW_INCOMPLETE", "REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "CITATION_INVENTORY_MISSING" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+              },
+              "executionSafety" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "EXPECTATIONS_MET", "REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-015/ANSWER/capture.json",
+          "evidenceSha" : "8a7215ecdbd8d39a387cdd452d8e991dfeb1f5890afb35ec3255a7f9d8786eab",
+          "error" : null,
+          "annotationPath" : "RFE-015/ANSWER/annotation-pending.json",
+          "annotationSha" : "7104405ac538c6d1936f3b1aacd083573afd55120192534f15d04ba2cd254968"
+        } ]
+      },
+      "RFE-016" : {
+        "outcome" : "UNJUDGEABLE",
+        "fullyEvaluable" : false,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:FACT_REVIEW_INCOMPLETE", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:CITATION_INVENTORY_MISSING" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+          },
+          "executionSafety" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:EXPECTATIONS_MET", "ANSWER:REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-016",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-016",
+              "taskId" : "14418f1f-be19-49eb-ac03-826a486a80df",
+              "runId" : "97cdba5c-6bb0-471f-b912-7c3a24ab5e87",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "UNJUDGEABLE",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "FACT_REVIEW_INCOMPLETE", "REVIEW_MISSING_OR_UNANCHORED:unsupportedClaims" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "CITATION_INVENTORY_MISSING" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:scopeAndApplicability" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "REVIEW_MISSING_OR_UNANCHORED:clarificationAndGap" ]
+              },
+              "executionSafety" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "EXPECTATIONS_MET", "REVIEW_MISSING_OR_UNANCHORED:executionSafety" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-016/ANSWER/capture.json",
+          "evidenceSha" : "933841e2fa4a8af569f74b6762cde4a99814f13a5007535d7b314eb9053b84cb",
+          "error" : null,
+          "annotationPath" : "RFE-016/ANSWER/annotation-pending.json",
+          "annotationSha" : "b90fcfc8408c5ed95cc03cb4c3a53a08b3954feb531ff48aca030a66e160ca1b"
+        } ]
+      }
+    },
+    "dimensions" : {
+      "retrievalRecall" : {
+        "applicable" : 9,
+        "passed" : 9,
+        "failed" : 0,
+        "unjudgeable" : 0,
+        "errors" : 0,
+        "notApplicable" : 0
+      },
+      "factSupport" : {
+        "applicable" : 9,
+        "passed" : 0,
+        "failed" : 0,
+        "unjudgeable" : 9,
+        "errors" : 0,
+        "notApplicable" : 0
+      },
+      "citationIntegrity" : {
+        "applicable" : 9,
+        "passed" : 0,
+        "failed" : 0,
+        "unjudgeable" : 9,
+        "errors" : 0,
+        "notApplicable" : 0
+      },
+      "scopeAndApplicability" : {
+        "applicable" : 9,
+        "passed" : 0,
+        "failed" : 0,
+        "unjudgeable" : 9,
+        "errors" : 0,
+        "notApplicable" : 0
+      },
+      "clarificationAndGap" : {
+        "applicable" : 9,
+        "passed" : 0,
+        "failed" : 0,
+        "unjudgeable" : 9,
+        "errors" : 0,
+        "notApplicable" : 0
+      },
+      "executionSafety" : {
+        "applicable" : 9,
+        "passed" : 0,
+        "failed" : 3,
+        "unjudgeable" : 6,
+        "errors" : 0,
+        "notApplicable" : 0
+      }
+    }
+  }
+}

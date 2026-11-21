@@ -1,0 +1,63 @@
+[ {
+  "taskId" : "851308fc-6e08-45e7-b3a5-e6d43f26f09d",
+  "turnId" : "18528828-746a-413e-b9d6-b69589f0b467",
+  "runId" : "8be172b4-3540-449d-a514-55cab55daac1",
+  "version" : 2,
+  "taskStatus" : "FAILED",
+  "runState" : "FAILED",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "f0bf8f3d-dbf3-3d24-a974-a0149f43ae41",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "4cee4038-68f4-3bdd-9b28-e03eb48ac87e",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "6436311d-a89b-3750-b0c4-3159af541201",
+    "type" : "FINISH_CHECK",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : "INVALID_MODEL_RESPONSE",
+    "publicationReason" : "FACT_NOT_RELEVANT"
+  }, {
+    "actionId" : "9eff3259-87df-317b-8987-b830d1accf81",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : "INVALID_MODEL_RESPONSE",
+    "publicationReason" : "FACT_NOT_RELEVANT"
+  } ],
+  "result" : {
+    "coverage" : "NONE",
+    "evidence" : [ ],
+    "evidenceRelations" : [ ],
+    "items" : [ {
+      "claims" : [ ]
+    } ],
+    "issues" : [ {
+      "kind" : "PROCESSING_FAILURE",
+      "reasonCode" : "INVALID_MODEL_RESPONSE"
+    } ]
+  }
+} ]

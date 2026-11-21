@@ -1,0 +1,57 @@
+#requires -Version 7.0
+param([switch]$CheckOnly)
+$ErrorActionPreference='Stop'
+$root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+$relative='docs/evidence/rule-agent-provider/2026-11-17-frozen-m2'
+$package=$relative+'/request-package.json'
+$sha='18143180bc208127846495b726e5f218a7f6140d9b4ed3e2b30f61c4cdbcff5c'
+$base=Join-Path $root $relative
+function Credential([string]$name) {
+ foreach($scope in @('Process','User','Machine')) {$value=[Environment]::GetEnvironmentVariable($name,$scope);if(![string]::IsNullOrWhiteSpace($value)){return $value}}
+ throw ('Credential unavailable: '+$name)
+}
+function Child([string]$exe,[string[]]$childArgs,[int]$seconds,[hashtable]$childEnv=@{}) {
+ $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$exe;$info.UseShellExecute=$false;$info.CreateNoWindow=$true
+ $info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;$info.StandardOutputEncoding=[Text.UTF8Encoding]::new($false);$info.StandardErrorEncoding=$info.StandardOutputEncoding
+ foreach($arg in $childArgs){$info.ArgumentList.Add($arg)}
+ foreach($name in $childEnv.Keys){$info.Environment[$name]=$childEnv[$name]}
+ foreach($name in @('ZHKU_RULECHECK_TASK_BATCH_DIRECTORY','ZHKU_RULECHECK_TASK_PACKAGE_SHA256','ZHKU_RULECHECK_TASK_SUMMARY_SHA256')){$info.Environment.Remove($name)|Out-Null}
+ $process=[Diagnostics.Process]::new();$process.StartInfo=$info
+ try {
+  $process.Start()|Out-Null;$stdout=$process.StandardOutput.ReadToEndAsync();$stderr=$process.StandardError.ReadToEndAsync()
+  $timedOut=!$process.WaitForExit($seconds*1000)
+  if($timedOut){$process.Kill($true);$process.WaitForExit(5000)|Out-Null}
+  $closed=[Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($stdout,$stderr),2000)
+  if(!$closed){throw 'Owned child output did not close'}
+  $result=[pscustomobject]@{exitCode=$process.ExitCode;timedOut=$timedOut;resourcesClosed=$process.HasExited;output=$stdout.Result;errorOutput=$stderr.Result}
+  foreach($name in @('ZHKU_DB_PASSWORD','DASHSCOPE_API_KEY','POSTGRES_PASSWORD')){if($childEnv.ContainsKey($name)){$secret=$childEnv[$name];if($secret){$result.output=$result.output.Replace($secret,'[REDACTED]');$result.errorOutput=$result.errorOutput.Replace($secret,'[REDACTED]')}}}
+  return $result
+ } finally {if($process.Id-and !$process.HasExited){$process.Kill($true)};$process.Dispose()}
+}
+function RequireSuccess($result){if($result.exitCode-ne 0-or $result.timedOut-or !$result.resourcesClosed){throw ($result.output+$result.errorOutput)}}
+if((Get-FileHash -LiteralPath (Join-Path $root $package)).Hash.ToLowerInvariant()-ne $sha){throw 'Package SHA mismatch'}
+if(Test-Path -LiteralPath (Join-Path $base 'execution-reserved.json')){throw 'Batch already reserved'}
+$java=(Get-Command java.exe).Source;$docker=(Get-Command docker.exe).Source
+$javaPrefix=@('-Dfile.encoding=UTF-8','-Dstdout.encoding=UTF-8','-Dstderr.encoding=UTF-8','-Dloader.main=com.zhku.knowledge.eval.RuleFactBatchHost','-cp',(Join-Path $root 'knowledge/target/knowledge-0.1.0-rc.1-controlled.jar'),'org.springframework.boot.loader.launch.PropertiesLauncher')
+$checked=Child $java ($javaPrefix+@('check',$root,$package,$sha)) 20;RequireSuccess $checked
+if($CheckOnly){$smoke=Child $java @('-version') 1350;RequireSuccess $smoke;Write-Output 'PASS EXACT_PACKAGE_AND_1350_SECOND_SUPERVISOR_ZERO_CALL_CHECK';exit 0}
+& (Join-Path $root 'knowledge/scripts/ensure-zhku-postgres.cmd') -DockerOnly
+if($LASTEXITCODE-ne 0){throw 'Docker readiness failed'}
+$container='zhku-rulefact-eval-'+[guid]::NewGuid().ToString('N')
+$out=$relative+'/live-'+[guid]::NewGuid().ToString('N')
+try {
+ $password=Credential 'ZHKU_DB_PASSWORD'
+ $created=Child $docker @('run','--rm','-d','--pull','never','--name',$container,'--publish','127.0.0.1:55519:5432','--env','POSTGRES_PASSWORD','--env','POSTGRES_USER=zhkuagent','--env','POSTGRES_DB=zhkuagent_rulecheck_e2e','pgvector/pgvector:0.8.6-pg16-bookworm') 15 @{POSTGRES_PASSWORD=$password};RequireSuccess $created
+ $ready=$false
+ for($i=0;$i-lt 20;$i++) {$null=Credential 'ZHKU_DB_PASSWORD';$probe=Child $docker @('exec',$container,'pg_isready','-U','zhkuagent','-d','zhkuagent_rulecheck_e2e') 10;if($probe.exitCode-eq 0-and !$probe.timedOut){$ready=$true;break};Start-Sleep -Milliseconds 250}
+ if(!$ready){throw 'Dedicated temporary database not ready'}
+ $environment=@{ZHKU_DB_PASSWORD=(Credential 'ZHKU_DB_PASSWORD');DASHSCOPE_API_KEY=(Credential 'DASHSCOPE_API_KEY');ZHKU_DB_URL='jdbc:postgresql://127.0.0.1:55519/zhkuagent_rulecheck_e2e';ZHKU_RULE_AGENT_MODE='ONLINE';ZHKU_RULE_AGENT_AUTHORIZATION_ID=$sha}
+ $result=Child $java ($javaPrefix+@('run',$root,$package,$sha,$out)) 1350 $environment
+ $directory=Join-Path $root $out;[IO.Directory]::CreateDirectory($directory)|Out-Null
+ [IO.File]::WriteAllText((Join-Path $directory 'launcher-result.json'),($result|ConvertTo-Json -Depth 5),[Text.UTF8Encoding]::new($false))
+ Write-Output ('BATCH_EVIDENCE_DIRECTORY='+$out);RequireSuccess $result
+} finally {
+ $cleaned=Child $docker @('rm','-f',$container) 15
+ [IO.File]::WriteAllText((Join-Path $base 'supervisor-cleanup.json'),(@{container=$container;exitCode=$cleaned.exitCode;timedOut=$cleaned.timedOut;resourcesClosed=$cleaned.resourcesClosed}|ConvertTo-Json),[Text.UTF8Encoding]::new($false))
+ RequireSuccess $cleaned
+}

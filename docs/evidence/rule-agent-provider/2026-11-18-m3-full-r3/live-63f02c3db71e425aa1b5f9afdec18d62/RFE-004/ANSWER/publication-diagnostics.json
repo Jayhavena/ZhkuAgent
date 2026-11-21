@@ -1,0 +1,44 @@
+{
+  "identity" : {
+    "caseId" : "RFE-004",
+    "taskId" : "d3662510-5acf-4ab5-9cb8-9e90c74fe01e",
+    "runId" : "26db10d3-d948-46bf-afcb-7f4b5de0e02a",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "f1d842acfb2eeeeeabc91bb9e71870c1741827faff0cafd535f77adde5dd80b1"
+  },
+  "captureSha256" : "53e125eeca66304706e960273cdcb682925cf9a5fa25528ac37c62578a9a166e",
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "932282669326ca4ae285b89ca8f705a0044014f9d395590d6a9f22b7d9dc53c3",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 11
+        },
+        "dimension" : "HOURS_LIMIT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S03/GENERAL:hours-upper-limit",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r1",
+        "factId" : "S03/GENERAL:hours-principle",
+        "role" : "CONDITION_EXCEPTION"
+      } ],
+      "unresolvedDemands" : [ ]
+    },
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ],
+  "relevanceRejections" : [ ],
+  "relevanceExclusions" : [ ]
+}

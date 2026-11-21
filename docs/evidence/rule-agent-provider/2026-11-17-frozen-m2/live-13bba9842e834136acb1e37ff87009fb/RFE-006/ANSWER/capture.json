@@ -1,0 +1,213 @@
+{
+  "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+  "turn" : {
+    "caseId" : "RFE-006",
+    "kind" : "ANSWER",
+    "question" : "一门校内公选课刚好30人报名，就一定会开课吗？",
+    "questionSha256" : "e10808c35e0b37d34be2052077c5cf75b1a17de3b80ac3707e986afb90279716",
+    "reply" : null,
+    "factIds" : [ "campus-below-thirty", "campus-enrollment-general-range" ],
+    "alternatives" : [ {
+      "caseId" : "RFE-006",
+      "taskStatus" : "RESOLVED",
+      "runState" : "INCOMPLETE",
+      "coverage" : "PARTIAL",
+      "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+      "issueReason" : null,
+      "expectClaims" : true,
+      "observedAction" : null,
+      "observationStatus" : null,
+      "requireEvidenceLinks" : true,
+      "expectRejectedUnknownTool" : false
+    } ]
+  },
+  "turnId" : "a835daf7-8744-4c76-93d1-a2b28ab3eece",
+  "version" : 2,
+  "execution" : {
+    "identity" : {
+      "caseId" : "RFE-006",
+      "taskId" : "96aca1f3-a65e-4333-9727-12235996c03c",
+      "runId" : "23c37828-38c6-4dd5-8a2b-b8e78f075007",
+      "datasetVersion" : "v1.0",
+      "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+      "model" : "qwen3.8-flash",
+      "configurationSha256" : "18143180bc208127846495b726e5f218a7f6140d9b4ed3e2b30f61c4cdbcff5c"
+    },
+    "answer" : "已确认的部分保留；本轮尚未回答全部需求，不能把漏答当作资料缺失。\n可核对原文或重新发起查证；本轮不作无依据结论。\n已取得的审核资料不足以支持完整结论。\n可核对原文或重新发起查证；本轮不作无依据结论。",
+    "trace" : {
+      "taskId" : "96aca1f3-a65e-4333-9727-12235996c03c",
+      "turnId" : "a835daf7-8744-4c76-93d1-a2b28ab3eece",
+      "runId" : "23c37828-38c6-4dd5-8a2b-b8e78f075007",
+      "version" : 2,
+      "taskStatus" : "FAILED",
+      "runState" : "FAILED",
+      "exceptionalFailure" : false,
+      "truncated" : false,
+      "actions" : [ {
+        "actionId" : "79b29430-a3e7-3924-8cbc-15955330c1dd",
+        "type" : "SEARCH_REVIEWED_RULES",
+        "step" : 1,
+        "modelAttempt" : 1,
+        "observation" : {
+          "status" : "SUCCEEDED",
+          "dataLevel" : "CANDIDATE",
+          "reasonCode" : null
+        },
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "500c4065-3468-393d-b1a8-6bcca47cc0bb",
+        "type" : "READ_VERIFIED_RULE",
+        "step" : 2,
+        "modelAttempt" : 2,
+        "observation" : {
+          "status" : "SUCCEEDED",
+          "dataLevel" : "VERIFIED_FACT",
+          "reasonCode" : null
+        },
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "6ca6cecf-fe04-31ac-876c-e6464b9c672f",
+        "type" : "FINISH_CHECK",
+        "step" : 3,
+        "modelAttempt" : 3,
+        "observation" : null,
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "20cf972f-3cfa-3fe6-a815-ddd77c6bf50b",
+        "type" : "PUBLICATION_REVIEW",
+        "step" : 4,
+        "modelAttempt" : 4,
+        "observation" : null,
+        "reasonCode" : null,
+        "publicationReason" : null
+      } ],
+      "result" : {
+        "coverage" : "NONE",
+        "evidence" : [ ],
+        "evidenceRelations" : [ ],
+        "items" : [ {
+          "claims" : [ ]
+        } ],
+        "issues" : [ {
+          "kind" : "PROCESSING_FAILURE",
+          "reasonCode" : "ANSWER_COVERAGE_INCOMPLETE"
+        }, {
+          "kind" : "DATA_GAP",
+          "reasonCode" : "DETAIL_NOT_IN_REVIEWED_TEXT"
+        } ]
+      }
+    },
+    "retrievedLocators" : null,
+    "retrievalComplete" : false,
+    "matchedFacts" : null,
+    "factsComplete" : false,
+    "citations" : null,
+    "citationsComplete" : false,
+    "reviews" : { }
+  },
+  "publishedResult" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "23c37828-38c6-4dd5-8a2b-b8e78f075007",
+    "catalogueVersion" : "cat-ef640637f4aeaee421d7932e9d339bc949cb6160b597b87c5c16e0f435174a93",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "NONE",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "NONE",
+      "claims" : [ ],
+      "issues" : [ {
+        "id" : "i-ANSWER_COVERAGE_INCOMPLETE",
+        "kind" : "PROCESSING_FAILURE",
+        "reasonCode" : "ANSWER_COVERAGE_INCOMPLETE",
+        "message" : "已确认的部分保留；本轮尚未回答全部需求，不能把漏答当作资料缺失。",
+        "nextStep" : "可核对原文或重新发起查证；本轮不作无依据结论。"
+      }, {
+        "id" : "i-DETAIL_NOT_IN_REVIEWED_TEXT",
+        "kind" : "DATA_GAP",
+        "reasonCode" : "DETAIL_NOT_IN_REVIEWED_TEXT",
+        "message" : "已取得的审核资料不足以支持完整结论。",
+        "nextStep" : "可核对原文或重新发起查证；本轮不作无依据结论。"
+      } ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ ],
+    "evidenceRelations" : [ ]
+  },
+  "searches" : [ {
+    "observationId" : "e8cfd175-11b8-4139-a14c-5e0d793223d9",
+    "runId" : "23c37828-38c6-4dd5-8a2b-b8e78f075007",
+    "step" : 1,
+    "status" : "SUCCEEDED",
+    "candidates" : [ {
+      "handle" : "2f9bf3d2-f346-4246-9a5e-eba031492f0a",
+      "excerpt" : "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "6ddccad9-508c-41a6-8af1-a8e06fbf4595",
+      "excerpt" : "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "16eb6300-1656-455a-a06b-212fea9d4dbb",
+      "excerpt" : "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "23bd4b33-4308-438e-90f6-3ccefb26615d",
+      "excerpt" : "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "fcd928c7-0dfb-49fa-ab4d-c00fd22e3ec6",
+      "excerpt" : "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "01766131-b46a-45d5-80a9-dbfc2cfe48f4",
+      "excerpt" : "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+      "revision" : "2025.9.2"
+    } ]
+  } ],
+  "retrieval" : [ {
+    "taskId" : "96aca1f3-a65e-4333-9727-12235996c03c",
+    "runId" : "23c37828-38c6-4dd5-8a2b-b8e78f075007",
+    "step" : 1,
+    "observationId" : "e8cfd175-11b8-4139-a14c-5e0d793223d9",
+    "candidates" : [ {
+      "handle" : "2f9bf3d2-f346-4246-9a5e-eba031492f0a",
+      "sourceId" : "48b61c3f-e20e-433c-b1c9-0e6cc0771278",
+      "chunkId" : "8abb087c-4442-3aa7-ad42-c5ffe533e2ed",
+      "revision" : "2025.9.2",
+      "checksum" : "35910424a742c3fac925a219b7a4bc7fcac4725586e1641d30ed82c15268f2ab"
+    }, {
+      "handle" : "6ddccad9-508c-41a6-8af1-a8e06fbf4595",
+      "sourceId" : "48b61c3f-e20e-433c-b1c9-0e6cc0771278",
+      "chunkId" : "a0b92caf-bb7c-37a0-bbda-a6fcc02b1fb1",
+      "revision" : "2025.9.2",
+      "checksum" : "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552"
+    }, {
+      "handle" : "16eb6300-1656-455a-a06b-212fea9d4dbb",
+      "sourceId" : "48b61c3f-e20e-433c-b1c9-0e6cc0771278",
+      "chunkId" : "897b6030-d0b0-3c33-b1a0-54a1e47b3a55",
+      "revision" : "2025.9.2",
+      "checksum" : "52f7661f0d5ac579a69f2506b37552b38279cc82fd267c8262bcb0fba176e303"
+    }, {
+      "handle" : "23bd4b33-4308-438e-90f6-3ccefb26615d",
+      "sourceId" : "48b61c3f-e20e-433c-b1c9-0e6cc0771278",
+      "chunkId" : "db5ea28c-a2cf-37c6-8a9b-a27e62e4da9b",
+      "revision" : "2025.9.2",
+      "checksum" : "056217b8775854fbadb44fff38af48c1ed37e1c3b0c92563e1681186387ffeb2"
+    }, {
+      "handle" : "fcd928c7-0dfb-49fa-ab4d-c00fd22e3ec6",
+      "sourceId" : "48b61c3f-e20e-433c-b1c9-0e6cc0771278",
+      "chunkId" : "74dbe238-c52f-3b44-8786-ba8eba4c3aec",
+      "revision" : "2025.9.2",
+      "checksum" : "2985f3667b0e62bb19055ea9ee795b53cd0192a0da43d893fa612b73f876d9ae"
+    }, {
+      "handle" : "01766131-b46a-45d5-80a9-dbfc2cfe48f4",
+      "sourceId" : "48b61c3f-e20e-433c-b1c9-0e6cc0771278",
+      "chunkId" : "5f9a2860-0b61-3199-9e50-8c480f848563",
+      "revision" : "2025.9.2",
+      "checksum" : "2d1dbdbee0a567fea8c345a62e6568bc93d373d36518c5b62253a11f5f136dd1"
+    } ]
+  } ]
+}

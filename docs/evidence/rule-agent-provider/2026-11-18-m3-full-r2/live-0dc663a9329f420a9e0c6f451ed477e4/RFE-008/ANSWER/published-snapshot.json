@@ -1,0 +1,72 @@
+{
+  "schemaVersion" : 3,
+  "taskId" : "9a6ca81d-271e-4bd8-919c-9ccb8c6d5fe7",
+  "turnId" : "c165478e-fb04-448b-bedf-dcf1ee1d02bc",
+  "runId" : "ecd98948-7cbb-45f9-8139-91b584460f10",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "INCOMPLETE",
+  "terminated" : true,
+  "result" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "ecd98948-7cbb-45f9-8139-91b584460f10",
+    "catalogueVersion" : "cat-b4a7248932bf57f25471be91f02dd6e0e3d0109dc9a5d3c491cba1a7989fa572",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "PARTIAL",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "PARTIAL",
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits",
+        "text" : "依据2025.9.2历史文本：学生应按人才培养方案要求，在规定学习年限内修读专业选修课和公共选修课并取得规定学分。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      } ],
+      "issues" : [ {
+        "id" : "i-PERSONAL_RECORD_NOT_AVAILABLE",
+        "kind" : "DATA_GAP",
+        "reasonCode" : "PERSONAL_RECORD_NOT_AVAILABLE",
+        "message" : "手册没有提供你的个人成绩、已修学分或适用培养方案，无法据此计算还差多少学分或判定毕业资格。",
+        "nextStep" : "请核对个人成绩单、已修学分和对应培养方案，或咨询教务/辅导员；本系统只解释已审核规则原文。"
+      }, {
+        "id" : "i-CURRENT_APPLICABILITY_UNKNOWN",
+        "kind" : "SCOPE_LIMIT",
+        "reasonCode" : "CURRENT_APPLICABILITY_UNKNOWN",
+        "message" : "这里只能解释历史文本，当期安排或现行适用性尚未核实。",
+        "nextStep" : "可核对原文或重新发起查证；本轮不作无依据结论。"
+      }, {
+        "id" : "i-DETAIL_NOT_IN_REVIEWED_TEXT",
+        "kind" : "DATA_GAP",
+        "reasonCode" : "DETAIL_NOT_IN_REVIEWED_TEXT",
+        "message" : "已取得的审核资料不足以支持完整结论。",
+        "nextStep" : "可核对原文或重新发起查证；本轮不作无依据结论。"
+      } ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ {
+      "id" : "6094ea87-973c-4075-95ab-37b60bcc04af:0-119",
+      "sourceId" : "a13566ce-632a-4a06-9772-34f680517bbe",
+      "chunkId" : "92fdbc12-f038-320b-b8d1-c99b16e47e77",
+      "revision" : "2025.9.2",
+      "checksum" : "056217b8775854fbadb44fff38af48c1ed37e1c3b0c92563e1681186387ffeb2",
+      "startInclusive" : 0,
+      "endExclusive" : 119,
+      "quote" : "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。"
+    } ],
+    "evidenceRelations" : [ {
+      "evidenceId" : "6094ea87-973c-4075-95ab-37b60bcc04af:0-119",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c0"
+    } ]
+  },
+  "execution" : {
+    "mode" : "ONLINE",
+    "modelAttemptCount" : 4,
+    "toolStepCount" : 3,
+    "providerResponseReceived" : true,
+    "answerSource" : "LIVE_AGENT",
+    "replayCoverage" : "NOT_APPLICABLE"
+  }
+}

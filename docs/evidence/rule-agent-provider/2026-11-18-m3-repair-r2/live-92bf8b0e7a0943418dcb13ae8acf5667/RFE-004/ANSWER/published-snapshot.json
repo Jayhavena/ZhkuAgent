@@ -1,0 +1,71 @@
+{
+  "schemaVersion" : 3,
+  "taskId" : "38c261fd-2d2e-48a7-9eb8-80e8dd69c348",
+  "turnId" : "bdcdf347-e36f-4ef2-9a4d-3407fbfaff29",
+  "runId" : "9285a7fa-5c51-446f-a2a5-27049433ce70",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "INCOMPLETE",
+  "terminated" : true,
+  "result" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "9285a7fa-5c51-446f-a2a5-27049433ce70",
+    "catalogueVersion" : "cat-2b7f0ce2cee83214fc2d41f2897ce6f3464eca8260f4423011057382081ad971",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "PARTIAL",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "PARTIAL",
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "S03/GENERAL:hours-principle",
+        "text" : "依据2025.9.2历史文本：公共选修课授课时间原则上为16学时。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      }, {
+        "id" : "c1",
+        "factId" : "S03/GENERAL:hours-upper-limit",
+        "text" : "依据2025.9.2历史文本：公共选修课最多不超过32学时。按原文数值比较：所问24学时未超过上限32学时；原文原则值为16学时，所问数值高于原则值。仅凭该条不能判定该课程整体合规或违规，仍需核实该课程实际安排及适用例外。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      } ],
+      "issues" : [ {
+        "id" : "i-UNSUPPORTED_DEMAND",
+        "kind" : "DATA_GAP",
+        "reasonCode" : "UNSUPPORTED_DEMAND",
+        "message" : "已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。",
+        "nextStep" : "请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。"
+      } ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ {
+      "id" : "8ed5c762-1fa7-430b-b2bd-9489f54f8ce9:0-36",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "0819d4fd-497b-3fe7-aafe-7c0124d18311",
+      "revision" : "2025.9.2",
+      "checksum" : "94097c359d2cb712fab8a57e9b32c3096b41eb1e848ab272aed7c3bb6333b40d",
+      "startInclusive" : 0,
+      "endExclusive" : 36,
+      "quote" : "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。"
+    } ],
+    "evidenceRelations" : [ {
+      "evidenceId" : "8ed5c762-1fa7-430b-b2bd-9489f54f8ce9:0-36",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c0"
+    }, {
+      "evidenceId" : "8ed5c762-1fa7-430b-b2bd-9489f54f8ce9:0-36",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c1"
+    } ]
+  },
+  "execution" : {
+    "mode" : "ONLINE",
+    "modelAttemptCount" : 4,
+    "toolStepCount" : 3,
+    "providerResponseReceived" : true,
+    "answerSource" : "LIVE_AGENT",
+    "replayCoverage" : "NOT_APPLICABLE"
+  }
+}

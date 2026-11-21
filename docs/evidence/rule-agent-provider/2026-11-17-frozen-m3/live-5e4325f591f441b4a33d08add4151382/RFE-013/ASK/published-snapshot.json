@@ -1,0 +1,58 @@
+{
+  "schemaVersion" : 3,
+  "taskId" : "0900e646-6218-4f05-b502-394fc3632b7d",
+  "turnId" : "eba9aa42-db5e-48c0-9616-6a9fb32246ae",
+  "runId" : "fc62d3e0-f407-4dbc-8499-bde525837225",
+  "version" : 2,
+  "taskStatus" : "WAITING_USER",
+  "runState" : "INCOMPLETE",
+  "terminated" : true,
+  "result" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "fc62d3e0-f407-4dbc-8499-bde525837225",
+    "catalogueVersion" : "cat-c9f7820baf71f954762cbde41c07ad53783d5b53c658631efc13723e63c3e135",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "NONE",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "NONE",
+      "claims" : [ ],
+      "issues" : [ {
+        "id" : "i-MISSING_CONDITION",
+        "kind" : "CLARIFICATION",
+        "reasonCode" : "MISSING_CONDITION",
+        "message" : "还缺影响结论的必要条件。",
+        "nextStep" : "请补充下方必要条件。"
+      } ],
+      "clarification" : [ {
+        "conditionId" : "courseType",
+        "question" : "这门课属于公共选修还是专业选修？",
+        "allowedValues" : [ "PUBLIC", "PROFESSIONAL" ]
+      } ]
+    } ],
+    "evidence" : [ {
+      "id" : "7cfdd4b8-91b2-4660-8ae0-df3b548ac6f3:0-48",
+      "sourceId" : "8255598c-f623-4cc6-afcb-8a333a8998c0",
+      "chunkId" : "49ed2795-8ecb-3df5-bdc6-b8ce48db6575",
+      "revision" : "2025.9.2",
+      "checksum" : "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
+      "startInclusive" : 0,
+      "endExclusive" : 48,
+      "quote" : "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。"
+    } ],
+    "evidenceRelations" : [ {
+      "evidenceId" : "7cfdd4b8-91b2-4660-8ae0-df3b548ac6f3:0-48",
+      "subquestionId" : "q1",
+      "role" : "CLARIFICATION",
+      "targetId" : "courseType"
+    } ]
+  },
+  "execution" : {
+    "mode" : "ONLINE",
+    "modelAttemptCount" : 4,
+    "toolStepCount" : 3,
+    "providerResponseReceived" : true,
+    "answerSource" : "LIVE_AGENT",
+    "replayCoverage" : "NOT_APPLICABLE"
+  }
+}

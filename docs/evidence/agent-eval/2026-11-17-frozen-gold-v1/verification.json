@@ -1,0 +1,77 @@
+{
+  "environment": {
+    "os": "Windows-10-10.0.26200-SP0",
+    "python": "3.11.15",
+    "java": "openjdk version \"21.0.11\" 2026-04-21 LTS"
+  },
+  "mavenExitCode": 0,
+  "pythonExitCode": 0,
+  "suites": [
+    {
+      "name": "com.zhku.knowledge.eval.RuleFactFrozenDatasetTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.127"
+    },
+    {
+      "name": "com.zhku.knowledge.eval.RuleFactReviewFlowTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.022"
+    },
+    {
+      "name": "com.zhku.knowledge.eval.RuleFactCheckEffectV2DatasetTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.134"
+    },
+    {
+      "name": "com.zhku.knowledge.eval.chain.AgentEvalChainRegressionTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.422"
+    }
+  ],
+  "syntheticFlowExitCode": 0,
+  "syntheticExampleCount": 6,
+  "origin": "SYNTHETIC_MANUALLY_ANNOTATED",
+  "realAgentOutputs": 0,
+  "providerCalls": 0,
+  "databaseOperations": 0,
+  "files": {
+    "knowledge/src/main/java/com/zhku/knowledge/eval/RuleFactOfflineScorer.java": "84eecfb05e560e1c0a1ced1d1339b9d752ea8be181e9059e07d717976db65bc3",
+    "knowledge/src/main/java/com/zhku/knowledge/eval/RuleFactReviewFlow.java": "0823cd97bc020f5acfc330fb6b373660806e22ff7dc12ad3ac67f3100f4ead0f",
+    "knowledge/src/test/java/com/zhku/knowledge/eval/RuleFactFrozenDatasetTest.java": "faf59a03c9aecfff847e5c76011d826732a01e4e5f38275ae86bea2dce8123a7",
+    "docs/evidence/agent-eval/2026-11-17-frozen-gold-v1/manifest.json": "e941993f3e3203dc367800f173f13f384a72afbb8cd6d83636df1e2b4d475626",
+    "docs/evidence/agent-eval/2026-11-17-frozen-gold-v1/freeze.py": "417bd8d330db21cc88e34891201537b1c2c10c43f6e31becda4f79213fa5aed0",
+    "docs/evidence/agent-eval/2026-11-17-frozen-gold-v1/test_freeze.py": "c1e973f8ed2aa7d6427af0b8fd2cd7ab863ca31e124dd0ae1affe89b8f485c0d",
+    "docs/evidence/agent-eval/2026-11-17-frozen-gold-v1/effect-eval-v1-report.md": "e941161e50a6b1209e8b16f7f35905d161f5579c8b168a804c97136f03ca9fe5",
+    "docs/evidence/agent-eval/2026-11-17-frozen-gold-v1/synthetic-flow-output.json": "359bd92f9493e132146c37d1978ecb0a123b6780d0f9a70746c2bc15e340b3a9"
+  },
+  "syntheticFacts": {
+    "PASS": 2,
+    "FAIL": 1,
+    "UNJUDGEABLE": 0,
+    "NOT_APPLICABLE": 3
+  },
+  "syntheticCitations": {
+    "PASS": 3,
+    "FAIL": 1,
+    "UNJUDGEABLE": 1,
+    "NOT_APPLICABLE": 1
+  },
+  "verifiedAt": "2026-11-17T01:25:51.988783+00:00",
+  "commands": {
+    "maven": "mvn -o -q -pl knowledge -am '-Dtest=RuleFactFrozenDatasetTest,RuleFactReviewFlowTest,RuleFactCheckEffectV2DatasetTest,AgentEvalChainRegressionTest' '-Dsurefire.failIfNoSpecifiedTests=false' test",
+    "python": "python -B -m unittest discover -s docs/evidence/agent-eval/2026-11-17-frozen-gold-v1 -p test_freeze.py -v",
+    "cli": "RuleFactReviewFlow <frozen dataset> <manifest> <offline-review-examples.json>"
+  }
+}

@@ -1,0 +1,258 @@
+{
+  "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+  "turn" : {
+    "caseId" : "RFE-009",
+    "kind" : "ANSWER",
+    "question" : "没有在网上选课，但我参加了考核，成绩能保证有效吗？",
+    "questionSha256" : "85e981946a203955cc58bbc94600e39c610a030214b3d5eb7ac619591c5ec006",
+    "reply" : null,
+    "factIds" : [ "online-selection-plan", "unenrolled-assessment-disjunction" ],
+    "alternatives" : [ {
+      "caseId" : "RFE-009",
+      "taskStatus" : "RESOLVED",
+      "runState" : "SUCCEEDED",
+      "coverage" : "COMPLETE",
+      "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+      "issueReason" : null,
+      "expectClaims" : true,
+      "observedAction" : null,
+      "observationStatus" : null,
+      "requireEvidenceLinks" : true,
+      "expectRejectedUnknownTool" : false
+    }, {
+      "caseId" : "RFE-009",
+      "taskStatus" : "RESOLVED",
+      "runState" : "INCOMPLETE",
+      "coverage" : "PARTIAL",
+      "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+      "issueReason" : null,
+      "expectClaims" : true,
+      "observedAction" : null,
+      "observationStatus" : null,
+      "requireEvidenceLinks" : true,
+      "expectRejectedUnknownTool" : false
+    } ]
+  },
+  "turnId" : "84108f22-f9e8-4194-af6d-2d95b724b73a",
+  "version" : 2,
+  "execution" : {
+    "identity" : {
+      "caseId" : "RFE-009",
+      "taskId" : "231dd067-95c3-46fa-8739-ba52ae2efca3",
+      "runId" : "29d94a9e-c113-41b4-851b-7e1cfbd88d78",
+      "datasetVersion" : "v1.0",
+      "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+      "model" : "qwen3.8-flash",
+      "configurationSha256" : "f1d842acfb2eeeeeabc91bb9e71870c1741827faff0cafd535f77adde5dd80b1"
+    },
+    "answer" : "依据2025.9.2历史文本：未经选课者，不得参加课程考核或考核成绩无效。\n本系统没有核验你的选课记录、考核记录和成绩状态，不能替你认定这次成绩是否有效。\n请以教务系统个人记录和任课教师/教务处确认为准；本系统只解释已审核规则原文。",
+    "trace" : {
+      "taskId" : "231dd067-95c3-46fa-8739-ba52ae2efca3",
+      "turnId" : "84108f22-f9e8-4194-af6d-2d95b724b73a",
+      "runId" : "29d94a9e-c113-41b4-851b-7e1cfbd88d78",
+      "version" : 2,
+      "taskStatus" : "RESOLVED",
+      "runState" : "INCOMPLETE",
+      "exceptionalFailure" : false,
+      "truncated" : false,
+      "actions" : [ {
+        "actionId" : "f44fe2b0-7a5f-3d43-b9d7-907030f17686",
+        "type" : "SEARCH_REVIEWED_RULES",
+        "step" : 1,
+        "modelAttempt" : 1,
+        "observation" : {
+          "status" : "SUCCEEDED",
+          "dataLevel" : "CANDIDATE",
+          "reasonCode" : null
+        },
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "591dfd81-5e90-3603-974d-45dba1cf8fa0",
+        "type" : "READ_VERIFIED_RULE",
+        "step" : 2,
+        "modelAttempt" : 2,
+        "observation" : {
+          "status" : "SUCCEEDED",
+          "dataLevel" : "VERIFIED_FACT",
+          "reasonCode" : null
+        },
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "ffc7ac5e-6b91-3b34-b0a7-b48d863eacb0",
+        "type" : "FINISH_CHECK",
+        "step" : 3,
+        "modelAttempt" : 3,
+        "observation" : null,
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "8f40621a-6b69-369b-8a01-b27d795e1823",
+        "type" : "PUBLICATION_REVIEW",
+        "step" : 4,
+        "modelAttempt" : 4,
+        "observation" : null,
+        "reasonCode" : null,
+        "publicationReason" : null
+      } ],
+      "result" : {
+        "coverage" : "PARTIAL",
+        "evidence" : [ {
+          "id" : "308c79ff-f7ef-4825-9742-527d95762887:0-61",
+          "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+          "chunkId" : "406234e5-88df-331b-8850-29c6938bcf5c",
+          "revision" : "2025.9.2"
+        } ],
+        "evidenceRelations" : [ {
+          "targetId" : "c0",
+          "evidenceId" : "308c79ff-f7ef-4825-9742-527d95762887:0-61",
+          "role" : "CLAIM"
+        } ],
+        "items" : [ {
+          "claims" : [ {
+            "id" : "c0",
+            "factId" : "sha256:db2f63e5d1174583bc706598ddf7e368e2093d625bf68781a129e8b1895ceca8"
+          } ]
+        } ],
+        "issues" : [ {
+          "kind" : "DATA_GAP",
+          "reasonCode" : "PERSONAL_RECORD_NOT_AVAILABLE"
+        } ]
+      }
+    },
+    "retrievedLocators" : null,
+    "retrievalComplete" : false,
+    "matchedFacts" : null,
+    "factsComplete" : false,
+    "citations" : null,
+    "citationsComplete" : false,
+    "reviews" : { }
+  },
+  "publishedResult" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "29d94a9e-c113-41b4-851b-7e1cfbd88d78",
+    "catalogueVersion" : "cat-32242f6391b017efc3e59e5662106fbd5fd070c4eab053b3662156884ca333ce",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "PARTIAL",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "PARTIAL",
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "S06/GENERAL:unenrolled-assessment-disjunction",
+        "text" : "依据2025.9.2历史文本：未经选课者，不得参加课程考核或考核成绩无效。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      } ],
+      "issues" : [ {
+        "id" : "i-PERSONAL_RECORD_NOT_AVAILABLE",
+        "kind" : "DATA_GAP",
+        "reasonCode" : "PERSONAL_RECORD_NOT_AVAILABLE",
+        "message" : "本系统没有核验你的选课记录、考核记录和成绩状态，不能替你认定这次成绩是否有效。",
+        "nextStep" : "请以教务系统个人记录和任课教师/教务处确认为准；本系统只解释已审核规则原文。"
+      } ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ {
+      "id" : "308c79ff-f7ef-4825-9742-527d95762887:0-61",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "406234e5-88df-331b-8850-29c6938bcf5c",
+      "revision" : "2025.9.2",
+      "checksum" : "52f7661f0d5ac579a69f2506b37552b38279cc82fd267c8262bcb0fba176e303",
+      "startInclusive" : 0,
+      "endExclusive" : 61,
+      "quote" : "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。"
+    } ],
+    "evidenceRelations" : [ {
+      "evidenceId" : "308c79ff-f7ef-4825-9742-527d95762887:0-61",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c0"
+    } ]
+  },
+  "searches" : [ {
+    "observationId" : "39089f8a-7d39-4c78-9279-cbe873d1e08f",
+    "runId" : "29d94a9e-c113-41b4-851b-7e1cfbd88d78",
+    "step" : 1,
+    "status" : "SUCCEEDED",
+    "candidates" : [ {
+      "handle" : "21f92df0-9462-4174-93dd-9ae57e760ed0",
+      "excerpt" : "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "22489a31-63ae-48b7-8d68-8ca77c477010",
+      "excerpt" : "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "f4938546-ae12-4d7c-97a3-0e601035aa40",
+      "excerpt" : "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "296a7471-fd67-4de7-ab44-8ff8fa4f93ae",
+      "excerpt" : "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "0c2d5a8f-01bd-4fee-87dd-5caeb8452bb7",
+      "excerpt" : "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "58dc54a1-f412-4023-a253-cd3b936e9f44",
+      "excerpt" : "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "40bcb94d-20ca-487e-b70f-c17d6559ab4d",
+      "excerpt" : "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+      "revision" : "2025.9.2"
+    } ]
+  } ],
+  "retrieval" : [ {
+    "taskId" : "231dd067-95c3-46fa-8739-ba52ae2efca3",
+    "runId" : "29d94a9e-c113-41b4-851b-7e1cfbd88d78",
+    "step" : 1,
+    "observationId" : "39089f8a-7d39-4c78-9279-cbe873d1e08f",
+    "candidates" : [ {
+      "handle" : "21f92df0-9462-4174-93dd-9ae57e760ed0",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "406234e5-88df-331b-8850-29c6938bcf5c",
+      "revision" : "2025.9.2",
+      "checksum" : "52f7661f0d5ac579a69f2506b37552b38279cc82fd267c8262bcb0fba176e303"
+    }, {
+      "handle" : "22489a31-63ae-48b7-8d68-8ca77c477010",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "78d3ca14-37d3-33d0-a3f1-c7a5b06727eb",
+      "revision" : "2025.9.2",
+      "checksum" : "2d1dbdbee0a567fea8c345a62e6568bc93d373d36518c5b62253a11f5f136dd1"
+    }, {
+      "handle" : "f4938546-ae12-4d7c-97a3-0e601035aa40",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "827ccb39-fb2c-3583-9fc1-d673e107cd1c",
+      "revision" : "2025.9.2",
+      "checksum" : "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345"
+    }, {
+      "handle" : "296a7471-fd67-4de7-ab44-8ff8fa4f93ae",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "dbfc7628-6698-32b3-96d9-02259cd6ccd4",
+      "revision" : "2025.9.2",
+      "checksum" : "e1a9646cc11334e64ecf233b86ae27760b0d00d5638b623c1635bce7bf04503d"
+    }, {
+      "handle" : "0c2d5a8f-01bd-4fee-87dd-5caeb8452bb7",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "f0a840b2-48c3-374c-b0b3-d7af48d15d64",
+      "revision" : "2025.9.2",
+      "checksum" : "056217b8775854fbadb44fff38af48c1ed37e1c3b0c92563e1681186387ffeb2"
+    }, {
+      "handle" : "58dc54a1-f412-4023-a253-cd3b936e9f44",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "5cbb7e4c-c5b0-397a-967a-d743acacdc98",
+      "revision" : "2025.9.2",
+      "checksum" : "35910424a742c3fac925a219b7a4bc7fcac4725586e1641d30ed82c15268f2ab"
+    }, {
+      "handle" : "40bcb94d-20ca-487e-b70f-c17d6559ab4d",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "7cde3e63-ae8b-329b-8bd3-fa82b1afbad2",
+      "revision" : "2025.9.2",
+      "checksum" : "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552"
+    } ]
+  } ]
+}

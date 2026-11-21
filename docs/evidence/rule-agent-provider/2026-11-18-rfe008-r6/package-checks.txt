@@ -1,0 +1,21 @@
+2026-11-18 RFE-008 单题复验包（r6）检查
+
+Package: docs/evidence/rule-agent-provider/2026-11-18-rfe008-r6/request-package.json
+Package SHA-256: ac90da5883bd38de79968e268c133e52c4589bea1e1e7e975d0a3abe485b14c5
+Selection: RFE-008 (1 task / 1 run / 5 calls maximum)
+Build: .\mvnw.cmd -q -pl knowledge -am -DskipTests package — EXIT 0
+
+Zero-call package check:
+PASS ZERO_CALL_PACKAGE_CHECK ac90da5883bd38de79968e268c133e52c4589bea1e1e7e975d0a3abe485b14c5
+
+Zero-call database/tool assembly:
+PASS DEDICATED_DATABASE_SEARCH_READ_ASSEMBLY providerCalls=0
+Assembly directory: docs/evidence/rule-agent-provider/2026-11-18-rfe008-r6/assembly-d98bd60bab954ff68487e09b8fd32809
+Container cleanup: cleanupSucceeded=true resourcesClosed=true timedOut=false exitCode=0
+
+Tests:
+Focused regression: 100 tests, 0 failures, 0 errors.
+Expanded regression: 530 tests; 2 RuleAgentRequestPathTest launcher-environment failures and 4 database tests without ZHKU_DB_URL remain environment-blocked; no other failures.
+Real model calls: 0.
+
+Checked at: 2026-11-18T13:40+08:00

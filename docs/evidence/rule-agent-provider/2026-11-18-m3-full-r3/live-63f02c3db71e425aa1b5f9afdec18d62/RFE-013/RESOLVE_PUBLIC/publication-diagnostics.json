@@ -1,0 +1,40 @@
+{
+  "identity" : {
+    "caseId" : "RFE-013",
+    "taskId" : "7467a3a4-0c37-443f-8e82-9a6939040670",
+    "runId" : "5743d449-8d5a-4a8c-9c70-085c0bf1758e",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "f1d842acfb2eeeeeabc91bb9e71870c1741827faff0cafd535f77adde5dd80b1"
+  },
+  "captureSha256" : "a0bef1009a65381a9f9ee1d97337e964259a372c20da163abc231ddf9cb745a6",
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "6dcf9baf67c901d0c1465b4ae0d8ef209ba6cfb93b188b9fde891061a363f47a",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 13
+        },
+        "dimension" : "RETAKE",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ "courseType" ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S10/RETAKE_ONLY:public-failed-no-retake",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    },
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ],
+  "relevanceRejections" : [ ],
+  "relevanceExclusions" : [ ]
+}

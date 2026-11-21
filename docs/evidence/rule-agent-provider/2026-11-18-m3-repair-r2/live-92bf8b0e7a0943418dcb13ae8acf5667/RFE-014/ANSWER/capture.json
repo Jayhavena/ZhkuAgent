@@ -1,0 +1,289 @@
+{
+  "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+  "turn" : {
+    "caseId" : "RFE-014",
+    "kind" : "ANSWER",
+    "question" : "如果挂科的是公共选修课，手册怎么说？",
+    "questionSha256" : "77a9c3d6b62ac22f1d6975ca37b584f1862d6a281a19cc2b43af2b2c06dbe8df",
+    "reply" : null,
+    "factIds" : [ "public-failed-no-retake" ],
+    "alternatives" : [ {
+      "caseId" : "RFE-014",
+      "taskStatus" : "RESOLVED",
+      "runState" : "SUCCEEDED",
+      "coverage" : "COMPLETE",
+      "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+      "issueReason" : null,
+      "expectClaims" : true,
+      "observedAction" : null,
+      "observationStatus" : null,
+      "requireEvidenceLinks" : true,
+      "expectRejectedUnknownTool" : false
+    } ]
+  },
+  "turnId" : "22a2db50-6712-4ba1-979f-7fe9de017c70",
+  "version" : 2,
+  "execution" : {
+    "identity" : {
+      "caseId" : "RFE-014",
+      "taskId" : "98fd4336-1816-4f2f-a6ff-18926bb10de7",
+      "runId" : "c5bbb639-d156-453a-abcc-f2cfcdbcf5eb",
+      "datasetVersion" : "v1.0",
+      "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+      "model" : "qwen3.8-flash",
+      "configurationSha256" : "f42b466b2216ee46c6d1fa2f3cabe179760a08cdb4908561d1a69a5e47189001"
+    },
+    "answer" : "依据2025.9.2历史文本：公共选修课不办理缓考。\n依据2025.9.2历史文本：公共选修课成绩不合格者不安排重修。",
+    "trace" : {
+      "taskId" : "98fd4336-1816-4f2f-a6ff-18926bb10de7",
+      "turnId" : "22a2db50-6712-4ba1-979f-7fe9de017c70",
+      "runId" : "c5bbb639-d156-453a-abcc-f2cfcdbcf5eb",
+      "version" : 2,
+      "taskStatus" : "RESOLVED",
+      "runState" : "SUCCEEDED",
+      "exceptionalFailure" : false,
+      "truncated" : false,
+      "actions" : [ {
+        "actionId" : "dc572cc1-effa-3ec3-b78d-aff32ef39d75",
+        "type" : "SEARCH_REVIEWED_RULES",
+        "step" : 1,
+        "modelAttempt" : 1,
+        "observation" : {
+          "status" : "SUCCEEDED",
+          "dataLevel" : "CANDIDATE",
+          "reasonCode" : null
+        },
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "43d7e4ed-2087-3f92-ad88-8d1060f19c33",
+        "type" : "READ_VERIFIED_RULE",
+        "step" : 2,
+        "modelAttempt" : 2,
+        "observation" : {
+          "status" : "SUCCEEDED",
+          "dataLevel" : "VERIFIED_FACT",
+          "reasonCode" : null
+        },
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "cddba694-8b70-3df9-adbb-8a3c0de1afdf",
+        "type" : "FINISH_CHECK",
+        "step" : 3,
+        "modelAttempt" : 3,
+        "observation" : null,
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "cbe85259-d602-3f01-b9dc-6c356605bd2d",
+        "type" : "PUBLICATION_REVIEW",
+        "step" : 4,
+        "modelAttempt" : 4,
+        "observation" : null,
+        "reasonCode" : null,
+        "publicationReason" : null
+      } ],
+      "result" : {
+        "coverage" : "COMPLETE",
+        "evidence" : [ {
+          "id" : "3d607d52-bc26-4cd9-8168-70080631ce75:0-48",
+          "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+          "chunkId" : "d2581ab9-ad90-38f6-8b44-e297c71ef583",
+          "revision" : "2025.9.2"
+        } ],
+        "evidenceRelations" : [ {
+          "targetId" : "c0",
+          "evidenceId" : "3d607d52-bc26-4cd9-8168-70080631ce75:0-48",
+          "role" : "CLAIM"
+        }, {
+          "targetId" : "c1",
+          "evidenceId" : "3d607d52-bc26-4cd9-8168-70080631ce75:0-48",
+          "role" : "CLAIM"
+        } ],
+        "items" : [ {
+          "claims" : [ {
+            "id" : "c0",
+            "factId" : "sha256:d43e54de22ef42f8e7163b7d266faeeb79e7bed6b871bbc99fe494137120ad8a"
+          }, {
+            "id" : "c1",
+            "factId" : "sha256:07efa61f5622c917da766fb285348b2f7db47678a10e0fda0dfdd5a8e8fa6e4e"
+          } ]
+        } ],
+        "issues" : [ ]
+      }
+    },
+    "retrievedLocators" : null,
+    "retrievalComplete" : false,
+    "matchedFacts" : null,
+    "factsComplete" : false,
+    "citations" : null,
+    "citationsComplete" : false,
+    "reviews" : { }
+  },
+  "publishedResult" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "c5bbb639-d156-453a-abcc-f2cfcdbcf5eb",
+    "catalogueVersion" : "cat-2b7f0ce2cee83214fc2d41f2897ce6f3464eca8260f4423011057382081ad971",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "COMPLETE",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "COMPLETE",
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam",
+        "text" : "依据2025.9.2历史文本：公共选修课不办理缓考。",
+        "when" : {
+          "courseType" : "PUBLIC"
+        },
+        "conditionSource" : "USER_DECLARED"
+      }, {
+        "id" : "c1",
+        "factId" : "S10/RETAKE_ONLY:public-failed-no-retake",
+        "text" : "依据2025.9.2历史文本：公共选修课成绩不合格者不安排重修。",
+        "when" : {
+          "courseType" : "PUBLIC"
+        },
+        "conditionSource" : "USER_DECLARED"
+      } ],
+      "issues" : [ ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ {
+      "id" : "3d607d52-bc26-4cd9-8168-70080631ce75:0-48",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "d2581ab9-ad90-38f6-8b44-e297c71ef583",
+      "revision" : "2025.9.2",
+      "checksum" : "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345",
+      "startInclusive" : 0,
+      "endExclusive" : 48,
+      "quote" : "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。"
+    } ],
+    "evidenceRelations" : [ {
+      "evidenceId" : "3d607d52-bc26-4cd9-8168-70080631ce75:0-48",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c0"
+    }, {
+      "evidenceId" : "3d607d52-bc26-4cd9-8168-70080631ce75:0-48",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c1"
+    } ]
+  },
+  "searches" : [ {
+    "observationId" : "2c92607a-762b-4636-89c5-65b331731cfb",
+    "runId" : "c5bbb639-d156-453a-abcc-f2cfcdbcf5eb",
+    "step" : 1,
+    "status" : "SUCCEEDED",
+    "candidates" : [ {
+      "handle" : "6884e77e-f8c8-4fac-a3fb-603d81a0449b",
+      "excerpt" : "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "efa44450-ccbd-4478-b2d8-fe8672d75796",
+      "excerpt" : "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "b1544e30-8ae5-4926-b95c-9165e687fa1a",
+      "excerpt" : "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "89300265-ec17-4b28-be64-b9e40201f877",
+      "excerpt" : "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "c6118684-4cdf-4071-8936-633cc2277f91",
+      "excerpt" : "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "7eebc6c9-9c54-4386-a4ea-2124c869434e",
+      "excerpt" : "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "96083f4f-c2e1-4576-baec-ac12f5981833",
+      "excerpt" : "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "101bff78-5aa5-4f47-9516-c2bd2cb17648",
+      "excerpt" : "第十条　每学期选修公共选修课最高不得超过 4 个学分。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "3737ccb1-51b0-4a88-9bc6-8148737ed1af",
+      "excerpt" : "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "1433c6db-5baf-49e5-b453-708c9d398b13",
+      "excerpt" : "第十一条　学生不得选修与本专业教学计划相同或相近的课程。已考核\n合格的课程，不可重复修读。",
+      "revision" : "2025.9.2"
+    } ]
+  } ],
+  "retrieval" : [ {
+    "taskId" : "98fd4336-1816-4f2f-a6ff-18926bb10de7",
+    "runId" : "c5bbb639-d156-453a-abcc-f2cfcdbcf5eb",
+    "step" : 1,
+    "observationId" : "2c92607a-762b-4636-89c5-65b331731cfb",
+    "candidates" : [ {
+      "handle" : "6884e77e-f8c8-4fac-a3fb-603d81a0449b",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "9da35fc9-f810-358f-a2bd-0df6bf0b407a",
+      "revision" : "2025.9.2",
+      "checksum" : "056217b8775854fbadb44fff38af48c1ed37e1c3b0c92563e1681186387ffeb2"
+    }, {
+      "handle" : "efa44450-ccbd-4478-b2d8-fe8672d75796",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "9b7f4753-f4dd-3625-9df7-321dc8f74d1c",
+      "revision" : "2025.9.2",
+      "checksum" : "52f7661f0d5ac579a69f2506b37552b38279cc82fd267c8262bcb0fba176e303"
+    }, {
+      "handle" : "b1544e30-8ae5-4926-b95c-9165e687fa1a",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "19021078-7820-3817-ba9d-954da475c7fb",
+      "revision" : "2025.9.2",
+      "checksum" : "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552"
+    }, {
+      "handle" : "89300265-ec17-4b28-be64-b9e40201f877",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "2c3477cb-1fc3-3a81-9895-c7b8751b44ee",
+      "revision" : "2025.9.2",
+      "checksum" : "2985f3667b0e62bb19055ea9ee795b53cd0192a0da43d893fa612b73f876d9ae"
+    }, {
+      "handle" : "c6118684-4cdf-4071-8936-633cc2277f91",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "9af4a751-6a54-3545-9772-73a409c05f3d",
+      "revision" : "2025.9.2",
+      "checksum" : "35910424a742c3fac925a219b7a4bc7fcac4725586e1641d30ed82c15268f2ab"
+    }, {
+      "handle" : "7eebc6c9-9c54-4386-a4ea-2124c869434e",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "d2581ab9-ad90-38f6-8b44-e297c71ef583",
+      "revision" : "2025.9.2",
+      "checksum" : "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345"
+    }, {
+      "handle" : "96083f4f-c2e1-4576-baec-ac12f5981833",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "0819d4fd-497b-3fe7-aafe-7c0124d18311",
+      "revision" : "2025.9.2",
+      "checksum" : "94097c359d2cb712fab8a57e9b32c3096b41eb1e848ab272aed7c3bb6333b40d"
+    }, {
+      "handle" : "101bff78-5aa5-4f47-9516-c2bd2cb17648",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "347d82b0-3879-3d15-a93c-39be4eba671c",
+      "revision" : "2025.9.2",
+      "checksum" : "cd02ac0ab183f2a9f22b0e7129ce5fb6e7bdbb8d4c9dc4011413fabdc6adba24"
+    }, {
+      "handle" : "3737ccb1-51b0-4a88-9bc6-8148737ed1af",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "c4db6778-04e3-3e1c-96e9-e90fdfbd50d9",
+      "revision" : "2025.9.2",
+      "checksum" : "2d1dbdbee0a567fea8c345a62e6568bc93d373d36518c5b62253a11f5f136dd1"
+    }, {
+      "handle" : "1433c6db-5baf-49e5-b453-708c9d398b13",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "d0184645-cd99-3a55-98aa-2d3320f4936c",
+      "revision" : "2025.9.2",
+      "checksum" : "e1a9646cc11334e64ecf233b86ae27760b0d00d5638b623c1635bce7bf04503d"
+    } ]
+  } ]
+}

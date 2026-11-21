@@ -1,0 +1,50 @@
+{
+  "semanticReviews" : [ ],
+  "captureSha256" : "80f6c7d81e6cc795acefab2315b850f2293d98f5f32a716d6f2d84e2fa5cd31b",
+  "identity" : {
+    "caseId" : "RFE-001",
+    "taskId" : "c1eb71c3-1cd1-404b-ac87-e1ce28ea78c3",
+    "runId" : "7ba746e3-3478-4596-a6f8-310575e7f95a",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "10c489086697042f029304c29550f7e2f35a8eabb4c9a49a776f5006bc5a7574"
+  },
+  "relevanceExclusions" : [ ],
+  "relevanceRejections" : [ {
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S02/GENERAL:elective-category-distinction", "S02/GENERAL:public-course-subcategories", "T02/ARTICLE4:professional-elective-study-arrangement", "T02/ARTICLE4:public-elective-self-selection" ],
+      "rejectedFact" : {
+        "factId" : "T02/ARTICLE4:professional-elective-study-arrangement",
+        "dimension" : "STUDY_ARRANGEMENT",
+        "subject" : "PROFESSIONAL_ELECTIVE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "28a618bd70c06a35ac08ca11d0b2e00b472fed0386841b8846bee162888a3d2e"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "CATEGORY",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S02/GENERAL:elective-category-distinction",
+          "role" : "CORE"
+        } ]
+      }, {
+        "ordinal" : 2,
+        "dimension" : "CATEGORY",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S02/GENERAL:public-course-subcategories",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "code" : "FACT_NOT_RELEVANT",
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ]
+}

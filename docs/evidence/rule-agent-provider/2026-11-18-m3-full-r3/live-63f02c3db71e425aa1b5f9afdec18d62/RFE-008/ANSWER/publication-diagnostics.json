@@ -1,0 +1,76 @@
+{
+  "identity" : {
+    "caseId" : "RFE-008",
+    "taskId" : "96e627c9-f87e-4c41-8b5a-ab4184ffd466",
+    "runId" : "8a05f846-504e-4af3-8811-7f659b09d07a",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "f1d842acfb2eeeeeabc91bb9e71870c1741827faff0cafd535f77adde5dd80b1"
+  },
+  "captureSha256" : "ff412fdd8b34f82c2f9bb70454a6c54b673a7ea22fbbd990b7d9ec9fbc2c153e",
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "b6b78a771cc8852c2dd5572c7c4291cb56d3d1d63f6edc445a97ee4a7560bd29",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 20
+        },
+        "dimension" : "GRADUATION_CREDITS",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r1",
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ {
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 6,
+          "endExclusive" : 15
+        },
+        "reason" : "UNSUPPORTED_DIMENSION"
+      } ]
+    },
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ],
+  "relevanceRejections" : [ ],
+  "relevanceExclusions" : [ {
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis", "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits", "S05/PERSONAL_CREDIT_DEFICIT:online-general-half" ],
+      "rejectedFact" : {
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis",
+        "dimension" : "STUDY_ARRANGEMENT",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "8c01aefd10c148c31157288d3eeb55a60b8dce7eab749ce65c58833bcb46a5b2"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "GRADUATION_CREDITS",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ]
+}

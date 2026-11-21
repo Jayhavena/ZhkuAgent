@@ -1,0 +1,193 @@
+{
+  "packageSha256": "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5",
+  "metrics": {
+    "executionCompleted": true,
+    "callsUsed": 40,
+    "httpStatuses": {
+      "200": 40
+    },
+    "unusedCallsClosed": 10,
+    "remainingAuthorizedCalls": 0,
+    "capturedTurns": 10,
+    "inputTokens": 70411,
+    "outputTokens": 4527
+  },
+  "turns": [
+    {
+      "caseId": "RFE-001",
+      "kind": "ANSWER",
+      "capture": "RFE-001/ANSWER/capture.json",
+      "captureSha256": "bd4a0ec1c716a71e203f10cdda1f1c38cf0a2f726892f31233993f287b166042",
+      "conditions": {},
+      "taskStatus": "RESOLVED",
+      "issues": [],
+      "publicationReasons": [],
+      "providerValidation": [],
+      "relevanceRejections": []
+    },
+    {
+      "caseId": "RFE-004",
+      "kind": "ANSWER",
+      "capture": "RFE-004/ANSWER/capture.json",
+      "captureSha256": "ac9733615d123cbf57b47e460004cdaa860f67295bb650c22e962024f8677257",
+      "conditions": {},
+      "taskStatus": "RESOLVED",
+      "issues": [],
+      "publicationReasons": [],
+      "providerValidation": [],
+      "relevanceRejections": []
+    },
+    {
+      "caseId": "RFE-007",
+      "kind": "ANSWER",
+      "capture": "RFE-007/ANSWER/capture.json",
+      "captureSha256": "3eb15f95d0938417f937db433932103e9cf02b76a08d5ecb0984ccbe7f91bd1c",
+      "conditions": {},
+      "taskStatus": "FAILED",
+      "issues": [
+        "ANSWER_COVERAGE_INCOMPLETE",
+        "DETAIL_NOT_IN_REVIEWED_TEXT"
+      ],
+      "publicationReasons": [],
+      "providerValidation": [],
+      "relevanceRejections": []
+    },
+    {
+      "caseId": "RFE-008",
+      "kind": "ANSWER",
+      "capture": "RFE-008/ANSWER/capture.json",
+      "captureSha256": "d521dc90908130f1ab28afb5c02b435169eae604c5c1520e534772bc764c3071",
+      "conditions": {},
+      "taskStatus": "RESOLVED",
+      "issues": [
+        "UNSUPPORTED_DEMAND"
+      ],
+      "publicationReasons": [],
+      "providerValidation": [],
+      "relevanceRejections": []
+    },
+    {
+      "caseId": "RFE-010",
+      "kind": "ANSWER",
+      "capture": "RFE-010/ANSWER/capture.json",
+      "captureSha256": "af6510d175792fe756008cd276f426a77252ca156d8e88bb74cb0c33f9390308",
+      "conditions": {},
+      "taskStatus": "RESOLVED",
+      "issues": [],
+      "publicationReasons": [],
+      "providerValidation": [],
+      "relevanceRejections": []
+    },
+    {
+      "caseId": "RFE-013",
+      "kind": "ASK",
+      "capture": "RFE-013/ASK/capture.json",
+      "captureSha256": "0a7b363fa6f4c5ec88345379b6db7beb25c9e9fe19086d1ce08aecc7758d6cb8",
+      "conditions": {},
+      "taskStatus": "WAITING_USER",
+      "issues": [
+        "MISSING_CONDITION"
+      ],
+      "publicationReasons": [],
+      "providerValidation": [],
+      "relevanceRejections": []
+    },
+    {
+      "caseId": "RFE-013",
+      "kind": "RESOLVE_PUBLIC",
+      "capture": "RFE-013/RESOLVE_PUBLIC/capture.json",
+      "captureSha256": "fc26227fe7dcab377b8b4e09dd4f9db098462c6925faeee088c31d8b9eb092b9",
+      "conditions": {
+        "courseType": "PUBLIC"
+      },
+      "taskStatus": "RESOLVED",
+      "issues": [],
+      "publicationReasons": [],
+      "providerValidation": [],
+      "relevanceRejections": []
+    },
+    {
+      "caseId": "RFE-014",
+      "kind": "ANSWER",
+      "capture": "RFE-014/ANSWER/capture.json",
+      "captureSha256": "f4d01831d05ba575c38bd030698c4a480ccf0f11dc800f0fa7b58ea3adc1b171",
+      "conditions": {
+        "courseType": "PUBLIC"
+      },
+      "taskStatus": "FAILED",
+      "issues": [
+        "INVALID_MODEL_RESPONSE"
+      ],
+      "publicationReasons": [
+        "FACT_NOT_RELEVANT"
+      ],
+      "providerValidation": [],
+      "relevanceRejections": [
+        {
+          "detail": {
+            "subquestionId": "q1",
+            "proposedFactIds": [
+              "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam",
+              "S10/RETAKE_ONLY:public-failed-no-retake"
+            ],
+            "rejectedFact": {
+              "factId": "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam",
+              "dimension": "DEFERRED_EXAM",
+              "subject": "PUBLIC_ELECTIVE",
+              "allowedRoles": [
+                "CORE"
+              ],
+              "auxiliaryDimensions": [],
+              "sourceFingerprint": "bc48c52ad025407d1e965d46e31114ff3d69658e0746c915991c20fc6f87bec2"
+            },
+            "requirements": [
+              {
+                "ordinal": 1,
+                "dimension": "RETAKE",
+                "subject": "PUBLIC_ELECTIVE",
+                "recognition": "IDENTIFIED",
+                "bindings": [
+                  {
+                    "factId": "S10/RETAKE_ONLY:public-failed-no-retake",
+                    "role": "CORE"
+                  }
+                ]
+              }
+            ]
+          },
+          "code": "FACT_NOT_RELEVANT",
+          "action": "PUBLICATION_REVIEW",
+          "attempt": 4
+        }
+      ]
+    },
+    {
+      "caseId": "RFE-015",
+      "kind": "ANSWER",
+      "capture": "RFE-015/ANSWER/capture.json",
+      "captureSha256": "8a7215ecdbd8d39a387cdd452d8e991dfeb1f5890afb35ec3255a7f9d8786eab",
+      "conditions": {
+        "courseType": "PROFESSIONAL"
+      },
+      "taskStatus": "RESOLVED",
+      "issues": [],
+      "publicationReasons": [],
+      "providerValidation": [],
+      "relevanceRejections": []
+    },
+    {
+      "caseId": "RFE-016",
+      "kind": "ANSWER",
+      "capture": "RFE-016/ANSWER/capture.json",
+      "captureSha256": "933841e2fa4a8af569f74b6762cde4a99814f13a5007535d7b314eb9053b84cb",
+      "conditions": {
+        "courseType": "PUBLIC"
+      },
+      "taskStatus": "RESOLVED",
+      "issues": [],
+      "publicationReasons": [],
+      "providerValidation": [],
+      "relevanceRejections": []
+    }
+  ]
+}

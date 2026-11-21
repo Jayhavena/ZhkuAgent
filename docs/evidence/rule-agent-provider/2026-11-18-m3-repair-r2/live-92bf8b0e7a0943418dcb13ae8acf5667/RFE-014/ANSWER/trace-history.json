@@ -1,0 +1,79 @@
+[ {
+  "taskId" : "98fd4336-1816-4f2f-a6ff-18926bb10de7",
+  "turnId" : "22a2db50-6712-4ba1-979f-7fe9de017c70",
+  "runId" : "c5bbb639-d156-453a-abcc-f2cfcdbcf5eb",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "SUCCEEDED",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "dc572cc1-effa-3ec3-b78d-aff32ef39d75",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "43d7e4ed-2087-3f92-ad88-8d1060f19c33",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "cddba694-8b70-3df9-adbb-8a3c0de1afdf",
+    "type" : "FINISH_CHECK",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "cbe85259-d602-3f01-b9dc-6c356605bd2d",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  } ],
+  "result" : {
+    "coverage" : "COMPLETE",
+    "evidence" : [ {
+      "id" : "3d607d52-bc26-4cd9-8168-70080631ce75:0-48",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "d2581ab9-ad90-38f6-8b44-e297c71ef583",
+      "revision" : "2025.9.2"
+    } ],
+    "evidenceRelations" : [ {
+      "targetId" : "c0",
+      "evidenceId" : "3d607d52-bc26-4cd9-8168-70080631ce75:0-48",
+      "role" : "CLAIM"
+    }, {
+      "targetId" : "c1",
+      "evidenceId" : "3d607d52-bc26-4cd9-8168-70080631ce75:0-48",
+      "role" : "CLAIM"
+    } ],
+    "items" : [ {
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "sha256:d43e54de22ef42f8e7163b7d266faeeb79e7bed6b871bbc99fe494137120ad8a"
+      }, {
+        "id" : "c1",
+        "factId" : "sha256:07efa61f5622c917da766fb285348b2f7db47678a10e0fda0dfdd5a8e8fa6e4e"
+      } ]
+    } ],
+    "issues" : [ ]
+  }
+} ]

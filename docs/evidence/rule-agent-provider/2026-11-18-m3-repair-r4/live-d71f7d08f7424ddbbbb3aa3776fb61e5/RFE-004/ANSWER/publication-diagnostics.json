@@ -1,0 +1,55 @@
+{
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "142c4a7cd7850904225a0a910fc7a410c9a6c5112a56aca0a83d8fb872b15802",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 11
+        },
+        "dimension" : "HOURS_NORMAL",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      }, {
+        "id" : "r2",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 12,
+          "endExclusive" : 22
+        },
+        "dimension" : "HOURS_LIMIT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S03/GENERAL:hours-principle",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r2",
+        "factId" : "S03/GENERAL:hours-upper-limit",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    },
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "captureSha256" : "354245ad0c5932d22a45cb4189faa3cbe6353daeaef1c729aaed295ae98bfd32",
+  "identity" : {
+    "caseId" : "RFE-004",
+    "taskId" : "43ff4576-4aa7-4098-ac80-26c23d123cd2",
+    "runId" : "c03306d5-330a-4736-8dd4-1d6e9a5d2eee",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "10c489086697042f029304c29550f7e2f35a8eabb4c9a49a776f5006bc5a7574"
+  },
+  "relevanceExclusions" : [ ],
+  "relevanceRejections" : [ ]
+}

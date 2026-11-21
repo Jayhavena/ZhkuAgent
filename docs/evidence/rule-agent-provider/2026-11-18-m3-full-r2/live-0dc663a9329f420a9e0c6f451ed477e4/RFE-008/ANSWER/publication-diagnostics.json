@@ -1,0 +1,72 @@
+{
+  "identity" : {
+    "caseId" : "RFE-008",
+    "taskId" : "9a6ca81d-271e-4bd8-919c-9ccb8c6d5fe7",
+    "runId" : "ecd98948-7cbb-45f9-8139-91b584460f10",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "3aa65e7308d719b25f8ced554ab4d532b56068430979892572c27fb170bf1f29"
+  },
+  "relevanceExclusions" : [ {
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis", "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits", "S05/PERSONAL_CREDIT_DEFICIT:online-general-half" ],
+      "rejectedFact" : {
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis",
+        "dimension" : "STUDY_ARRANGEMENT",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "d323cdf55c9625f6e9f4f616ff54f599920c6a2050ec8ea7a988c1f78f8c105a"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "GRADUATION_CREDITS",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "relevanceRejections" : [ ],
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "8962d12e9f4d3ef250e4d311b8ccf646b13e98dae25cefd71708698dd8a5ab29",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 20
+        },
+        "dimension" : "GRADUATION_CREDITS",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ {
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 6,
+          "endExclusive" : 15
+        },
+        "reason" : "UNSUPPORTED_DIMENSION"
+      } ]
+    },
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW"
+  } ],
+  "captureSha256" : "655f5efcd56ffaea067b6c7abeb7671de0e3e0cfab972e6493113893208807ae"
+}

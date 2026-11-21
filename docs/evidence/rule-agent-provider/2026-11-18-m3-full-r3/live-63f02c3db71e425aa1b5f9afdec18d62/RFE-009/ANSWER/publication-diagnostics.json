@@ -1,0 +1,65 @@
+{
+  "identity" : {
+    "caseId" : "RFE-009",
+    "taskId" : "231dd067-95c3-46fa-8739-ba52ae2efca3",
+    "runId" : "29d94a9e-c113-41b4-851b-7e1cfbd88d78",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "f1d842acfb2eeeeeabc91bb9e71870c1741827faff0cafd535f77adde5dd80b1"
+  },
+  "captureSha256" : "a124eb14c9915845c8986cbe18acc83bd6dd05ae36673faa4860377ce1d50239",
+  "semanticReviews" : [ {
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "b42962220df4973f785179f2910e95b2440662e7615c077fdfed2a0c0984e99f",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 25
+        },
+        "dimension" : "UNENROLLED_EXAM",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S06/GENERAL:unenrolled-assessment-disjunction",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    },
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ],
+  "relevanceRejections" : [ ],
+  "relevanceExclusions" : [ {
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S06/GENERAL:online-selection-plan", "S06/GENERAL:unenrolled-assessment-disjunction" ],
+      "rejectedFact" : {
+        "factId" : "S06/GENERAL:online-selection-plan",
+        "dimension" : "UNENROLLED_EXAM",
+        "subject" : "PUBLIC_ELECTIVE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "50b9cf979155509da950c52c31c14c6aa31316e74c68fa90efbd50eec76c8683"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "UNENROLLED_EXAM",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S06/GENERAL:unenrolled-assessment-disjunction",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ]
+}

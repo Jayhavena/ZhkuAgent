@@ -1,0 +1,962 @@
+{
+  "failureAnalysis" : {
+    "revision" : "OBSERVED_LAYER_V1",
+    "cases" : {
+      "RFE-001" : [ ],
+      "RFE-004" : [ {
+        "category" : "ATTRIBUTION_UNKNOWN",
+        "subtype" : "REVIEW_REQUIRED",
+        "defect" : false,
+        "reason" : "评分异常或不完整，尚无足够证据判定失败类别；缺观察不能自动认定检索失败。",
+        "evidenceRefs" : [ "RFE-004/ANSWER/capture.json sha256=ac9733615d123cbf57b47e460004cdaa860f67295bb650c22e962024f8677257" ]
+      } ],
+      "RFE-007" : [ {
+        "category" : "EXECUTION_EXCEPTION",
+        "subtype" : "AGENT_FAILED_OR_STOPPED",
+        "defect" : true,
+        "reason" : "ANSWER:EXECUTION_FAILED_OR_STOPPED;ANSWER:TERMINAL_ISSUE:ANSWER_COVERAGE_INCOMPLETE;ANSWER:TERMINAL_ISSUE:DETAIL_NOT_IN_REVIEWED_TEXT",
+        "evidenceRefs" : [ "RFE-007/ANSWER/capture.json sha256=3eb15f95d0938417f937db433932103e9cf02b76a08d5ecb0984ccbe7f91bd1c" ]
+      }, {
+        "category" : "CITATION_ERROR",
+        "subtype" : "CITATION_REQUIREMENT_FAILED_UNTYPED",
+        "defect" : false,
+        "reason" : "ANSWER:verified citations=[]",
+        "evidenceRefs" : [ "RFE-007/ANSWER/capture.json sha256=3eb15f95d0938417f937db433932103e9cf02b76a08d5ecb0984ccbe7f91bd1c" ]
+      } ],
+      "RFE-008" : [ {
+        "category" : "CITATION_ERROR",
+        "subtype" : "CITATION_REQUIREMENT_FAILED_UNTYPED",
+        "defect" : false,
+        "reason" : "ANSWER:verified citations=[]",
+        "evidenceRefs" : [ "RFE-008/ANSWER/capture.json sha256=d521dc90908130f1ab28afb5c02b435169eae604c5c1520e534772bc764c3071" ]
+      } ],
+      "RFE-010" : [ ],
+      "RFE-013" : [ ],
+      "RFE-014" : [ {
+        "category" : "EXECUTION_EXCEPTION",
+        "subtype" : "AGENT_FAILED_OR_STOPPED",
+        "defect" : true,
+        "reason" : "ANSWER:EXECUTION_FAILED_OR_STOPPED;ANSWER:TERMINAL_ISSUE:INVALID_MODEL_RESPONSE",
+        "evidenceRefs" : [ "RFE-014/ANSWER/capture.json sha256=f4d01831d05ba575c38bd030698c4a480ccf0f11dc800f0fa7b58ea3adc1b171" ]
+      }, {
+        "category" : "CITATION_ERROR",
+        "subtype" : "CITATION_REQUIREMENT_FAILED_UNTYPED",
+        "defect" : false,
+        "reason" : "ANSWER:verified citations=[]",
+        "evidenceRefs" : [ "RFE-014/ANSWER/capture.json sha256=f4d01831d05ba575c38bd030698c4a480ccf0f11dc800f0fa7b58ea3adc1b171" ]
+      } ],
+      "RFE-015" : [ {
+        "category" : "ATTRIBUTION_UNKNOWN",
+        "subtype" : "REVIEW_REQUIRED",
+        "defect" : false,
+        "reason" : "评分异常或不完整，尚无足够证据判定失败类别；缺观察不能自动认定检索失败。",
+        "evidenceRefs" : [ "RFE-015/ANSWER/capture.json sha256=8a7215ecdbd8d39a387cdd452d8e991dfeb1f5890afb35ec3255a7f9d8786eab" ]
+      } ],
+      "RFE-016" : [ ]
+    },
+    "affectedCases" : {
+      "RETRIEVAL_FAILURE" : 0,
+      "CONDITION_JUDGMENT_ERROR" : 0,
+      "INSUFFICIENT_EVIDENCE" : 0,
+      "CITATION_ERROR" : 0,
+      "EXECUTION_EXCEPTION" : 2,
+      "ANSWER_INCOMPLETE" : 0,
+      "ATTRIBUTION_UNKNOWN" : 0
+    },
+    "nonDefectCases" : {
+      "RETRIEVAL_FAILURE" : 0,
+      "CONDITION_JUDGMENT_ERROR" : 0,
+      "INSUFFICIENT_EVIDENCE" : 0,
+      "CITATION_ERROR" : 3,
+      "EXECUTION_EXCEPTION" : 0,
+      "ANSWER_INCOMPLETE" : 0,
+      "ATTRIBUTION_UNKNOWN" : 2
+    }
+  },
+  "executionIdentity" : {
+    "packageSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5",
+    "approvalSha256" : "6a8e1120b7cfd44e8a1b493e10aa2c69854dfe5b4ece8059207f3c113857ab41",
+    "reservationSha256" : "8817627d6b85f83ebdce4ebbff857b5d2821ef3fe5d0c2fce929b41ee803c1ce",
+    "authorizationEvidence" : "PACKAGE_BOUND_LOCAL_COPIES"
+  },
+  "sources" : {
+    "RFE-001/ANSWER/annotation-reviewed.json" : "2b316eaa1709861f5cc853b497a3cd9961c4a241f5a58ae3230c43f968b96912",
+    "RFE-001/ANSWER/capture.json" : "bd4a0ec1c716a71e203f10cdda1f1c38cf0a2f726892f31233993f287b166042",
+    "RFE-001/ANSWER/publication-diagnostics.json" : "fb54a3acb7a9a8ecc170b3fd209e7af8e219136204ede89441945981fec263fc",
+    "RFE-001/ANSWER/turn-finished.json" : "c7bf6daaeffede6b57020ca84cb2ffc743fee64b952da05f90bc1162d4965599",
+    "RFE-001/case-closeout.json" : "3740cf2feb17b5351b53ca667cc81a6e07d2be8148fbe517b17bc71641274a8a",
+    "RFE-001/case-started.json" : "81da91bf55685fa126c84a93fa9f63eda8746e32d0d4b9de76cc6e3ac4db5529",
+    "RFE-001/provider-traces.jsonl" : "cdce15e00eba506b396bd0420e44c908fb46daabc4a73c1e3c0da78c4ff25406",
+    "RFE-004/ANSWER/annotation-reviewed.json" : "acb371060ee57a5a225c3c5b82d9e2d67194c7bed4f18575009686216bde5111",
+    "RFE-004/ANSWER/capture.json" : "ac9733615d123cbf57b47e460004cdaa860f67295bb650c22e962024f8677257",
+    "RFE-004/ANSWER/publication-diagnostics.json" : "7c2dd753f55f45d145713aefc5d5cd61b513baa27139911e33d5ec31581a28dc",
+    "RFE-004/ANSWER/turn-finished.json" : "9ad94622cd20bb06fa778b135ea4d7eb17ba60d685180dceae2a20b42ae5e031",
+    "RFE-004/case-closeout.json" : "53ab08ddb752ef6360e4c86e847c3e8827fc9f4688b4e283a25551fa0e4e380f",
+    "RFE-004/case-started.json" : "76986a20bcffe18a2dfe92517f593075933d1d8c05cfe57b4b7b56994cac8208",
+    "RFE-004/provider-traces.jsonl" : "93e86a3b98051f28731c20823703cc5eefa1affd4feed090c04a77b245b931fa",
+    "RFE-007/ANSWER/annotation-reviewed.json" : "2558351173d9ac6ae7ba98701e29b35d73b1ceef018452c8536aaffe2b3d9fff",
+    "RFE-007/ANSWER/capture.json" : "3eb15f95d0938417f937db433932103e9cf02b76a08d5ecb0984ccbe7f91bd1c",
+    "RFE-007/ANSWER/publication-diagnostics.json" : "18c5b4c315ad392b792331cb81cfc50c2e381219e08639cb31ef0017c140ce15",
+    "RFE-007/ANSWER/turn-finished.json" : "06e5eb84af497f3c5119be29321f56100a75d9c27daa11552d605a95e90728b5",
+    "RFE-007/case-closeout.json" : "23642287965a5d97f789f71f9e6400c2cd7523bae16f7b5d56bcf41a84c0ba61",
+    "RFE-007/case-started.json" : "44940abf5fe0d28fe2f38e5607a4cdc7571f9fe6967fa690d3bfee2d8a1fe870",
+    "RFE-007/provider-traces.jsonl" : "2b17710dc80d31cc4272d984ff377f9afc28171e5c0385252aef4ce15c5f75db",
+    "RFE-008/ANSWER/annotation-reviewed.json" : "7bddef60bc20dc46b9cc21532b1f1c6a971adfb94fa2d6fab0fa3eef56ccfc3b",
+    "RFE-008/ANSWER/capture.json" : "d521dc90908130f1ab28afb5c02b435169eae604c5c1520e534772bc764c3071",
+    "RFE-008/ANSWER/publication-diagnostics.json" : "551816a3b14aa7028c9983d5a3b9dec63a6650cbf586f095cc3762689740ff2e",
+    "RFE-008/ANSWER/turn-finished.json" : "56c553cf083aaabd63cac6b58f2fec813acf3207c54a6d2d82f4f0e97fa1a3b5",
+    "RFE-008/case-closeout.json" : "97c9ac9af6b28a9b53e270439441d093337e6eb4b63aa728d8b3970b8ed29e54",
+    "RFE-008/case-started.json" : "aa5f5cfd9529657644e76004a2a46e491cb8a74b304fc90ded91d69246631542",
+    "RFE-008/provider-traces.jsonl" : "8a034b815de5c8987e246a44e19fb3293bf48623304ea0b97cc8a111a7f992ae",
+    "RFE-010/ANSWER/annotation-reviewed.json" : "84ebb8308f115c408655fe4e254927acb5993e1ba68be187fe3ae794e70efcf0",
+    "RFE-010/ANSWER/capture.json" : "af6510d175792fe756008cd276f426a77252ca156d8e88bb74cb0c33f9390308",
+    "RFE-010/ANSWER/publication-diagnostics.json" : "75b144c6fc2f2bebf113ea68cf8e77a7f6ac799b9f56c6cfecafa68209db057f",
+    "RFE-010/ANSWER/turn-finished.json" : "c50bf960096dbd2460353a0bdd78a5c6b4735abe83d410357beb0eaab692f84f",
+    "RFE-010/case-closeout.json" : "64064f8ad7319ab94359bfa01bc653fd6d0a3041088e664fd1ff93bd7b4e0973",
+    "RFE-010/case-started.json" : "15611387f9b0468d25969090c42c39e96e432a71ad2f7a0d46b89cc40384f282",
+    "RFE-010/provider-traces.jsonl" : "46857f34eeeacd5f7a2f22795c2616eaeedfb691c02883c7614605e6d7213cce",
+    "RFE-013/ASK/annotation-reviewed.json" : "68554a4b4b869771c4c8f2ce7a1ac35810ed38843c8022fd22538da0920d0ac3",
+    "RFE-013/ASK/capture.json" : "0a7b363fa6f4c5ec88345379b6db7beb25c9e9fe19086d1ce08aecc7758d6cb8",
+    "RFE-013/ASK/publication-diagnostics.json" : "fee9fdefadedba7dd2e8ee77074a9c65920abeea53ef12e66758e3afa7116408",
+    "RFE-013/ASK/turn-finished.json" : "1ab5a194acb2bb107b83c071e26a527dd1cb857fd6684719d9eb63dc4c43c0da",
+    "RFE-013/RESOLVE_PUBLIC/annotation-reviewed.json" : "7b169fa299456a453bb8259e1f3c8d894103fe1ddb679c6f6e0a95f64b292fa8",
+    "RFE-013/RESOLVE_PUBLIC/capture.json" : "fc26227fe7dcab377b8b4e09dd4f9db098462c6925faeee088c31d8b9eb092b9",
+    "RFE-013/RESOLVE_PUBLIC/publication-diagnostics.json" : "4e9c78f44fe74c6564b7bd9f81848f9f811b315af2f4ac750841655f1ea61a58",
+    "RFE-013/RESOLVE_PUBLIC/turn-finished.json" : "538384f7246fefa3814bf6b3923353c25f344f366eea87519affe4b2c42f2466",
+    "RFE-013/case-closeout.json" : "b0468cd64098b27602d15cd2f531805896b3b213d81ec25b3da4ed8784e3aaa5",
+    "RFE-013/case-started.json" : "26a5ad632144b26cfc3f4799ccf25053a7c26b1284a4e6e75e611fa761a051e1",
+    "RFE-013/provider-traces.jsonl" : "e13dbd582b4e34a9be37fadbed3530203254eefc8e4d91862ad2cebce0f73a2b",
+    "RFE-014/ANSWER/annotation-reviewed.json" : "60b9e7fb9147a7e4a1c3cb0b1ed3a4a23b8a945de559c4802529a2ec99c243ea",
+    "RFE-014/ANSWER/capture.json" : "f4d01831d05ba575c38bd030698c4a480ccf0f11dc800f0fa7b58ea3adc1b171",
+    "RFE-014/ANSWER/publication-diagnostics.json" : "e43855f946b858297a2f02c14b688f67240eb3ef6316d3494ed3f4ac35f3288e",
+    "RFE-014/ANSWER/turn-finished.json" : "e4b10ea8bbe2ef137b17b359c36a2391b85c6534e3cd24a166bfbe3933766da9",
+    "RFE-014/case-closeout.json" : "2abb4d94de3e38fd72194833f69d1590cfae46eb81c901c4a6b77d47c1c089e0",
+    "RFE-014/case-started.json" : "3985e9fb1983bd62a473e812a322038c9c302555995bf805182aed89fed1837e",
+    "RFE-014/provider-traces.jsonl" : "52cc13ce031ceee7adaa623e015de7f3d357181ce5d56bc321ce2172e603db5e",
+    "RFE-015/ANSWER/annotation-reviewed.json" : "897b5c05c51ade042229327909b7312fac1341128d91d512fa39a7ef84aa7182",
+    "RFE-015/ANSWER/capture.json" : "8a7215ecdbd8d39a387cdd452d8e991dfeb1f5890afb35ec3255a7f9d8786eab",
+    "RFE-015/ANSWER/publication-diagnostics.json" : "dc9bf2051baa24deb83c50d666456e695d6a86c9a53390f3df9d247347591655",
+    "RFE-015/ANSWER/turn-finished.json" : "7a62142a218425b6f354e688ec1f6dfe7325f4d5b77d8ade6f9469bdfbef4554",
+    "RFE-015/case-closeout.json" : "15ad049af4fe1641b300fe56d8c8b2baf4b65665dd1bfc119d6405e3871fdd78",
+    "RFE-015/case-started.json" : "372a843f6cd125ea4e66f969b94a32e62d9f94a3212695144c5e599582217ae7",
+    "RFE-015/provider-traces.jsonl" : "78f54eb0fe9e79cdc79ca9e1d705e2e1c9aab4d72f5d3479315aeae9e4740036",
+    "RFE-016/ANSWER/annotation-reviewed.json" : "7d7ab7efc653958d09b3b1182b8b80171cb25999addb552acec7ab0fa22f76de",
+    "RFE-016/ANSWER/capture.json" : "933841e2fa4a8af569f74b6762cde4a99814f13a5007535d7b314eb9053b84cb",
+    "RFE-016/ANSWER/publication-diagnostics.json" : "1715a1ffbc45ea124d20e864d1641d13d2179decee72b5015e2cad97edf661a2",
+    "RFE-016/ANSWER/turn-finished.json" : "2c78ff5c0f40077b5e16473b77113de17be720fb0c024bd521dbbba063fbda82",
+    "RFE-016/case-closeout.json" : "bbb3e6f19c64936d62ed1e96c1398220865c76f3ece8edf4fb40f35a7fb05edb",
+    "RFE-016/case-started.json" : "93aca2d3e3d8f5de84c6337fbd0c97a7da80eb22474bbd409c2cc763adaa1e3a",
+    "RFE-016/provider-traces.jsonl" : "a8a3ad0fd194d4cdf21dc26bd61b3cd294bc99793d53f7500f89df943e8faa45",
+    "baseline-identity.json" : "ad58253f89c3c49b16d868464cf70f5b66daa7b3874d9b24b0086aab7748d725",
+    "batch-closeout.json" : "536c03334fba7eea601b23c446cb28f3c362dcccc199dfc33f72aa7b6b53d2e1",
+    "batch-plan.json" : "bf94530e126484c289dccda66fddbfa2d02c16377c38d4db33590c76127afa22",
+    "container-cleanup.json" : "0179ecd9170110ab80f07ccf993c7069464e4c1056077720211751f41ba3f1e1",
+    "execution-approval.json" : "6a8e1120b7cfd44e8a1b493e10aa2c69854dfe5b4ece8059207f3c113857ab41",
+    "execution-reserved.json" : "8817627d6b85f83ebdce4ebbff857b5d2821ef3fe5d0c2fce929b41ee803c1ce",
+    "launcher-result.json" : "7574d4cdb420939b1feb8b75175192dbafc7c762e348d9bc37afc32a37850651"
+  },
+  "qualityReport" : {
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "denominator" : 9,
+    "passed" : 4,
+    "failed" : 5,
+    "unjudgeable" : 0,
+    "errors" : 0,
+    "knownOutcomes" : 9,
+    "fullyEvaluable" : 7,
+    "casePassRate" : 0.4444444444444444,
+    "knownOutcomeRatio" : 1.0,
+    "fullyEvaluableRatio" : 0.7777777777777778,
+    "cases" : {
+      "RFE-001" : {
+        "outcome" : "PASS",
+        "fullyEvaluable" : true,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-4]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[elective-category-distinction, public-course-subcategories]; matched=[public-course-subcategories, elective-category-distinction]", "ANSWER:unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=依据2025.9.2历史文本：学校选修课分为专业选修课和公共选修课。\n依据2025.9.2历史文本：公共选修课包括校内公选课和网络公选课。" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:verified citations=[Citation[locator=handbook-2025-article-4, verification=SUPPORTED]]" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 两类选修课及公选子类准确，正文限定为2025.9.2历史文本。; excerpt=依据2025.9.2历史文本：学校选修课分为专业选修课和公共选修课。\n依据2025.9.2历史文本：公共选修课包括校内公选课和网络公选课。" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:clarificationAndGap: Codex 独立离线复核，非用户人工终审: 直接回答所问的两级分类，无需澄清。; excerpt=依据2025.9.2历史文本：学校选修课分为专业选修课和公共选修课。\n依据2025.9.2历史文本：公共选修课包括校内公选课和网络公选课。" ]
+          },
+          "executionSafety" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:EXPECTATIONS_MET", "ANSWER:executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=依据2025.9.2历史文本：学校选修课分为专业选修课和公共选修课。\n依据2025.9.2历史文本：公共选修课包括校内公选课和网络公选课。" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-001",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-001",
+              "taskId" : "abb058bb-86c9-4f68-bfe0-039c4ed76ef5",
+              "runId" : "d49b6ec4-da93-4a73-bb7f-c33e115a74f7",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "PASS",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-4]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[elective-category-distinction, public-course-subcategories]; matched=[public-course-subcategories, elective-category-distinction]", "unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=依据2025.9.2历史文本：学校选修课分为专业选修课和公共选修课。\n依据2025.9.2历史文本：公共选修课包括校内公选课和网络公选课。" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "PASS",
+                "reasons" : [ "verified citations=[Citation[locator=handbook-2025-article-4, verification=SUPPORTED]]" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "PASS",
+                "reasons" : [ "scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 两类选修课及公选子类准确，正文限定为2025.9.2历史文本。; excerpt=依据2025.9.2历史文本：学校选修课分为专业选修课和公共选修课。\n依据2025.9.2历史文本：公共选修课包括校内公选课和网络公选课。" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "PASS",
+                "reasons" : [ "clarificationAndGap: Codex 独立离线复核，非用户人工终审: 直接回答所问的两级分类，无需澄清。; excerpt=依据2025.9.2历史文本：学校选修课分为专业选修课和公共选修课。\n依据2025.9.2历史文本：公共选修课包括校内公选课和网络公选课。" ]
+              },
+              "executionSafety" : {
+                "verdict" : "PASS",
+                "reasons" : [ "EXPECTATIONS_MET", "executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=依据2025.9.2历史文本：学校选修课分为专业选修课和公共选修课。\n依据2025.9.2历史文本：公共选修课包括校内公选课和网络公选课。" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-001/ANSWER/capture.json",
+          "evidenceSha" : "bd4a0ec1c716a71e203f10cdda1f1c38cf0a2f726892f31233993f287b166042",
+          "error" : null,
+          "annotationPath" : "RFE-001/ANSWER/annotation-reviewed.json",
+          "annotationSha" : "2b316eaa1709861f5cc853b497a3cd9961c4a241f5a58ae3230c43f968b96912"
+        } ]
+      },
+      "RFE-004" : {
+        "outcome" : "FAIL",
+        "fullyEvaluable" : true,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-5]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12]" ]
+          },
+          "factSupport" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[hours-upper-limit, hours-principle]; matched=[hours-principle, hours-upper-limit]", "ANSWER:unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=依据2025.9.2历史文本：公共选修课授课时间原则上为16学时。\n依据2025.9.2历史文本：公共选修课最多不超过32学时。" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:verified citations=[Citation[locator=handbook-2025-article-5, verification=SUPPORTED]]" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 两项条文事实正确，但未将24学时与32上限比较，也未明确不能据此判定全面合规或违规。; excerpt=依据2025.9.2历史文本：公共选修课授课时间原则上为16学时。\n依据2025.9.2历史文本：公共选修课最多不超过32学时。" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:clarificationAndGap: Codex 独立离线复核，非用户人工终审: 没有交代判断这门具体课程还缺少哪些依据，用户问的能否直接判违规没有得到回答。; excerpt=依据2025.9.2历史文本：公共选修课授课时间原则上为16学时。\n依据2025.9.2历史文本：公共选修课最多不超过32学时。" ]
+          },
+          "executionSafety" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:EXPECTATIONS_MET", "ANSWER:executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=依据2025.9.2历史文本：公共选修课授课时间原则上为16学时。\n依据2025.9.2历史文本：公共选修课最多不超过32学时。" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-004",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-004",
+              "taskId" : "8d4f5504-ed01-43b8-af04-4c842e00734b",
+              "runId" : "c08b50a2-d6d9-4a77-80ea-2745baac609d",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "FAIL",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-5]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12]" ]
+              },
+              "factSupport" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[hours-upper-limit, hours-principle]; matched=[hours-principle, hours-upper-limit]", "unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=依据2025.9.2历史文本：公共选修课授课时间原则上为16学时。\n依据2025.9.2历史文本：公共选修课最多不超过32学时。" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "PASS",
+                "reasons" : [ "verified citations=[Citation[locator=handbook-2025-article-5, verification=SUPPORTED]]" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 两项条文事实正确，但未将24学时与32上限比较，也未明确不能据此判定全面合规或违规。; excerpt=依据2025.9.2历史文本：公共选修课授课时间原则上为16学时。\n依据2025.9.2历史文本：公共选修课最多不超过32学时。" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "clarificationAndGap: Codex 独立离线复核，非用户人工终审: 没有交代判断这门具体课程还缺少哪些依据，用户问的能否直接判违规没有得到回答。; excerpt=依据2025.9.2历史文本：公共选修课授课时间原则上为16学时。\n依据2025.9.2历史文本：公共选修课最多不超过32学时。" ]
+              },
+              "executionSafety" : {
+                "verdict" : "PASS",
+                "reasons" : [ "EXPECTATIONS_MET", "executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=依据2025.9.2历史文本：公共选修课授课时间原则上为16学时。\n依据2025.9.2历史文本：公共选修课最多不超过32学时。" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-004/ANSWER/capture.json",
+          "evidenceSha" : "ac9733615d123cbf57b47e460004cdaa860f67295bb650c22e962024f8677257",
+          "error" : null,
+          "annotationPath" : "RFE-004/ANSWER/annotation-reviewed.json",
+          "annotationSha" : "acb371060ee57a5a225c3c5b82d9e2d67194c7bed4f18575009686216bde5111"
+        } ]
+      },
+      "RFE-007" : {
+        "outcome" : "FAIL",
+        "fullyEvaluable" : false,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-8]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:required=[online-general-half]; matched=[]", "ANSWER:unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=已确认的部分保留；本轮尚未回答全部需求，不能把漏答当作资料缺失。\n可核对原文或重新发起查证；本轮不作无依据结论。\n已取得的审核资料不足以支持完整结论。\n可核对原文或重新发起查证；本轮不作无依据结论。" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:verified citations=[]" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 仅有失败提示，没有对比培养方案学分或限定个人适用范围。; excerpt=已确认的部分保留；本轮尚未回答全部需求，不能把漏答当作资料缺失。\n可核对原文或重新发起查证；本轮不作无依据结论。\n已取得的审核资料不足以支持完整结论。\n可核对原文或重新发起查证；本轮不作无依据结论。" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:clarificationAndGap: Codex 独立离线复核，非用户人工终审: 执行失败提示不能表明正确处理了该题的资料缺口。; excerpt=已确认的部分保留；本轮尚未回答全部需求，不能把漏答当作资料缺失。\n可核对原文或重新发起查证；本轮不作无依据结论。\n已取得的审核资料不足以支持完整结论。\n可核对原文或重新发起查证；本轮不作无依据结论。" ]
+          },
+          "executionSafety" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:EXECUTION_FAILED_OR_STOPPED", "ANSWER:TERMINAL_ISSUE:ANSWER_COVERAGE_INCOMPLETE", "ANSWER:TERMINAL_ISSUE:DETAIL_NOT_IN_REVIEWED_TEXT" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-007",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-007",
+              "taskId" : "a4e06276-8223-4b15-ab8d-723979251c76",
+              "runId" : "ff76b46b-9a2d-4f85-9536-1e11391a424c",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "FAIL",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-8]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "required=[online-general-half]; matched=[]", "unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=已确认的部分保留；本轮尚未回答全部需求，不能把漏答当作资料缺失。\n可核对原文或重新发起查证；本轮不作无依据结论。\n已取得的审核资料不足以支持完整结论。\n可核对原文或重新发起查证；本轮不作无依据结论。" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "verified citations=[]" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 仅有失败提示，没有对比培养方案学分或限定个人适用范围。; excerpt=已确认的部分保留；本轮尚未回答全部需求，不能把漏答当作资料缺失。\n可核对原文或重新发起查证；本轮不作无依据结论。\n已取得的审核资料不足以支持完整结论。\n可核对原文或重新发起查证；本轮不作无依据结论。" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "clarificationAndGap: Codex 独立离线复核，非用户人工终审: 执行失败提示不能表明正确处理了该题的资料缺口。; excerpt=已确认的部分保留；本轮尚未回答全部需求，不能把漏答当作资料缺失。\n可核对原文或重新发起查证；本轮不作无依据结论。\n已取得的审核资料不足以支持完整结论。\n可核对原文或重新发起查证；本轮不作无依据结论。" ]
+              },
+              "executionSafety" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "EXECUTION_FAILED_OR_STOPPED", "TERMINAL_ISSUE:ANSWER_COVERAGE_INCOMPLETE", "TERMINAL_ISSUE:DETAIL_NOT_IN_REVIEWED_TEXT" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-007/ANSWER/capture.json",
+          "evidenceSha" : "3eb15f95d0938417f937db433932103e9cf02b76a08d5ecb0984ccbe7f91bd1c",
+          "error" : null,
+          "annotationPath" : "RFE-007/ANSWER/annotation-reviewed.json",
+          "annotationSha" : "2558351173d9ac6ae7ba98701e29b35d73b1ceef018452c8536aaffe2b3d9fff"
+        } ]
+      },
+      "RFE-008" : {
+        "outcome" : "FAIL",
+        "fullyEvaluable" : true,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-8]; observed=[handbook-2025-article-8, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-2, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:required=[plan-required-credits]; matched=[]", "ANSWER:unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。\n请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:verified citations=[]" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 没有识别问题所需的培养方案和个人学分记录，泛化为不相干的当期截止或代办示例。; excerpt=已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。\n请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:clarificationAndGap: Codex 独立离线复核，非用户人工终审: 未提示核对个人成绩、完成学分和对应培养方案，给出的通知或系统操作说明不能补足这一缺口。; excerpt=已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。\n请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。" ]
+          },
+          "executionSafety" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:COVERAGE_MISMATCH", "ANSWER:ISSUE_REASON_MISMATCH", "ANSWER:CLAIM_PRESENCE_MISMATCH", "ANSWER:EVIDENCE_LINKS_MISSING", "ANSWER:executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。\n请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-008",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-008",
+              "taskId" : "b0e58aa6-48b0-4e08-89b9-9bd1fb7dc8a5",
+              "runId" : "21ac4e40-504e-48a3-9d0c-809ea0e15706",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "FAIL",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-8]; observed=[handbook-2025-article-8, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-2, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "required=[plan-required-credits]; matched=[]", "unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。\n请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "verified citations=[]" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 没有识别问题所需的培养方案和个人学分记录，泛化为不相干的当期截止或代办示例。; excerpt=已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。\n请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "clarificationAndGap: Codex 独立离线复核，非用户人工终审: 未提示核对个人成绩、完成学分和对应培养方案，给出的通知或系统操作说明不能补足这一缺口。; excerpt=已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。\n请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。" ]
+              },
+              "executionSafety" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "COVERAGE_MISMATCH", "ISSUE_REASON_MISMATCH", "CLAIM_PRESENCE_MISMATCH", "EVIDENCE_LINKS_MISSING", "executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。\n请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-008/ANSWER/capture.json",
+          "evidenceSha" : "d521dc90908130f1ab28afb5c02b435169eae604c5c1520e534772bc764c3071",
+          "error" : null,
+          "annotationPath" : "RFE-008/ANSWER/annotation-reviewed.json",
+          "annotationSha" : "7bddef60bc20dc46b9cc21532b1f1c6a971adfb94fa2d6fab0fa3eef56ccfc3b"
+        } ]
+      },
+      "RFE-010" : {
+        "outcome" : "PASS",
+        "fullyEvaluable" : true,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-10]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[public-semester-four-credits]; matched=[public-semester-four-credits]", "ANSWER:unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=依据2025.9.2历史文本：每学期选修公共选修课最高不得超过4个学分。" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:verified citations=[Citation[locator=handbook-2025-article-10, verification=SUPPORTED]]" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 4学分限定为每学期公共选修课，注明2025.9.2历史文本。; excerpt=依据2025.9.2历史文本：每学期选修公共选修课最高不得超过4个学分。" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:clarificationAndGap: Codex 独立离线复核，非用户人工终审: 已直接回答明确的上限查询。; excerpt=依据2025.9.2历史文本：每学期选修公共选修课最高不得超过4个学分。" ]
+          },
+          "executionSafety" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:EXPECTATIONS_MET", "ANSWER:executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=依据2025.9.2历史文本：每学期选修公共选修课最高不得超过4个学分。" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-010",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-010",
+              "taskId" : "eaa2617d-a576-465b-ab8c-ddc9911db45b",
+              "runId" : "953bbc35-a485-4dca-9fe8-06f619a25cf8",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "PASS",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-10]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[public-semester-four-credits]; matched=[public-semester-four-credits]", "unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=依据2025.9.2历史文本：每学期选修公共选修课最高不得超过4个学分。" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "PASS",
+                "reasons" : [ "verified citations=[Citation[locator=handbook-2025-article-10, verification=SUPPORTED]]" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "PASS",
+                "reasons" : [ "scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 4学分限定为每学期公共选修课，注明2025.9.2历史文本。; excerpt=依据2025.9.2历史文本：每学期选修公共选修课最高不得超过4个学分。" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "PASS",
+                "reasons" : [ "clarificationAndGap: Codex 独立离线复核，非用户人工终审: 已直接回答明确的上限查询。; excerpt=依据2025.9.2历史文本：每学期选修公共选修课最高不得超过4个学分。" ]
+              },
+              "executionSafety" : {
+                "verdict" : "PASS",
+                "reasons" : [ "EXPECTATIONS_MET", "executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=依据2025.9.2历史文本：每学期选修公共选修课最高不得超过4个学分。" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-010/ANSWER/capture.json",
+          "evidenceSha" : "af6510d175792fe756008cd276f426a77252ca156d8e88bb74cb0c33f9390308",
+          "error" : null,
+          "annotationPath" : "RFE-010/ANSWER/annotation-reviewed.json",
+          "annotationSha" : "84ebb8308f115c408655fe4e254927acb5993e1ba68be187fe3ae794e70efcf0"
+        } ]
+      },
+      "RFE-013" : {
+        "outcome" : "PASS",
+        "fullyEvaluable" : true,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ASK:required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]", "RESOLVE_PUBLIC:required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ASK:NO_REQUIRED_FACTS_FOR_TURN_AND_NO_OBSERVED_CLAIMS; unsupported claims independently reviewed", "RESOLVE_PUBLIC:required=[public-failed-no-retake]; matched=[public-failed-no-retake]", "RESOLVE_PUBLIC:unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=依据2025.9.2历史文本：公共选修课成绩不合格者不安排重修。" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ASK:verified citations=[Citation[locator=handbook-2025-article-18, verification=SUPPORTED]]", "RESOLVE_PUBLIC:verified citations=[Citation[locator=handbook-2025-article-18, verification=SUPPORTED]]" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ASK:scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 在类别未知时保留分支，没有给出统一的是或否。; excerpt=还缺影响结论的必要条件。\n请补充下方必要条件。\n公共选修课和专业选修课的处理规则不同，需要先确认课程类别。这门课属于公共选修还是专业选修？", "RESOLVE_PUBLIC:scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 只回答PUBLIC分支，并注明历史文本。; excerpt=依据2025.9.2历史文本：公共选修课成绩不合格者不安排重修。" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ASK:clarificationAndGap: Codex 独立离线复核，非用户人工终审: 问清公共还是专业选修，并解释两类处理不同；第18条支撑该差异。; excerpt=还缺影响结论的必要条件。\n请补充下方必要条件。\n公共选修课和专业选修课的处理规则不同，需要先确认课程类别。这门课属于公共选修还是专业选修？", "RESOLVE_PUBLIC:clarificationAndGap: Codex 独立离线复核，非用户人工终审: 已使用实际回复的类别，给出该分支结果。; excerpt=依据2025.9.2历史文本：公共选修课成绩不合格者不安排重修。" ]
+          },
+          "executionSafety" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ASK:EXPECTATIONS_MET", "ASK:executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=还缺影响结论的必要条件。\n请补充下方必要条件。\n公共选修课和专业选修课的处理规则不同，需要先确认课程类别。这门课属于公共选修还是专业选修？", "RESOLVE_PUBLIC:EXPECTATIONS_MET", "RESOLVE_PUBLIC:executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=依据2025.9.2历史文本：公共选修课成绩不合格者不安排重修。" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-013",
+          "kind" : "ASK",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-013",
+              "taskId" : "04453743-cf1b-4538-b4d6-742571c2757d",
+              "runId" : "1fd45b13-8f69-45ed-a171-d748e4000b07",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "PASS",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "NOT_APPLICABLE",
+                "reasons" : [ "NO_REQUIRED_FACTS_FOR_TURN_AND_NO_OBSERVED_CLAIMS; unsupported claims independently reviewed" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "PASS",
+                "reasons" : [ "verified citations=[Citation[locator=handbook-2025-article-18, verification=SUPPORTED]]" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "PASS",
+                "reasons" : [ "scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 在类别未知时保留分支，没有给出统一的是或否。; excerpt=还缺影响结论的必要条件。\n请补充下方必要条件。\n公共选修课和专业选修课的处理规则不同，需要先确认课程类别。这门课属于公共选修还是专业选修？" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "PASS",
+                "reasons" : [ "clarificationAndGap: Codex 独立离线复核，非用户人工终审: 问清公共还是专业选修，并解释两类处理不同；第18条支撑该差异。; excerpt=还缺影响结论的必要条件。\n请补充下方必要条件。\n公共选修课和专业选修课的处理规则不同，需要先确认课程类别。这门课属于公共选修还是专业选修？" ]
+              },
+              "executionSafety" : {
+                "verdict" : "PASS",
+                "reasons" : [ "EXPECTATIONS_MET", "executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=还缺影响结论的必要条件。\n请补充下方必要条件。\n公共选修课和专业选修课的处理规则不同，需要先确认课程类别。这门课属于公共选修还是专业选修？" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-013/ASK/capture.json",
+          "evidenceSha" : "0a7b363fa6f4c5ec88345379b6db7beb25c9e9fe19086d1ce08aecc7758d6cb8",
+          "error" : null,
+          "annotationPath" : "RFE-013/ASK/annotation-reviewed.json",
+          "annotationSha" : "68554a4b4b869771c4c8f2ce7a1ac35810ed38843c8022fd22538da0920d0ac3"
+        }, {
+          "caseId" : "RFE-013",
+          "kind" : "RESOLVE_PUBLIC",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-013",
+              "taskId" : "04453743-cf1b-4538-b4d6-742571c2757d",
+              "runId" : "3dc8ae85-8e01-44f0-adea-2ad80701f8cf",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "PASS",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[public-failed-no-retake]; matched=[public-failed-no-retake]", "unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=依据2025.9.2历史文本：公共选修课成绩不合格者不安排重修。" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "PASS",
+                "reasons" : [ "verified citations=[Citation[locator=handbook-2025-article-18, verification=SUPPORTED]]" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "PASS",
+                "reasons" : [ "scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 只回答PUBLIC分支，并注明历史文本。; excerpt=依据2025.9.2历史文本：公共选修课成绩不合格者不安排重修。" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "PASS",
+                "reasons" : [ "clarificationAndGap: Codex 独立离线复核，非用户人工终审: 已使用实际回复的类别，给出该分支结果。; excerpt=依据2025.9.2历史文本：公共选修课成绩不合格者不安排重修。" ]
+              },
+              "executionSafety" : {
+                "verdict" : "PASS",
+                "reasons" : [ "EXPECTATIONS_MET", "executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=依据2025.9.2历史文本：公共选修课成绩不合格者不安排重修。" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-013/RESOLVE_PUBLIC/capture.json",
+          "evidenceSha" : "fc26227fe7dcab377b8b4e09dd4f9db098462c6925faeee088c31d8b9eb092b9",
+          "error" : null,
+          "annotationPath" : "RFE-013/RESOLVE_PUBLIC/annotation-reviewed.json",
+          "annotationSha" : "7b169fa299456a453bb8259e1f3c8d894103fe1ddb679c6f6e0a95f64b292fa8"
+        } ]
+      },
+      "RFE-014" : {
+        "outcome" : "FAIL",
+        "fullyEvaluable" : false,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:required=[public-failed-no-retake]; matched=[]", "ANSWER:unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=本轮模型响应未通过协议或语义核验，无法确认可信结论；不能将核验失败误当作资料不存在。\n可核对原文或重新发起查证；本轮不作无依据结论。" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:verified citations=[]" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 公开结果只有失败提示，不能评价最终答案对历史范围或类别的表达。; excerpt=本轮模型响应未通过协议或语义核验，无法确认可信结论；不能将核验失败误当作资料不存在。\n可核对原文或重新发起查证；本轮不作无依据结论。" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "UNJUDGEABLE",
+            "reasons" : [ "ANSWER:clarificationAndGap: Codex 独立离线复核，非用户人工终审: 没有实质答复或针对性缺口说明。; excerpt=本轮模型响应未通过协议或语义核验，无法确认可信结论；不能将核验失败误当作资料不存在。\n可核对原文或重新发起查证；本轮不作无依据结论。" ]
+          },
+          "executionSafety" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:EXECUTION_FAILED_OR_STOPPED", "ANSWER:TERMINAL_ISSUE:INVALID_MODEL_RESPONSE" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-014",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-014",
+              "taskId" : "01e2c5c0-ff6e-4539-a076-7cbc598f6849",
+              "runId" : "039bb3f1-b3e6-4b1a-96d8-d09326034d6a",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "FAIL",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "required=[public-failed-no-retake]; matched=[]", "unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=本轮模型响应未通过协议或语义核验，无法确认可信结论；不能将核验失败误当作资料不存在。\n可核对原文或重新发起查证；本轮不作无依据结论。" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "verified citations=[]" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 公开结果只有失败提示，不能评价最终答案对历史范围或类别的表达。; excerpt=本轮模型响应未通过协议或语义核验，无法确认可信结论；不能将核验失败误当作资料不存在。\n可核对原文或重新发起查证；本轮不作无依据结论。" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "UNJUDGEABLE",
+                "reasons" : [ "clarificationAndGap: Codex 独立离线复核，非用户人工终审: 没有实质答复或针对性缺口说明。; excerpt=本轮模型响应未通过协议或语义核验，无法确认可信结论；不能将核验失败误当作资料不存在。\n可核对原文或重新发起查证；本轮不作无依据结论。" ]
+              },
+              "executionSafety" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "EXECUTION_FAILED_OR_STOPPED", "TERMINAL_ISSUE:INVALID_MODEL_RESPONSE" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-014/ANSWER/capture.json",
+          "evidenceSha" : "f4d01831d05ba575c38bd030698c4a480ccf0f11dc800f0fa7b58ea3adc1b171",
+          "error" : null,
+          "annotationPath" : "RFE-014/ANSWER/annotation-reviewed.json",
+          "annotationSha" : "60b9e7fb9147a7e4a1c3cb0b1ed3a4a23b8a945de559c4802529a2ec99c243ea"
+        } ]
+      },
+      "RFE-015" : {
+        "outcome" : "FAIL",
+        "fullyEvaluable" : true,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[professional-failed-retake-application]; matched=[professional-failed-retake-application]", "ANSWER:unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=依据2025.9.2历史文本：专业选修课成绩不合格者可申请重修学习。" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:verified citations=[Citation[locator=handbook-2025-article-18, verification=SUPPORTED]]" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "FAIL",
+            "reasons" : [ "ANSWER:scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 保留了可申请并限定专业选修课，但未明确可申请不等于批准或满足个人办理条件。; excerpt=依据2025.9.2历史文本：专业选修课成绩不合格者可申请重修学习。" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:clarificationAndGap: Codex 独立离线复核，非用户人工终审: 已答能否申请，未要求重新确认已给出的类别。; excerpt=依据2025.9.2历史文本：专业选修课成绩不合格者可申请重修学习。" ]
+          },
+          "executionSafety" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:EXPECTATIONS_MET", "ANSWER:executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=依据2025.9.2历史文本：专业选修课成绩不合格者可申请重修学习。" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-015",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-015",
+              "taskId" : "12a037ae-91e4-4568-a3f0-f270a274801d",
+              "runId" : "fbf7abf5-f86f-4ac7-a756-f14669fa0d3f",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "FAIL",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[professional-failed-retake-application]; matched=[professional-failed-retake-application]", "unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=依据2025.9.2历史文本：专业选修课成绩不合格者可申请重修学习。" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "PASS",
+                "reasons" : [ "verified citations=[Citation[locator=handbook-2025-article-18, verification=SUPPORTED]]" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "FAIL",
+                "reasons" : [ "scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 保留了可申请并限定专业选修课，但未明确可申请不等于批准或满足个人办理条件。; excerpt=依据2025.9.2历史文本：专业选修课成绩不合格者可申请重修学习。" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "PASS",
+                "reasons" : [ "clarificationAndGap: Codex 独立离线复核，非用户人工终审: 已答能否申请，未要求重新确认已给出的类别。; excerpt=依据2025.9.2历史文本：专业选修课成绩不合格者可申请重修学习。" ]
+              },
+              "executionSafety" : {
+                "verdict" : "PASS",
+                "reasons" : [ "EXPECTATIONS_MET", "executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=依据2025.9.2历史文本：专业选修课成绩不合格者可申请重修学习。" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-015/ANSWER/capture.json",
+          "evidenceSha" : "8a7215ecdbd8d39a387cdd452d8e991dfeb1f5890afb35ec3255a7f9d8786eab",
+          "error" : null,
+          "annotationPath" : "RFE-015/ANSWER/annotation-reviewed.json",
+          "annotationSha" : "897b5c05c51ade042229327909b7312fac1341128d91d512fa39a7ef84aa7182"
+        } ]
+      },
+      "RFE-016" : {
+        "outcome" : "PASS",
+        "fullyEvaluable" : true,
+        "dimensions" : {
+          "retrievalRecall" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+          },
+          "factSupport" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:required=[public-no-deferred-exam]; matched=[public-no-deferred-exam]", "ANSWER:unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=依据2025.9.2历史文本：公共选修课不办理缓考。" ]
+          },
+          "citationIntegrity" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:verified citations=[Citation[locator=handbook-2025-article-18, verification=SUPPORTED]]" ]
+          },
+          "scopeAndApplicability" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 仅对公共选修课说明不办理缓考，历史范围明确。; excerpt=依据2025.9.2历史文本：公共选修课不办理缓考。" ]
+          },
+          "clarificationAndGap" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:clarificationAndGap: Codex 独立离线复核，非用户人工终审: 覆盖直接问题，无须补充已知类别或声称代办。; excerpt=依据2025.9.2历史文本：公共选修课不办理缓考。" ]
+          },
+          "executionSafety" : {
+            "verdict" : "PASS",
+            "reasons" : [ "ANSWER:EXPECTATIONS_MET", "ANSWER:executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=依据2025.9.2历史文本：公共选修课不办理缓考。" ]
+          }
+        },
+        "turns" : [ {
+          "caseId" : "RFE-016",
+          "kind" : "ANSWER",
+          "result" : {
+            "identity" : {
+              "caseId" : "RFE-016",
+              "taskId" : "14418f1f-be19-49eb-ac03-826a486a80df",
+              "runId" : "97cdba5c-6bb0-471f-b912-7c3a24ab5e87",
+              "datasetVersion" : "v1.0",
+              "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+              "model" : "qwen3.8-flash",
+              "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+            },
+            "outcome" : "PASS",
+            "dimensions" : {
+              "retrievalRecall" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[handbook-2025-article-18]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-18, handbook-2025-article-6, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+              },
+              "factSupport" : {
+                "verdict" : "PASS",
+                "reasons" : [ "required=[public-no-deferred-exam]; matched=[public-no-deferred-exam]", "unsupportedClaims: Codex 独立离线复核，非用户人工终审: 所有实际发布规则主张均有原文支持，未发表主张的轮次保留缺失或不适用。; excerpt=依据2025.9.2历史文本：公共选修课不办理缓考。" ]
+              },
+              "citationIntegrity" : {
+                "verdict" : "PASS",
+                "reasons" : [ "verified citations=[Citation[locator=handbook-2025-article-18, verification=SUPPORTED]]" ]
+              },
+              "scopeAndApplicability" : {
+                "verdict" : "PASS",
+                "reasons" : [ "scopeAndApplicability: Codex 独立离线复核，非用户人工终审: 仅对公共选修课说明不办理缓考，历史范围明确。; excerpt=依据2025.9.2历史文本：公共选修课不办理缓考。" ]
+              },
+              "clarificationAndGap" : {
+                "verdict" : "PASS",
+                "reasons" : [ "clarificationAndGap: Codex 独立离线复核，非用户人工终审: 覆盖直接问题，无须补充已知类别或声称代办。; excerpt=依据2025.9.2历史文本：公共选修课不办理缓考。" ]
+              },
+              "executionSafety" : {
+                "verdict" : "PASS",
+                "reasons" : [ "EXPECTATIONS_MET", "executionSafety: Codex 独立离线复核，非用户人工终审: 实际发布内容没有声称代办或确认个人结果，终态和动作失败另由既有Grader核验。; excerpt=依据2025.9.2历史文本：公共选修课不办理缓考。" ]
+              }
+            }
+          },
+          "evidencePath" : "RFE-016/ANSWER/capture.json",
+          "evidenceSha" : "933841e2fa4a8af569f74b6762cde4a99814f13a5007535d7b314eb9053b84cb",
+          "error" : null,
+          "annotationPath" : "RFE-016/ANSWER/annotation-reviewed.json",
+          "annotationSha" : "7d7ab7efc653958d09b3b1182b8b80171cb25999addb552acec7ab0fa22f76de"
+        } ]
+      }
+    },
+    "dimensions" : {
+      "retrievalRecall" : {
+        "applicable" : 9,
+        "passed" : 9,
+        "failed" : 0,
+        "unjudgeable" : 0,
+        "errors" : 0,
+        "notApplicable" : 0
+      },
+      "factSupport" : {
+        "applicable" : 9,
+        "passed" : 6,
+        "failed" : 3,
+        "unjudgeable" : 0,
+        "errors" : 0,
+        "notApplicable" : 0
+      },
+      "citationIntegrity" : {
+        "applicable" : 9,
+        "passed" : 6,
+        "failed" : 3,
+        "unjudgeable" : 0,
+        "errors" : 0,
+        "notApplicable" : 0
+      },
+      "scopeAndApplicability" : {
+        "applicable" : 9,
+        "passed" : 4,
+        "failed" : 3,
+        "unjudgeable" : 2,
+        "errors" : 0,
+        "notApplicable" : 0
+      },
+      "clarificationAndGap" : {
+        "applicable" : 9,
+        "passed" : 5,
+        "failed" : 2,
+        "unjudgeable" : 2,
+        "errors" : 0,
+        "notApplicable" : 0
+      },
+      "executionSafety" : {
+        "applicable" : 9,
+        "passed" : 6,
+        "failed" : 3,
+        "unjudgeable" : 0,
+        "errors" : 0,
+        "notApplicable" : 0
+      }
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion" : 3,
+  "taskId" : "35d24165-0adf-42bb-8844-9515b28ecc23",
+  "turnId" : "c455c08b-1fd4-415e-8b83-4e24ccb18072",
+  "runId" : "78496513-018c-4b89-b1e1-5b1c7fadaaf6",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "SUCCEEDED",
+  "terminated" : true,
+  "result" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "78496513-018c-4b89-b1e1-5b1c7fadaaf6",
+    "catalogueVersion" : "cat-1c1c3f9fab2d888e51c518d662994bbb50f59013c6b155de1543f785c94cca94",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "COMPLETE",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "COMPLETE",
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "S03/GENERAL:hours-principle",
+        "text" : "依据2025.9.2历史文本：公共选修课授课时间原则上为16学时。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      }, {
+        "id" : "c1",
+        "factId" : "S03/GENERAL:hours-upper-limit",
+        "text" : "依据2025.9.2历史文本：公共选修课最多不超过32学时。按原文数值比较：所问24学时未超过上限32学时；原文原则值为16学时，所问数值高于原则值。仅凭该条不能判定该课程整体合规或违规，仍需核实该课程实际安排及适用例外。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      } ],
+      "issues" : [ ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ {
+      "id" : "00fb1bb4-4c04-4ce2-9ebc-51194d542f18:0-36",
+      "sourceId" : "cf151036-1c0a-4777-bf80-4033804c9685",
+      "chunkId" : "0c8279d4-a5df-3453-83ee-27e5c56d8c7d",
+      "revision" : "2025.9.2",
+      "checksum" : "94097c359d2cb712fab8a57e9b32c3096b41eb1e848ab272aed7c3bb6333b40d",
+      "startInclusive" : 0,
+      "endExclusive" : 36,
+      "quote" : "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。"
+    } ],
+    "evidenceRelations" : [ {
+      "evidenceId" : "00fb1bb4-4c04-4ce2-9ebc-51194d542f18:0-36",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c0"
+    }, {
+      "evidenceId" : "00fb1bb4-4c04-4ce2-9ebc-51194d542f18:0-36",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c1"
+    } ]
+  },
+  "execution" : {
+    "mode" : "ONLINE",
+    "modelAttemptCount" : 4,
+    "toolStepCount" : 3,
+    "providerResponseReceived" : true,
+    "answerSource" : "LIVE_AGENT",
+    "replayCoverage" : "NOT_APPLICABLE"
+  }
+}

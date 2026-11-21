@@ -1,0 +1,72 @@
+[ {
+  "taskId" : "14418f1f-be19-49eb-ac03-826a486a80df",
+  "turnId" : "5b62b900-5f87-49b0-bf77-8175c6f9c2ab",
+  "runId" : "97cdba5c-6bb0-471f-b912-7c3a24ab5e87",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "SUCCEEDED",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "7362b75b-5dd2-3907-8931-4cf43e9ae197",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "db62feb3-5225-39f2-b945-51d8ef0a68df",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "592ba526-483c-352c-a3f0-4ee04becf881",
+    "type" : "FINISH_CHECK",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "40419500-1e0b-3fa4-9378-3ec094f4983f",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  } ],
+  "result" : {
+    "coverage" : "COMPLETE",
+    "evidence" : [ {
+      "id" : "3a736b44-fea0-457b-a04a-9c163a08c57a:0-48",
+      "sourceId" : "de687361-7e1a-4230-8009-95fbfebd2fa6",
+      "chunkId" : "541745bb-1ffd-355e-aeff-126f52ad9c8d",
+      "revision" : "2025.9.2"
+    } ],
+    "evidenceRelations" : [ {
+      "targetId" : "c0",
+      "evidenceId" : "3a736b44-fea0-457b-a04a-9c163a08c57a:0-48",
+      "role" : "CLAIM"
+    } ],
+    "items" : [ {
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "sha256:d43e54de22ef42f8e7163b7d266faeeb79e7bed6b871bbc99fe494137120ad8a"
+      } ]
+    } ],
+    "issues" : [ ]
+  }
+} ]

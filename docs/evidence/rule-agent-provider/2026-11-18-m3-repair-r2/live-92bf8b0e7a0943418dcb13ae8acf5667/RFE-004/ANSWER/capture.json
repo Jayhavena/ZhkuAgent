@@ -1,0 +1,286 @@
+{
+  "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+  "turn" : {
+    "caseId" : "RFE-004",
+    "kind" : "ANSWER",
+    "question" : "有门公选课安排24学时，这能直接判定违规吗？",
+    "questionSha256" : "99b1779c920bb7ffc71fbf8eed80e83491e53d0d8a77cb9b14b46416af18383f",
+    "reply" : null,
+    "factIds" : [ "hours-principle", "hours-upper-limit" ],
+    "alternatives" : [ {
+      "caseId" : "RFE-004",
+      "taskStatus" : "RESOLVED",
+      "runState" : "SUCCEEDED",
+      "coverage" : "COMPLETE",
+      "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+      "issueReason" : null,
+      "expectClaims" : true,
+      "observedAction" : null,
+      "observationStatus" : null,
+      "requireEvidenceLinks" : true,
+      "expectRejectedUnknownTool" : false
+    }, {
+      "caseId" : "RFE-004",
+      "taskStatus" : "RESOLVED",
+      "runState" : "INCOMPLETE",
+      "coverage" : "PARTIAL",
+      "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+      "issueReason" : null,
+      "expectClaims" : true,
+      "observedAction" : null,
+      "observationStatus" : null,
+      "requireEvidenceLinks" : true,
+      "expectRejectedUnknownTool" : false
+    } ]
+  },
+  "turnId" : "bdcdf347-e36f-4ef2-9a4d-3407fbfaff29",
+  "version" : 2,
+  "execution" : {
+    "identity" : {
+      "caseId" : "RFE-004",
+      "taskId" : "38c261fd-2d2e-48a7-9eb8-80e8dd69c348",
+      "runId" : "9285a7fa-5c51-446f-a2a5-27049433ce70",
+      "datasetVersion" : "v1.0",
+      "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+      "model" : "qwen3.8-flash",
+      "configurationSha256" : "f42b466b2216ee46c6d1fa2f3cabe179760a08cdb4908561d1a69a5e47189001"
+    },
+    "answer" : "依据2025.9.2历史文本：公共选修课授课时间原则上为16学时。\n依据2025.9.2历史文本：公共选修课最多不超过32学时。按原文数值比较：所问24学时未超过上限32学时；原文原则值为16学时，所问数值高于原则值。仅凭该条不能判定该课程整体合规或违规，仍需核实该课程实际安排及适用例外。\n已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。\n请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。",
+    "trace" : {
+      "taskId" : "38c261fd-2d2e-48a7-9eb8-80e8dd69c348",
+      "turnId" : "bdcdf347-e36f-4ef2-9a4d-3407fbfaff29",
+      "runId" : "9285a7fa-5c51-446f-a2a5-27049433ce70",
+      "version" : 2,
+      "taskStatus" : "RESOLVED",
+      "runState" : "INCOMPLETE",
+      "exceptionalFailure" : false,
+      "truncated" : false,
+      "actions" : [ {
+        "actionId" : "95e96eff-b153-339e-815d-910d150137ce",
+        "type" : "SEARCH_REVIEWED_RULES",
+        "step" : 1,
+        "modelAttempt" : 1,
+        "observation" : {
+          "status" : "SUCCEEDED",
+          "dataLevel" : "CANDIDATE",
+          "reasonCode" : null
+        },
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "71b9a004-bcd1-36cb-9397-c54b3e1d312a",
+        "type" : "READ_VERIFIED_RULE",
+        "step" : 2,
+        "modelAttempt" : 2,
+        "observation" : {
+          "status" : "SUCCEEDED",
+          "dataLevel" : "VERIFIED_FACT",
+          "reasonCode" : null
+        },
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "c8bab4bf-ebf1-34bf-bb49-a180fca40772",
+        "type" : "FINISH_CHECK",
+        "step" : 3,
+        "modelAttempt" : 3,
+        "observation" : null,
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "73d89864-7132-3864-8b25-ed6bf1f76933",
+        "type" : "PUBLICATION_REVIEW",
+        "step" : 4,
+        "modelAttempt" : 4,
+        "observation" : null,
+        "reasonCode" : null,
+        "publicationReason" : null
+      } ],
+      "result" : {
+        "coverage" : "PARTIAL",
+        "evidence" : [ {
+          "id" : "8ed5c762-1fa7-430b-b2bd-9489f54f8ce9:0-36",
+          "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+          "chunkId" : "0819d4fd-497b-3fe7-aafe-7c0124d18311",
+          "revision" : "2025.9.2"
+        } ],
+        "evidenceRelations" : [ {
+          "targetId" : "c0",
+          "evidenceId" : "8ed5c762-1fa7-430b-b2bd-9489f54f8ce9:0-36",
+          "role" : "CLAIM"
+        }, {
+          "targetId" : "c1",
+          "evidenceId" : "8ed5c762-1fa7-430b-b2bd-9489f54f8ce9:0-36",
+          "role" : "CLAIM"
+        } ],
+        "items" : [ {
+          "claims" : [ {
+            "id" : "c0",
+            "factId" : "sha256:4b43347aa38705c2df1e2f4541c3c5403996735871ed893c1f2d7b2ab9f1edf9"
+          }, {
+            "id" : "c1",
+            "factId" : "sha256:d01af95125452785a91b0283159fa17ff3dd3760910b92be47a2d83354605276"
+          } ]
+        } ],
+        "issues" : [ {
+          "kind" : "DATA_GAP",
+          "reasonCode" : "UNSUPPORTED_DEMAND"
+        } ]
+      }
+    },
+    "retrievedLocators" : null,
+    "retrievalComplete" : false,
+    "matchedFacts" : null,
+    "factsComplete" : false,
+    "citations" : null,
+    "citationsComplete" : false,
+    "reviews" : { }
+  },
+  "publishedResult" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "9285a7fa-5c51-446f-a2a5-27049433ce70",
+    "catalogueVersion" : "cat-2b7f0ce2cee83214fc2d41f2897ce6f3464eca8260f4423011057382081ad971",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "PARTIAL",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "PARTIAL",
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "S03/GENERAL:hours-principle",
+        "text" : "依据2025.9.2历史文本：公共选修课授课时间原则上为16学时。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      }, {
+        "id" : "c1",
+        "factId" : "S03/GENERAL:hours-upper-limit",
+        "text" : "依据2025.9.2历史文本：公共选修课最多不超过32学时。按原文数值比较：所问24学时未超过上限32学时；原文原则值为16学时，所问数值高于原则值。仅凭该条不能判定该课程整体合规或违规，仍需核实该课程实际安排及适用例外。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      } ],
+      "issues" : [ {
+        "id" : "i-UNSUPPORTED_DEMAND",
+        "kind" : "DATA_GAP",
+        "reasonCode" : "UNSUPPORTED_DEMAND",
+        "message" : "已审核资料没有覆盖该需求（例如当期截止时间或代办操作），本轮不作结论，也不代替你办理。",
+        "nextStep" : "请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。"
+      } ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ {
+      "id" : "8ed5c762-1fa7-430b-b2bd-9489f54f8ce9:0-36",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "0819d4fd-497b-3fe7-aafe-7c0124d18311",
+      "revision" : "2025.9.2",
+      "checksum" : "94097c359d2cb712fab8a57e9b32c3096b41eb1e848ab272aed7c3bb6333b40d",
+      "startInclusive" : 0,
+      "endExclusive" : 36,
+      "quote" : "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。"
+    } ],
+    "evidenceRelations" : [ {
+      "evidenceId" : "8ed5c762-1fa7-430b-b2bd-9489f54f8ce9:0-36",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c0"
+    }, {
+      "evidenceId" : "8ed5c762-1fa7-430b-b2bd-9489f54f8ce9:0-36",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c1"
+    } ]
+  },
+  "searches" : [ {
+    "observationId" : "78d01e5c-2cbf-4f7e-9004-6d914c30356a",
+    "runId" : "9285a7fa-5c51-446f-a2a5-27049433ce70",
+    "step" : 1,
+    "status" : "SUCCEEDED",
+    "candidates" : [ {
+      "handle" : "32c69980-9268-46b2-a20e-eefe24a4c7df",
+      "excerpt" : "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "d50b286b-e900-4e8f-8bdd-aff0cf9bcd22",
+      "excerpt" : "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "98a8f856-3736-4fdd-96ac-ed991082cf64",
+      "excerpt" : "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "f6e62e2e-1daf-4e26-a0be-c354c2f86a9f",
+      "excerpt" : "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "4675b091-7e6b-4f5a-8678-55e892982852",
+      "excerpt" : "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "a8f0af0f-6b14-4700-9a8f-c3e8ea4fa406",
+      "excerpt" : "第五条　公共选修课授课时间原则上为 16 学时，最多不超过 32 学时。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "253ccb0a-4b9f-4365-973c-c3e162b057bd",
+      "excerpt" : "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "1f3c2789-0df8-4c86-a7bb-a231fe394be7",
+      "excerpt" : "第十八条　公共选修课不办理缓考，成绩不合格者不安排重修。专业选\n修课成绩不合格者可申请重修学习。",
+      "revision" : "2025.9.2"
+    } ]
+  } ],
+  "retrieval" : [ {
+    "taskId" : "38c261fd-2d2e-48a7-9eb8-80e8dd69c348",
+    "runId" : "9285a7fa-5c51-446f-a2a5-27049433ce70",
+    "step" : 1,
+    "observationId" : "78d01e5c-2cbf-4f7e-9004-6d914c30356a",
+    "candidates" : [ {
+      "handle" : "32c69980-9268-46b2-a20e-eefe24a4c7df",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "9da35fc9-f810-358f-a2bd-0df6bf0b407a",
+      "revision" : "2025.9.2",
+      "checksum" : "056217b8775854fbadb44fff38af48c1ed37e1c3b0c92563e1681186387ffeb2"
+    }, {
+      "handle" : "d50b286b-e900-4e8f-8bdd-aff0cf9bcd22",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "9af4a751-6a54-3545-9772-73a409c05f3d",
+      "revision" : "2025.9.2",
+      "checksum" : "35910424a742c3fac925a219b7a4bc7fcac4725586e1641d30ed82c15268f2ab"
+    }, {
+      "handle" : "98a8f856-3736-4fdd-96ac-ed991082cf64",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "19021078-7820-3817-ba9d-954da475c7fb",
+      "revision" : "2025.9.2",
+      "checksum" : "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552"
+    }, {
+      "handle" : "f6e62e2e-1daf-4e26-a0be-c354c2f86a9f",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "9b7f4753-f4dd-3625-9df7-321dc8f74d1c",
+      "revision" : "2025.9.2",
+      "checksum" : "52f7661f0d5ac579a69f2506b37552b38279cc82fd267c8262bcb0fba176e303"
+    }, {
+      "handle" : "4675b091-7e6b-4f5a-8678-55e892982852",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "c4db6778-04e3-3e1c-96e9-e90fdfbd50d9",
+      "revision" : "2025.9.2",
+      "checksum" : "2d1dbdbee0a567fea8c345a62e6568bc93d373d36518c5b62253a11f5f136dd1"
+    }, {
+      "handle" : "a8f0af0f-6b14-4700-9a8f-c3e8ea4fa406",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "0819d4fd-497b-3fe7-aafe-7c0124d18311",
+      "revision" : "2025.9.2",
+      "checksum" : "94097c359d2cb712fab8a57e9b32c3096b41eb1e848ab272aed7c3bb6333b40d"
+    }, {
+      "handle" : "253ccb0a-4b9f-4365-973c-c3e162b057bd",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "2c3477cb-1fc3-3a81-9895-c7b8751b44ee",
+      "revision" : "2025.9.2",
+      "checksum" : "2985f3667b0e62bb19055ea9ee795b53cd0192a0da43d893fa612b73f876d9ae"
+    }, {
+      "handle" : "1f3c2789-0df8-4c86-a7bb-a231fe394be7",
+      "sourceId" : "70d80b51-cdaa-4a3d-8e85-b1a32b4320e4",
+      "chunkId" : "d2581ab9-ad90-38f6-8b44-e297c71ef583",
+      "revision" : "2025.9.2",
+      "checksum" : "536d5a6e2b78cb628f065dcba8e3ca48efc662728d0c6e4e056d1a8322173345"
+    } ]
+  } ]
+}

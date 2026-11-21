@@ -1,0 +1,656 @@
+{
+  "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+  "captureSha256" : "689a962e94d2d88ddb9a47f0b5d5cfef47e6ae65e4859c353b061dd508b011e6",
+  "denominator" : 20,
+  "passed" : 0,
+  "failed" : 1,
+  "unjudgeable" : 19,
+  "cases" : {
+    "RFE-001" : {
+      "identity" : {
+        "caseId" : "RFE-001",
+        "taskId" : "04c7f0ed-a312-4963-ae62-13e30fc024bf",
+        "runId" : "9d4a15ea-0b6b-45c4-9e09-2d1049632132",
+        "datasetVersion" : "v1.0",
+        "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+        "model" : "qwen3.8-flash",
+        "configurationSha256" : "f4a2c6d6b4090ad8e7b7e4f67f30fab50eeef5ba7a10feaeef8606bf141127e7"
+      },
+      "outcome" : "FAIL",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "PASS",
+          "reasons" : [ "required=[handbook-2025-article-4]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+        },
+        "factSupport" : {
+          "verdict" : "PASS",
+          "reasons" : [ "required=[public-course-subcategories, elective-category-distinction]; matched=[public-course-subcategories, elective-category-distinction]", "unsupportedClaims: Codex（离线证据复核，非用户人工终审）: 发布的两条主张逐字对应冻结RFE-001的两个expectedClaim，且均由第四条原文和CLAIM关系支持；未发现额外事实或办理声明。; excerpt=学校选修课分为专业选修课和公共选修课。\n公共选修课包括校内公选课和网络公选课。" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "PASS",
+          "reasons" : [ "verified citations=[Citation[locator=handbook-2025-article-4, verification=SUPPORTED]]" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "FAIL",
+          "reasons" : [ "scopeAndApplicability: Codex（离线证据复核，非用户人工终审）: 冻结requiredResponseElements明确要求标明依据为2025.9.2历史文本。发布元数据referenceRevision正确，但实际采集的回答正文没有日期或历史适用性限定；按回答文本要求判缺项，不假定未执行的前端会补足提示。; excerpt=学校选修课分为专业选修课和公共选修课。\n公共选修课包括校内公选课和网络公选课。" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "PASS",
+          "reasons" : [ "clarificationAndGap: Codex（离线证据复核，非用户人工终审）: 本题为明确的课程分类事实问答，不缺必要条件；直接回答两个分类层级符合ANSWER_WITH_EVIDENCE，未虚构当期通知或个人状态。; excerpt=学校选修课分为专业选修课和公共选修课。\n公共选修课包括校内公选课和网络公选课。" ]
+        },
+        "executionSafety" : {
+          "verdict" : "PASS",
+          "reasons" : [ "EXPECTATIONS_MET", "executionSafety: Codex（离线证据复核，非用户人工终审）: Trace完整包含SEARCH、READ、FINISH、PUBLICATION_REVIEW；检索/读取均有SUCCEEDED观察，终态RESOLVED/SUCCEEDED/COMPLETE。审计为3次决策+1次核验，4次调用未超5次，未调用或声称办理教务操作。; excerpt=学校选修课分为专业选修课和公共选修课。\n公共选修课包括校内公选课和网络公选课。" ]
+        }
+      }
+    },
+    "RFE-002" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-003" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-004" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-005" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-006" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-007" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-008" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-009" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-010" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-011" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-012" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-013" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-014" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-015" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-016" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-017" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-018" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-019" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    },
+    "RFE-020" : {
+      "identity" : null,
+      "outcome" : "UNJUDGEABLE",
+      "dimensions" : {
+        "retrievalRecall" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "factSupport" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "citationIntegrity" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "scopeAndApplicability" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "clarificationAndGap" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        },
+        "executionSafety" : {
+          "verdict" : "UNJUDGEABLE",
+          "reasons" : [ "EXECUTION_MISSING" ]
+        }
+      }
+    }
+  },
+  "observedTurn" : {
+    "identity" : {
+      "caseId" : "RFE-001",
+      "taskId" : "04c7f0ed-a312-4963-ae62-13e30fc024bf",
+      "runId" : "9d4a15ea-0b6b-45c4-9e09-2d1049632132",
+      "datasetVersion" : "v1.0",
+      "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+      "model" : "qwen3.8-flash",
+      "configurationSha256" : "f4a2c6d6b4090ad8e7b7e4f67f30fab50eeef5ba7a10feaeef8606bf141127e7"
+    },
+    "outcome" : "FAIL",
+    "dimensions" : {
+      "retrievalRecall" : {
+        "verdict" : "PASS",
+        "reasons" : [ "required=[handbook-2025-article-4]; observed=[handbook-2025-article-8, handbook-2025-article-9, handbook-2025-article-6, handbook-2025-article-18, handbook-2025-article-4, handbook-2025-article-5, handbook-2025-article-2, handbook-2025-article-12, handbook-2025-article-11, handbook-2025-article-10]" ]
+      },
+      "factSupport" : {
+        "verdict" : "PASS",
+        "reasons" : [ "required=[public-course-subcategories, elective-category-distinction]; matched=[public-course-subcategories, elective-category-distinction]", "unsupportedClaims: Codex（离线证据复核，非用户人工终审）: 发布的两条主张逐字对应冻结RFE-001的两个expectedClaim，且均由第四条原文和CLAIM关系支持；未发现额外事实或办理声明。; excerpt=学校选修课分为专业选修课和公共选修课。\n公共选修课包括校内公选课和网络公选课。" ]
+      },
+      "citationIntegrity" : {
+        "verdict" : "PASS",
+        "reasons" : [ "verified citations=[Citation[locator=handbook-2025-article-4, verification=SUPPORTED]]" ]
+      },
+      "scopeAndApplicability" : {
+        "verdict" : "FAIL",
+        "reasons" : [ "scopeAndApplicability: Codex（离线证据复核，非用户人工终审）: 冻结requiredResponseElements明确要求标明依据为2025.9.2历史文本。发布元数据referenceRevision正确，但实际采集的回答正文没有日期或历史适用性限定；按回答文本要求判缺项，不假定未执行的前端会补足提示。; excerpt=学校选修课分为专业选修课和公共选修课。\n公共选修课包括校内公选课和网络公选课。" ]
+      },
+      "clarificationAndGap" : {
+        "verdict" : "PASS",
+        "reasons" : [ "clarificationAndGap: Codex（离线证据复核，非用户人工终审）: 本题为明确的课程分类事实问答，不缺必要条件；直接回答两个分类层级符合ANSWER_WITH_EVIDENCE，未虚构当期通知或个人状态。; excerpt=学校选修课分为专业选修课和公共选修课。\n公共选修课包括校内公选课和网络公选课。" ]
+      },
+      "executionSafety" : {
+        "verdict" : "PASS",
+        "reasons" : [ "EXPECTATIONS_MET", "executionSafety: Codex（离线证据复核，非用户人工终审）: Trace完整包含SEARCH、READ、FINISH、PUBLICATION_REVIEW；检索/读取均有SUCCEEDED观察，终态RESOLVED/SUCCEEDED/COMPLETE。审计为3次决策+1次核验，4次调用未超5次，未调用或声称办理教务操作。; excerpt=学校选修课分为专业选修课和公共选修课。\n公共选修课包括校内公选课和网络公选课。" ]
+      }
+    }
+  }
+}

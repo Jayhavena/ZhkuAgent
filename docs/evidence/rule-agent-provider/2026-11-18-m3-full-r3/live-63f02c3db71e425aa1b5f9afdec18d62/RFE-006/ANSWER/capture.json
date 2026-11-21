@@ -1,0 +1,204 @@
+{
+  "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+  "turn" : {
+    "caseId" : "RFE-006",
+    "kind" : "ANSWER",
+    "question" : "一门校内公选课刚好30人报名，就一定会开课吗？",
+    "questionSha256" : "e10808c35e0b37d34be2052077c5cf75b1a17de3b80ac3707e986afb90279716",
+    "reply" : null,
+    "factIds" : [ "campus-below-thirty", "campus-enrollment-general-range" ],
+    "alternatives" : [ {
+      "caseId" : "RFE-006",
+      "taskStatus" : "RESOLVED",
+      "runState" : "INCOMPLETE",
+      "coverage" : "PARTIAL",
+      "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+      "issueReason" : null,
+      "expectClaims" : true,
+      "observedAction" : null,
+      "observationStatus" : null,
+      "requireEvidenceLinks" : true,
+      "expectRejectedUnknownTool" : false
+    } ]
+  },
+  "turnId" : "e5ed6432-e29b-4c5d-a7c0-0f43110abe9e",
+  "version" : 2,
+  "execution" : {
+    "identity" : {
+      "caseId" : "RFE-006",
+      "taskId" : "4d5baa47-4c76-4784-a86b-63741c2c0f37",
+      "runId" : "ced5b528-5cf3-4603-a461-5e8dd7ba6e91",
+      "datasetVersion" : "v1.0",
+      "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+      "model" : "qwen3.8-flash",
+      "configurationSha256" : "f1d842acfb2eeeeeabc91bb9e71870c1741827faff0cafd535f77adde5dd80b1"
+    },
+    "answer" : "本轮模型响应未通过协议或语义核验，无法确认可信结论；不能将核验失败误当作资料不存在。\n可核对原文或重新发起查证；本轮不作无依据结论。",
+    "trace" : {
+      "taskId" : "4d5baa47-4c76-4784-a86b-63741c2c0f37",
+      "turnId" : "e5ed6432-e29b-4c5d-a7c0-0f43110abe9e",
+      "runId" : "ced5b528-5cf3-4603-a461-5e8dd7ba6e91",
+      "version" : 2,
+      "taskStatus" : "FAILED",
+      "runState" : "FAILED",
+      "exceptionalFailure" : false,
+      "truncated" : false,
+      "actions" : [ {
+        "actionId" : "1a7ddb04-d4fd-397b-93d3-6677dbd550a4",
+        "type" : "SEARCH_REVIEWED_RULES",
+        "step" : 1,
+        "modelAttempt" : 1,
+        "observation" : {
+          "status" : "SUCCEEDED",
+          "dataLevel" : "CANDIDATE",
+          "reasonCode" : null
+        },
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "67a4918d-7479-3639-9033-3ad873724236",
+        "type" : "READ_VERIFIED_RULE",
+        "step" : 2,
+        "modelAttempt" : 2,
+        "observation" : {
+          "status" : "SUCCEEDED",
+          "dataLevel" : "VERIFIED_FACT",
+          "reasonCode" : null
+        },
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "f2e8c7eb-3800-3b64-a92e-abdf4d69ec0a",
+        "type" : "FINISH_CHECK",
+        "step" : 3,
+        "modelAttempt" : 3,
+        "observation" : null,
+        "reasonCode" : "INVALID_MODEL_RESPONSE",
+        "publicationReason" : "FACT_NOT_RELEVANT"
+      }, {
+        "actionId" : "bf50e337-022f-3d41-aa28-35034e7d0334",
+        "type" : "PUBLICATION_REVIEW",
+        "step" : 4,
+        "modelAttempt" : 4,
+        "observation" : null,
+        "reasonCode" : "INVALID_MODEL_RESPONSE",
+        "publicationReason" : "FACT_NOT_RELEVANT"
+      } ],
+      "result" : {
+        "coverage" : "NONE",
+        "evidence" : [ ],
+        "evidenceRelations" : [ ],
+        "items" : [ {
+          "claims" : [ ]
+        } ],
+        "issues" : [ {
+          "kind" : "PROCESSING_FAILURE",
+          "reasonCode" : "INVALID_MODEL_RESPONSE"
+        } ]
+      }
+    },
+    "retrievedLocators" : null,
+    "retrievalComplete" : false,
+    "matchedFacts" : null,
+    "factsComplete" : false,
+    "citations" : null,
+    "citationsComplete" : false,
+    "reviews" : { }
+  },
+  "publishedResult" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "ced5b528-5cf3-4603-a461-5e8dd7ba6e91",
+    "catalogueVersion" : "cat-32242f6391b017efc3e59e5662106fbd5fd070c4eab053b3662156884ca333ce",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "NONE",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "NONE",
+      "claims" : [ ],
+      "issues" : [ {
+        "id" : "i-INVALID_MODEL_RESPONSE",
+        "kind" : "PROCESSING_FAILURE",
+        "reasonCode" : "INVALID_MODEL_RESPONSE",
+        "message" : "本轮模型响应未通过协议或语义核验，无法确认可信结论；不能将核验失败误当作资料不存在。",
+        "nextStep" : "可核对原文或重新发起查证；本轮不作无依据结论。"
+      } ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ ],
+    "evidenceRelations" : [ ]
+  },
+  "searches" : [ {
+    "observationId" : "6b4bdd01-8b71-4e24-86f0-75386c02302e",
+    "runId" : "ced5b528-5cf3-4603-a461-5e8dd7ba6e91",
+    "step" : 1,
+    "status" : "SUCCEEDED",
+    "candidates" : [ {
+      "handle" : "31297a84-fbdc-45df-8d93-18120fdb3634",
+      "excerpt" : "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "f2b50dfd-d1fa-4874-9de7-3bacabe94d52",
+      "excerpt" : "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "cab073a5-8bf5-46be-bf8d-6a1269a14598",
+      "excerpt" : "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "c10029b4-57c6-4708-98b7-1b93364c832a",
+      "excerpt" : "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "b7fabfa7-99e8-46e8-afab-159aebb7cd2a",
+      "excerpt" : "第十二条　选修课同必修课均在开课前一个学期排课。确定学期开课计\n划后，教务处首先安排必修课和专业选修课并保证必修课和专业选修课上课\n时间不冲突。然后，安排全校性公共选修课。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "e50e603d-8c46-4747-ad8e-f8b2109cf2dc",
+      "excerpt" : "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+      "revision" : "2025.9.2"
+    } ]
+  } ],
+  "retrieval" : [ {
+    "taskId" : "4d5baa47-4c76-4784-a86b-63741c2c0f37",
+    "runId" : "ced5b528-5cf3-4603-a461-5e8dd7ba6e91",
+    "step" : 1,
+    "observationId" : "6b4bdd01-8b71-4e24-86f0-75386c02302e",
+    "candidates" : [ {
+      "handle" : "31297a84-fbdc-45df-8d93-18120fdb3634",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "5cbb7e4c-c5b0-397a-967a-d743acacdc98",
+      "revision" : "2025.9.2",
+      "checksum" : "35910424a742c3fac925a219b7a4bc7fcac4725586e1641d30ed82c15268f2ab"
+    }, {
+      "handle" : "f2b50dfd-d1fa-4874-9de7-3bacabe94d52",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "7cde3e63-ae8b-329b-8bd3-fa82b1afbad2",
+      "revision" : "2025.9.2",
+      "checksum" : "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552"
+    }, {
+      "handle" : "cab073a5-8bf5-46be-bf8d-6a1269a14598",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "406234e5-88df-331b-8850-29c6938bcf5c",
+      "revision" : "2025.9.2",
+      "checksum" : "52f7661f0d5ac579a69f2506b37552b38279cc82fd267c8262bcb0fba176e303"
+    }, {
+      "handle" : "c10029b4-57c6-4708-98b7-1b93364c832a",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "f0a840b2-48c3-374c-b0b3-d7af48d15d64",
+      "revision" : "2025.9.2",
+      "checksum" : "056217b8775854fbadb44fff38af48c1ed37e1c3b0c92563e1681186387ffeb2"
+    }, {
+      "handle" : "b7fabfa7-99e8-46e8-afab-159aebb7cd2a",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "9a55c117-842a-38de-8742-1ff3f82b434b",
+      "revision" : "2025.9.2",
+      "checksum" : "2985f3667b0e62bb19055ea9ee795b53cd0192a0da43d893fa612b73f876d9ae"
+    }, {
+      "handle" : "e50e603d-8c46-4747-ad8e-f8b2109cf2dc",
+      "sourceId" : "4dca8c76-9f1c-4f99-9f82-fce105f7bde6",
+      "chunkId" : "78d3ca14-37d3-33d0-a3f1-c7a5b06727eb",
+      "revision" : "2025.9.2",
+      "checksum" : "2d1dbdbee0a567fea8c345a62e6568bc93d373d36518c5b62253a11f5f136dd1"
+    } ]
+  } ]
+}

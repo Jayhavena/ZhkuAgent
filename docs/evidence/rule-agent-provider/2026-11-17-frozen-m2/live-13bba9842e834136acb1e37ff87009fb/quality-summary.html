@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>
+<style>
+#m2-quality{color:var(--foreground);font-family:var(--font-sans);display:grid;gap:16px}
+#m2-quality p,#m2-quality h3{margin:0}#m2-quality .muted{color:var(--muted-foreground)}
+#m2-quality .metrics{display:flex;flex-wrap:wrap;gap:24px}#m2-quality .metric{display:grid;gap:4px}
+#m2-quality .legend{display:flex;flex-wrap:wrap;gap:16px}#m2-quality .dot{display:inline-block;width:10px;height:10px;margin-right:5px}
+#m2-quality .p{background:var(--success,currentColor)}#m2-quality .f{background:var(--destructive,currentColor)}
+#m2-quality .u{background:var(--warning,currentColor)}#m2-quality .n{background:var(--muted-foreground,currentColor);opacity:.45}
+#m2-quality .rows{display:grid;gap:12px}#m2-quality .row{display:grid;grid-template-columns:7em 1fr 7em;align-items:center;gap:12px}
+#m2-quality .track{display:flex;height:16px;background:var(--muted);overflow:hidden}#m2-quality .track span{height:16px}
+#m2-quality .counts{font-variant-numeric:tabular-nums;text-align:right}
+@media(max-width:480px){#m2-quality .row{grid-template-columns:6em 1fr;gap:8px}#m2-quality .counts{grid-column:2}}
+</style>
+<div id="m2-quality">
+ <h3>首批 10 题真实评测</h3>
+ <div class="metrics">
+  <div class="metric"><strong>1 / 10 · 10%</strong><span class="muted">整题通过</span></div>
+  <div class="metric"><strong>5 / 10 · 50%</strong><span class="muted">全部适用维度可评估</span></div>
+  <div class="metric"><strong>10 / 10 · 100%</strong><span class="muted">已有确定整题结论</span></div>
+ </div>
+ <p class="muted">P 通过 · F 失败 · U 不可判定 · N 不适用。每行分母均为 10 题。</p>
+ <div class="legend"><span><i class="dot p"></i>P</span><span><i class="dot f"></i>F</span><span><i class="dot u"></i>U</span><span><i class="dot n"></i>N</span></div>
+ <div class="rows" role="img" aria-label="六维判定：检索9通过1不可判定；事实3通过6失败1不适用；引用3通过6失败1不适用；适用性2通过3失败5不可判定；澄清3通过2失败5不可判定；执行契约3通过7失败。">
+  <div class="row"><span>检索召回</span><div class="track"><span class="p" style="width:90%"></span><span class="u" style="width:10%"></span></div><span class="counts">9P · 0F · 1U</span></div>
+  <div class="row"><span>事实支持</span><div class="track"><span class="p" style="width:30%"></span><span class="f" style="width:60%"></span><span class="n" style="width:10%"></span></div><span class="counts">3P · 6F · 1N</span></div>
+  <div class="row"><span>引用完整性</span><div class="track"><span class="p" style="width:30%"></span><span class="f" style="width:60%"></span><span class="n" style="width:10%"></span></div><span class="counts">3P · 6F · 1N</span></div>
+  <div class="row"><span>适用性</span><div class="track"><span class="p" style="width:20%"></span><span class="f" style="width:30%"></span><span class="u" style="width:50%"></span></div><span class="counts">2P · 3F · 5U</span></div>
+  <div class="row"><span>澄清与缺口</span><div class="track"><span class="p" style="width:30%"></span><span class="f" style="width:20%"></span><span class="u" style="width:50%"></span></div><span class="counts">3P · 2F · 5U</span></div>
+  <div class="row"><span>执行安全/契约</span><div class="track"><span class="p" style="width:30%"></span><span class="f" style="width:70%"></span></div><span class="counts">3P · 7F</span></div>
+ </div>
+ <p class="muted">42 次真实调用，11 个 run。整题失败可与局部不可判定同时存在；执行契约失败不等同于发现越权操作。</p>
+ <p class="muted">来源：同目录 report-reviewed.json。语义标注为 Codex 离线独立复核，非用户人工终审；未执行重测。</p>
+</div>
+</body></html>

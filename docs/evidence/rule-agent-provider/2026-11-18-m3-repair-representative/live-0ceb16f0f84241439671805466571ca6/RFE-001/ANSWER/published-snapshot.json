@@ -1,0 +1,65 @@
+{
+  "schemaVersion" : 3,
+  "taskId" : "abb058bb-86c9-4f68-bfe0-039c4ed76ef5",
+  "turnId" : "8280a157-879e-49a8-91b9-61b138f2c665",
+  "runId" : "d49b6ec4-da93-4a73-bb7f-c33e115a74f7",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "SUCCEEDED",
+  "terminated" : true,
+  "result" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "d49b6ec4-da93-4a73-bb7f-c33e115a74f7",
+    "catalogueVersion" : "cat-fa73dc178d1cb5b0441c408b57310d6f881733436da5326a75ade69a01e2191f",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "COMPLETE",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "COMPLETE",
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "S02/GENERAL:elective-category-distinction",
+        "text" : "依据2025.9.2历史文本：学校选修课分为专业选修课和公共选修课。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      }, {
+        "id" : "c1",
+        "factId" : "S02/GENERAL:public-course-subcategories",
+        "text" : "依据2025.9.2历史文本：公共选修课包括校内公选课和网络公选课。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      } ],
+      "issues" : [ ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ {
+      "id" : "db43c26f-b018-472c-9a11-59708a8c5d76:0-78",
+      "sourceId" : "de687361-7e1a-4230-8009-95fbfebd2fa6",
+      "chunkId" : "ce760e81-32bd-330e-a8f6-88208c37e2ba",
+      "revision" : "2025.9.2",
+      "checksum" : "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552",
+      "startInclusive" : 0,
+      "endExclusive" : 78,
+      "quote" : "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。"
+    } ],
+    "evidenceRelations" : [ {
+      "evidenceId" : "db43c26f-b018-472c-9a11-59708a8c5d76:0-78",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c0"
+    }, {
+      "evidenceId" : "db43c26f-b018-472c-9a11-59708a8c5d76:0-78",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c1"
+    } ]
+  },
+  "execution" : {
+    "mode" : "ONLINE",
+    "modelAttemptCount" : 4,
+    "toolStepCount" : 3,
+    "providerResponseReceived" : true,
+    "answerSource" : "LIVE_AGENT",
+    "replayCoverage" : "NOT_APPLICABLE"
+  }
+}

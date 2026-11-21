@@ -34,9 +34,10 @@ class AgentEvalChainRegressionTest {
         EvalChainReport report = EvalChainRunner.run(root, root.resolve(SUITE), work);
 
         assertTrue(report.regressionPassed(), () -> "回归未通过: " + describe(report));
-        assertEquals(6, report.cases().size());
-        assertEquals(6, report.matched());
-        assertEquals(4, report.verdictCount("PASS"));
+        // 2026-11-20 收编 g3-20261110-p02 块后：8 用例（6 PASS + 2 NOT_EVALUABLE）。
+        assertEquals(8, report.cases().size());
+        assertEquals(8, report.matched());
+        assertEquals(6, report.verdictCount("PASS"));
         assertEquals(2, report.verdictCount("NOT_EVALUABLE"));
 
         assertEquals("COMPLETE", block(report, "live-t05-69").collectionStatus());
@@ -50,7 +51,7 @@ class AgentEvalChainRegressionTest {
         JsonNode json = new ObjectMapper().readTree(
                 Files.readString(work.resolve("out/report.json"), StandardCharsets.UTF_8));
         assertEquals("agent-eval-chain-v1", json.path("suiteId").asText());
-        assertEquals(6, json.path("matched").asInt());
+        assertEquals(8, json.path("matched").asInt());
         assertTrue(json.path("regressionPassed").asBoolean());
     }
 

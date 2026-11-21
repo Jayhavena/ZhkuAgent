@@ -1,0 +1,21 @@
+2026-11-18 M3 全量 20 题修复后基线（r3）检查
+
+Package: docs/evidence/rule-agent-provider/2026-11-18-m3-full-r3/request-package.json
+Package SHA-256: f1d842acfb2eeeeeabc91bb9e71870c1741827faff0cafd535f77adde5dd80b1
+Selection: FULL_20 (20 tasks / 21 runs / 105 calls maximum)
+Build: .\mvnw.cmd -q -pl knowledge -am -DskipTests package — EXIT 0
+
+Zero-call package check:
+PASS ZERO_CALL_FULL_20_BATCH_CHECK f1d842acfb2eeeeeabc91bb9e71870c1741827faff0cafd535f77adde5dd80b1
+
+Zero-call database/tool assembly:
+PASS 20_CASE_DATABASE_TOOL_ASSEMBLY providerCalls=0
+Assembly directory: docs/evidence/rule-agent-provider/2026-11-18-m3-full-r3/assembly-ffbc2380f13d46a297779a3329ae0d5f
+Container cleanup: cleanupSucceeded=true resourcesClosed=true timedOut=false exitCode=0
+
+Tests:
+Focused regression: 109 tests, 0 failures, 0 errors.
+Expanded regression: 539 tests; 2 RuleAgentRequestPathTest launcher-environment failures and 4 database tests without ZHKU_DB_URL remain environment-blocked; no other failures.
+Real model calls: 0.
+
+Checked at: 2026-11-18T16:31+08:00

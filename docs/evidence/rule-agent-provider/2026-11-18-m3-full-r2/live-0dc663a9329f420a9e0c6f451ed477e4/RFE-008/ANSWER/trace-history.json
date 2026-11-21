@@ -1,0 +1,81 @@
+[ {
+  "taskId" : "9a6ca81d-271e-4bd8-919c-9ccb8c6d5fe7",
+  "turnId" : "c165478e-fb04-448b-bedf-dcf1ee1d02bc",
+  "runId" : "ecd98948-7cbb-45f9-8139-91b584460f10",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "INCOMPLETE",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "e690dec8-98fb-34a9-830d-e87e5e58a74e",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "aac06d9c-fae4-3058-812e-13540a5a514e",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "1954aa98-2ba2-3ea8-8e62-274002bf25ed",
+    "type" : "FINISH_CHECK",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "3b502424-0863-3ea8-8e25-739240fbb9f5",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  } ],
+  "result" : {
+    "coverage" : "PARTIAL",
+    "evidence" : [ {
+      "id" : "6094ea87-973c-4075-95ab-37b60bcc04af:0-119",
+      "sourceId" : "a13566ce-632a-4a06-9772-34f680517bbe",
+      "chunkId" : "92fdbc12-f038-320b-b8d1-c99b16e47e77",
+      "revision" : "2025.9.2"
+    } ],
+    "evidenceRelations" : [ {
+      "targetId" : "c0",
+      "evidenceId" : "6094ea87-973c-4075-95ab-37b60bcc04af:0-119",
+      "role" : "CLAIM"
+    } ],
+    "items" : [ {
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "sha256:90694b2f1d06ba3d2a99e0cc6f7e002af2199899ff198fd00cb4370d8a39b4d9"
+      } ]
+    } ],
+    "issues" : [ {
+      "kind" : "DATA_GAP",
+      "reasonCode" : "PERSONAL_RECORD_NOT_AVAILABLE"
+    }, {
+      "kind" : "SCOPE_LIMIT",
+      "reasonCode" : "CURRENT_APPLICABILITY_UNKNOWN"
+    }, {
+      "kind" : "DATA_GAP",
+      "reasonCode" : "DETAIL_NOT_IN_REVIEWED_TEXT"
+    } ]
+  }
+} ]

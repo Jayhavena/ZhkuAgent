@@ -1,0 +1,39 @@
+{
+  "identity" : {
+    "caseId" : "RFE-014",
+    "taskId" : "01e2c5c0-ff6e-4539-a076-7cbc598f6849",
+    "runId" : "039bb3f1-b3e6-4b1a-96d8-d09326034d6a",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen3.8-flash",
+    "configurationSha256" : "c2d64b86faf3e25b5707215a4ba15b2622c56e650783b8ff0c78cc594ac8c1e5"
+  },
+  "captureSha256" : "f4d01831d05ba575c38bd030698c4a480ccf0f11dc800f0fa7b58ea3adc1b171",
+  "relevanceRejections" : [ {
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam", "S10/RETAKE_ONLY:public-failed-no-retake" ],
+      "rejectedFact" : {
+        "factId" : "S10/DEFERRED_EXAM_ONLY:public-no-deferred-exam",
+        "dimension" : "DEFERRED_EXAM",
+        "subject" : "PUBLIC_ELECTIVE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "bc48c52ad025407d1e965d46e31114ff3d69658e0746c915991c20fc6f87bec2"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "RETAKE",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S10/RETAKE_ONLY:public-failed-no-retake",
+          "role" : "CORE"
+        } ]
+      } ]
+    },
+    "code" : "FACT_NOT_RELEVANT",
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4
+  } ]
+}

@@ -1,0 +1,20 @@
+2026-11-18 M3 五题修复后 9 题定点复验包检查
+
+Package: docs/evidence/rule-agent-provider/2026-11-18-m3-repair-r2/request-package.json
+Package SHA-256: f42b466b2216ee46c6d1fa2f3cabe179760a08cdb4908561d1a69a5e47189001
+Selection: REPAIR_9 (9 cases / 10 runs / 50 calls maximum)
+Build: .\mvnw.cmd -q -pl knowledge -am -DskipTests package — EXIT 0
+Jar SHA-256: f9a4af5ed1a1e498d0252fbf7a9529b87de6150acdee8470ff59cd51d7b175de
+
+Zero-call package check (launcher Check path):
+PASS ZERO_CALL_REPAIR_9_BATCH_CHECK f42b466b2216ee46c6d1fa2f3cabe179760a08cdb4908561d1a69a5e47189001
+
+Prepare note: the launcher's Prepare build step reported resourcesClosed=false in this terminal. The documented Maven build command was run directly (EXIT 0), then the same batch host `prepare` was invoked with the launcher's host arguments. Check and Assembly were run through the repository launcher and passed.
+
+Zero-call database/tool assembly:
+PASS 9_CASE_DATABASE_TOOL_ASSEMBLY providerCalls=0
+Assembly directory: docs/evidence/rule-agent-provider/2026-11-18-m3-repair-r2/assembly-259e6ecdba93410983837e4210b4ed2f
+Container cleanup: cleanupSucceeded=true resourcesClosed=true timedOut=false exitCode=0
+Real model calls: 0
+
+Checked at: 2026-11-18T12:49+08:00

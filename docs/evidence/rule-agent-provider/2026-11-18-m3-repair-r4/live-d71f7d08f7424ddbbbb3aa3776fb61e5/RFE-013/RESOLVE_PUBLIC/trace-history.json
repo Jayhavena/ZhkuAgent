@@ -1,0 +1,143 @@
+[ {
+  "taskId" : "ce7dae75-1908-4998-8ed5-a602be76fd91",
+  "turnId" : "3a187acf-4b23-48d8-862f-581c0f811651",
+  "runId" : "169789a1-049f-46a0-8780-575867d3365d",
+  "version" : 2,
+  "taskStatus" : "WAITING_USER",
+  "runState" : "INCOMPLETE",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "5864c95f-c805-32d9-8ffc-e1a08eb22fd8",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "708cfd97-62e2-3ff0-b80a-1143680bf089",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "30fd678f-8ce1-3ec0-9b02-a7a4d93b76e6",
+    "type" : "ASK_NECESSARY_CONDITION",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "09ecba50-eef6-3873-871d-dd040060f420",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  } ],
+  "result" : {
+    "coverage" : "NONE",
+    "evidence" : [ {
+      "id" : "92d1bb83-4ff6-428c-b8df-d21df8143bcb:0-48",
+      "sourceId" : "46c622c5-792e-45ae-8656-f4999ae2a46f",
+      "chunkId" : "1a550d7f-c474-3858-96f4-e0267922696d",
+      "revision" : "2025.9.2"
+    } ],
+    "evidenceRelations" : [ {
+      "targetId" : "courseType",
+      "evidenceId" : "92d1bb83-4ff6-428c-b8df-d21df8143bcb:0-48",
+      "role" : "CLARIFICATION"
+    } ],
+    "items" : [ {
+      "claims" : [ ]
+    } ],
+    "issues" : [ {
+      "kind" : "CLARIFICATION",
+      "reasonCode" : "MISSING_CONDITION"
+    } ]
+  }
+}, {
+  "taskId" : "ce7dae75-1908-4998-8ed5-a602be76fd91",
+  "turnId" : "26af9ec6-e849-4472-9fef-d626aa231237",
+  "runId" : "06c322e5-051d-42a2-9dc4-78de25f50076",
+  "version" : 4,
+  "taskStatus" : "RESOLVED",
+  "runState" : "SUCCEEDED",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "9839ad96-a794-38ec-9323-1144f9fbadda",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "0d85e903-92c5-3fb6-9998-b4fd09f1ecd5",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "a446e55e-dc53-38b1-93ed-a64dde7f3a51",
+    "type" : "FINISH_CHECK",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "2eb8fbd1-b927-3dfb-891f-370ab1e4694e",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : null,
+    "publicationReason" : null
+  } ],
+  "result" : {
+    "coverage" : "COMPLETE",
+    "evidence" : [ {
+      "id" : "92d1bb83-4ff6-428c-b8df-d21df8143bcb:0-48",
+      "sourceId" : "46c622c5-792e-45ae-8656-f4999ae2a46f",
+      "chunkId" : "1a550d7f-c474-3858-96f4-e0267922696d",
+      "revision" : "2025.9.2"
+    } ],
+    "evidenceRelations" : [ {
+      "targetId" : "c0",
+      "evidenceId" : "92d1bb83-4ff6-428c-b8df-d21df8143bcb:0-48",
+      "role" : "CLAIM"
+    } ],
+    "items" : [ {
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "sha256:07efa61f5622c917da766fb285348b2f7db47678a10e0fda0dfdd5a8e8fa6e4e"
+      } ]
+    } ],
+    "issues" : [ ]
+  }
+} ]
