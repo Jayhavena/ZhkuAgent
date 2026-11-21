@@ -1,0 +1,61 @@
+[ {
+  "exampleId" : "17-required",
+  "caseId" : "RFE-017",
+  "facts" : "PASS",
+  "factReason" : "标注已覆盖全部必答事实；可选事实不计为必答。",
+  "citations" : "PASS",
+  "citationReason" : "提供的引用及必需定位符均由标注者标为支持。",
+  "citationFailureTag" : null,
+  "annotations" : [ "事实 schedule-order：模拟人工对照第12条确认顺序；回答片段：先安排必修课和专业选修课，再安排全校性公共选修课", "引用 handbook-2025-article-12 [SUPPORTED]：模拟人工核对条文与所关联的顺序主张；回答片段：[handbook-2025-article-12]" ],
+  "boundary" : "合成回答与人工标注；只评估两个维度，不代表其他维度或整题通过"
+}, {
+  "exampleId" : "17-optional",
+  "caseId" : "RFE-017",
+  "facts" : "PASS",
+  "factReason" : "标注已覆盖全部必答事实；可选事实不计为必答。",
+  "citations" : "PASS",
+  "citationReason" : "提供的引用及必需定位符均由标注者标为支持。",
+  "citationFailureTag" : null,
+  "annotations" : [ "事实 schedule-order：模拟人工确认安排顺序；回答片段：先安排必修课和专业选修课，再安排全校性公共选修课", "事实 schedule-previous-semester：模拟人工确认可选事实；回答片段：开课前一个学期排课", "引用 handbook-2025-article-12 [SUPPORTED]：模拟人工核对条文支持两项主张；回答片段：[handbook-2025-article-12]" ],
+  "boundary" : "合成回答与人工标注；只评估两个维度，不代表其他维度或整题通过"
+}, {
+  "exampleId" : "17-missing-order",
+  "caseId" : "RFE-017",
+  "facts" : "FAIL",
+  "factReason" : "标注完成但未覆盖全部必答事实。",
+  "citations" : "PASS",
+  "citationReason" : "提供的引用及必需定位符均由标注者标为支持。",
+  "citationFailureTag" : null,
+  "annotations" : [ "事实 schedule-previous-semester：模拟人工确认可选事实，未找到安排顺序；回答片段：开课前一个学期排课", "引用 handbook-2025-article-12 [SUPPORTED]：模拟人工确认引用支持排课时间；回答片段：[handbook-2025-article-12]" ],
+  "boundary" : "合成回答与人工标注；只评估两个维度，不代表其他维度或整题通过"
+}, {
+  "exampleId" : "20-no-citation",
+  "caseId" : "RFE-020",
+  "facts" : "NOT_APPLICABLE",
+  "factReason" : "本题没有必答事实，事实覆盖维度不适用。",
+  "citations" : "NOT_APPLICABLE",
+  "citationReason" : "本题无需引用且标注未发现引用。",
+  "citationFailureTag" : null,
+  "annotations" : [ ],
+  "boundary" : "合成回答与人工标注；只评估两个维度，不代表其他维度或整题通过"
+}, {
+  "exampleId" : "20-bad-citation",
+  "caseId" : "RFE-020",
+  "facts" : "NOT_APPLICABLE",
+  "factReason" : "本题没有必答事实，事实覆盖维度不适用。",
+  "citations" : "FAIL",
+  "citationReason" : "必需引用缺失，或有引用被标注为错误。",
+  "citationFailureTag" : "CITATION_MISMATCH",
+  "annotations" : [ "引用 虚构条例 [MISMATCH]：构造的虚假引用，无法支持该主张；回答片段：[虚构条例]" ],
+  "boundary" : "合成回答与人工标注；只评估两个维度，不代表其他维度或整题通过"
+}, {
+  "exampleId" : "20-unknown-citation",
+  "caseId" : "RFE-020",
+  "facts" : "NOT_APPLICABLE",
+  "factReason" : "本题没有必答事实，事实覆盖维度不适用。",
+  "citations" : "UNJUDGEABLE",
+  "citationReason" : "至少一个引用的支持关系无法核验。",
+  "citationFailureTag" : null,
+  "annotations" : [ "引用 待核对办法 [UNKNOWN]：模拟样例未提供可核对的引用来源；回答片段：[待核对办法]" ],
+  "boundary" : "合成回答与人工标注；只评估两个维度，不代表其他维度或整题通过"
+} ]
