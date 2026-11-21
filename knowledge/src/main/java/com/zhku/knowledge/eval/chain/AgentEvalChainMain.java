@@ -39,14 +39,23 @@ public final class AgentEvalChainMain {
         Map<String, String> options = parse(args);
         Path repoRoot = Path.of(options.getOrDefault("repo-root",
                 Path.of("").toAbsolutePath().toString()));
-        return switch (command) {
+        try { return switch (command) {
             case "collect" -> collect(options, repoRoot);
             case "run" -> run(options, repoRoot);
             default -> {
                 System.err.println("未知命令: " + command);
                 yield 1;
             }
-        };
+        }; } catch(IOException|RuntimeException failure) {
+            if(!command.equals("run")&&!command.equals("collect"))throw failure;
+            // 损坏证据不能只剩stderr；异常正文可能含私有JSON，报告只保存异常类型。
+            var record=new EvalChainReport.CaseRecord("EXECUTION_FAILURE","评测输入无法读取","execution","",
+                "PASS","NOT_EVALUABLE",false,java.util.List.of("COLLECTION_OR_EVALUATION_FAILED"),
+                java.util.List.of(),"","",java.util.List.of(),failure.getClass().getSimpleName());
+            new EvalChainReport("execution-failure",java.time.Instant.now().toString(),java.util.List.of(),
+                java.util.List.of(record),false).write(required(options,"out"));
+            return 1;
+        }
     }
 
     private static int collect(Map<String, String> options, Path repoRoot) throws IOException {

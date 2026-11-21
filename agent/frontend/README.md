@@ -20,12 +20,13 @@ Vue3 校园工作台已经连接受控后端：登录与退出、学分提交/�
 
 3C提交操作：首次提交生成键并冻结原请求；网络结果不明时优先“确认本次提交”，不会自动POST重试。只有当前页面仍持有原请求快照才允许手动重发同一次提交；刷新只保留最多5条用户/键/Run编号/时间元数据，不能重发丢失的原课程。“新建任务”才生成新键。401后同一账号重新登录可以查询；明确退出或切换账号会清理旧提示和结果。`UNCONFIRMED`不是未受理证明，`INTERRUPTED`不表示自动续跑。
 
-开发者已把 Node/npm 配入当前终端PATH时，在本目录构建；从仓库根运行前端协议与协调测试。普通人工演示优先用上面的完整.cmd入口，它会查找现有Node/npm，不要求裸命令可用：
+开发者已把 Node/npm 配入当前终端PATH时，先在本目录安装依赖再构建或测试——`node --test` 会加载 `vue` 等依赖，缺少 `node_modules` 时用例在加载阶段即失败；从仓库根运行前端协议与协调测试。普通人工演示优先用上面的完整.cmd入口，它会查找现有Node/npm，不要求裸命令可用：
 
 ```powershell
-# 在 agent/frontend
+# 在 agent/frontend（首次检出或依赖变更后先安装；npm ci 按 package-lock.json 可复现安装）
+npm.cmd ci
 npm.cmd run build
-# 在仓库根目录
+# 在仓库根目录（前提：agent/frontend 已完成上面的依赖安装）
 node --test agent/frontend/tests/controlled-*.test.mjs
 ```
 

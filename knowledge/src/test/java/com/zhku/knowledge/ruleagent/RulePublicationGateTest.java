@@ -55,6 +55,21 @@ class RulePublicationGateTest {
         return new Finish(List.of(new Proposal("q1",List.of(ids),List.of(),null)));
     }
 
+    @Test void missingUserConditionCannotBeRecastAsMissingReadCapability(){
+        var conditional=fact("S10/RETAKE_ONLY","public-failed-no-retake",Map.of("courseType","PUBLIC"));
+        var facts=List.of(conditional);var caps=catalogue(facts);
+        var original=input("这门选修课没过，能重修吗？");
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var requirement=new Requirement("r1",new DemandSpan("q1",0,original.question().length()),Dimension.RETAKE,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED,List.of("courseType"));
+        var semantic=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(requirement),List.of(),List.of());
+        var finish=new Finish(List.of(new Proposal("q1",List.of(),List.of(new ProposedIssue(IssueKind.DATA_GAP,ReasonCode.REVIEWED_FACT_COVERAGE_GAP)),null)));
+        var result=new RulePublicationGate(caps).assess(original,finish,semantic,facts);
+        assertThat(original.userConditions()).isEmpty();
+        assertThat(result.questions().get("q1").uncoveredRequirementIds()).containsExactly("r1");
+        assertThat(result.questions().get("q1").factCapabilityGapRequirementIds()).isEmpty();
+        assertThat(result.questions().get("q1").coveredRequirementIds()).isEmpty();
+    }
+
     @Test void bothSidesCompleteForDifferentQuestionExpressions() {
         var caps=catalogue(arrangement);
         for(String question:List.of("专业选修课和公共选修课在修读安排上有什么不同？","专选和公选在选课修读上哪里不一样？")) {
@@ -166,6 +181,34 @@ class RulePublicationGateTest {
             List.of(new UnresolvedDemand(new DemandSpan("q1",split,original.question().length()),UnresolvedReason.UNSUPPORTED_DIMENSION)));
         var result=new RulePublicationGate(caps).assess(original,proposal(professional.id()),review,arrangement);
         assertThat(result.questions().get("q1").unsupportedDemand()).isTrue();
+    }
+
+    @Test void partialOverlapDoesNotCoverUnclassifiedRequirement() {
+        var unknown = new Requirement("r1",new DemandSpan("q1",2,10),
+            Dimension.UNKNOWN,Subject.UNSPECIFIED,Recognition.UNCLASSIFIED,List.of());
+        var partial = new SemanticAssessment(REVISION,"0".repeat(64),List.of(unknown),List.of(),
+            List.of(new UnresolvedDemand(new DemandSpan("q1",0,5),UnresolvedReason.UNSUPPORTED_DIMENSION)));
+        var complete = new SemanticAssessment(REVISION,"0".repeat(64),List.of(unknown),List.of(),
+            List.of(new UnresolvedDemand(new DemandSpan("q1",0,10),UnresolvedReason.UNSUPPORTED_DIMENSION)));
+        assertThat(RulePublicationGate.unsupportedDemand(partial,"q1")).isFalse();
+        assertThat(RulePublicationGate.unsupportedDemand(complete,"q1")).isTrue();
+    }
+
+    @Test void mixedUnresolvedReasonsCannotBeClassifiedAsOnlyDataGap() {
+        var unknown = new Requirement("r1",new DemandSpan("q1",0,10),
+            Dimension.UNKNOWN,Subject.UNSPECIFIED,Recognition.UNCLASSIFIED,List.of());
+        var mixed = new SemanticAssessment(REVISION,"0".repeat(64),List.of(unknown),List.of(),List.of(
+            new UnresolvedDemand(new DemandSpan("q1",0,10),UnresolvedReason.UNSUPPORTED_DIMENSION),
+            new UnresolvedDemand(new DemandSpan("q1",3,9),UnresolvedReason.AMBIGUOUS_SCOPE)));
+        assertThat(RulePublicationGate.unsupportedDemand(mixed,"q1")).isFalse();
+    }
+
+    @Test void ambiguousRequirementIsNotAnExplicitlyUnsupportedUnknown() {
+        var ambiguous = new Requirement("r1",new DemandSpan("q1",0,10),
+            Dimension.UNKNOWN,Subject.UNSPECIFIED,Recognition.AMBIGUOUS,List.of());
+        var review = new SemanticAssessment(REVISION,"0".repeat(64),List.of(ambiguous),List.of(),
+            List.of(new UnresolvedDemand(new DemandSpan("q1",0,10),UnresolvedReason.UNSUPPORTED_DIMENSION)));
+        assertThat(RulePublicationGate.unsupportedDemand(review,"q1")).isFalse();
     }
 
     @Test void reviewInputExcludesOwnerProposalAndOriginalTokens()throws Exception {

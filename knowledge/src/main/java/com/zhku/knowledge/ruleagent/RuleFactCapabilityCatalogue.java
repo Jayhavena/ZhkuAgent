@@ -89,9 +89,10 @@ public final class RuleFactCapabilityCatalogue {
             case "S04/GENERAL:campus-enrollment-general-range","S04/ACTUAL_CLASS_OPENING:campus-enrollment-general-range",
                  "S04/GENERAL:campus-below-thirty","S04/ACTUAL_CLASS_OPENING:campus-below-thirty" -> {
                 dimension=Dimension.ENROLLMENT;subject=Subject.PUBLIC_ELECTIVE;}
-            case "S06/GENERAL:online-selection-plan","S06/CURRENT_ENTRY_OR_TIME:online-selection-plan",
-                 "S06/GENERAL:unenrolled-assessment-disjunction","S06/CURRENT_ENTRY_OR_TIME:unenrolled-assessment-disjunction" -> {
-                dimension=Dimension.UNENROLLED_EXAM;subject=Subject.PUBLIC_ELECTIVE;}
+            // 2026-11-21 谱系融合仲裁（用户裁定 B2）：S06 历史事实维持 E13 决定（2026-10-29 事故），
+            // 可读、可检索但不可发布，门禁必须以 CAPABILITY_UNAVAILABLE 拒绝绑定。
+            // 分支曾试登记 GENERAL/CURRENT_ENTRY_OR_TIME 四个 id 以支持 RFE-009 作答（12/20 复验批），
+            // 该实验保留为已归档历史，不重写；按问题类型（当期窗口 vs 规则后果）做精细化门控的设计另立 Issue 跟踪。
             case "S08/GENERAL:no-same-or-similar-plan-course" -> {
                 dimension=Dimension.STUDY_ARRANGEMENT;subject=Subject.GENERAL_UNDERGRADUATE;}
             case "S08/GENERAL:no-repeat-passed-course" -> {

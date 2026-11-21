@@ -146,6 +146,26 @@ try {Invoke-RuleCheckVerification -Root $testFixture -Mode Unit -Phase locked -T
 $testLockPass=$testLockRejected -and $script:testExternalStarts -eq $testStartsBeforeLock -and !(Test-Path -LiteralPath (Join-Path $testFixture 'docs/evidence/rule-check-refactor/2026-10-07/locked'))
 $testResults+=@{name='同仓验收锁占用时不启动Maven或写批次';passed=$testLockPass}
 Write-Output "$(if($testLockPass){'PASS'}else{'FAIL'}) 同仓验收锁"
+foreach($case in @(
+    @{name='浏览器租约必须显式选择';enabled=$false;selected=@('RuleAgentReviewedBrowserLeaseTest');root=$testRoot;reject=$true},
+    @{name='浏览器租约拒绝混合测试';enabled=$true;selected=@('RuleAgentReviewedBrowserLeaseTest','KnowledgeSchemaTest');root=$testRoot;reject=$true},
+    @{name='浏览器租约拒绝缺资料根';enabled=$true;selected=@('RuleAgentReviewedBrowserLeaseTest');root='';reject=$true},
+    @{name='普通测试不得夹带租约开关';enabled=$true;selected=@('HybridRetrievalServiceTest');root=$testRoot;reject=$true},
+    @{name='显式租约仅生成零模型装配参数';enabled=$true;selected=@('RuleAgentReviewedBrowserLeaseTest');root=$testRoot;reject=$false}
+)){
+    $rejected=$false;$generated=@()
+    try{$generated=@(Get-RuleCheckBrowserLeaseArguments -Selected $case.selected -Enabled $case.enabled -AssetsRoot $case.root -SourceHead ('a'*40))}catch{$rejected=$true}
+    $ok=if($case.reject){$rejected}else{!$rejected -and $generated -contains '-Dzhku.t06.reviewedBrowserLease=true' -and $generated -contains ('-Dzhku.sourceSha='+('a'*40))}
+    $testResults+=@{name=$case.name;passed=$ok}
+    Write-Output "$(if($ok){'PASS'}else{'FAIL'}) $($case.name)"
+}
+$forwarding=$true
+foreach($functionName in @('Get-RuleCheckVerificationPlan','Invoke-RuleCheckVerification','Invoke-RuleCheckVerificationCore')){
+    foreach($parameter in @('ReviewedBrowserLease','AssetsRoot','HandbookPdf')){
+        if(!(Get-Command $functionName).Parameters.ContainsKey($parameter)){$forwarding=$false}
+    }
+}
+$testResults+=@{name='租约选项在整条函数链显式声明';passed=$forwarding}
 $testSummary=@{passed=(@($testResults|Where-Object {!$_.passed}).Count -eq 0);checks=$testResults.Count;results=$testResults;databaseOperations=0;providerCalls=0;scope='生产预检查与调用顺序；外部执行器为计数替身，实际Maven/容器另验收'}
 if ($ReportPath) {$testSummary|ConvertTo-Json -Depth 8|Set-Content -Encoding utf8 -LiteralPath $ReportPath}
 Write-Output "CONTRACT checks=$($testResults.Count) passed=$($testSummary.passed) externalStarts=$script:testExternalStarts"

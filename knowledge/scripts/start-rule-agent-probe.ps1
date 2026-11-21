@@ -2,7 +2,7 @@
 param([switch]$CheckEnvironment,[switch]$PrepareProbe,[switch]$Probe,[switch]$BuildOnly,[switch]$OnlyP01,[switch]$OnlyP02,[switch]$IncludeClarification,[switch]$CheckPackage,
  [ValidatePattern('^[a-f0-9]{64}$')][string]$ApprovedPackageSha256,
  [string]$PackageRelativePath='docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/request-package.json',
- [ValidateRange(1024,65535)][int]$DatabasePort=55518)
+ [ValidateRange(1024,65535)][int]$DatabasePort=55518,[string]$HandbookPdf='')
 $ErrorActionPreference='Stop'
 $utf8=[Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding=$utf8;[Console]::OutputEncoding=$utf8;$OutputEncoding=$utf8
@@ -13,10 +13,11 @@ $java=Get-Command java.exe -ErrorAction SilentlyContinue
 $docker=Get-Command docker.exe -ErrorAction SilentlyContinue
 $jar=Join-Path $root 'knowledge/target/knowledge-0.1.0-rc.1-controlled.jar'
 if([IO.Path]::IsPathRooted($PackageRelativePath)){throw '请求包路径必须是仓库相对路径'}
-$packageRoot=Join-Path $root 'docs/evidence/rule-agent-provider'
-$package=Join-Path $root $PackageRelativePath
+$packageRoot=[IO.Path]::GetFullPath((Join-Path $root 'docs/evidence/rule-agent-provider'))
+$package=[IO.Path]::GetFullPath((Join-Path $root $PackageRelativePath))
 # 新批次包写入独立目录，绝不覆盖历史冻结包；越出证据根直接拒绝。
-if(!$package.StartsWith($packageRoot,[StringComparison]::OrdinalIgnoreCase)){throw '请求包路径必须位于 docs/evidence/rule-agent-provider 下'}
+if(!$package.StartsWith($packageRoot+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw '请求包路径必须位于 docs/evidence/rule-agent-provider 下'}
+$batchRoot=Split-Path -Parent $package
 $env:ZHKU_RULE_AGENT_PROBE_PACKAGE=$PackageRelativePath
 if($CheckEnvironment){
  & $importer -UseDashScope
@@ -29,6 +30,10 @@ if(($Probe-or $CheckPackage)-and !$OnlyP02){throw '必须明确OnlyP02及本包�
 # 已存在的冻结申请必须在构建前拒绝，否则重复Prepare会先改写默认jar身份。
 if($PrepareProbe-and (Test-Path -LiteralPath $package)){throw '请求包已存在，保留原包，不构建或覆盖'}
 if(!$java){throw '普通终端未找到Java；先执行CheckEnvironment'}
+if(!$BuildOnly){
+ if([string]::IsNullOrWhiteSpace($HandbookPdf)-or !(Test-Path -LiteralPath $HandbookPdf -PathType Leaf)){throw '请显式提供已核对的HandbookPdf原件路径'}
+ $HandbookPdf=(Resolve-Path -LiteralPath $HandbookPdf).Path
+}
 Push-Location $root
 try{
  if($BuildOnly-or $PrepareProbe){
@@ -39,6 +44,7 @@ try{
  }
  $env:ZHKU_RULE_AGENT_ROOT=$root
  $arguments=@('-Dfile.encoding=UTF-8','-Dstdout.encoding=UTF-8','-Dstderr.encoding=UTF-8','-Dloader.main=com.zhku.knowledge.ruleagent.RuleAgentOnlineProbeHost','-cp',$jar,'org.springframework.boot.loader.launch.PropertiesLauncher')
+ if(!$BuildOnly){$arguments=@("-Dzhku.t06.handbookPdf=$HandbookPdf")+$arguments}
  if($CheckPackage){
   # 零调用包校验不导入真实凭证，也不构造模型或数据库客户端。
   if(!$ApprovedPackageSha256-or !(Test-Path -LiteralPath $package)-or (Get-FileHash -LiteralPath $package).Hash.ToLowerInvariant()-ne $ApprovedPackageSha256){throw '待核对请求包指纹不同'}
@@ -70,7 +76,8 @@ try{
  $env:ZHKU_RULE_AGENT_PROBE_CASE='P02_CONTINUATION_01'
  # 当前.NET/PowerShell可能将null转换为空值而保留键；ONLINE拒绝任何回放键，必须真正删除。
  foreach($name in @('ZHKU_RULECHECK_TASK_BATCH_DIRECTORY','ZHKU_RULECHECK_TASK_PACKAGE_SHA256','ZHKU_RULECHECK_TASK_SUMMARY_SHA256')){Remove-Item -LiteralPath "Env:\$name" -ErrorAction SilentlyContinue}
- $env:ZHKU_RULE_AGENT_EVIDENCE='docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/live-'+[guid]::NewGuid().ToString('N')
+ $evidencePath=Join-Path $batchRoot ('live-'+[guid]::NewGuid().ToString('N'))
+ $env:ZHKU_RULE_AGENT_EVIDENCE=$evidencePath.Substring($root.Length+1).Replace('\','/')
  $container='zhku-rule-agent-probe-'+[guid]::NewGuid().ToString('N')
  function Docker([string[]]$argsForDocker){
   & $importer -RequireDatabase
@@ -86,7 +93,7 @@ try{
   & $importer -RequireDatabase -RequireDashScope
   $result=Invoke-ZhkuOwnedProcess -Executable $java.Source -Arguments ($arguments+@('--Probe')) -TimeoutSeconds 235 -Secrets $secrets
   # 宿主可能在创建业务证据目录前失败，也必须保留已脱敏的启动诊断，不能丢失失败位置。
-  $launcherLog=Join-Path $root ('docs/evidence/rule-agent-provider/2026-10-16/t05-69-review-condition-request/launcher-'+[guid]::NewGuid().ToString('N')+'.log')
+  $launcherLog=Join-Path $batchRoot ('launcher-'+[guid]::NewGuid().ToString('N')+'.log')
   New-Item -ItemType Directory -Force (Split-Path $launcherLog -Parent)|Out-Null
   [IO.File]::WriteAllText($launcherLog,$result.output+"`n"+$result.errorOutput,$utf8)
   $directory=Join-Path $root $env:ZHKU_RULE_AGENT_EVIDENCE

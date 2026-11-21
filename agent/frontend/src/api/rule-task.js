@@ -2,6 +2,11 @@ import {createRuleCheckClient,RuleCheckError} from './rule-check.js'
 import {validateRuleAgentSnapshot} from './rule-agent-contract.js'
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x)
 const requireId=x=>{if(!uuid(x))throw new RuleCheckError('INVALID_TASK_REQUEST');return x}
+export function validateRuntimeInfo(x){
+  if(!x||Object.keys(x).some(k=>!['mode','simulatedQuestion'].includes(k))||!['SIMULATED','ONLINE'].includes(x.mode)
+    ||(x.mode==='SIMULATED'?(typeof x.simulatedQuestion!=='string'||!x.simulatedQuestion.trim()||x.simulatedQuestion.length>2048):x.simulatedQuestion!=null))throw new RuleCheckError('BAD_RESPONSE')
+  return {mode:x.mode,simulatedQuestion:x.simulatedQuestion??null}
+}
 export function validateAccepted(x){
   const keys=['taskId','turnId','runId','version','duplicate']
   if(!x||Object.keys(x).length!==keys.length||Object.keys(x).some(k=>!keys.includes(k))||!uuid(x.taskId)||!uuid(x.turnId)||!uuid(x.runId)||!Number.isSafeInteger(x.version)||x.version<1||typeof x.duplicate!=='boolean')throw new RuleCheckError('BAD_RESPONSE')
@@ -11,6 +16,7 @@ export function createRuleTaskClient(options={}){
   const auth=createRuleCheckClient(options),read=path=>auth.taskRequest('GET',path),write=async(path,body)=>validateAccepted(await auth.taskRequest('POST',path,body))
   return {
     ...auth,
+    runtimeInfo:async()=>validateRuntimeInfo(await read('/tasks/runtime')),
     capabilities:async()=>{const x=await read('/tasks/capabilities');if(x.schemaVersion!==3||x.asynchronous!==true||Object.keys(x).length!==2)throw new RuleCheckError('BAD_RESPONSE');return x},
     create:(question,clientRequestId)=>write('/tasks',{question,clientRequestId:requireId(clientRequestId)}),
     snapshot:async task=>validateRuleAgentSnapshot(await read(`/tasks/${requireId(task)}`)),

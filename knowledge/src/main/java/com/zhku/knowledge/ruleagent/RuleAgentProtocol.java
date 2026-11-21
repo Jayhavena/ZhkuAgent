@@ -172,8 +172,6 @@ public final class RuleAgentProtocol {
         if(owner==Proposal.class&&name.equals("factIds"))return array(text("已核验事实id",IDENTIFIER_PATTERN),0,MAX_FACT_IDS);
         if(owner==Proposal.class&&name.equals("operation"))return JSON.createObjectNode().put("type","null");
         if(owner==Ask.class&&name.equals("supportingFactIds"))return array(text("已核验事实id",IDENTIFIER_PATTERN),0,MAX_SUPPORTING_FACT_IDS);
-        if(owner==ProposedIssue.class&&name.equals("kind"))return enumField(IssueKind.values());
-        if(owner==ProposedIssue.class&&name.equals("reasonCode"))return enumField(ReasonCode.values());
         if(name.equals("subquestionId"))return text("子问题id，须对应questions.id",IDENTIFIER_PATTERN);
         if(name.equals("conditionId"))return text("审核条件id",IDENTIFIER_PATTERN);
         if(name.equals("query"))return text("自然语言检索词",null);
@@ -181,6 +179,7 @@ public final class RuleAgentProtocol {
         return text(null,null);
     }
     private static ObjectNode object(Class<?> type,List<String> readReferences) {
+        if(type==ProposedIssue.class)return issueSchema();
         var node=JSON.createObjectNode();
         node.put("type","object");
         node.put("additionalProperties",false);
@@ -191,6 +190,19 @@ public final class RuleAgentProtocol {
             properties.set(field.getName(),field(type,field.getName(),readReferences));
         }
         // 外发结构沿用原基线形状。交叉字段约束由提示和宿主record校验执行。
+        return node;
+    }
+    private static ObjectNode issueSchema(){
+        var node=JSON.createObjectNode();node.put("type","object");var branches=node.putArray("oneOf");
+        // 配对直接来自ReasonCode.kind权威关系，不能分别列枚举后允许CONFLICT/CANCELLED等笛卡尔积。
+        for(var kind:IssueKind.values()){
+            var reasons=Arrays.stream(ReasonCode.values()).filter(reason->reason.kind==kind).toList();
+            if(reasons.isEmpty())continue;
+            var branch=branches.addObject();branch.put("type","object");branch.put("additionalProperties",false);
+            branch.putArray("required").add("kind").add("reasonCode");
+            var properties=branch.putObject("properties");properties.putObject("kind").put("const",kind.name());
+            properties.set("reasonCode",enumField(reasons.toArray(ReasonCode[]::new)));
+        }
         return node;
     }
     private static ObjectNode array(JsonNode items,int min,int max) {

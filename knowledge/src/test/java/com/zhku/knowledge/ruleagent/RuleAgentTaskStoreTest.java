@@ -37,6 +37,31 @@ class RuleAgentTaskStoreTest {
     final AtomicReference<Instant> time=new AtomicReference<>(Instant.parse("2026-10-13T08:00:00Z"));
     final Clock clock=new Clock(){public ZoneId getZone(){return ZoneOffset.UTC;}public Clock withZone(ZoneId zone){return this;}public Instant instant(){return time.get();}};
     RuleAgentTaskStore store(){return new RuleAgentTaskStore(queued::add,this::work,clock,new RuleAgentTaskStore.Limits(8,4,32));}
+    @Test void firstQuestionDeclarationKeepsOriginalSpanAndOwnerIsolation(){
+        try(var s=store()){
+            String question="😀公共选修课没过，能重修吗？";
+            var request=new CreateTask(question,UUID.randomUUID());var a=s.create(owner,request);
+            assertThat(s.create(owner,request).duplicate()).isTrue();assertThat(queued).hasSize(1);
+            var declarations=s.firstQuestionDeclarations(owner,a.taskId());
+            assertThat(declarations).singleElement().satisfies(d->{
+                assertThat(d.conditionId()).isEqualTo("courseType");assertThat(d.value()).isEqualTo("PUBLIC");
+                assertThat(d.subquestionId()).isEqualTo("q1");assertThat(d.start()).isEqualTo(2);
+                assertThat(question.substring(d.start(),d.end())).isEqualTo("公共选修课");
+            });
+            assertThat(s.history(owner,a.taskId()).getFirst().conditions()).containsEntry("courseType","PUBLIC");
+            assertThatThrownBy(()->declarations.clear()).isInstanceOf(UnsupportedOperationException.class);
+            assertThatThrownBy(()->s.firstQuestionDeclarations(new Owner(owner.actorId(),UUID.randomUUID()),a.taskId())).isInstanceOf(RuleAgentTaskStore.Failure.class);
+        }
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"我公选课没过，必修课能重修吗","公选课能缓考吗？必修课能退吗？","公选课能退？培养方案查询。","不是公选课能缓考吗","听说公选课能缓考吗","公选课能缓考吗；能退课吗","公选课挂了，能重修体育课吗","公选课没过，可以重修必修课吗","公选课挂了，能申请重修高数吗","公选课不过，能补考英语吗","专选课挂了，能重修高数吗"})
+    void ambiguousFirstQuestionCannotSeedSharedConditions(String question){
+        try(var s=store()){
+            var a=s.create(owner,new CreateTask(question,UUID.randomUUID()));
+            assertThat(s.firstQuestionDeclarations(owner,a.taskId())).isEmpty();
+            assertThat(s.history(owner,a.taskId()).getFirst().conditions()).isEmpty();
+        }
+    }
     void drain(){Runnable r;while((r=queued.poll())!=null)r.run();}
     RuleAgentTaskStore.Work work(Owner actor,UUID task){
         return work(actor,task,List.of("kind"));

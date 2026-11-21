@@ -2,9 +2,11 @@ package com.zhku.knowledge.ruleagent.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.zhku.knowledge.ruleagent.*;
+import java.util.*;
 
 /** 仅测试classpath：E13沿用单题限额，但题干、资料边界与页面驱动独立冻结，不能借用E02授权。 */
-final class RuleAgentE13Policy {
+public final class RuleAgentE13Policy {
     static final String PURPOSE = "E13_SINGLE_QUESTION_PAGE_LIVE_V1";
     static final String PLAN = "knowledge/src/test/resources/rule-agent-e13-page-plan.json";
     static final String QUESTION = "这学期公选补选今晚几点关？现在还能帮我补上吗？";
@@ -43,8 +45,8 @@ final class RuleAgentE13Policy {
         if (bad || !gap) throw new IllegalStateException("E13未得到已批准的资料不足终态；保留原始回执，不重试");
     }
 
-    /** 测试宿主额外阻断混合未知需求，避免生产聚合的anyMatch把未理解问题掩盖成资料不足。 */
-    static void reviewBoundary(JsonNode response) throws Exception {
+    /** 只放行由自身能力边界覆盖的未知需求；生产解码器和门禁继续核验完整契约。 */
+    public static void reviewBoundary(JsonNode response) throws Exception {
         String content = response.path("choices").path(0).path("message").path("content").asText();
         JsonNode review;
         try { review = RuleAgentThreeQuestionPackage.JSON.readTree(content); }
@@ -52,8 +54,34 @@ final class RuleAgentE13Policy {
         if (review == null) return;
         for (JsonNode r : review.path("unresolvedDemands"))
             if (!"UNSUPPORTED_DIMENSION".equals(r.path("reason").asText())) throw new IllegalStateException("E13混合未理解需求，禁止安全终态通过");
-        for (JsonNode r : review.path("requirements"))
-            if (!"IDENTIFIED".equals(r.path("recognition").asText())) throw new IllegalStateException("E13需求识别不完整，禁止安全终态通过");
+        // 守卫只判需求覆盖；完整输入身份和事实能力仍由生产解码器与门禁独立核验。
+        try {
+            var facts = new ArrayList<RulePublicationContract.SemanticFact>();
+            for (JsonNode binding : review.path("bindings"))
+                facts.add(new RulePublicationContract.SemanticFact(binding.path("factId").asText(), "", "", Map.of(), List.of()));
+            var conditions = new ArrayList<RulePublicationContract.ReviewedCondition>();
+            for (JsonNode requirement : review.path("requirements"))
+                for (JsonNode id : requirement.path("necessaryConditionIds"))
+                    conditions.add(new RulePublicationContract.ReviewedCondition("", id.asText(), "", List.of(), List.of()));
+            var input = new RulePublicationContract.SemanticInput(RulePublicationContract.REVISION, "guard",
+                review.path("inputFingerprint").asText(), List.of(new RuleAgentRunner.Question("q1", QUESTION)),
+                Map.of(), facts, Map.of(), conditions);
+            var assessment = RulePublicationProtocol.decode(content, input);
+            for (var requirement : assessment.requirements()) {
+                if (requirement.recognition() == RulePublicationContract.Recognition.IDENTIFIED) continue;
+                var span = requirement.span();
+                boolean covered = requirement.recognition() == RulePublicationContract.Recognition.UNCLASSIFIED
+                    && requirement.dimension() == RulePublicationContract.Dimension.UNKNOWN
+                    && assessment.unresolvedDemands().stream().anyMatch(d -> d.reason() == RulePublicationContract.UnresolvedReason.UNSUPPORTED_DIMENSION
+                        && d.span().subquestionId().equals(span.subquestionId())
+                        && d.span().startInclusive() <= span.startInclusive() && d.span().endExclusive() >= span.endExclusive());
+                boolean bound = assessment.bindings().stream().anyMatch(b -> b.requirementId().equals(requirement.id()));
+                if (!covered || bound || !RulePublicationGate.unsupportedDemand(assessment, span.subquestionId()))
+                    throw new IllegalStateException("E13需求识别不完整，禁止安全终态通过");
+            }
+        } catch (RuleAgentProtocol.Rejected | RulePublicationContract.Rejected invalid) {
+            // 非法协议必须交给真正的解码器拒绝，不能由这里伪造通过结果。
+        }
     }
     private RuleAgentE13Policy() {}
 }

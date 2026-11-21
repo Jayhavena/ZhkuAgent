@@ -92,6 +92,7 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         已读且能解释用户核心诉求的事实必须发布；不能用DETAIL_NOT_IN_REVIEWED_TEXT或ANSWER_COVERAGE_INCOMPLETE替代可解释的一般规则。个人记录缺口只作为补充问题，不替代已识别规则。
         健康检索未命中可用DATA_GAP/RETRIEVAL_NO_MATCH；详情无依据可用DATA_GAP/DETAIL_NOT_IN_REVIEWED_TEXT。
         宿主发布只接受这些模型自报缺口：资料不足以覆盖经核验的需求用DATA_GAP/UNSUPPORTED_DEMAND；检索健康但无命中用DATA_GAP/RETRIEVAL_NO_MATCH；已读事实模板本身标注原文缺详情时才用DATA_GAP/DETAIL_NOT_IN_REVIEWED_TEXT。
+        已核对原文但审核事实能力未覆盖部分需求时可用DATA_GAP/REVIEWED_FACT_COVERAGE_GAP；宿主将独立核对能力缺口，漏选可用事实不能冒充资料缺口。
         不要自报SCOPE_LIMIT、CURRENT_APPLICABILITY_UNKNOWN或MATERIAL_SCOPE_MISMATCH：当期适用性、个人记录与当期通知由宿主依据已读原文和页面条件判断。
         不得输出Schema枚举以外的动作；主张正文与原文关系由宿主核验后发布。operation本批使用null。
         """;

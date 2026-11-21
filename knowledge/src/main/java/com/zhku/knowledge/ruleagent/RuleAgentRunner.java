@@ -166,6 +166,24 @@ public final class RuleAgentRunner {
         }
     }
 
+    static ActionState constrainClarification(
+            ActionState state,
+            List<RulePublicationContract.ReviewedCondition> conditions,
+            Map<String, String> known) {
+        // 只收窄动作，不创建发布能力；未知的已审条件仍须由独立核验判断是否必要。
+        if (conditions.stream().anyMatch(c -> !known.containsKey(c.conditionId()))) return state;
+        return new ActionState(
+                state.allowedActions().stream()
+                        .filter(a -> !a.equals("ASK_NECESSARY_CONDITION"))
+                        .toList(),
+                state.candidates(),
+                state.remainingEvidenceFragments(),
+                state.remainingEvidenceBytes(),
+                state.runMillisRemaining(),
+                state.reservedReviewMillis(),
+                state.reservedPublicationMillis());
+    }
+
     public static final class Rejected extends RuntimeException {
         final ReasonCode reason;
 
@@ -258,6 +276,10 @@ public final class RuleAgentRunner {
                         publicationReview == null
                                 ? null
                                 : RuleFactCapabilityCatalogue.fromReviewed(entries);
+                var conditions =
+                        capabilities == null
+                                ? List.<RulePublicationContract.ReviewedCondition>of()
+                                : capabilities.conditions(broker.facts());
                 var contexts =
                         entries.stream()
                                 .map(
@@ -268,6 +290,17 @@ public final class RuleAgentRunner {
                                                         e.template().conditions(),
                                                         e.template().evidenceGaps()))
                                 .toList();
+                var state =
+                        publicationReview == null
+                                ? null
+                                : constrainClarification(
+                                        broker.actionState(
+                                                decisionLimit - attempts,
+                                                DEFAULT_BUDGET.maxToolStepsPerRun() - steps,
+                                                Duration.between(clock.instant(), deadline)
+                                                        .toMillis()),
+                                        conditions,
+                                        input.userConditions());
                 var view =
                         new View(
                                 input.question(),
@@ -279,13 +312,7 @@ public final class RuleAgentRunner {
                                 List.copyOf(events),
                                 decisionLimit - attempts,
                                 DEFAULT_BUDGET.maxToolStepsPerRun() - steps,
-                                publicationReview == null
-                                        ? null
-                                        : broker.actionState(
-                                                decisionLimit - attempts,
-                                                DEFAULT_BUDGET.maxToolStepsPerRun() - steps,
-                                                Duration.between(clock.instant(), deadline)
-                                                        .toMillis()),
+                                state,
                                 capabilities == null
                                         ? null
                                         : capabilities.publicationFactIds(broker.facts()));
@@ -334,11 +361,33 @@ public final class RuleAgentRunner {
                     name = name(action);
                     String fingerprint = json(action);
                     if (view.state() != null && !view.state().allowedActions().contains(name)) {
-                        events.add(
-                                new Event(decisionAttempt, name, null, ReasonCode.BUDGET_EXCEEDED));
+                        // 没有候选/事实/观察就不能读取/追问/发布；与为独立核验预留资源而禁用动作分开归因。
+                        boolean missingInput =
+                                action instanceof Read && view.state().candidates().isEmpty()
+                                        || action instanceof Ask ask
+                                                && (view.facts().isEmpty()
+                                                        || conditions.stream()
+                                                                .noneMatch(
+                                                                        c ->
+                                                                                c.conditionId()
+                                                                                                .equals(
+                                                                                                        ask
+                                                                                                                .conditionId())
+                                                                                        && !input
+                                                                                                .userConditions()
+                                                                                                .containsKey(
+                                                                                                        c
+                                                                                                                .conditionId())))
+                                        || action instanceof Finish
+                                                && view.observations().isEmpty();
+                        ReasonCode rejected =
+                                missingInput
+                                        ? ReasonCode.INVALID_MODEL_RESPONSE
+                                        : ReasonCode.BUDGET_EXCEEDED;
+                        events.add(new Event(decisionAttempt, name, null, rejected));
                         published =
                                 new RuleResultPublisher(broker, input, context.runId())
-                                        .failed(ReasonCode.BUDGET_EXCEEDED);
+                                        .failed(rejected);
                         break;
                     }
                     if (fingerprint.equals(previous)
@@ -364,6 +413,7 @@ public final class RuleAgentRunner {
                     ReasonCode reason = null;
                     RulePublicationContract.Code publicationReason = null;
                     Event reviewEvent = null;
+                    boolean precheckRejected = false;
                     try {
                         if (action instanceof Search || action instanceof Read)
                             observation = broker.execute(action, input, context.runId(), steps);
@@ -378,8 +428,16 @@ public final class RuleAgentRunner {
                             } else {
                                 var precheck =
                                         new RuleResultPublisher(broker, input, context.runId());
-                                if (action instanceof Ask a) precheck.precheckAsk(a);
-                                else precheck.precheckFinish((Finish) action);
+                                try {
+                                    if (action instanceof Ask a) precheck.precheckAsk(a);
+                                    else precheck.precheckFinish((Finish) action);
+                                } catch (Rejected precheckInvalid) {
+                                    // 核验前的提议内容级拒绝保留分支侧语义：记事件后允许模型重复改提，
+                                    // 预算耗尽时按 lastRejectedTerminal 收敛为 INVALID_MODEL_RESPONSE，
+                                    // 不在此立即发布失败（与 f5393c36 的确定性拒绝立即终止语义按来源分流）。
+                                    precheckRejected = true;
+                                    throw precheckInvalid;
+                                }
                                 if (attempts >= DEFAULT_BUDGET.maxModelAttemptsPerRun()
                                         || !clock.instant().isBefore(deadline))
                                     throw new Rejected(ReasonCode.BUDGET_EXCEEDED);
@@ -519,6 +577,14 @@ public final class RuleAgentRunner {
                         throw invalid;
                     } catch (Rejected invalid) {
                         reason = invalid.reason;
+                        // f5393c36 侧语义：非提议内容级的确定性 INVALID_MODEL_RESPONSE 拒绝立即失败，
+                        // 防止重试后被 NO_PROGRESS 覆盖成伪造的资源不足原因。
+                        // 分支侧语义：precheckRejected 标记的核验前内容级拒绝不立即终止，
+                        // 保留失败事件并允许模型重复改提，由 lastRejectedTerminal 在预算耗尽时收敛。
+                        if (reason == ReasonCode.INVALID_MODEL_RESPONSE && !precheckRejected)
+                            published =
+                                    new RuleResultPublisher(broker, input, context.runId())
+                                            .failed(reason);
                         context.recordToolResult(
                                 call,
                                 new AgentToolCall.Result(

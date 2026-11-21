@@ -1,5 +1,6 @@
 import { createControlledSession } from './controlled-session.js'
 import { createIdentityBus } from './identity-bus.js'
+import { ruleTaskHistory } from './rule-task-history.js'
 
 // 复用换代机制，不共享旧学分入口的主体、Cookie资格或任务持久化。
 export const ruleCheckSession = createControlledSession()
@@ -10,11 +11,13 @@ export function bindIdentityBus(session = ruleCheckSession, bus = createIdentity
   const local = session.clear.bind(session)
   session.clear = reason => {
     const hadIdentity = session.state.actor !== null
+    // 短暂失效只保留账号绑定ID，便于同账号重新鉴权；明确退出/身份切换必须清缓存。
+    if (reason !== 'AUTH_EXPIRED' && (hadIdentity || reason)) ruleTaskHistory.clear()
     local(reason)
     if (hadIdentity) bus.publish({ reason })
   }
   // 接收端必须走未包装的clear：否则收到别的窗口的换代后又广播回去，两个窗口会互相无限换代。
-  const unsubscribe = bus.subscribe(() => local('IDENTITY_CHANGED_ELSEWHERE'))
+  const unsubscribe = bus.subscribe(() => { ruleTaskHistory.clear(); local('IDENTITY_CHANGED_ELSEWHERE') })
   return { bus, dispose() { unsubscribe(); bus.close() } }
 }
 

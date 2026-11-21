@@ -10,6 +10,10 @@ import java.util.function.Supplier;
 /** 内部装配入口；构造不启动外部调用，也不授权任何真实资料。 */
 public final class RuleCheckRuntimeFactory {
     private RuleCheckRuntimeFactory() {}
+    static ChunkCandidateRetriever disabledVector() {
+        // 未启用不是检索成功但无命中；否则词法故障会被误报为证据不足。
+        return (question,limit)->{throw new RetrieverUnavailableException("向量检索未启用");};
+    }
     /** 新路径只使用本轮fresh取证目录；规划器的注入不自动授权模型网络调用。 */
     public static RuleCheckApplicationService createEvidenceFirst2025(DataSource source,RuleCheckRuntimeSettings settings,
             Supplier<List<RuleCheckApplicationService.CatalogEntry>> catalogue,
@@ -18,7 +22,7 @@ public final class RuleCheckRuntimeFactory {
         var capture=new RuleCheckEvidenceCapture(verifier,ids,new JdbcRuleCheckCitationAuditRepository(source,settings.profileId(),settings.chunkingVersion(),settings.requiredScope()),clock);
         return RuleCheckApplicationService.evidenceFirst(settings,catalogue,planner,new HybridRetrievalService(new HybridCandidateFuser()),
             JdbcLexicalCandidateRetriever.forChineseBigramEvaluation(source,new RetrievalEligibilityFilter(clock),settings.profileId(),settings.requiredScope(),settings.chunkingVersion()),
-            (question,limit)->List.of(),capture,new RuleCheckDecisionService(verifier));
+            disabledVector(),capture,new RuleCheckDecisionService(verifier));
     }
     /** 单主题受控组合；不能沿用一般词法或在此处隐式打开向量外发。 */
     public static RuleCheckApplicationService createControlled2025(DataSource source,RuleCheckRuntimeSettings settings,
@@ -29,7 +33,7 @@ public final class RuleCheckRuntimeFactory {
         var capture=new RuleCheckEvidenceCapture(verifier,ids,new JdbcRuleCheckCitationAuditRepository(source,settings.profileId(),settings.chunkingVersion(),settings.requiredScope()),clock);
         return new RuleCheckApplicationService(settings,catalogue,selector,new HybridRetrievalService(new HybridCandidateFuser()),
             JdbcLexicalCandidateRetriever.forChineseBigramEvaluation(source,new RetrievalEligibilityFilter(clock),settings.profileId(),settings.requiredScope(),settings.chunkingVersion()),
-            (question,limit)->List.of(),capture,new RuleCheckDecisionService(verifier));
+            disabledVector(),capture,new RuleCheckDecisionService(verifier));
     }
     public static RuleCheckApplicationService create(DataSource dataSource, RuleCheckRuntimeSettings settings,
             Supplier<List<RuleCheckApplicationService.CatalogEntry>> catalogue,

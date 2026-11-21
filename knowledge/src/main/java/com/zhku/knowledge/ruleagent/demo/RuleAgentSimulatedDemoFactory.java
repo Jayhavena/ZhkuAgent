@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 import static com.zhku.knowledge.ruleagent.RulePublicationContract.*;
 
-/** 只由独立演示宿主显式装配；固定输入不是自然语言模型，也不是在线失败后的替代品。 */
+/** 只由显式SIMULATED宿主装配；固定输入不是自然语言模型，也不是在线失败后的替代品。 */
 public final class RuleAgentSimulatedDemoFactory implements RuleAgentTaskStore.Factory {
     public static final String QUESTION = "我这门选修课没过，能不能重修？";
     static final String PUBLIC_FACT = "S10/RETAKE_ONLY:public-failed-no-retake";
@@ -31,6 +31,7 @@ public final class RuleAgentSimulatedDemoFactory implements RuleAgentTaskStore.F
                 return previous.evidence().stream().allMatch(e -> registry.read(owner, task, e.originalToken()).isPresent());
             }
             @Override public RuleAgentRunner.Outcome run(AgentRunContext context, RuleAgentRunner.Input input) {
+                if(!QUESTION.equals(input.question())||input.questions().size()!=1)return uncovered(context,input);
                 RuleAgentRunner.DecisionPort decision = (view, timeout) -> {
                     simulatedPortCalls.incrementAndGet(); return decide(view);
                 };
@@ -50,6 +51,23 @@ public final class RuleAgentSimulatedDemoFactory implements RuleAgentTaskStore.F
     }
 
     public int simulatedPortCalls() { return simulatedPortCalls.get(); }
+
+    private static RuleAgentRunner.Outcome uncovered(AgentRunContext context,RuleAgentRunner.Input input) {
+        context.start();context.cleanupOnce(()->{});
+        if(!context.finish(com.zhku.agent.agent.runtime.AgentRunState.INCOMPLETE))
+            context.finish(com.zhku.agent.agent.runtime.AgentRunState.CANCELLED);
+        context.signalTermination();context.publishTermination();
+        boolean cancelled=context.state()==com.zhku.agent.agent.runtime.AgentRunState.CANCELLED;
+        var issues=new ArrayList<Issue>();
+        issues.add(new Issue("replay-miss",IssueKind.REPLAY_MISS,ReasonCode.REPLAY_NOT_COVERED,
+            "当前为零模型工程模式，本问题不在固定回放范围内，未生成规则结论。","可使用固定问题："+QUESTION));
+        if(cancelled)issues.add(new Issue("cancelled",IssueKind.PROCESSING_FAILURE,ReasonCode.CANCELLED,"任务已取消。","可新建查证。"));
+        var items=input.questions().stream().map(q->new Subquestion(q.id(),Coverage.NONE,List.of(),issues,List.of())).toList();
+        var result=new ResultEnvelope(input.version(),context.runId(),"persistent-simulated-v1","2025.9.2",Coverage.NONE,items,List.of(),List.of());
+        return new RuleAgentRunner.Outcome(new TaskSnapshot(SCHEMA_VERSION,input.taskId(),UUID.randomUUID(),context.runId(),
+            input.version(),cancelled?TaskStatus.STOPPED:TaskStatus.RESOLVED,context.state(),true,result,null,
+            new Execution(Mode.ENGINEERING_REPLAY,0,0,false,AnswerSource.NONE,ReplayCoverage.MISS)),List.of());
+    }
 
     static RuleAgentRunner.Reply decide(RuleAgentRunner.View view) {
         if (!QUESTION.equals(view.question()) || view.questions().size() != 1)

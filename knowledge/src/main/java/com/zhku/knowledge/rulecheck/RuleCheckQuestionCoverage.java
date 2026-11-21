@@ -40,6 +40,7 @@ final class RuleCheckQuestionCoverage {
         // 未声明主题的旧目录维持原协议拒绝项语义，不能借新兜底默默抹掉未知任务。
         if(available.stream().noneMatch(e->e.topicCoverage().enabled()))return proposed;
         var wanted=requested(needs(question));
+        var rejected=proposed==null?List.<RuleCheckTaskPlan.Task>of():proposed.rejectedTasks();
         var tasks=new LinkedHashSet<RuleCheckTaskPlan.Task>();
         if(proposed!=null)for(var task:proposed.tasks()) {
             if(task.action()==UNSUPPORTED){tasks.add(task);continue;}
@@ -54,10 +55,14 @@ final class RuleCheckQuestionCoverage {
             var entry=available.stream().filter(e->e.topicCoverage().enabled()&&e.topicCoverage().topics().contains(topic))
                 .min(Comparator.comparingInt((RuleCheckApplicationService.CatalogEntry e)->e.topicCoverage().topics().size())
                     .thenComparingInt(e->e.template().evidenceGaps().size()).thenComparing(e->e.template().ruleId())).orElse(null);
-            if(entry!=null&&tasks.size()<4)tasks.add(normalizeDetail(question,new RuleCheckTaskPlan.Task(entry.template().ruleId(),EXPLAIN_RULE,"",""),entry));
+            if(entry!=null&&tasks.size()+rejected.size()<4) {
+                var replacement=normalizeDetail(question,new RuleCheckTaskPlan.Task(entry.template().ruleId(),EXPLAIN_RULE,"",""),entry);
+                if(!rejected.contains(replacement))tasks.add(replacement);
+            }
         }
         if(tasks.isEmpty()||tasks.size()>4)return null;
-        return new RuleCheckTaskPlan(List.copyOf(tasks));
+        // 补齐覆盖不等于已处理被拒绝的请求；保留拒绝项及总预算，才能向用户披露部分完成。
+        return new RuleCheckTaskPlan(List.copyOf(tasks),rejected);
     }
     private static RuleCheckTaskPlan.Task normalizeDetail(String question,RuleCheckTaskPlan.Task task,RuleCheckApplicationService.CatalogEntry entry) {
         var option=RuleCheckClauseOperations.option(entry);

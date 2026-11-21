@@ -2,7 +2,7 @@
 import RuleClarification from './RuleClarification.vue'
 import RuleEvidence from './RuleEvidence.vue'
 defineProps(['state', 'result', 'active', 'identityBusy', 'terminal', 'answerKind', 'answerStatus', 'answerTitle', 'hasProcessingFailure', 'issueLabels', 'conditionSummary', 'waitingForClarification', 'nextCondition', 'choice', 'relatedEvidence', 'leadClaim', 'leadClaimId', 'claimCitations', 'explanationLines', 'evidenceRows', 'selectedEvidence', 'roleLabels', 'evidenceFocusToken'])
-defineEmits(['cancel', 'recover', 'refresh', 'newQuestion', 'update:choice', 'clarify', 'showOriginal', 'focusEvidence'])
+defineEmits(['cancel', 'recover', 'abandon', 'refresh', 'newQuestion', 'update:choice', 'clarify', 'showOriginal', 'focusEvidence'])
 
 // 说明性缺口与技术失败必须保持视觉区分：前者用暖色提示，后者用中性/红色收尾，
 // 避免把“处理未完成”看成“资料不足”。
@@ -23,6 +23,11 @@ const issueTone = kind => gapKinds.has(kind) ? 'gap' : kind === 'PROCESSING_FAIL
       <p v-if="state.error" class="error-message" role="alert">{{ state.error }}</p>
       <div v-if="state.pending" class="recovery-row">
         <button class="secondary-button" type="button" data-testid="recover-request" :disabled="state.busy || identityBusy" @click="$emit('recover')">查询原请求</button>
+        <!-- 受理结果未知不能自动重发；放弃等待是用户显式动作，原请求键保持可查询。 -->
+        <button class="text-button" type="button" data-testid="abandon-request" :disabled="state.busy || identityBusy" @click="$emit('abandon')">不再等待本次结果</button>
+      </div>
+      <div v-else-if="state.abandonedRequest && !state.ticket" class="recovery-row">
+        <button class="secondary-button" type="button" data-testid="recover-abandoned" :disabled="state.busy || identityBusy" @click="$emit('recover')">查询原请求</button>
       </div>
       <!-- 只有“查询结果不明”才需要手动恢复：正常终态、等待澄清时给这个入口会让人以为任务还没结束。 -->
       <div v-else-if="state.ticket && !state.polling && !state.busy && (state.error || !state.snapshot)" class="recovery-row">
@@ -32,7 +37,7 @@ const issueTone = kind => gapKinds.has(kind) ? 'gap' : kind === 'PROCESSING_FAIL
         <span class="status-label status-label--warning">依据已变化</span>
         <h2>上一轮结果已暂停展示</h2>
         <p>原文依据的资格或版本发生变化。为避免继续展示可能失效的结论，请重新查证。</p>
-        <button class="secondary-button" type="button" :disabled="active || state.pending || state.busy" @click="$emit('newQuestion')">重新查证</button>
+        <button class="secondary-button" type="button" :disabled="active || state.pending || state.busy" @click="$emit('newQuestion', state.lastQuestion)">{{ state.lastQuestion ? '用原问题重新查证' : '重新查证' }}</button>
       </section>
       <template v-else-if="result">
         <header class="answer-heading">
@@ -43,7 +48,7 @@ const issueTone = kind => gapKinds.has(kind) ? 'gap' : kind === 'PROCESSING_FAIL
             <button v-for="(evidence, index) in claimCitations(leadClaim.item, leadClaim.claim)" :key="evidence.id" class="inline-ref" type="button" data-testid="inline-ref" :aria-label="'依据 ' + (index + 1) + '：查看对应证据'" @click="$emit('focusEvidence', evidence.id)">依据 {{ index + 1 }}</button>
           </p>
           <p v-if="result.publishedVersion < state.snapshot.version" class="inline-status">以下为上一轮已确认内容，本轮补充仍在处理。</p>
-          <p v-if="state.snapshot.execution.mode === 'ENGINEERING_REPLAY'" class="mode-notice mode-notice--inline">工程回放使用已封存的响应，不代表在线模型能力。</p>
+          <p v-if="state.snapshot.execution.mode === 'ENGINEERING_REPLAY'" class="mode-notice mode-notice--inline">{{ state.snapshot.execution.answerSource === 'SEALED_REPLAY' ? '工程回放使用已封存的响应，不代表在线模型能力。' : '当前为零模型工程验证，不代表在线模型能力。' }}</p>
         </header>
         <!-- 需要澄清时先给选择控件：这是该状态唯一可执行的操作，放在说明之前避免用户以为无事可做。 -->
         <RuleClarification v-if="waitingForClarification && nextCondition" :choice="choice" :next-condition="nextCondition" :busy="state.busy" :pending="state.pending" @update:choice="$emit('update:choice', $event)" @clarify="$emit('clarify', $event)" @new-question="$emit('newQuestion')" />

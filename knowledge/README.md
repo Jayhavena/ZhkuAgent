@@ -1,8 +1,10 @@
 # Knowledge 模块
 
-**当前模块进度（2026-10-18）：** 新规则查证 Agent 位于 `ruleagent/`，已具备证据工具、动态循环、内存跨轮任务和任务 HTTP 基础。T05 在线模型工程验收在独立分支通过；T06 后续受控启动与真实身份/资料/HTTP/代理模拟验收尚未合入主线。学生入口已进入主线，正式在线质量及学生收益仍未验收。
+**模块进度（2026-10-18 时点快照，历史）：** 新规则查证 Agent 位于 `ruleagent/`，已具备证据工具、动态循环、内存跨轮任务和任务 HTTP 基础。T05 在线模型工程验收在独立分支通过；T06 后续受控启动与真实身份/资料/HTTP/代理模拟验收尚未合入主线。学生入口已进入主线，正式在线质量及学生收益仍未验收。
 
-全项目事实与分支差距见[当前项目状态](../docs/zhkuagent/2026-10-18-project-status.md)，后续按[统一集成与收口计划](../docs/superpowers/plans/2026-10-18-project-integration-and-closeout-plan.md)推进。旧回放使用同步接口，须搭配 `replay` 前端，见[配套启动说明](../docs/manual/nginx-local-preview.md#启动和停止)。不从本页旧学分阶段的测试数字推导新 Agent 通过。
+> **快照边界：** 其后主线已合入受控身份（V19–V20）、3B 会话及 V21–V23 迁移（校园运行提交、规则检查捕获审计、正式账号注册登录与 30 天持久登录），上文“尚未合入主线”仅描述 2026-10 时点。当前开发基线与每个 PR 的必跑门禁见 [M4 持续回归与开发基线](../docs/agent/m4/README.md)，评测链路入口见 [评测链路文档](../docs/agent/eval/chain/README.md)。
+
+全项目事实与分支差距见[2026-10 项目状态快照](../docs/zhkuagent/2026-10-18-project-status.md)，后续按[统一集成与收口计划](../docs/superpowers/plans/2026-10-18-project-integration-and-closeout-plan.md)推进。旧回放使用同步接口，须搭配 `replay` 前端，见[配套启动说明](../docs/manual/nginx-local-preview.md#启动和停止)。不从本页旧学分阶段的测试数字推导新 Agent 通过。
 
 ## 历史学分 Agent 与 3C 阶段（截至 2026-10-07）
 
@@ -181,7 +183,7 @@ $mavenRepo = Join-Path $env:USERPROFILE '.m2/repository'
 .\knowledge\scripts\verify-campus-identity-temp-db.ps1 -Port 55435 -MavenRepo $mavenRepo -ExpectedMigration 20
 ```
 
-脚本使用无卷专用临时库 `zhkuagent_run_archive_e2e`，随机环境口令、V20、合成账号/资料及test-only模型；不访问54329演示库，不调用真实模型。当前源码最高迁移为V20，上例必须显式指定 `-ExpectedMigration 20`。默认选择真实HTTP、实际PID、旧入口兼容及受控配置四类，接线后新执行28项通过，见 [整合核验](../docs/evidence/milestone-4a/2026-10-05/A/20-4a-3b-integration-review.md)。原 [4A独立验收](../docs/evidence/milestone-4a/2026-10-05/A/18-4a-acceptance.md)使用V19，适用于3B激活V20前的源码时点，原记录及哈希保留。退出后检查临时容器不存在；全部HTTP端口/线程/专用连接及子PID退出由实际测试断言，Probe不单独计数。
+脚本使用无卷专用临时库 `zhkuagent_run_archive_e2e`，随机环境口令、V20、合成账号/资料及test-only模型；不访问54329演示库，不调用真实模型。该验收写于 V20 时点，`-ExpectedMigration 20` 只适用于当时源码；当前源码最高迁移为 V23，重跑须按实际最高迁移更新该参数。默认选择真实HTTP、实际PID、旧入口兼容及受控配置四类，接线后新执行28项通过，见 [整合核验](../docs/evidence/milestone-4a/2026-10-05/A/20-4a-3b-integration-review.md)。原 [4A独立验收](../docs/evidence/milestone-4a/2026-10-05/A/18-4a-acceptance.md)使用V19，适用于3B激活V20前的源码时点，原记录及哈希保留。退出后检查临时容器不存在；全部HTTP端口/线程/专用连接及子PID退出由实际测试断言，Probe不单独计数。
 
 受控生产入口是 `ControlledPreviewApplication` / `knowledge-0.1.0-rc.1-controlled.jar`，只显式扫描security/controlled并导入校园构造链。要求独立profile `zhku-controlled-preview`、`zhku.controlled-preview.enabled=true`、`zhku.campus-agent.enabled=true`、`zhku.campus-agent.archive.enabled=true`，以及显式 `zhku.db.url` / `zhku.db.username`。数据库只能使用127.0.0.1专用目标、端口不可为54329，不能把口令放URL或配置覆盖；子进程口令仅来自 `ZHKU_DB_PASSWORD`。同时禁止旧preview/admin、RAG、streaming。业务conversations默认关闭，3B显式开启条件见下节。缺条件在连接数据库/占宿主锁前失败。
 

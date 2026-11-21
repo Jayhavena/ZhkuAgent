@@ -16,6 +16,20 @@ import static org.assertj.core.api.Assertions.*;
 
 /** 不创建 Spring Web 宿主或数据库；主入口必须能从正式 classpath 单独找到。 */
 class RuleAgentSimulatedDemoTest {
+    @Test void uncoveredInputIsExplicitReplayMissWithoutToolOrModelExecution() {
+        var registry=org.mockito.Mockito.mock(RuleAgentTaskToolsRegistry.class);
+        var tools=org.mockito.Mockito.mock(RuleAgentEvidenceTools.class);
+        org.mockito.Mockito.when(registry.open(org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.any())).thenReturn(tools);
+        var factory=new RuleAgentSimulatedDemoFactory(registry,Clock.systemUTC());
+        var owner=new Owner(UUID.randomUUID(),UUID.randomUUID());var task=UUID.randomUUID();
+        var context=com.zhku.agent.agent.runtime.AgentRunContext.create("未覆盖的合成问题");
+        var output=factory.open(owner,task).run(context,RuleAgentRunner.Input.single(owner,task,"未覆盖的合成问题"));
+        assertThat(output.snapshot().execution().replayCoverage()).isEqualTo(ReplayCoverage.MISS);
+        assertThat(output.snapshot().result().items()).allSatisfy(q->assertThat(q.issues()).anyMatch(i->i.reasonCode()==ReasonCode.REPLAY_NOT_COVERED));
+        assertThat(factory.simulatedPortCalls()).isZero();
+        assertThat(context.termination().isDone()).isTrue();
+        org.mockito.Mockito.verifyNoInteractions(tools);
+    }
     @TempDir Path temporary;
     @Test void standaloneMainExistsOutsideJUnit() {
         assertThatCode(() -> Class.forName("com.zhku.knowledge.ruleagent.demo.RuleAgentSimulatedDemoHost")

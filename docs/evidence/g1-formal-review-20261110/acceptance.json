@@ -1,0 +1,674 @@
+{
+  "sourceCandidate": "6e149df51db23668849d84098d5111016426edae",
+  "releaseBase": "42d4491d90022a9357f06e247f3300f69b43beb0",
+  "migrationFiles": [
+    {
+      "path": "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RuleAgentProvider.java",
+      "sha256": "34ccab59fb5a1e926d442347ad22c482df7ffa6ee94c5e282b167be01f8bc56a",
+      "matchesOriginalCandidate": true
+    },
+    {
+      "path": "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationGate.java",
+      "sha256": "8cbb58e4d639fcf3d241d4328339d14c060447f541a69f58de75ad2b142baf5a",
+      "matchesOriginalCandidate": true
+    },
+    {
+      "path": "knowledge/src/main/java/com/zhku/knowledge/ruleagent/RulePublicationProtocol.java",
+      "sha256": "fb926b422ae69365fae8d1c50834b5cd0893412a96d0e3031f9f1429e4b26b82",
+      "matchesOriginalCandidate": true
+    },
+    {
+      "path": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentE13InsufficientMaterialTerminalTest.java",
+      "sha256": "fb2529be8f8902740dbe5450f2f53eca5565b75c33c437d6c33fe6f20919de6d",
+      "matchesOriginalCandidate": true
+    },
+    {
+      "path": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentE13PublicationCapabilityTest.java",
+      "sha256": "3c8638b7f3ab5c6986e1676220eda9cf3eeafeb83b3e26f1dbd366f9610ed8c6",
+      "matchesOriginalCandidate": true
+    },
+    {
+      "path": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+      "sha256": "681fefb2be0155eaa22189466eb587924d0724df7e1d49cf6476d9b0d4f56121",
+      "matchesOriginalCandidate": true
+    },
+    {
+      "path": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RulePublicationGateTest.java",
+      "sha256": "680cbcef47b523a6744a10d39ace43ea582d2910b4ad409bcb2cf2a6f8db9a86",
+      "matchesOriginalCandidate": true
+    },
+    {
+      "path": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/web/RuleAgentE13Policy.java",
+      "sha256": "411280a25bb56ff3ba41f9b3c0e927200edf69de6bef2c08a063076c6f50c6a0",
+      "matchesOriginalCandidate": true
+    },
+    {
+      "path": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/web/RuleAgentPublicationRejectionEvidence.java",
+      "sha256": "b408ffe0f98a1abed6330f8b19bccb76318e65b77a8ba2da896b777e3914ff7d",
+      "matchesOriginalCandidate": true
+    },
+    {
+      "path": "knowledge/src/test/resources/three-question-regression/e13-review-redacted-20261029T0842.json",
+      "sha256": "8d9808170df68f9dd53434d4e24adb5122204d7d818c4d2eff205aa68ef9ba25",
+      "matchesOriginalCandidate": true
+    }
+  ],
+  "suites": [
+    {
+      "class": "com.zhku.knowledge.ruleagent.RulePublicationGateTest",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "40da29d5c3fb0b4acbdc41ab646536e6c00fdab134305ce414ec28cb47e0b8ce",
+      "cases": [
+        {
+          "name": "unreadFactsAndChangedReviewFingerprintAreRejected",
+          "status": "PASS"
+        },
+        {
+          "name": "mixedUnresolvedReasonsCannotBeClassifiedAsOnlyDataGap",
+          "status": "PASS"
+        },
+        {
+          "name": "partialOverlapDoesNotCoverUnclassifiedRequirement",
+          "status": "PASS"
+        },
+        {
+          "name": "ambiguousRequirementIsNotAnExplicitlyUnsupportedUnknown",
+          "status": "PASS"
+        },
+        {
+          "name": "missingUserConditionCannotBeMadeTrueBySemanticBinding",
+          "status": "PASS"
+        },
+        {
+          "name": "twoRulesCoverDifferentRequirementsAndExceptionDoesNotCountAsCore",
+          "status": "PASS"
+        },
+        {
+          "name": "bothSidesCompleteForDifferentQuestionExpressions",
+          "status": "PASS"
+        },
+        {
+          "name": "duplicateBindingsAndOutOfRangeSpansAreRejected",
+          "status": "PASS"
+        },
+        {
+          "name": "changedDefinitionCannotReuseCapabilityAndReviewCannotCrossTask",
+          "status": "PASS"
+        },
+        {
+          "name": "omittedSideRemainsUncoveredEvenWhenReviewerSawBothFacts",
+          "status": "PASS"
+        },
+        {
+          "name": "askCannotUseArrangementFactOrUnresolvedDemandToInventCondition",
+          "status": "PASS"
+        },
+        {
+          "name": "unclassifiedRequirementIsNotMaskedByAnotherDemandGap",
+          "status": "PASS"
+        },
+        {
+          "name": "askingMissingCourseTypeRequiresIndependentNeedAndConditionalFact",
+          "status": "PASS"
+        },
+        {
+          "name": "gapDemandCoveringItsOwnUnclassifiedRequirementStaysDataGap",
+          "status": "PASS"
+        },
+        {
+          "name": "unresolvedDemandKeepsKnownCoveragePartial",
+          "status": "PASS"
+        },
+        {
+          "name": "thirdNonterminalDecisionStopsWithoutSpendingReservedReviewCall",
+          "status": "PASS"
+        },
+        {
+          "name": "incorrectSemanticBindingCannotRelabelRetakeAsStudyArrangement",
+          "status": "PASS"
+        },
+        {
+          "name": "reviewInputExcludesOwnerProposalAndOriginalTokens",
+          "status": "PASS"
+        },
+        {
+          "name": "selectedUnrelatedFactIsRejectedEvenWhenOtherFactsCoverAllNeeds",
+          "status": "PASS"
+        },
+        {
+          "name": "cancelDuringIndependentReviewDoesNotPublishAndClosesReviewPort",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "class": "com.zhku.knowledge.ruleagent.RuleAgentE13InsufficientMaterialTerminalTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "4a6e3832242a1b2d454979416a224857c32ea122c61e1db8f1a99276cba88f52",
+      "cases": [
+        {
+          "name": "unsupportedRealtimeDemandEndsAsDataGapRatherThanTechnicalFailure",
+          "status": "PASS"
+        },
+        {
+          "name": "unresolvedUnderstandingStillFailsClosed",
+          "status": "PASS"
+        },
+        {
+          "name": "partialOrMixedGapCannotBecomeResolvedDataGapThroughRunnerAndPublisher",
+          "status": "PASS"
+        },
+        {
+          "name": "selfReportedApplicabilityLimitIsRejectedByPublisher",
+          "status": "PASS"
+        },
+        {
+          "name": "savedMixedReviewPassesGuardAndRealPublicationPipeline",
+          "status": "PASS"
+        },
+        {
+          "name": "oneUnsupportedSpanCannotBlessAnotherUnclassifiedDemand",
+          "status": "PASS"
+        },
+        {
+          "name": "dataGapTerminalDoesNotRepeatRetrievalOrLoop",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "class": "com.zhku.knowledge.ruleagent.RuleAgentE13PublicationCapabilityTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "4ad95ed37a346622ae26d96ed476d8dfb8a12c6e5e8a5ae3f7ff726c141aa3fd",
+      "cases": [
+        {
+          "name": "unregisteredHistoryFactBindingIsRejectedWithPersistedCapabilityCode",
+          "status": "PASS"
+        },
+        {
+          "name": "gateRejectsBindingToFactWithoutPublicationCapability",
+          "status": "PASS"
+        },
+        {
+          "name": "promptsAndReviewContractAgreeWithPublicationEligibility",
+          "status": "PASS"
+        },
+        {
+          "name": "actualJournalIOExceptionRemainsAuditUnavailable",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "class": "com.zhku.knowledge.ruleagent.RuleAgentProviderTest",
+      "tests": 54,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "194cfad88783af4ac5053b5079f793372c902288c6c79d0f24ed3610d73df0c3",
+      "cases": [
+        {
+          "name": "closingInFlightReviewCancelsAndDoesNotReturnLateAssessment",
+          "status": "PASS"
+        },
+        {
+          "name": "wrongFingerprintUnknownFieldsAndInvalidEnumAreRejected",
+          "status": "PASS"
+        },
+        {
+          "name": "reviewMissingUsageIsUnknownAndClosedPortDoesNotCall",
+          "status": "PASS"
+        },
+        {
+          "name": "disconnectedEndpointIsFailureWithoutRetry",
+          "status": "PASS"
+        },
+        {
+          "name": "unknownActionCannotBecomeATool",
+          "status": "PASS"
+        },
+        {
+          "name": "timeoutIncludesWholeResponseAndConsumesAllowance",
+          "status": "PASS"
+        },
+        {
+          "name": "refusedConnectionLeavesProbeEmptyAndClassifiesFailure",
+          "status": "PASS"
+        },
+        {
+          "name": "diagnosticSamplesAreSavedForLocalFailureModes",
+          "status": "PASS"
+        },
+        {
+          "name": "missingKeyMakesNoHttpCall",
+          "status": "PASS"
+        },
+        {
+          "name": "authorizationAndServerErrorsDoNotBecomeMissingEvidence",
+          "status": "PASS"
+        },
+        {
+          "name": "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[1]",
+          "status": "PASS"
+        },
+        {
+          "name": "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[2]",
+          "status": "PASS"
+        },
+        {
+          "name": "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[3]",
+          "status": "PASS"
+        },
+        {
+          "name": "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[4]",
+          "status": "PASS"
+        },
+        {
+          "name": "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[5]",
+          "status": "PASS"
+        },
+        {
+          "name": "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[6]",
+          "status": "PASS"
+        },
+        {
+          "name": "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[7]",
+          "status": "PASS"
+        },
+        {
+          "name": "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[8]",
+          "status": "PASS"
+        },
+        {
+          "name": "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[9]",
+          "status": "PASS"
+        },
+        {
+          "name": "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[10]",
+          "status": "PASS"
+        },
+        {
+          "name": "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[11]",
+          "status": "PASS"
+        },
+        {
+          "name": "failuresAreSafeClassifiedAndDoNotExecuteTools(String, String, String, String)[12]",
+          "status": "PASS"
+        },
+        {
+          "name": "completeResponseRecordsMonotonicTimingAndExactPayloadBytes",
+          "status": "PASS"
+        },
+        {
+          "name": "reviewTimeoutAndExhaustedSharedAllowanceStopLocally",
+          "status": "PASS"
+        },
+        {
+          "name": "headerTimeoutDoesNotInventReceivedResponse",
+          "status": "PASS"
+        },
+        {
+          "name": "auditFailureBlocksExternalCall",
+          "status": "PASS"
+        },
+        {
+          "name": "responseModelKeepsTheSelectedAliasWithoutInventingAnIdentity",
+          "status": "PASS"
+        },
+        {
+          "name": "reviewUsesIndependentInputAndSharedAttemptsWithPurposeAudit",
+          "status": "PASS"
+        },
+        {
+          "name": "invalidEnvelopeKeepsKnownUsageAndMissingUsageStaysUnknown",
+          "status": "PASS"
+        },
+        {
+          "name": "credentialPreparationConsumesTheSameDeadlineAndCannotDispatchLate",
+          "status": "PASS"
+        },
+        {
+          "name": "onlineEnvironmentRejectsReplayAndMissingAuthorization",
+          "status": "PASS"
+        },
+        {
+          "name": "serverFailureIsClassified",
+          "status": "PASS"
+        },
+        {
+          "name": "badJsonIsProcessingFailureWithoutRetry",
+          "status": "PASS"
+        },
+        {
+          "name": "bodyTimeoutRetainsHeaderAndPartialBodyDiagnostics",
+          "status": "PASS"
+        },
+        {
+          "name": "truncatedCompletionIsRejected",
+          "status": "PASS"
+        },
+        {
+          "name": "revisedBudgetCanReceiveBeyondFiveSecondsWithoutAutomaticRetry",
+          "status": "PASS"
+        },
+        {
+          "name": "actualConnectionFailureHasASafeCategoryWithoutExceptionText",
+          "status": "PASS"
+        },
+        {
+          "name": "onlineEnvironmentPinsDestinationAndModel",
+          "status": "PASS"
+        },
+        {
+          "name": "legalReadUsesCurrentCandidateAndAdvertisesAuthoritativeLimits",
+          "status": "PASS"
+        },
+        {
+          "name": "reviewHttpFailuresKeepPurposeAndDoNotRetry(String, String)[1]",
+          "status": "PASS"
+        },
+        {
+          "name": "reviewHttpFailuresKeepPurposeAndDoNotRetry(String, String)[2]",
+          "status": "PASS"
+        },
+        {
+          "name": "reviewHttpFailuresKeepPurposeAndDoNotRetry(String, String)[3]",
+          "status": "PASS"
+        },
+        {
+          "name": "exhaustedAllowanceMakesNoHttpCall",
+          "status": "PASS"
+        },
+        {
+          "name": "silentSupplierKeepsActualConnectionUnknownWithoutHeaders",
+          "status": "PASS"
+        },
+        {
+          "name": "actualHttpRequestUsesOneConnectionWithoutAnIndependentProbe",
+          "status": "PASS"
+        },
+        {
+          "name": "wrappedOrTruncatedContentIsNeverAcceptedAsOneAction",
+          "status": "PASS"
+        },
+        {
+          "name": "rateLimitIsClassifiedWithoutRetry",
+          "status": "PASS"
+        },
+        {
+          "name": "invalidReviewRetainsUsageAndNeverRetries(String)[1]",
+          "status": "PASS"
+        },
+        {
+          "name": "invalidReviewRetainsUsageAndNeverRetries(String)[2]",
+          "status": "PASS"
+        },
+        {
+          "name": "invalidReviewRetainsUsageAndNeverRetries(String)[3]",
+          "status": "PASS"
+        },
+        {
+          "name": "invalidReviewRetainsUsageAndNeverRetries(String)[4]",
+          "status": "PASS"
+        },
+        {
+          "name": "validActionAndUsageAreRecordedWithoutCredentials",
+          "status": "PASS"
+        },
+        {
+          "name": "firstDecisionPayloadIncludesBoundedFeedbackShape",
+          "status": "PASS"
+        },
+        {
+          "name": "oversizedResponseIsRejected",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "class": "com.zhku.knowledge.ruleagent.web.RuleAgentE13PreparationTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "21f3c31f9b0147d46b05377a970c24d64af4feab3626cf775ad1fcde5fed0c31",
+      "cases": [
+        {
+          "name": "strictPlanRejectsScopeAndBudgetDrift",
+          "status": "PASS"
+        },
+        {
+          "name": "wrongRawInputClosesBeforeAnyProvider",
+          "status": "PASS"
+        },
+        {
+          "name": "explicitProfilesNeverFallBackToThree",
+          "status": "PASS"
+        },
+        {
+          "name": "mixedOrUnknownReviewCannotBeBlessedAsUnsupported",
+          "status": "PASS"
+        },
+        {
+          "name": "safeNoneTerminalIsNotCompleteAndScopeCannotRefill",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "class": "com.zhku.knowledge.ruleagent.RuleAgentE13ArchivedReviewRegressionTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "fdb341a25ef08b0966fe7cf72ed215e49a210023abe56ac30f9749f324122d61",
+      "cases": [
+        {
+          "name": "archivedReviewFailsThroughRealProviderDecoderOnLoopbackWithNoExternalModel",
+          "status": "PASS"
+        },
+        {
+          "name": "promptAndWireContractExplicitlyDisallowTheE13Contradiction",
+          "status": "PASS"
+        },
+        {
+          "name": "exactE13ModelReviewFailsClosedWithoutAutocorrectingUnsupportedDemand",
+          "status": "PASS"
+        },
+        {
+          "name": "invalidReviewCannotMasqueradeAsMissingSourceOrPublishedAnswer",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "class": "com.zhku.knowledge.ruleagent.web.RuleAgentThreeQuestionPackageTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "fb75b986f68f906069e17d0b78c909a84348c4f8e04ac7c6d55cac5728d1ca43",
+      "cases": [
+        {
+          "name": "duplicatePrepareDirectoryCannotOverwriteEarlierBatch",
+          "status": "PASS"
+        },
+        {
+          "name": "integrationPlanIsExplicitAndOnlyAvailableForE02",
+          "status": "PASS"
+        },
+        {
+          "name": "redactSessionAndContinuationAndOriginalTokensButKeepTaskAndRunIds",
+          "status": "PASS"
+        },
+        {
+          "name": "insufficientMoneyOrUnmatchedReserveNeverPasses",
+          "status": "PASS"
+        },
+        {
+          "name": "byteShaTamperRejectedBeforeAnyAssetsOrDatabaseAccess",
+          "status": "PASS"
+        },
+        {
+          "name": "rejectsExpiredTariffAndClockBeforeCheckedDate",
+          "status": "PASS"
+        },
+        {
+          "name": "reservesWholeContextAndTenExtraOutputTokensWithoutCacheAssumptions",
+          "status": "PASS"
+        },
+        {
+          "name": "globalClaimIsNotRefundedByCopyingBatchOrChangingAuthorizationId",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "class": "com.zhku.knowledge.ruleagent.web.RuleAgentThreeQuestionScopeTest",
+      "tests": 25,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "4b5d64c056ab24581380d103994e62605149b80277b3188443d328de9be6bbdb",
+      "cases": [
+        {
+          "name": "resolvedOrStoppedE04WithoutWaitingAdvancesWithoutInventingAReply",
+          "status": "PASS"
+        },
+        {
+          "name": "e04ClarificationMustMatchTheApprovedConditionAndBothChoices",
+          "status": "PASS"
+        },
+        {
+          "name": "replayOutcomeCannotAuthorizeContinuation",
+          "status": "PASS"
+        },
+        {
+          "name": "onlineRunnerFailureStopsTheBatchWithoutMaskingTheOriginalFailureStatus",
+          "status": "PASS"
+        },
+        {
+          "name": "exactThreeQuestionsAndPublicContinuationConsumeFourRuns",
+          "status": "PASS"
+        },
+        {
+          "name": "completedBatchRejectsAdditionalTasks",
+          "status": "PASS"
+        },
+        {
+          "name": "malformedOrExpandedPlanIsRejectedWithFixedError",
+          "status": "PASS"
+        },
+        {
+          "name": "initialAndContinuationVersionsCannotBeSkippedOrReused",
+          "status": "PASS"
+        },
+        {
+          "name": "onlyTheExactPublicConditionMapMayContinue",
+          "status": "PASS"
+        },
+        {
+          "name": "completionMustMatchAdmittedInputAndRun",
+          "status": "PASS"
+        },
+        {
+          "name": "continuationCannotChangeOwnerSessionOrTask",
+          "status": "PASS"
+        },
+        {
+          "name": "newScenarioCannotReuseAnEarlierTask",
+          "status": "PASS"
+        },
+        {
+          "name": "failedOutcomeSealsBatch",
+          "status": "PASS"
+        },
+        {
+          "name": "secondE04RunCannotAskAgainOrPermitAThirdRun",
+          "status": "PASS"
+        },
+        {
+          "name": "questionsCannotBeRunOutOfOrder",
+          "status": "PASS"
+        },
+        {
+          "name": "e02AndE13CannotAuthorizeClarification",
+          "status": "PASS"
+        },
+        {
+          "name": "initialConditionsAreRejected",
+          "status": "PASS"
+        },
+        {
+          "name": "concurrentBeginClosesBatchWithoutIncreasingCounters",
+          "status": "PASS"
+        },
+        {
+          "name": "explicitFailureCannotBeRetriedAndDoesNotRefillCounters",
+          "status": "PASS"
+        },
+        {
+          "name": "changedQuestionOrRawQuestionIsRejected",
+          "status": "PASS"
+        },
+        {
+          "name": "actorAndSessionAreBoundAcrossAllTasks",
+          "status": "PASS"
+        },
+        {
+          "name": "completionBeforeBeginOrRepeatedCompletionIsRejected",
+          "status": "PASS"
+        },
+        {
+          "name": "normalizedPublicCannotHideAnUnapprovedRawReply",
+          "status": "PASS"
+        },
+        {
+          "name": "runIdentifiersCannotBeReused",
+          "status": "PASS"
+        },
+        {
+          "name": "planMutationCannotExpandAnAlreadyConstructedScope",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "class": "com.zhku.knowledge.ruleagent.web.RuleAgentThreeQuestionHostTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "xmlSha256": "d08791276e42979f42965446da44e70b31edf05a9ad472943098c7ae91d5e169",
+      "cases": [
+        {
+          "name": "dispatchOnlyExplicitTestOperation",
+          "status": "SKIP"
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "tests": 128,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1
+  },
+  "providerCalls": 0,
+  "databaseOperations": 0,
+  "reviewer": "independent agent g1_independent_review",
+  "reviewMode": "read-only code review; execution performed separately by coordinator",
+  "confirmedBlockingFindings": 0,
+  "withdrawnFinding": "Standalone unsupported demand is allowed by current publication protocol; no speculative behavior change applied",
+  "firstAttempt": "128 tests, 1 error, 1 skip: diagnostic output directory missing; created output directory only and reran full selection",
+  "rawJUnitStoredLocally": true
+}

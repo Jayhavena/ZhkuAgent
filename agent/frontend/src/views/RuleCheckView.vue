@@ -12,7 +12,9 @@ import { createRuleTaskWorkflow } from '../state/rule-task-workflow.js'
 import { ruleCheckConditionLabel } from '../state/rule-check-labels.js'
 
 const runtime = inject('rule-task-runtime', null)
-const simulated = runtime?.simulated ?? import.meta.env.VITE_DEMO_MODE === 'simulated'
+const hostInfo = ref(null)
+const modeError = ref('')
+const simulated = computed(() => hostInfo.value?.mode === 'SIMULATED' || (runtime?.simulated ?? import.meta.env.VITE_DEMO_MODE === 'simulated'))
 const httpFixture = runtime?.httpFixture ?? import.meta.env.VITE_DEMO_MODE === 'http-fixture'
 const session = runtime?.session || ruleCheckSession
 const api = runtime?.client || ruleTaskClient
@@ -126,8 +128,8 @@ const issueLabels = {
   CONFLICT: '依据存在冲突',
   REPLAY_MISS: '回放未覆盖'
 }
-const sampleQuestions = computed(() => simulated
-  ? ['我这门选修课没过，能不能重修？']
+const sampleQuestions = computed(() => modeError.value ? [] : simulated.value
+  ? [hostInfo.value?.simulatedQuestion || '我这门选修课没过，能不能重修？']
   : ['公共选修课有什么学分要求？', '课程没通过后怎么办？'])
 
 const relatedEvidence = item => result.value.evidence.filter(evidence =>
@@ -192,6 +194,8 @@ watch(() => state.snapshot, () => {
   selectedEvidenceId.value = ''
 })
 watch(() => session.state.epoch, () => {
+  hostInfo.value = null
+  modeError.value = ''
   question.value = ''
   username.value = ''
   password.value = ''
@@ -206,6 +210,7 @@ onMounted(async () => {
     return
   }
   await checkLogin()
+  if (alive) await flow.restoreLatest()
 })
 onUnmounted(() => {
   alive = false
@@ -223,6 +228,8 @@ async function login() {
   try {
     await pending
     if (session.state.epoch === epoch) session.state.reason = ''
+    await loadRuntimeInfo()
+    if (alive) await flow.restoreLatest()
   } catch (error) {
     if (error.code !== 'STALE_RESPONSE') {
       const unknown = error.code === 'NETWORK_UNAVAILABLE' || error.code === 'BAD_RESPONSE'
@@ -243,12 +250,30 @@ async function checkLogin() {
   try {
     await api.me()
     if (alive) session.state.reason = ''
+    await loadRuntimeInfo()
   } catch (error) {
     if (alive && error.code !== 'STALE_RESPONSE' && error.status !== 401) {
       loginError.value = '暂时无法核对登录状态，请稍后重试。'
     }
   } finally {
     if (alive) authChecking.value = false
+  }
+}
+async function loadRuntimeInfo() {
+  if (!alive || !student.value || !api.runtimeInfo) return
+  const epoch = session.state.epoch
+  try {
+    const info = await api.runtimeInfo()
+    if (alive && epoch === session.state.epoch && student.value) {
+      hostInfo.value = info
+      modeError.value = ''
+    }
+  } catch {
+    // 模式读取失败不能被呈现成在线；并且换账号后迟到的响应不得覆盖新会话。
+    if (alive && epoch === session.state.epoch && student.value) {
+      hostInfo.value = null
+      modeError.value = '暂时无法确认当前服务的执行模式，请稍后刷新或重试。'
+    }
   }
 }
 async function logout() {
@@ -273,16 +298,20 @@ async function submitQuestion() {
 function useExample(value) {
   if (!composerDisabled.value) question.value = value
 }
-function newQuestion() {
+function newQuestion(prefill) {
   if (active.value || state.pending || state.busy) return
   flow.reset()
-  question.value = ''
+  // 依据变化后的重查保留原问题：预填输入框由用户确认提交，仍走 start() 生成新 clientRequestId。
+  question.value = typeof prefill === 'string' ? prefill : ''
   choice.value = ''
   originalOpen.value = false
 }
 async function showOriginal(token) {
   originalOpen.value = true
   await flow.openOriginal(token)
+}
+async function retryOriginal() {
+  if (state.originalToken) await flow.openOriginal(state.originalToken)
 }
 // 行内引用：先选中该条依据，让「证据详情」显示对应内容，再按需打开原文。
 // 选中状态只影响展示，不改变任何业务状态，也不会自动发起原文请求（原文由用户显式点击触发）。
@@ -325,6 +354,15 @@ watch(
   <main ref="appEl" class="rule-app" :class="{ 'rule-app--conversation': hasConversation && student }">
     <RuleHeader :actor="session.state.actor" :identity-busy="session.state.identityBusy" :can-ask-new="hasConversation && student" :new-question-disabled="authChecking || state.busy || !!state.pending || active" @logout="logout" @new-question="newQuestion" />
 
+    <p v-if="student && state.error && !hasConversation" class="mode-notice" role="alert">{{ state.error }}</p>
+    <p v-if="student && modeError" class="mode-notice" role="status">{{ modeError }}</p>
+
+    <details v-if="student && state.recent?.length" class="mode-notice" data-testid="recent-tasks">
+      <summary>本标签页最近查证（最多 5 条）</summary>
+      <p>仅恢复本标签页约 15 分钟内的任务；退出或换账号会清除记录，不支持服务器重启或跨设备历史。</p>
+      <button v-for="(entry,index) in state.recent" :key="entry.taskId" type="button" class="text-button" :disabled="state.busy || !!state.pending || active" @click="flow.resume(entry.taskId)">恢复查证 {{ index + 1 }}</button>
+    </details>
+
     <p v-if="httpFixture" class="mode-notice" role="note" data-testid="http-fixture-notice">
       本机 HTTP FIXTURE 验收：身份、规则和答案均为合成测试数据，模型调用为零；不代表真实在线问答能力。
     </p>
@@ -349,13 +387,13 @@ watch(
             <p class="user-question">{{ state.question || '校园规则问题' }}</p>
           </div>
 
-          <RuleAnswer v-model:choice="choice" :state="state" :result="result" :active="active" :identity-busy="session.state.identityBusy" :answer-kind="answerKind" :answer-status="answerStatus" :answer-title="answerTitle" :lead-claim="usesConclusionTitle ? leadClaim : null" :lead-claim-id="usesConclusionTitle ? leadClaim.claim.id : ''" :claim-citations="claimCitations" :explanation-lines="explanationLines" :evidence-rows="evidenceRows" :selected-evidence="selectedEvidence" :role-labels="roleLabels" :terminal="terminal" :has-processing-failure="hasProcessingFailure" :issue-labels="issueLabels" :condition-summary="conditionSummary" :waiting-for-clarification="waitingForClarification" :next-condition="nextCondition" :related-evidence="relatedEvidence" :evidence-focus-token="evidenceFocusToken" @cancel="flow.cancel" @recover="flow.recover" @refresh="flow.refresh" @new-question="newQuestion" @clarify="flow.clarify" @show-original="showOriginal" @focus-evidence="focusEvidence" />
+          <RuleAnswer v-model:choice="choice" :state="state" :result="result" :active="active" :identity-busy="session.state.identityBusy" :answer-kind="answerKind" :answer-status="answerStatus" :answer-title="answerTitle" :lead-claim="usesConclusionTitle ? leadClaim : null" :lead-claim-id="usesConclusionTitle ? leadClaim.claim.id : ''" :claim-citations="claimCitations" :explanation-lines="explanationLines" :evidence-rows="evidenceRows" :selected-evidence="selectedEvidence" :role-labels="roleLabels" :terminal="terminal" :has-processing-failure="hasProcessingFailure" :issue-labels="issueLabels" :condition-summary="conditionSummary" :waiting-for-clarification="waitingForClarification" :next-condition="nextCondition" :related-evidence="relatedEvidence" :evidence-focus-token="evidenceFocusToken" @cancel="flow.cancel" @recover="flow.recover" @abandon="flow.abandonPending" @refresh="flow.refresh" @new-question="newQuestion" @clarify="flow.clarify" @show-original="showOriginal" @focus-evidence="focusEvidence" />
         </div>
 
         <RuleComposer v-model:question="question" :disabled="composerDisabled" :waiting-for-clarification="waitingForClarification" :terminal="terminal" @submit="submitQuestion" />
       </div>
 
-      <RuleOriginal v-if="originalOpen" :state="state" :original-parts="originalParts" :original-link="originalLink" @close="closeOriginal" />
+      <RuleOriginal v-if="originalOpen" :state="state" :original-parts="originalParts" :original-link="originalLink" @close="closeOriginal" @retry-original="retryOriginal" />
     </section>
 
     <footer class="app-footer">ZhkuAgent 是校园规则查证辅助工具，不替代学校部门的正式认定或办理。</footer>

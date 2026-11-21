@@ -300,7 +300,7 @@ class RuleAgentProviderTest {
         var view=new RuleAgentRunner.View(question,List.of(new RuleAgentRunner.Question("q1",question)),Map.of(),List.of(),List.of(),List.of(),List.of(),
             RulePublicationContract.MAX_DECISION_CALLS,DEFAULT_BUDGET.maxToolStepsPerRun(),state);
         String payload=port.payload(view);
-        assertThat(payload.getBytes(StandardCharsets.UTF_8).length).isEqualTo(5398); // 提示词加入个人记录拆分与一般规则发布约束；这里只固定本地报文，不证明供应商兼容性。
+        assertThat(payload.getBytes(StandardCharsets.UTF_8).length).isEqualTo(5585); // 融合载荷基线：HEAD的个人记录拆分与一般规则发布约束（5398）叠加f5393c36的缺口说明段（+187）；只固定本地合成报文，不证明历史身份或供应商兼容性。
         var wire=new ObjectMapper().readTree(payload);
         var format=wire.path("response_format").path("json_schema");
         assertThat(format.path("name").asText()).isEqualTo("zhku_rule_agent_action");

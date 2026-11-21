@@ -215,7 +215,17 @@ public final class RulePublicationGate {
             boolean issues=!item.issues().isEmpty();
             complete&=uncovered.isEmpty()&&!unresolved&&!issues;
             hasCovered|=!covered.isEmpty();
-            assessments.put(item.subquestionId(),new QuestionAssessment(covered,uncovered,unresolved,unsupported,issues));
+            // 已读能力本可覆盖却未选中的事实是漏答，不能被洗成资料缺口；缺条件也不算能力不存在。
+            var available=new HashSet<>(catalogue.publicationFactIds(List.copyOf(read.values())));
+            var gaps=new LinkedHashSet<String>();
+            for(String id:uncovered){
+                var requirement=requirements.get(id);
+                if(requirement.recognition()!=Recognition.IDENTIFIED)continue;
+                boolean supported=available.stream().map(catalogue::find).flatMap(Optional::stream)
+                    .anyMatch(c->c.dimension()==requirement.dimension()&&c.subject()==requirement.subject()&&c.allowedRoles().contains(BindingRole.CORE));
+                if(!supported)gaps.add(id);
+            }
+            assessments.put(item.subquestionId(),new QuestionAssessment(covered,uncovered,unresolved,unsupported,issues,gaps));
         }
         // 辅助例外不完成主需求；漏选已读事实也不能借核验器看过它而自称完整。
         return new PublicationAssessment(complete?Verdict.COMPLETE:hasCovered?Verdict.PARTIAL:Verdict.UNRESOLVED,accepted,assessments);
@@ -332,17 +342,22 @@ public final class RulePublicationGate {
     /**
      * 资料缺口只适用于“已被理解的需求”。若只看是否存在 UNSUPPORTED_DIMENSION，
      * 同一子问题里未识别的需求会被并存的资料缺口掩盖，最终发布成正常的资料不足；
-     * 因此每个未识别需求都必须由自己的 UNSUPPORTED_DIMENSION 需求区间覆盖，其余需求则必须已识别。
+     * 因此每个 UNCLASSIFIED/UNKNOWN 需求都必须由自身完整的 UNSUPPORTED_DIMENSION 区间覆盖，
+     * 且同一子问题不能混入其他未解决原因；其余需求必须已识别。
      */
     public static boolean unsupportedDemand(SemanticAssessment review,String subquestionId) {
         var demands=review.unresolvedDemands().stream().filter(d->d.span().subquestionId().equals(subquestionId)).toList();
-        if(demands.stream().noneMatch(d->d.reason()==UnresolvedReason.UNSUPPORTED_DIMENSION))return false;
-        var gaps=demands.stream().filter(d->d.reason()==UnresolvedReason.UNSUPPORTED_DIMENSION).map(UnresolvedDemand::span).toList();
+        // 混合“尚未理解/范围不明”时不可借一个资料缺口将整个子问题归为已知能力边界。
+        if(demands.isEmpty()||demands.stream().anyMatch(d->d.reason()!=UnresolvedReason.UNSUPPORTED_DIMENSION))return false;
         return review.requirements().stream().filter(r->r.span().subquestionId().equals(subquestionId))
-            .allMatch(r->r.recognition()==Recognition.IDENTIFIED||gaps.stream().anyMatch(gap->overlaps(gap,r.span())));
+            .allMatch(r->r.recognition()==Recognition.IDENTIFIED
+                ||r.recognition()==Recognition.UNCLASSIFIED&&r.dimension()==Dimension.UNKNOWN
+                    &&r.subject()==Subject.UNSPECIFIED
+                    &&demands.stream().anyMatch(gap->covers(gap.span(),r.span())));
     }
-    private static boolean overlaps(DemandSpan left,DemandSpan right) {
-        return left.startInclusive()<right.endExclusive()&&right.startInclusive()<left.endExclusive();
+    private static boolean covers(DemandSpan gap,DemandSpan requirement) {
+        return gap.startInclusive()<=requirement.startInclusive()
+            &&gap.endExclusive()>=requirement.endExclusive();
     }
     private static void span(DemandSpan span,Map<String,RuleAgentRunner.Question> questions) {
         var question=questions.get(span.subquestionId());

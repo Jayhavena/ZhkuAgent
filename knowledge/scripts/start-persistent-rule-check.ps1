@@ -64,7 +64,11 @@ param(
     [ValidateRange(1024, 65535)][int]$RulePort = 55441,
     [ValidateRange(1024, 65535)][int]$BackendPort = 58130,
     [switch]$SkipBuild,
-    [switch]$BuildOnly
+    [switch]$BuildOnly,
+    [ValidatePattern('^[a-z0-9][a-z0-9-]{0,31}$')][string]$InstanceName,
+    [string]$HandbookPdf = '',
+    [string]$AssetsRoot = '',
+    [ValidateSet('SIMULATED','ONLINE')][string]$ExecutionMode = 'SIMULATED'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -76,6 +80,8 @@ $OutputEncoding = $utf8
 $root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $jarPath = Join-Path $root 'knowledge/target/knowledge-0.1.0-rc.1-persistent.jar'
 $stateDir = Join-Path $root 'tmp/rule-check-identity'
+# 每个试用实例独享状态、容器及卷，避免新 checkout 接管既有账号数据。
+if ($InstanceName) { $stateDir += '-' + $InstanceName }
 $statePath = Join-Path $stateDir 'state.json'
 $outLog = Join-Path $stateDir 'host-out.log'
 $errLog = Join-Path $stateDir 'host-err.log'
@@ -92,6 +98,10 @@ $ruleDbName = 'zhkuagent_rulecheck_e2e'
 $ruleDbUser = 'zhkuagent'
 $identityContainerName = 'zhkuagent-rulecheck-identity'
 $identityVolumeName = 'zhkuagent-rulecheck-identity-data'
+if ($InstanceName) {
+    $identityContainerName += '-' + $InstanceName
+    $identityVolumeName += '-' + $InstanceName
+}
 $hostReadySeconds = 120
 
 . (Join-Path $root 'scripts/ZhkuDocker.ps1')
@@ -337,11 +347,30 @@ function Invoke-Check {
 
 # ---------- Start ----------
 
+function Get-StudentEnvironmentValue {
+    param([string]$Name)
+    foreach ($scope in @('Process','User','Machine')) {
+        $value = [Environment]::GetEnvironmentVariable($Name,$scope)
+        if (-not [string]::IsNullOrWhiteSpace($value)) { return $value }
+    }
+    return $null
+}
+
 function New-RuleContainerName {
     return ('zhkuagent-rulecheck-rules-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
 }
 
 function Invoke-Start {
+    # 真实模型入口只由命令行显式选择；环境中残留的ONLINE不能让默认启动外发。
+    if ($ExecutionMode -eq 'ONLINE') {
+        foreach ($name in @('DASHSCOPE_API_KEY','ZHKU_RULE_AGENT_AUTHORIZATION_ID','ZHKU_RULE_AGENT_CALL_ALLOWANCE')) {
+            if (-not (Get-StudentEnvironmentValue $name)) { throw ('在线模式缺少环境配置：' + $name) }
+        }
+        $allowance = 0
+        if (-not [int]::TryParse((Get-StudentEnvironmentValue 'ZHKU_RULE_AGENT_CALL_ALLOWANCE'),[ref]$allowance) -or $allowance -lt 1 -or $allowance -gt 24) {
+            throw '在线模式要求1至24次显式宿主调用额度'
+        }
+    }
     $script:stage = 'preflight'
     if ($IdentityPort -eq 54329 -or $RulePort -eq 54329 -or $BackendPort -eq 54329) { throw '端口 54329 是用户共享演示库，禁止使用' }
     if ($IdentityPort -eq $RulePort -or $IdentityPort -eq $BackendPort -or $RulePort -eq $BackendPort) { throw '身份库、规则库、宿主端口必须互不相同' }
@@ -471,6 +500,12 @@ function Invoke-Start {
     $state['ruleContainer'] = $ruleContainer
     $state['rulePassword'] = $rulePassword
     $state['hostJar'] = $jarPath
+    $state['executionMode'] = $ExecutionMode
+    if ($HandbookPdf -or -not $state['handbookPdf']) { $state['handbookPdf'] = $HandbookPdf }
+    # 源码从固定提交构建，审核原件可在独立只读目录；原有指纹/资格校验仍在连接前执行。
+    if ($AssetsRoot -or -not $state['assetsRoot']) {
+        $state['assetsRoot'] = if ($AssetsRoot) { (Resolve-Path -LiteralPath $AssetsRoot).Path } else { $root }
+    }
     $state['hostPid'] = $null
     $state['supervisorPid'] = $null
     $state['lastAction'] = 'Start'
@@ -484,6 +519,7 @@ function Invoke-Start {
     }
     $quotedScript = '"' + $PSCommandPath + '"'
     $argumentLine = '-NoLogo -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ' + $quotedScript + ' -Action Supervise'
+    if ($InstanceName) { $argumentLine += ' -InstanceName ' + $InstanceName }
     $supervisor = Start-Process -FilePath $powerShellPath -ArgumentList $argumentLine -WindowStyle Hidden -PassThru
     $script:supervisorPid = $supervisor.Id
 
@@ -654,6 +690,11 @@ function Invoke-Supervisor {
         $info = New-Object Diagnostics.ProcessStartInfo
         $info.FileName = $java
         $info.Arguments = '-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -jar "' + $jar + '"'
+        if ($state['handbookPdf']) {
+            $pdf = (Resolve-Path -LiteralPath ([string]$state['handbookPdf'])).Path
+            if ($pdf.Contains('"')) { throw 'PDF路径含非法引号' }
+            $info.Arguments = '-Dzhku.t06.handbookPdf="' + $pdf + '" ' + $info.Arguments
+        }
         $info.WorkingDirectory = $root
         $info.UseShellExecute = $false
         $info.CreateNoWindow = $true
@@ -668,7 +709,7 @@ function Invoke-Supervisor {
         $rulePort = [int]$state['rulePort']
         $backendPort = [int]$state['backendPort']
         $variables = $info.EnvironmentVariables
-        $variables['ZHKU_RULECHECK_ROOT'] = $root
+        $variables['ZHKU_RULECHECK_ROOT'] = if ($state['assetsRoot']) { [string]$state['assetsRoot'] } else { $root }
         $variables['ZHKU_RULECHECK_PORT'] = [string]$backendPort
         $variables['ZHKU_DB_URL'] = 'jdbc:postgresql://127.0.0.1:' + $rulePort + '/' + $ruleDbName
         $variables['ZHKU_DB_PASSWORD'] = [string]$state['rulePassword']
@@ -678,6 +719,17 @@ function Invoke-Supervisor {
         # 任务回放目录一旦存在会切到 TASK_PLAN_REPLAY，与"持久身份库"验收模式无关，这里显式清掉。
         foreach ($name in @('ZHKU_RULECHECK_TASK_BATCH_DIRECTORY', 'ZHKU_RULECHECK_TASK_PACKAGE_SHA256', 'ZHKU_RULECHECK_TASK_SUMMARY_SHA256', 'DASHSCOPE_API_KEY')) {
             [void]$variables.Remove($name)
+        }
+        $mode = if ($state['executionMode']) { [string]$state['executionMode'] } else { 'SIMULATED' }
+        $variables['ZHKU_STUDENT_EXECUTION_MODE'] = $mode
+        foreach ($name in @('ZHKU_RULE_AGENT_MODE','ZHKU_RULE_AGENT_AUTHORIZATION_ID','ZHKU_RULE_AGENT_CALL_ALLOWANCE')) { [void]$variables.Remove($name) }
+        if ($mode -eq 'ONLINE') {
+            $variables['ZHKU_RULE_AGENT_MODE'] = 'ONLINE'
+            foreach ($name in @('DASHSCOPE_API_KEY','ZHKU_RULE_AGENT_AUTHORIZATION_ID','ZHKU_RULE_AGENT_CALL_ALLOWANCE')) {
+                $value = Get-StudentEnvironmentValue $name
+                if (-not $value) { throw ('监管进程无法读取在线环境配置：' + $name) }
+                $variables[$name] = $value
+            }
         }
         $process = [Diagnostics.Process]::Start($info)
         $log.WriteLine(('host pid=' + $process.Id))
@@ -716,6 +768,9 @@ function Invoke-Supervisor {
                         hostPid = $process.Id
                         startedAt = (Get-Date).ToString('o')
                         backendPort = $backendPort
+                        executionMode = $mode
+                        onlineEnabled = ($mode -eq 'ONLINE')
+                        simulatedQuestion = if ($mode -eq 'SIMULATED') { '我这门选修课没过，能不能重修？' } else { $null }
                         identityDbPort = $identityPort
                         ruleDbPort = $rulePort
                         identityContainer = $identityContainerName

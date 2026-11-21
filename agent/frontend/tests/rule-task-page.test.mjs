@@ -11,6 +11,12 @@ after(()=>server.close())
 const {default:Page}=await server.ssrLoadModule('/src/views/RuleCheckView.vue')
 const data=JSON.parse(await readFile(new URL('../../../knowledge/src/test/resources/ruleagent/contract-v3-fixtures.json',import.meta.url),'utf8'))
 async function render(snapshot=null,actor={role:'USER'},extra={},session={},simulated=false,httpFixture=false){const app=createSSRApp(Page),router=createRouter({history:createMemoryHistory(),routes:[{path:'/rules',component:{render:()=>null}}]});app.use(router);await router.push('/rules');await router.isReady();app.provide('rule-task-runtime',{simulated,httpFixture,session:{state:{actor,epoch:0,identityBusy:false,...session}},client:{},workflow:{state:{snapshot,ticket:snapshot?{taskId:snapshot.taskId}:null,question:'合成问题',busy:false,polling:false,error:'',...extra},reset(){},dispose(){}}});return renderToString(app)}
+
+test('inaccessible restored task explains failure even when no conversation remains',async()=>{
+  const html=await render(null,{role:'USER'},{question:'',error:'这条任务已过期或不可访问，请新建查证。',recent:[]})
+  assert.match(html,/这条任务已过期或不可访问，请新建查证。/)
+  assert.match(html,/role="alert"/)
+})
 test('fixed simulation scope is visible before login and does not claim general answers',async()=>{
   const html=await render(null,null,{},{},true)
   assert.match(html,/工程模拟：仅支持下方固定问题，不调用在线模型/)
@@ -167,4 +173,44 @@ test('clarification renders its confirm action inside the scrolling message area
   assert.ok(scroller > -1, '缺少消息滚动区')
   assert.ok(form > scroller, '澄清面板应位于消息滚动区内')
   assert.ok(confirm > form, '未选择条件时确认按钮应存在且禁用，并位于澄清面板内')
+})
+
+test('stuck receipt offers an explicit stop-waiting exit beside query-original', async () => {
+  const html = await render(null, { role: 'USER' }, { pending: { action: 'CREATE' }, error: '受理结果尚未确认' })
+  assert.match(html, /查询原请求/)
+  assert.match(html, /不再等待本次结果/)
+})
+
+test('abandoned receipt keeps a read-only query entry and no longer blocks the composer', async () => {
+  const html = await render(null, { role: 'USER' }, { abandonedRequest: { action: 'CREATE', clientRequestId: 'k1' }, question: '原始问题', error: '已停止等待' })
+  assert.match(html, /查询原请求/)
+  assert.doesNotMatch(html, /<textarea[^>]*disabled/)
+})
+
+test('evidence-change recheck offers the preserved question in conversation', async () => {
+  // openOriginal 资格/版本变化：会话保留，警示面板给出「用原问题重新查证」，不再要求重输。
+  const html = await render(null, { role: 'USER' }, { evidenceUnavailable: true, lastQuestion: '原始问题', question: '原始问题', ticket: null, error: '依据资格或版本已变化' })
+  assert.match(html, /用原问题重新查证/)
+})
+
+test('withdraw-to-home still explains recheck and keeps the composer enabled', async () => {
+  // refresh 资格撤回（reset 后回首页）：警示保留、输入框可用；原问题文本由会话内面板路径保留。
+  const html = await render(null, { role: 'USER' }, { evidenceUnavailable: true, lastQuestion: '原始问题', question: '', ticket: null, error: '任务或依据已过期或不可访问，旧结果已撤回，请重新查证。' })
+  assert.match(html, /请重新查证/)
+  assert.doesNotMatch(html, /<textarea[^>]*disabled/)
+})
+
+const { default: OriginalPanel } = await server.ssrLoadModule('/src/components/rule-check/RuleOriginal.vue')
+test('original failure shows a retry aimed at the original text, not the task query', async () => {
+  const app = createSSRApp(OriginalPanel, { state: { originalBusy: false, original: null, evidenceUnavailable: false, originalError: '原文查询未确认，请稍后重试。' }, originalParts: { before: '', quote: '', after: '' }, originalLink: null })
+  const html = await renderToString(app)
+  assert.match(html, /原文查询未确认/)
+  assert.match(html, /重试原文/)
+})
+
+test('original eligibility change keeps the withdraw message without a retry button', async () => {
+  const app = createSSRApp(OriginalPanel, { state: { originalBusy: false, original: null, evidenceUnavailable: true, originalError: '' }, originalParts: { before: '', quote: '', after: '' }, originalLink: null })
+  const html = await renderToString(app)
+  assert.match(html, /原文资格或版本已变化/)
+  assert.doesNotMatch(html, /重试原文/)
 })

@@ -1,0 +1,198 @@
+{
+  "sourceHead": "8fd53b4832b4b458b0ced34a69dc040fb0826270",
+  "scope": "FIXED_M3_TECHNICAL_ACCEPTANCE_NOT_POPULATION_QUALITY_SCORE",
+  "cases": [
+    {
+      "id": "CLARIFY-MISSING",
+      "criterion": "缺条件必须必要澄清并可续答",
+      "testClass": "RuleAgentOnlineFactoryTest",
+      "testMethod": "realTaskStoreTokenContinuesThroughOnlineFactoryAndSharesBatchQuota",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java",
+      "sourceSha256": "16dfb863af7f2c7d2345761ffeb924863d6ad14cec7487d90dd509dc820eff8a",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "CLARIFY-KNOWN",
+      "criterion": "已知条件不得重复追问",
+      "testClass": "RuleAgentOnlineFactoryTest",
+      "testMethod": "repeatedKnownConditionIsAbsentFromWireAndFailsWithoutReviewOrRetry",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java",
+      "sourceSha256": "16dfb863af7f2c7d2345761ffeb924863d6ad14cec7487d90dd509dc820eff8a",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "DECLARE-EXPLICIT",
+      "criterion": "明确首问类别进入条件型Claim",
+      "testClass": "RuleAgentOnlineFactoryTest",
+      "testMethod": "explicitFirstQuestionReachesConditionalClaimWithoutClarification",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java",
+      "sourceSha256": "16dfb863af7f2c7d2345761ffeb924863d6ad14cec7487d90dd509dc820eff8a",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "DECLARE-SCOPE",
+      "criterion": "多问/另一课程/否定不误填共享条件",
+      "testClass": "RuleAgentTaskStoreTest",
+      "testMethod": "ambiguousFirstQuestionCannotSeedSharedConditions",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentTaskStoreTest.java",
+      "sourceSha256": "9d543eea4223b9063dae3529db235996384ca2c94b4221e30b1100eae854d7ab",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "SCOPE-AUDIENCE",
+      "criterion": "研究生不能借本科规则回答",
+      "testClass": "RuleCheckApplicabilityTest",
+      "testMethod": "graduateQuestionCannotBorrowLegallySelectedUndergraduateOrUnspecifiedRule",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckApplicabilityTest.java",
+      "sourceSha256": "0f641f75ee14ed89d787e53e794b947257faf198822fa16bac439d233c09efbc",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "SCOPE-YEAR",
+      "criterion": "其他年份不能借2025引用",
+      "testClass": "RuleCheckApplicabilityTest",
+      "testMethod": "anotherYearCannotBorrowMatchingCitationFrom2025",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckApplicabilityTest.java",
+      "sourceSha256": "0f641f75ee14ed89d787e53e794b947257faf198822fa16bac439d233c09efbc",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "SCOPE-CURRENT",
+      "criterion": "历史规则不能声称当期门户安排",
+      "testClass": "RuleCheckApplicabilityTest",
+      "testMethod": "currentPortalCannotBeAnsweredByHistoricalGeneralRule",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckApplicabilityTest.java",
+      "sourceSha256": "0f641f75ee14ed89d787e53e794b947257faf198822fa16bac439d233c09efbc",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "CLAIM-READ",
+      "criterion": "未读事实/被改核验指纹不得发布",
+      "testClass": "RulePublicationGateTest",
+      "testMethod": "unreadFactsAndChangedReviewFingerprintAreRejected",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RulePublicationGateTest.java",
+      "sourceSha256": "70eba68ef30d56d24bfb10a4ee5acfd80aa4f1070a559ac71561a897f8bb0d68",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "CLAIM-WHEN",
+      "criterion": "语义绑定不能伪造用户条件",
+      "testClass": "RulePublicationGateTest",
+      "testMethod": "missingUserConditionCannotBeMadeTrueBySemanticBinding",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RulePublicationGateTest.java",
+      "sourceSha256": "70eba68ef30d56d24bfb10a4ee5acfd80aa4f1070a559ac71561a897f8bb0d68",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "CLAIM-OMISSION",
+      "criterion": "漏选可用事实仍是处理失败",
+      "testClass": "RuleAgentGapAttributionTest",
+      "testMethod": "omittedAvailableFactWithoutGapLabelRemainsExplicitProcessingFailure",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentGapAttributionTest.java",
+      "sourceSha256": "0c43e7721ef19f87ba60af04e722a16688396949b587d5ac612ba93a28d617f6",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "GAP-FALLBACK",
+      "criterion": "无完整fact保留诚实原文回退",
+      "testClass": "RuleAgentGapAttributionTest",
+      "testMethod": "rawReadWithoutFactsRetainsHonestCoverageGap",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentGapAttributionTest.java",
+      "sourceSha256": "0c43e7721ef19f87ba60af04e722a16688396949b587d5ac612ba93a28d617f6",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "ORIGINAL-STALE",
+      "criterion": "资格/版本/摘要变化拒绝旧原文引用",
+      "testClass": "RuleCheckOriginalEvidenceServiceTest",
+      "testMethod": "versionHashEligibilityAndPersistentIdentityChangesRejectOldReference",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckOriginalEvidenceServiceTest.java",
+      "sourceSha256": "b7d37469bbcfa776f1f6e081d1c410f6cdfdd47c925d6cdbed693eea723f7e5d",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "ORIGINAL-INTEGRITY",
+      "criterion": "原文损坏不能用旧checksum掩盖",
+      "testClass": "RuleCheckOriginalEvidenceServiceTest",
+      "testMethod": "corruptedCurrentTextWithUnchangedStoredChecksumIsRejected",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckOriginalEvidenceServiceTest.java",
+      "sourceSha256": "b7d37469bbcfa776f1f6e081d1c410f6cdfdd47c925d6cdbed693eea723f7e5d",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "ORIGINAL-SPAN",
+      "criterion": "拒绝代理对切断/引文不匹配",
+      "testClass": "RuleCheckOriginalEvidenceServiceTest",
+      "testMethod": "surrogateSplitAndQuoteMismatchAreRejectedByCurrentVerification",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/rulecheck/RuleCheckOriginalEvidenceServiceTest.java",
+      "sourceSha256": "b7d37469bbcfa776f1f6e081d1c410f6cdfdd47c925d6cdbed693eea723f7e5d",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "FAIL-PAIR",
+      "criterion": "Schema与领域配对保持一致",
+      "testClass": "RuleAgentIssueSchemaTest",
+      "testMethod": "everyDomainPairHasExactlyTheSameSchemaAcceptance",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentIssueSchemaTest.java",
+      "sourceSha256": "165c248a43c40b2ab7a73588a78cb9dd04734de546ec2dc3b53cb367d7da579d",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "FAIL-COLLECT",
+      "criterion": "失败发布经真实绑定器进入Grader",
+      "testClass": "RuleAgentProbeFailureCaptureTest",
+      "testMethod": "firstRunFailureIsPublishedBeforeProbeGuardAndNoContinuationIsInvented",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProbeFailureCaptureTest.java",
+      "sourceSha256": "65e3f56390f8b2d51000326e7920986a96547a86ab7f38824c53cf37ad317883",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "FAIL-AUTH-RATE",
+      "criterion": "认证/服务端错误不是资料缺失",
+      "testClass": "RuleAgentProviderTest",
+      "testMethod": "authorizationAndServerErrorsDoNotBecomeMissingEvidence",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+      "sourceSha256": "7ed5c11e21f494845e5080b5c14e3467ae105253b8e3742138f40812396e3b17",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "FAIL-TIMEOUT",
+      "criterion": "响应超时覆盖全响应并消费额度",
+      "testClass": "RuleAgentProviderTest",
+      "testMethod": "timeoutIncludesWholeResponseAndConsumesAllowance",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentProviderTest.java",
+      "sourceSha256": "7ed5c11e21f494845e5080b5c14e3467ae105253b8e3742138f40812396e3b17",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "CANCEL",
+      "criterion": "取消独立核验不能发布迟到结果",
+      "testClass": "RuleAgentOnlineFactoryTest",
+      "testMethod": "cancelDuringFactoryReviewDoesNotPublishAndReleasesPorts",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentOnlineFactoryTest.java",
+      "sourceSha256": "16dfb863af7f2c7d2345761ffeb924863d6ad14cec7487d90dd509dc820eff8a",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "IDEMPOTENCY",
+      "criterion": "重复创建/丢响应查询不新增run",
+      "testClass": "RuleAgentTaskStoreTest",
+      "testMethod": "duplicateCreateAndLostResponseLookupReturnSameRun",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentTaskStoreTest.java",
+      "sourceSha256": "9d543eea4223b9063dae3529db235996384ca2c94b4221e30b1100eae854d7ab",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    },
+    {
+      "id": "EVIDENCE-WITHDRAWN",
+      "criterion": "资料撤回后续答不能追加决策",
+      "testClass": "RuleAgentTaskStoreTest",
+      "testMethod": "withdrawnEvidenceStopsContinuationWithoutMoreDecisions",
+      "testPath": "knowledge/src/test/java/com/zhku/knowledge/ruleagent/RuleAgentTaskStoreTest.java",
+      "sourceSha256": "9d543eea4223b9063dae3529db235996384ca2c94b4221e30b1100eae854d7ab",
+      "evidenceLevel": "OFFLINE_OR_LOOPBACK_NOT_LIVE_MODEL"
+    }
+  ],
+  "realProbeEvidence": "docs/agent/eval/m3-retest-20261117/RESULT.md",
+  "billingStatus": "UNVERIFIED",
+  "noNewProviderAuthorization": true
+}

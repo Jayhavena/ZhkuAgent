@@ -19,8 +19,8 @@ import org.springframework.core.env.Environment;
  *   <li><b>执行模式无默认值。</b>{@code zhku.rule-agent-launch.executor} 只接受 {@code SIMULATED} 或
  *       {@code ONLINE}；缺值与未知取值一律让上下文启动失败。</li>
  *   <li><b>模拟执行器不进本模块。</b>模拟模式下必须由宿主显式提供名为
- *       {@value #SIMULATED_EXECUTOR_BEAN} 的 {@link RuleAgentTaskStore.Factory}。仓库源码里没有"模拟实现"，
- *       因此它不可能被顺手带进正式在线装配，也不可能成为供应商故障时的自动回退。</li>
+ *       {@value #SIMULATED_EXECUTOR_BEAN} 的 {@link RuleAgentTaskStore.Factory}。本配置不提供模拟实现，
+ *       持久学生入口与演示宿主只能在SIMULATED分支显式引用，不能成为在线故障的自动回退。</li>
  *   <li><b>执行工厂唯一性显式校验。</b>TaskStore 只接受一个 Factory；出现多个定义时直接失败，
  *       而不是靠 {@code @Primary} 静默取胜。</li>
  * </ul>

@@ -13,6 +13,13 @@ import static com.zhku.knowledge.rulecheck.RuleCheckTopicGuard.Topic.*;
 
 /** 对已观察失败的工程回归；合成资料和替身计划不证明真实模型质量。 */
 class RuleCheckCoverageRepairTest {
+    @Test void coverageRepairRetainsRejectedRequests() {
+        add("A17/GENERAL","任课教师提交学生成绩。",GRADE_SUBMISSION);
+        var rejected=task("unhandled",EXPLAIN_RULE,"","");
+        var proposed=new RuleCheckTaskPlan(List.of(task("A17/GENERAL",EXPLAIN_RULE,"","")),List.of(rejected));
+        var repaired=RuleCheckQuestionCoverage.complete("谁负责提交学生成绩？",proposed,entries);
+        assertThat(repaired.rejectedTasks()).containsExactly(rejected);
+    }
     private final UUID source=UUID.randomUUID();
     private final Map<UUID,RuleCheckEvidenceSnapshot> snapshots=new LinkedHashMap<>();
     private final List<RetrievedChunk> chunks=new ArrayList<>();

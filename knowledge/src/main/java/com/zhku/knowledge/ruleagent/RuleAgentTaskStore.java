@@ -28,9 +28,20 @@ public final class RuleAgentTaskStore implements AutoCloseable {
     private record StoredRequest(String payload,Accepted accepted,Instant expires){}
     private static final class Slot {
         final UUID id;final Owner owner;final String question;final List<RuleAgentRunner.Question> questions;final Instant expires;
+        final List<RuleAgentQuestionConditions.Declared> firstQuestionDeclarations;
         long version=1;int runs=1,clarifications,attempts;UUID turn=UUID.randomUUID();AgentRunContext context;TaskSnapshot published;ResultEnvelope previous;Instant waitingExpires;Work work;
         Map<String,String> conditions=Map.of();final List<Turn> history=new ArrayList<>();List<RuleAgentRunTrace> traces=List.of();
-        Slot(Owner owner,String question,Instant expires,AgentRunContext context){this.id=UUID.randomUUID();this.owner=owner;this.question=question;this.expires=expires;this.questions=split(question);this.context=context;this.conditions=initialConditions(questions);history.add(new Turn(turn,context.runId(),question,conditions,TaskStatus.ACTIVE,0));}
+        Slot(Owner owner,String question,Instant expires,AgentRunContext context){
+            this.id=UUID.randomUUID();this.owner=owner;this.question=question;this.expires=expires;this.questions=split(question);this.context=context;
+            // 只装配首问明确声明；不把模型猜测写入条件，也不赋予声明任何证据或发布资格。
+            firstQuestionDeclarations=RuleAgentQuestionConditions.extract(question,questions);
+            var declared=new LinkedHashMap<String,String>();
+            firstQuestionDeclarations.forEach(d->declared.put(d.conditionId(),d.value()));
+            // 首问声明与显式课程范围两路提取互补：带原文跨度的声明优先，词形合同仅补齐声明缺失的条件。
+            initialConditions(questions).forEach(declared::putIfAbsent);
+            conditions=Map.copyOf(declared);
+            history.add(new Turn(turn,context.runId(),question,conditions,TaskStatus.ACTIVE,0));
+        }
     }
     private record Ticket(Slot slot,long version,AgentRunContext context,UUID turn,Map<String,String> conditions){}
     public RuleAgentTaskStore(Executor executor,Factory factory,Clock clock,Limits limits){this.executor=Objects.requireNonNull(executor);this.factory=Objects.requireNonNull(factory);this.clock=Objects.requireNonNull(clock);this.limits=Objects.requireNonNull(limits);this.observer=null;this.dispatcher=null;}
@@ -81,6 +92,8 @@ public final class RuleAgentTaskStore implements AutoCloseable {
     public TaskSnapshot snapshot(Owner owner,UUID task){synchronized(lock){ensureOpen();var slot=owned(owner,task);return slot.published!=null?slot.published:new TaskSnapshot(SCHEMA_VERSION,slot.id,slot.turn,slot.context.runId(),slot.version,TaskStatus.ACTIVE,slot.context.state(),false,slot.previous,null,new Execution(Mode.ONLINE,0,0,false,AnswerSource.NONE,ReplayCoverage.NOT_APPLICABLE));}}
     public Accepted lookup(Owner owner,RequestAction action,UUID key){synchronized(lock){ensureOpen();var entry=requests.get(new RequestKey(owner,action,key));if(entry==null)throw new Failure(Code.NOT_AVAILABLE);if(!clock.instant().isBefore(entry.expires()))throw new Failure(Code.EXPIRED);return entry.accepted();}}
     public List<Turn> history(Owner owner,UUID task){synchronized(lock){ensureOpen();return List.copyOf(owned(owner,task).history);}}
+    /** 跨度始终指向任务首问，不指向后续Turn.message；沿用Owner隔离，不扩展HTTP协议。 */
+    public List<RuleAgentQuestionConditions.Declared> firstQuestionDeclarations(Owner owner,UUID task){synchronized(lock){ensureOpen();return owned(owner,task).firstQuestionDeclarations;}}
     /** 评测侧只读入口：Owner必须完全匹配；返回副本，元素为不可变投影，跨Owner读取直接失败。 */
     public List<RuleAgentRunTrace> traceHistory(Owner owner,UUID task){synchronized(lock){ensureOpen();return List.copyOf(owned(owner,task).traces);}}
     /** 轨迹随任务Slot删除而释放；只保留最近MAX_TRACES_PER_TASK条，超限淘汰最旧。 */
