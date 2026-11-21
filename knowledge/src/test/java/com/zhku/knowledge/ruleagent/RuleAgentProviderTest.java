@@ -226,7 +226,7 @@ class RuleAgentProviderTest {
         var env=Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","local-approved-package");
         var settings=RuleAgentProvider.Settings.environment(env);
         assertThat(settings.endpoint()).isEqualTo(RuleAgentProvider.BEIJING);
-        assertThat(settings.model()).isEqualTo(RuleAgentProvider.MODEL);
+        assertThat(settings.model()).isEqualTo(RuleAgentProvider.QWEN4_MAX);
     }
     @Test void truncatedCompletionIsRejected()throws Exception{
         start(200,call("{\"type\":\"SEARCH_REVIEWED_RULES\",\"subquestionId\":\"q1\",\"query\":\"课程\"}","length"),0);

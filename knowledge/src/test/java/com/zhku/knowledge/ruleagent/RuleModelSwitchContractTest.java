@@ -92,6 +92,16 @@ class RuleModelSwitchContractTest {
         assertThat(RuleAgentProvider.REVIEW_OUTPUT_MODES).containsKeys(RuleAgentProvider.MODEL,RuleAgentProvider.QWEN4_MAX,RuleAgentProvider.DEEPSEEK_V3);
     }
 
+    @Test void productionEnvironmentDefaultsToQwen4MaxAfter20261121Switch() {
+        // 决策池②：Settings 层默认模型 qwen3.8-flash → qwen4-max；历史冻结包按原模型身份保留。
+        var env=java.util.Map.of(
+            "ZHKU_RULE_AGENT_MODE","ONLINE",
+            "DASHSCOPE_API_KEY","local-key",
+            "ZHKU_RULE_AGENT_AUTHORIZATION_ID","contract-default-assert");
+        var settings=RuleAgentProvider.Settings.environment(env);
+        assertThat(settings.model()).isEqualTo(RuleAgentProvider.QWEN4_MAX);
+    }
+
     @Test void shapeViolationCarriesRedactedFieldPathWithoutModelValues()throws Exception {
         var valid=json.readTree(wireReview("合成")).toString();
         for(String mutation:List.of("dropBindings","badEnum","extraRootField","missingSpanExcerpt","unknownRequirementField")) {

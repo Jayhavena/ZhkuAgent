@@ -16,7 +16,7 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 /** One frozen question, one real run, existing OnlineFactory/Runner/tools. No scoring or reference answers sent to model. */
 public final class RuleFactOnlineHost {
     static ObjectNode definition(Path root,String caseId)throws Exception {
-        return definition(root,caseId,RuleAgentProvider.MODEL);
+        return definition(root,caseId,RuleAgentProvider.QWEN4_MAX);
     }
     /** 单题探针沿用全量批次的模型绑定：包记录模型、Provider 按包构建、采集身份用 provider.model()。 */
     static ObjectNode definition(Path root,String caseId,String model)throws Exception {
@@ -57,7 +57,7 @@ public final class RuleFactOnlineHost {
         if(args.length<4)throw new IllegalArgumentException("prepare/check/run root selection package arguments required");
         Path root=Path.of(args[1]).toRealPath();
         if("prepare".equals(args[0])) {
-            String model=args.length==5?args[4]:RuleAgentProvider.MODEL;
+            String model=args.length==5?args[4]:RuleAgentProvider.QWEN4_MAX;
             Path file=packagePath(root,args[3]);var pack=definition(root,args[2],model);
             byte[] bytes=JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(pack);
             Files.createDirectories(file.getParent());Files.write(file,bytes,StandardOpenOption.CREATE_NEW);

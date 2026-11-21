@@ -23,11 +23,12 @@ public final class RuleFactBatchHost {
         return definition(root,full?RuleFactBatchPlan.Selection.FULL_20:RuleFactBatchPlan.Selection.SUBSET_10);
     }
     static ObjectNode definition(Path root,RuleFactBatchPlan.Selection selection)throws Exception {
-        return definition(root,selection,RuleAgentProvider.MODEL);
+        return definition(root,selection,RuleAgentProvider.QWEN4_MAX);
     }
     static ObjectNode definition(Path root,RuleFactBatchPlan.Selection selection,String model)throws Exception {
         boolean full=selection==RuleFactBatchPlan.Selection.FULL_20;
-        if(!RuleAgentProvider.MODEL.equals(model)&&!(full&&RuleAgentProvider.QWEN4_MAX.equals(model)))
+        // 2026-11-21 默认切换后 qwen4-max 不再限于 FULL_20；qwen3.8-flash 仍可选。
+        if(!RuleAgentProvider.MODEL.equals(model)&&!RuleAgentProvider.QWEN4_MAX.equals(model))
             throw new IllegalArgumentException("unsupported model for batch selection");
         var plan=RuleFactBatchPlan.load(root,selection);var pack=RuleFactOnlineHost.definition(root,"RFE-001");
         pack.put("model",model);
@@ -69,7 +70,7 @@ public final class RuleFactBatchHost {
         Path root=Path.of(args[1]).toRealPath();
         if("prepare".equals(args[0])) {
             Path file=RuleFactOnlineHost.packagePath(root,args[3]);
-            String model=args.length==5?args[4]:RuleAgentProvider.MODEL;
+            String model=args.length==5?args[4]:RuleAgentProvider.QWEN4_MAX;
             byte[] bytes=JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(definition(root,RuleFactBatchPlan.Selection.valueOf(args[2]),model));
             Files.createDirectories(file.getParent());Files.write(file,bytes,StandardOpenOption.CREATE_NEW);System.out.println("PACKAGE_SHA256="+sha(bytes));return;
         }

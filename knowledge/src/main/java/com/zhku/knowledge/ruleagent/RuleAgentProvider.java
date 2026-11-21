@@ -28,11 +28,12 @@ public final class RuleAgentProvider implements RuleAgentRunner.DecisionPort,Rul
         public static Settings environment(Map<String,String> env){
             // ONLINE不加载封存响应；目录存在即拒绝，不能在缺配置时静默回放。
             if(!"ONLINE".equals(env.get("ZHKU_RULE_AGENT_MODE"))||env.getOrDefault("DASHSCOPE_API_KEY","").isBlank()||env.containsKey("ZHKU_RULECHECK_TASK_BATCH_DIRECTORY")||env.containsKey("ZHKU_RULECHECK_TASK_PACKAGE_SHA256")||env.containsKey("ZHKU_RULECHECK_TASK_SUMMARY_SHA256"))throw new IllegalArgumentException("在线配置缺失或混入回放");
-            return new Settings(BEIJING,MODEL,env.get("ZHKU_RULE_AGENT_AUTHORIZATION_ID"));
+            return new Settings(BEIJING,QWEN4_MAX,env.get("ZHKU_RULE_AGENT_AUTHORIZATION_ID"));
         }
     }
     /**
-     * 入口默认模型沿用原配置。全量评测可从已核验的执行包选择另一个支持 JSON Schema 的模型。
+     * 生产默认模型已于 2026-11-21 切换至 qwen4-max（决策池②；RFE-003/004 双过 + 全量 20 题复验 77 调用实证）。
+     * qwen3.8-flash 保留为可选模型（合同注册表仍含其严格 Schema 模式）；历史冻结包按原模型身份保留。
      */
     public static final String MODEL="qwen3.8-flash";
     public static final String QWEN4_MAX="qwen4-max";

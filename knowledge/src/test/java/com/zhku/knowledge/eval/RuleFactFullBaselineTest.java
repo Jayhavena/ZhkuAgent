@@ -14,9 +14,8 @@ class RuleFactFullBaselineTest {
         var pack=RuleFactBatchHost.definition(root(),RuleFactBatchPlan.Selection.FULL_20,"qwen4-max");
         assertThat(pack.path("model").asText()).isEqualTo("qwen4-max");
         assertThat(pack.path("baselineIdentity").path("requestedModel").asText()).isEqualTo("qwen4-max");
-        assertThat(RuleFactBatchHost.definition(root(),true).path("model").asText()).isEqualTo("qwen3.8-flash");
-        assertThatThrownBy(()->RuleFactBatchHost.definition(root(),RuleFactBatchPlan.Selection.SUBSET_10,"qwen4-max"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThat(RuleFactBatchHost.definition(root(),true).path("model").asText()).isEqualTo("qwen4-max");
+        assertThat(RuleFactBatchHost.definition(root(),RuleFactBatchPlan.Selection.SUBSET_10,"qwen4-max").path("model").asText()).isEqualTo("qwen4-max");
         assertThatThrownBy(()->RuleFactBatchHost.definition(root(),RuleFactBatchPlan.Selection.FULL_20,"unapproved-model"))
                 .isInstanceOf(IllegalArgumentException.class);
     }

@@ -75,7 +75,7 @@ class RuleFactOnlineHostTest {
         var pack=RuleFactOnlineHost.definition(root(),"RFE-003",com.zhku.knowledge.ruleagent.RuleAgentProvider.QWEN4_MAX);
         assertThat(pack.path("model").asText()).isEqualTo("qwen4-max");
         assertThat(pack.path("evaluationTurn").path("caseId").asText()).isEqualTo("RFE-003");
-        assertThat(RuleFactOnlineHost.definition(root(),"RFE-004").path("model").asText()).isEqualTo("qwen3.8-flash");
+        assertThat(RuleFactOnlineHost.definition(root(),"RFE-004").path("model").asText()).isEqualTo("qwen4-max");
         assertThatThrownBy(()->RuleFactOnlineHost.definition(root(),"RFE-003",com.zhku.knowledge.ruleagent.RuleAgentProvider.DEEPSEEK_V3))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(()->RuleFactOnlineHost.definition(root(),"RFE-003","unapproved-model"))
