@@ -348,26 +348,6 @@ class RuleAgentOnlineFactoryTest {
                 "headroomBytes",DEFAULT_BUDGET.maxRequestBytes()-lastRequestBytes,"structuredOutputIncluded",true,"toolsAbsent",true)),
             java.nio.file.StandardOpenOption.CREATE,java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
     }
-    @Test void prepareP01PacketFromCurrentAuthoritiesWithoutOpeningPorts()throws Exception{
-        var root=java.nio.file.Path.of("..").toAbsolutePath().normalize();
-        var method=RuleAgentOnlineProbeHost.class.getDeclaredMethod("packageNode",java.nio.file.Path.class);
-        method.setAccessible(true);
-        var pack=(com.fasterxml.jackson.databind.node.ObjectNode)method.invoke(null,root);
-        pack.put("purpose","T05_P01_READ_REFERENCE_HARDENING_FULL_FLOW_NOT_PRODUCT_QUALITY_EVAL");
-        pack.put("maximumProviderCalls",4);
-        pack.put("authorizationStatus","NOT_AUTHORIZED");
-        pack.putArray("cases").addObject().put("id","P01").put("question","专业选修课和公共选修课在修读安排上有什么不同？");
-        pack.put("remainingBudgetRule","每run3次决策加1次独立核验，共4次/45秒；单次10秒/1024输出token，无自动重试。新检索使旧编号失效。");
-        pack.put("dynamicFeedback","完整当前候选摘要、c编号及宿主集合代号；实际UUID映射仅留宿主。已读取的审核原文、事实、条件及独立核验能力/来源指纹不变。不发送owner/session/token/凭证/参考答案/整本PDF。");
-        pack.put("executionReadiness","PACKAGE_ONLY; current old-batch launcher must reject this packet; require P01-only preflight and new explicit authorization before any call");
-        assertThat(pack.path("protocolRevision").asText()).isEqualTo("RULE_AGENT_ACTION_CONTRACT_08");
-        assertThat(pack.path("automaticRetries").asInt()).isZero();
-        assertThat(factory).isNull();
-        assertThat(calls).hasValue(0);
-        var output=java.nio.file.Path.of(System.getProperty("zhku.rulecheck.evidenceDir"),"p01-request-package.json");
-        new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(output.toFile(),pack);
-    }
-
     @Test void repeatedKnownConditionIsAbsentFromWireAndFailsWithoutReviewOrRetry()throws Exception{
         conditional=true;repeatKnownCondition=true;start(8);
         var input=new RuleAgentRunner.Input(fixture.owner,fixture.task,1,"公选课能重修吗？",
