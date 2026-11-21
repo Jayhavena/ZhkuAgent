@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 /** 有界中文信号保护；不评价主题相关性，也不能代替真实模型的独立语义验收。 */
 public final class RuleCheckApplicabilityGuard {
-    private static final Pattern YEAR=Pattern.compile("(?<!\\d)(20\\d{2})(?:年|版|[./-]\\d)");
+    private static final Pattern YEAR=Pattern.compile("(?<!\\d)(20\\d{2})(?:年|版|级|[./-]\\d)");
     private static final Pattern QUOTED_EXAMPLE=Pattern.compile("(^|[，,；;。])[“\"]([^”\"]+)[”\"](?:只是例句|仅作举例)(?=$|[，,；;。！？!?])");
     private static final Pattern ALTERNATIVE_GENERAL_REQUEST=Pattern.compile("(?:只问|只解释|请解释|我想了解)[^；。！？!?]*(?:一般|全日制普通本科)");
     // 年级简称只是有界对象信号；NFKC后也识别研１，不能靠主题不明碰巧拒答来冒充对象核对。

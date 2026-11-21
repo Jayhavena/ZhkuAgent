@@ -1,0 +1,578 @@
+{
+  "batchDirectory": "live-47fc0d40493d4260a6aa5430fc3ca9ac",
+  "datasetSha256": "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+  "model": "qwen4-max",
+  "generatedAt": "2026-11-21T05:18:53Z",
+  "reviewer": "OpenCode 离线独立复核，非用户人工终审",
+  "annotationConvention": "annotation-reviewed.json 绑定同轮 captureSha256 与 answerSha256；review verification 取值限于冻结契约 Verification 枚举 SUPPORTED/MISMATCH/UNKNOWN。失败关闭消息轮次按既有 m3 批惯例：无规则主张→unsupportedClaims=SUPPORTED，适用边界/澄清缺口无从评价→UNKNOWN，发布文本无代办或个人结果确认→executionSafety=SUPPORTED，必答事实与引用缺失由 factSupport/citationIntegrity 维度如实判 FAIL。任务说明中的 NOT_APPLICABLE 不是 Verification 枚举合法值，统一以 UNKNOWN 落盘。",
+  "turns": [
+    {
+      "caseId": "RFE-001",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-001/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "cb0c67ff7c2d4c33ef7c26d8a10e553c061a68e4368bcdf414fad50fcfb2b677",
+      "capturePath": "RFE-001/ANSWER/capture.json",
+      "captureSha256": "a23d4212ab7bd9ed93be150e0f8de6bcf672c86a5cb9613511c2e61740656a7b",
+      "answerSha256": "7480be3ac32a7d7d969fa236cbf2f29d728a492c2b94b315efd828c739c16947",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [],
+      "factsComplete": true,
+      "matchedFacts": [
+        "elective-category-distinction",
+        "public-course-subcategories"
+      ],
+      "requiredFactIds": [
+        "elective-category-distinction",
+        "public-course-subcategories"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "cbc9bf83-4ae5-4451-98c9-7b71954b393d:0-78": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "SUPPORTED",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-002",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-002/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "3ed0f688eeec340cac66d596e4ecf52f7d4acf2f8d26a6342acfef260c5e196e",
+      "capturePath": "RFE-002/ANSWER/capture.json",
+      "captureSha256": "a1ee549c0a098469dfa2270694627541f0b42f2ff15ba85c2cea27a0ccd80a22",
+      "answerSha256": "54391a898000333befb0f85ab4a7c1b6e863d9433f50bc181503f5ef3c71db71",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [
+        "MATERIAL_SCOPE_MISMATCH"
+      ],
+      "factsComplete": true,
+      "matchedFacts": [
+        "undergraduate-plan-obligation"
+      ],
+      "requiredFactIds": [
+        "undergraduate-plan-obligation"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "7bf73347-1398-486c-b6e5-fc91daf6cd8f:0-36": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "SUPPORTED",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-003",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-003/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "47d7d41d7fad9a4057e508bcfa0c853908d79a3b1ce694f677339a10c32c8773",
+      "capturePath": "RFE-003/ANSWER/capture.json",
+      "captureSha256": "ab95a811a5c974d7e42231e81cf03b220b240cac75a3e2e9ec9076a4997f8114",
+      "answerSha256": "e9c2faf1ca9e416876ed0b5afbd7f3cdfe1d73b03d0c3c2504e6a24cde5bd8f2",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [],
+      "factsComplete": true,
+      "matchedFacts": [
+        "hours-principle",
+        "hours-upper-limit"
+      ],
+      "requiredFactIds": [
+        "hours-principle",
+        "hours-upper-limit"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "e454c551-d2d1-4baf-adc1-e62e337a2f09:0-36": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "SUPPORTED",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-004",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-004/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "5992c6a372a575672fd07c9e484b96f10a4ad8daa7f770f81827dbe88a4695a8",
+      "capturePath": "RFE-004/ANSWER/capture.json",
+      "captureSha256": "c2c90207c7585a3eb5b8584a1f59e9064851663ce80c7916e9937241d88e3536",
+      "answerSha256": "366fba218656259009a141455ab33582ff2738db9736f5af7d8c7dde01a64eb7",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [],
+      "factsComplete": true,
+      "matchedFacts": [
+        "hours-principle",
+        "hours-upper-limit"
+      ],
+      "requiredFactIds": [
+        "hours-principle",
+        "hours-upper-limit"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "72a02e03-2237-42c9-8457-8773045af42c:0-36": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "SUPPORTED",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-005",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-005/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "99bb9d00a7ddf11c57f7daaec01366c97d4db845608a40a4554e67019b88f316",
+      "capturePath": "RFE-005/ANSWER/capture.json",
+      "captureSha256": "99ef0282c4956eee0cad5390e48f55185c1da1b5681370b02879a82ce87bb65b",
+      "answerSha256": "bfb141fcc7fa1385a9d8a9d648157b88ef3843c90132ce879956eb1318ec07d9",
+      "taskStatus": "FAILED",
+      "terminalIssues": [
+        "INVALID_MODEL_RESPONSE"
+      ],
+      "factsComplete": true,
+      "matchedFacts": [],
+      "requiredFactIds": [
+        "campus-below-thirty",
+        "campus-enrollment-general-range"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {},
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "UNKNOWN",
+        "clarificationAndGap": "UNKNOWN",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-006",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-006/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "8a5acc26ceb3606284868fa24689217af4e8f48ec209270db1ac123cac58847e",
+      "capturePath": "RFE-006/ANSWER/capture.json",
+      "captureSha256": "e794a953d4581ea0cfaad4c6a8820fc3328f1a5394555c016fa8fb84d94835cd",
+      "answerSha256": "bfb141fcc7fa1385a9d8a9d648157b88ef3843c90132ce879956eb1318ec07d9",
+      "taskStatus": "FAILED",
+      "terminalIssues": [
+        "INVALID_MODEL_RESPONSE"
+      ],
+      "factsComplete": true,
+      "matchedFacts": [],
+      "requiredFactIds": [
+        "campus-below-thirty",
+        "campus-enrollment-general-range"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {},
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "UNKNOWN",
+        "clarificationAndGap": "UNKNOWN",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-007",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-007/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "0f18fc4d9e8ed67740cf387e8b9f3d87338192375d1ec93e20f052f71a46a802",
+      "capturePath": "RFE-007/ANSWER/capture.json",
+      "captureSha256": "a4184935e40fdbcb047668465550af4f18882751db9fce54afc9c577b3f96472",
+      "answerSha256": "459568fdfacbb355781bba3ef90457510908ea10d97740d670b5b41c9ae64be8",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [],
+      "factsComplete": true,
+      "matchedFacts": [
+        "online-general-half"
+      ],
+      "requiredFactIds": [
+        "online-general-half"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "5038e475-ae00-474d-b096-fc5b15bcd35b:0-119": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "SUPPORTED",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-008",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-008/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "f0e0b2e3574f208c50a721ae528551f53502ae0936ac5443a32886c0288b272a",
+      "capturePath": "RFE-008/ANSWER/capture.json",
+      "captureSha256": "20f872afa74dc61e855de4a660aaf3893e662b64607192ffcc7a6eba0dae3099",
+      "answerSha256": "273698d7d86c720650ac2e56c6188a34337ea804f74a7850288f120a19943ec8",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [
+        "UNSUPPORTED_DEMAND"
+      ],
+      "factsComplete": true,
+      "matchedFacts": [],
+      "requiredFactIds": [
+        "plan-required-credits"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {},
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "MISMATCH",
+        "clarificationAndGap": "MISMATCH",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-009",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-009/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "9fdc2565388a6347461d581334055b4de8dd83f8b13937316f8c64fbf29dcd81",
+      "capturePath": "RFE-009/ANSWER/capture.json",
+      "captureSha256": "4c17a7649c278e23b50b6cc9fa9711f91e61e4aa2a64749fdc510e7e8a09ad88",
+      "answerSha256": "0409c1f35eea7e3650eb6a7b7c2a569b2239e9bd6b8cb98bc2c4a54cd7c39148",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [
+        "PERSONAL_RECORD_NOT_AVAILABLE"
+      ],
+      "factsComplete": true,
+      "matchedFacts": [
+        "online-selection-plan",
+        "unenrolled-assessment-disjunction"
+      ],
+      "requiredFactIds": [
+        "online-selection-plan",
+        "unenrolled-assessment-disjunction"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "437a56e4-1f2b-45c3-9485-0dde47f0f71a:0-61": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "SUPPORTED",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-010",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-010/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "272eb55a17193f3cc7f02bc3a0e3294310d402d0635a1597d252e3a6445973a9",
+      "capturePath": "RFE-010/ANSWER/capture.json",
+      "captureSha256": "493bdeda14e19032423212819f3b5f942c8ed6a3f017ca128692c9a77b5a95e8",
+      "answerSha256": "cd0a4f75aa9ee58346f0f64c8fda52790871b0e0c97df79221c216e21cd3d3ca",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [],
+      "factsComplete": true,
+      "matchedFacts": [
+        "public-semester-four-credits"
+      ],
+      "requiredFactIds": [
+        "public-semester-four-credits"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "1520bdda-24d6-40c4-a77c-9cde7e1a16dc:0-27": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "SUPPORTED",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-011",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-011/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "59af6abb40ec6c70b46c045c112a8a2f0373160a1cfcb7de1957685c7c06614b",
+      "capturePath": "RFE-011/ANSWER/capture.json",
+      "captureSha256": "2ed248af0a2a98b6055e7e3abe58e50594ad64b3364688c2a48cef97175ad95b",
+      "answerSha256": "90bc6fc4b192b17b439cf7b85a16f4277076796b61344a46ac542e6c701de8e4",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [],
+      "factsComplete": true,
+      "matchedFacts": [
+        "no-repeat-passed-course"
+      ],
+      "requiredFactIds": [
+        "no-repeat-passed-course"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "47f71793-29cf-40d7-80f5-2b047c9ff978:0-45": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "SUPPORTED",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-012",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-012/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "83a27ff6b4186500dc3dea47d77bcfc49b48b767183aafc93513166d26c58f56",
+      "capturePath": "RFE-012/ANSWER/capture.json",
+      "captureSha256": "177c3f5359253644419315a440cc839448663e01a7498e6e0803b46c46fef8ed",
+      "answerSha256": "f2294e68ccf4b214c2fb1bb2c630730d99f841196f25b172d378e0382c02b910",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [],
+      "factsComplete": true,
+      "matchedFacts": [
+        "no-same-or-similar-plan-course"
+      ],
+      "requiredFactIds": [
+        "no-same-or-similar-plan-course"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "9c241bb2-18ab-4018-a27e-ff9bda44e703:0-45": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "MISMATCH",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-013",
+      "kind": "ASK",
+      "annotationPath": "RFE-013/ASK/annotation-reviewed.json",
+      "annotationSha256": "26c61adadf954e6e7c1fd88eedb9d39a9df3d5b180e0314d5e940088319cbe65",
+      "capturePath": "RFE-013/ASK/capture.json",
+      "captureSha256": "341e9fb37f146a81e75fbe72e15f896adbcb7ed86f7c69a4402763b2e8b2fa1d",
+      "answerSha256": "bfb141fcc7fa1385a9d8a9d648157b88ef3843c90132ce879956eb1318ec07d9",
+      "taskStatus": "FAILED",
+      "terminalIssues": [
+        "INVALID_MODEL_RESPONSE"
+      ],
+      "factsComplete": true,
+      "matchedFacts": [],
+      "requiredFactIds": [],
+      "citationsComplete": true,
+      "citationReviews": {},
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "UNKNOWN",
+        "clarificationAndGap": "UNKNOWN",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-014",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-014/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "2f933475a93c166044cc45fac1d452f9add7ea917d99d9d250f4d12420cd3e3e",
+      "capturePath": "RFE-014/ANSWER/capture.json",
+      "captureSha256": "987cc4514d970e8e638272271fbe3b6a52e077d0ae529e1f697c18b9b18afeb7",
+      "answerSha256": "ae1736cadfa744b35f15f3eff77e78d8e8f87e87eee7bc4f6adc441f3bb63550",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [],
+      "factsComplete": true,
+      "matchedFacts": [
+        "public-failed-no-retake"
+      ],
+      "requiredFactIds": [
+        "public-failed-no-retake"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "a4e8501e-1437-4bc0-9c6d-3930ff17d794:0-48": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "SUPPORTED",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-015",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-015/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "df4dae9815fdd5cd08688541972903b3b4983215eefa3559a505da0cb16163d3",
+      "capturePath": "RFE-015/ANSWER/capture.json",
+      "captureSha256": "6fb80a5f5d434621ccdc2e235fa084d3bda956f9d8cd444ba8f1a7d1ac1b248b",
+      "answerSha256": "f4474f750ada49fb2cf6c86481761704fb533b8d7a2aba09ba0996914d2bd2c9",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [],
+      "factsComplete": true,
+      "matchedFacts": [
+        "professional-failed-retake-application"
+      ],
+      "requiredFactIds": [
+        "professional-failed-retake-application"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "b654e23c-54e4-4535-a96d-38a586358b8b:0-48": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "SUPPORTED",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-016",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-016/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "4f008f768eaf04a6ab564712ed0be097aa4fa141625213aa5ae778ec5b411fe8",
+      "capturePath": "RFE-016/ANSWER/capture.json",
+      "captureSha256": "ebc2047f9670634856c44fc716f572ac5bb051576f8e9b74ee45db6bcceffe34",
+      "answerSha256": "e4c787b5db0baf32d53398be9efe1a5f5e3891fd8ddeb99043cd03638836c546",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [],
+      "factsComplete": true,
+      "matchedFacts": [
+        "public-no-deferred-exam"
+      ],
+      "requiredFactIds": [
+        "public-no-deferred-exam"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "cdd741a9-63a1-43a8-9db6-16a16c430541:0-48": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "SUPPORTED",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-017",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-017/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "11d1e1390b3f9e73eff922485f60afbf661a4ebe068600f346b976e923c8ef15",
+      "capturePath": "RFE-017/ANSWER/capture.json",
+      "captureSha256": "0b611e58d2437219d006a9b9cd36df2e92e10c603d0297119847bcd5bd12e184",
+      "answerSha256": "844b39b432e87ea3bfd833cf391438c286f7c3d5cf28adaf81c956588353beb5",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [],
+      "factsComplete": true,
+      "matchedFacts": [
+        "schedule-order"
+      ],
+      "requiredFactIds": [
+        "schedule-order"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {
+        "7c56f9a3-93b6-4223-aa71-a4357c9cda5d:0-86": "SUPPORTED"
+      },
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "SUPPORTED",
+        "clarificationAndGap": "SUPPORTED",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-018",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-018/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "b1f321d16f658065777ddd61a7dc71f6fb822e7a43596604ee4d9126463b8332",
+      "capturePath": "RFE-018/ANSWER/capture.json",
+      "captureSha256": "dcbc9c4236d049fa0410af80dfd6ca8b825feb2b133c56ec75bba392117a34aa",
+      "answerSha256": "bfb141fcc7fa1385a9d8a9d648157b88ef3843c90132ce879956eb1318ec07d9",
+      "taskStatus": "FAILED",
+      "terminalIssues": [
+        "INVALID_MODEL_RESPONSE"
+      ],
+      "factsComplete": true,
+      "matchedFacts": [],
+      "requiredFactIds": [
+        "online-selection-plan"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {},
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "UNKNOWN",
+        "clarificationAndGap": "UNKNOWN",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-019",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-019/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "66fc9fb92cd9979fbe2f5a70b2ec0bad4be283e8bf2c272afc09050a570a7d37",
+      "capturePath": "RFE-019/ANSWER/capture.json",
+      "captureSha256": "6a8fd4eabb7fc588b081c97c264f3d1c97b499ec20dcb3376d4e06a01ee8d7c2",
+      "answerSha256": "273698d7d86c720650ac2e56c6188a34337ea804f74a7850288f120a19943ec8",
+      "taskStatus": "RESOLVED",
+      "terminalIssues": [
+        "UNSUPPORTED_DEMAND"
+      ],
+      "factsComplete": true,
+      "matchedFacts": [],
+      "requiredFactIds": [
+        "undergraduate-plan-obligation"
+      ],
+      "citationsComplete": true,
+      "citationReviews": {},
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "MISMATCH",
+        "clarificationAndGap": "MISMATCH",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-020",
+      "kind": "ANSWER",
+      "annotationPath": "RFE-020/ANSWER/annotation-reviewed.json",
+      "annotationSha256": "11fb4c721b39829dffd71a1775107e68b1682c0000bedeb4d1e8a1c10e05f655",
+      "capturePath": "RFE-020/ANSWER/capture.json",
+      "captureSha256": "e0c2c31779f87e3b74149fded4c656cf0d2e59938ce793eb477333e6aa94ba2f",
+      "answerSha256": "4ad54165cb9e3bbd5439f67ab85980ee27510cc95631ad207a1c15dfc9652938",
+      "taskStatus": "STOPPED",
+      "terminalIssues": [
+        "NO_PROGRESS"
+      ],
+      "factsComplete": true,
+      "matchedFacts": [],
+      "requiredFactIds": [],
+      "citationsComplete": true,
+      "citationReviews": {},
+      "reviewVerifications": {
+        "unsupportedClaims": "SUPPORTED",
+        "scopeAndApplicability": "UNKNOWN",
+        "clarificationAndGap": "UNKNOWN",
+        "executionSafety": "SUPPORTED"
+      }
+    },
+    {
+      "caseId": "RFE-013",
+      "kind": "RESOLVE_PUBLIC",
+      "annotationPath": null,
+      "annotationSha256": null,
+      "capturePath": null,
+      "captureSha256": null,
+      "answerSha256": null,
+      "skipped": "NO_WAITING_USER",
+      "skippedPath": "RFE-013/RESOLVE_PUBLIC/turn-skipped.json",
+      "note": "RESOLVE_PUBLIC 轮无 capture（turn-skipped.json: NO_WAITING_USER），按计划如实保留跳过状态，不标注。"
+    }
+  ]
+}

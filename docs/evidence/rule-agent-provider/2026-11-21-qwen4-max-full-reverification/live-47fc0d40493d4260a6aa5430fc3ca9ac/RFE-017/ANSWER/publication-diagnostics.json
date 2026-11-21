@@ -1,0 +1,65 @@
+{
+  "relevanceExclusions" : [ {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S09/GENERAL:schedule-order", "S09/GENERAL:schedule-previous-semester" ],
+      "rejectedFact" : {
+        "factId" : "S09/GENERAL:schedule-previous-semester",
+        "dimension" : "SCHEDULE",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "0308f82ae1542a7f83d8a51d641a75703c0ee32e7d8a2a1fbcb5b561fba4c181"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "SCHEDULE",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S09/GENERAL:schedule-order",
+          "role" : "CORE"
+        } ]
+      } ]
+    }
+  } ],
+  "relevanceRejections" : [ ],
+  "semanticReviews" : [ {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "d83e4251c6fb5bb0a70167ad26c9e2784c9576636da4da10888d8cb748146d70",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 11,
+          "endExclusive" : 29
+        },
+        "dimension" : "SCHEDULE",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S09/GENERAL:schedule-order",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    }
+  } ],
+  "captureSha256" : "0b611e58d2437219d006a9b9cd36df2e92e10c603d0297119847bcd5bd12e184",
+  "identity" : {
+    "caseId" : "RFE-017",
+    "taskId" : "950e530b-2767-4c48-b8d8-7cd5d47361ab",
+    "runId" : "cccce2d5-ef4f-4516-aa93-880a644e37b2",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen4-max",
+    "configurationSha256" : "a2ec27e046b1ca6518b972e0999732565f38421d10a74d9b06a9a2beb7a834df"
+  }
+}

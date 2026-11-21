@@ -10,7 +10,7 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 
 /** 模型约束投影与解码使用同一动作类型/record字段及领域预算，不另建宽松协议。 */
 public final class RuleAgentProtocol {
-    public static final String REVISION="RULE_AGENT_ACTION_CONTRACT_06";
+    public static final String REVISION="RULE_AGENT_ACTION_CONTRACT_08";
     public static final String READ_REFERENCE_PATTERN="c[1-9][0-9]*";
     static Set<String> modelReadFields() {
         var fields=new HashSet<String>();
@@ -27,13 +27,15 @@ public final class RuleAgentProtocol {
         READ_HANDLE_COUNT, READ_HANDLE_DUPLICATE, READ_HANDLE_UUID, READ_HANDLE_NOT_CURRENT,
         READ_HANDLE_ARRAY_REQUIRED, READ_HANDLE_COUNT_BELOW_MIN, READ_HANDLE_COUNT_ABOVE_MAX,
         READ_REFERENCE_FORMAT, READ_REFERENCE_SET,
-        SUBQUESTION_NOT_CURRENT, OPERATION_NOT_ALLOWED, REVIEW_JSON_INVALID, REVIEW_BINDING_INVALID,
+        SUBQUESTION_NOT_CURRENT, OPERATION_NOT_ALLOWED, REVIEW_JSON_INVALID, REVIEW_SCHEMA_INVALID, REVIEW_BINDING_INVALID,
         REVIEW_QUESTION_UNKNOWN, REVIEW_SPAN_OUT_OF_RANGE, REVIEW_INPUT_MISMATCH, REVIEW_QUESTION_UNCOVERED, REVIEW_REQUIREMENT_UNKNOWN, REVIEW_FACT_NOT_IN_INPUT, REVIEW_CONDITION_UNKNOWN,
-        BUDGET_UNAVAILABLE, TRANSPORT_FAILURE, AUDIT_FAILURE
+        BUDGET_UNAVAILABLE, TRANSPORT_FAILURE, SUPPLIER_REQUEST_REJECTED, SUPPLIER_INVALID_PARAMETER, AUDIT_FAILURE
     }
     public record ReadSelection(Integer elementIndex,String jsonType,Integer stringLength,Code failureCategory,Boolean currentCandidate) {}
-    public record Validation(Stage stage, Code code,ReadSelection readSelection) {
-        public Validation(Stage stage,Code code) {this(stage,code,null);}
+    /** field是脱敏的合同字段路径（如 requirements[0].dimension），不含模型原值；null表示无字段级定位。 */
+    public record Validation(Stage stage, Code code,ReadSelection readSelection,String field) {
+        public Validation(Stage stage,Code code) {this(stage,code,null,null);}
+        public Validation(Stage stage,Code code,ReadSelection readSelection) {this(stage,code,readSelection,null);}
     }
     public static final Validation VALID=new Validation(Stage.NONE,Code.NONE);
     public static final class Rejected extends IllegalArgumentException {
@@ -41,6 +43,10 @@ public final class RuleAgentProtocol {
         Rejected(Stage stage,Code code) {
             super(code.name());
             validation=new Validation(stage,code);
+        }
+        Rejected(Stage stage,Code code,String field) {
+            super(code.name());
+            validation=new Validation(stage,code,null,field);
         }
         Rejected(Code code,Integer index,JsonNode value,Boolean current) {
             this(code,index,value,current,code);
@@ -51,6 +57,8 @@ public final class RuleAgentProtocol {
                 value==null?null:value.getNodeType().name(),value!=null&&value.isTextual()?value.textValue().length():null,category,current));
         }
     }
+    /** 宿主内容守卫生成的拒绝属于“模型响应不符合契约”，不能与审计写入故障共用同一分类；统一由此处构造。 */
+    public static Rejected contentRejection(Stage stage,Code code) {return new Rejected(stage,code);}
     private static final ObjectMapper JSON=new ObjectMapper();
     private static final boolean ALLOW_OPERATIONS=false;
     private static Map<String,Class<?>> actions() {
@@ -181,6 +189,7 @@ public final class RuleAgentProtocol {
             required.add(field.getName());
             properties.set(field.getName(),field(type,field.getName(),readReferences));
         }
+        // 外发结构沿用原基线形状。交叉字段约束由提示和宿主record校验执行。
         return node;
     }
     private static ObjectNode issueSchema(){

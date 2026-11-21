@@ -60,6 +60,19 @@ class RulePublicationEligibilityTest {
  @Test void prefixedReviewConditionHasExplicitRejectionInsteadOfLateGateFailure(){assertThatThrownBy(()->RulePublicationProtocol.decode(wireReview.toString(),safe)).isInstanceOfSatisfying(RuleAgentProtocol.Rejected.class,e->{assertThat(e.validation.stage()).isEqualTo(RuleAgentProtocol.Stage.REVIEW_BINDING);assertThat(e.validation.code().name()).isEqualTo("REVIEW_CONDITION_UNKNOWN");});}
  @Test void unknownReviewConditionIsNotSilentlyNormalized()throws Exception{var raw=j.valueToTree(valid(safe));((com.fasterxml.jackson.databind.node.ObjectNode)raw.path("requirements").get(0)).putArray("necessaryConditionIds").add("unknown");assertThatThrownBy(()->RulePublicationProtocol.decode(raw.toString(),safe)).isInstanceOfSatisfying(RuleAgentProtocol.Rejected.class,e->assertThat(e.validation.code().name()).isEqualTo("REVIEW_CONDITION_UNKNOWN"));}
  RuleAgentRunner.DecisionPort decision(NextAction proposal){return (v,t)->{try{NextAction a=v.observations().isEmpty()?new Search("q1","选修重修"):v.facts().isEmpty()?new Read("q1",List.of(v.observations().getLast().candidates().getFirst().handle())):proposal;return new RuleAgentRunner.Reply(j.writeValueAsString(a),false);}catch(Exception e){throw new IllegalStateException(e);}};}
+ @Test void unsupportedIssueClaimIsRejectedBeforeReviewAndKeepsItsFailureOnRepeat() throws Exception {
+  var reviews = new AtomicInteger();
+  var proposal = new Finish(List.of(new Proposal("q1", List.of(),
+      List.of(new ProposedIssue(IssueKind.SCOPE_LIMIT, ReasonCode.CURRENT_APPLICABILITY_UNKNOWN)), null)));
+  var outcome = new RuleAgentRunner(decision(proposal), new RuleActionBroker(tools()), Clock.systemUTC(),
+      (safe, timeout) -> { reviews.incrementAndGet(); throw new AssertionError("确定性拒绝不应消耗核验调用"); })
+      .run(AgentRunContext.create(input.question()), input);
+  assertThat(reviews).hasValue(0);
+  assertThat(outcome.events().stream().filter(e -> e.action().equals("FINISH_CHECK")))
+      .extracting(RuleAgentRunner.Event::reason).containsExactly(ReasonCode.INVALID_MODEL_RESPONSE, ReasonCode.INVALID_MODEL_RESPONSE);
+  assertThat(outcome.snapshot().result().items().getFirst().issues().getFirst().reasonCode())
+      .isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);
+ }
  @Test void realReadUnregisteredFinishStopsBeforeReviewWithKnownCondition()throws Exception{
   var known=new RuleAgentRunner.Input(input.owner(),input.taskId(),input.version(),input.question(),input.questions(),Map.of("courseType","PUBLIC"));var reviews=new AtomicInteger();
   var finish=new Finish(List.of(new Proposal("q1",List.of("S10/COMBINED:public-failed-no-retake"),List.of(),null)));
@@ -76,22 +89,23 @@ class RulePublicationEligibilityTest {
   assertThat(out.snapshot().runState()).isEqualTo(com.zhku.agent.agent.runtime.AgentRunState.SUCCEEDED);
   assertThat(out.snapshot().result().coverage()).isEqualTo(Coverage.COMPLETE);
   var item=out.snapshot().result().items().getFirst();
-  assertThat(item.claims()).extracting(Claim::text).containsExactly(expected);
+  assertThat(item.claims()).extracting(Claim::text).containsExactly("依据2025.9.2历史文本："+expected);
   assertThat(item.issues()).isEmpty();
   assertThat(item.clarification()).isEmpty();
   assertThat(out.snapshot().continuationToken()).isNull();
   assertThat(out.snapshot().result().evidence()).isNotEmpty();
  }
- @Test void knownConditionFinishWithBothBranchRequirementsFailsWithoutClaimingComplete()throws Exception{
+ @Test void knownConditionFinishPublishesTheDeclaredBranchAndDropsTheOtherBranchRequirement()throws Exception{
   var known=new RuleAgentRunner.Input(input.owner(),input.taskId(),input.version(),input.question(),input.questions(),Map.of("courseType","PUBLIC"));var reviews=new AtomicInteger();
   var finish=new Finish(List.of(new Proposal("q1",List.of(pub),List.of(),null)));
   var out=new RuleAgentRunner(decision(finish),new RuleActionBroker(tools()),Clock.systemUTC(),(s,t)->{reviews.incrementAndGet();return valid(s);}).run(AgentRunContext.create(known.question()),known);
   assertThat(reviews).hasValue(1);
-  assertThat(out.snapshot().taskStatus()).isEqualTo(TaskStatus.FAILED);
-  assertThat(out.snapshot().result().coverage()).isEqualTo(Coverage.PARTIAL);
+  // 已声明PUBLIC后，核验器保留的专业分支不再是本轮适用需求；不能把该分支误算成漏答。
+  assertThat(out.snapshot().taskStatus()).isEqualTo(TaskStatus.RESOLVED);
+  assertThat(out.snapshot().result().coverage()).isEqualTo(Coverage.COMPLETE);
   var item=out.snapshot().result().items().getFirst();
   assertThat(item.claims()).isNotEmpty();
-  assertThat(item.issues()).extracting(Issue::reasonCode).containsExactly(ReasonCode.ANSWER_COVERAGE_INCOMPLETE);
+  assertThat(item.issues()).isEmpty();
  }
  @Test void driftedRegisteredDefinitionIsExcludedAndBothChecksReject(){
   var caps=RuleFactCapabilityCatalogue.fromReviewed(entries);var original=facts.stream().filter(f->f.id().equals(pub)).findFirst().orElseThrow();var d=original.definition();var changed=new RuleAgentEvidenceTools.VerifiedFact(pub,original.ruleId(),new RuleCheckRuleTemplate.Fact(d.id(),d.text()+"changed",d.independentlyAnswerable(),d.when(),d.evidenceBindings()));var all=new ArrayList<>(facts);all.set(all.indexOf(original),changed);

@@ -1,0 +1,182 @@
+{
+  "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+  "turn" : {
+    "caseId" : "RFE-008",
+    "kind" : "ANSWER",
+    "question" : "按这份手册，我现在还差多少学分才能毕业？",
+    "questionSha256" : "c8161055216150a55431b509b35f37a93246434ff08180621dd4b1ebc8b17a04",
+    "reply" : null,
+    "factIds" : [ "plan-required-credits" ],
+    "alternatives" : [ {
+      "caseId" : "RFE-008",
+      "taskStatus" : "RESOLVED",
+      "runState" : "INCOMPLETE",
+      "coverage" : "PARTIAL",
+      "requiredActions" : [ "SEARCH_REVIEWED_RULES", "READ_VERIFIED_RULE", "FINISH_CHECK", "PUBLICATION_REVIEW" ],
+      "issueReason" : "PERSONAL_RECORD_NOT_AVAILABLE",
+      "expectClaims" : true,
+      "observedAction" : null,
+      "observationStatus" : null,
+      "requireEvidenceLinks" : true,
+      "expectRejectedUnknownTool" : false
+    } ]
+  },
+  "turnId" : "47c8f074-9e6a-4d42-8712-64f6c197f8b8",
+  "version" : 2,
+  "execution" : {
+    "identity" : {
+      "caseId" : "RFE-008",
+      "taskId" : "a63ad622-5d6f-4f61-8188-fb4cf347d195",
+      "runId" : "f06a4f3a-132a-4329-a1a0-8383cd30540e",
+      "datasetVersion" : "v1.0",
+      "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+      "model" : "qwen4-max",
+      "configurationSha256" : "a2ec27e046b1ca6518b972e0999732565f38421d10a74d9b06a9a2beb7a834df"
+    },
+    "answer" : "已审核资料没有覆盖该需求（例如当期通知、具体课程实际安排、个人记录或代办操作），本轮不作结论，也不代替你办理。\n请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。",
+    "trace" : {
+      "taskId" : "a63ad622-5d6f-4f61-8188-fb4cf347d195",
+      "turnId" : "47c8f074-9e6a-4d42-8712-64f6c197f8b8",
+      "runId" : "f06a4f3a-132a-4329-a1a0-8383cd30540e",
+      "version" : 2,
+      "taskStatus" : "RESOLVED",
+      "runState" : "INCOMPLETE",
+      "exceptionalFailure" : false,
+      "truncated" : false,
+      "actions" : [ {
+        "actionId" : "8ccb5d31-3fa0-3466-974e-87a3dad57b15",
+        "type" : "SEARCH_REVIEWED_RULES",
+        "step" : 1,
+        "modelAttempt" : 1,
+        "observation" : {
+          "status" : "SUCCEEDED",
+          "dataLevel" : "CANDIDATE",
+          "reasonCode" : null
+        },
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "68d884f4-decb-3d06-ad07-d9579f6a2ecf",
+        "type" : "FINISH_CHECK",
+        "step" : 2,
+        "modelAttempt" : 2,
+        "observation" : null,
+        "reasonCode" : null,
+        "publicationReason" : null
+      }, {
+        "actionId" : "1357d218-cfca-36d1-b1f1-9fc5b87e8b66",
+        "type" : "PUBLICATION_REVIEW",
+        "step" : 3,
+        "modelAttempt" : 3,
+        "observation" : null,
+        "reasonCode" : null,
+        "publicationReason" : null
+      } ],
+      "result" : {
+        "coverage" : "NONE",
+        "evidence" : [ ],
+        "evidenceRelations" : [ ],
+        "items" : [ {
+          "claims" : [ ]
+        } ],
+        "issues" : [ {
+          "kind" : "DATA_GAP",
+          "reasonCode" : "UNSUPPORTED_DEMAND"
+        } ]
+      }
+    },
+    "retrievedLocators" : null,
+    "retrievalComplete" : false,
+    "matchedFacts" : null,
+    "factsComplete" : false,
+    "citations" : null,
+    "citationsComplete" : false,
+    "reviews" : { }
+  },
+  "publishedResult" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "f06a4f3a-132a-4329-a1a0-8383cd30540e",
+    "catalogueVersion" : "cat-2f3a5f801081d9550694a207c002f9f48ff85a28b2f74f9253ba46993310e70e",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "NONE",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "NONE",
+      "claims" : [ ],
+      "issues" : [ {
+        "id" : "i-UNSUPPORTED_DEMAND",
+        "kind" : "DATA_GAP",
+        "reasonCode" : "UNSUPPORTED_DEMAND",
+        "message" : "已审核资料没有覆盖该需求（例如当期通知、具体课程实际安排、个人记录或代办操作），本轮不作结论，也不代替你办理。",
+        "nextStep" : "请以教务系统当期通知、页面显示或辅导员确认为准；本系统只解释已审核规则原文，不代办报名、补选、退选或缴费。"
+      } ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ ],
+    "evidenceRelations" : [ ]
+  },
+  "searches" : [ {
+    "observationId" : "a7a51cfc-4208-4fa5-9698-72f72568e391",
+    "runId" : "f06a4f3a-132a-4329-a1a0-8383cd30540e",
+    "step" : 1,
+    "status" : "SUCCEEDED",
+    "candidates" : [ {
+      "handle" : "a1c3f0da-dd79-42f2-aed6-79b553db902d",
+      "excerpt" : "第八条　人才培养方案是学生选课的重要依据。学生应全面了解本专业\n的教学要求，在规定学习年限内按照人才培养方案的要求修读专业选修课和\n公共选修课，取得规定的学分，以达到毕业要求。选修网络公选课一般不能\n超过人才培养方案要求选修课的一半学分。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "b9b02a9d-04c5-4a3c-8cdc-8b6007bd4010",
+      "excerpt" : "第二条　所有全日制普通本科学生都必须按人才培养方案要求参加选修\n课学习。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "22944680-9f4e-443a-b906-9587f8406eef",
+      "excerpt" : "第十条　每学期选修公共选修课最高不得超过 4 个学分。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "d08b7223-8895-4b05-ae75-392c38c333ef",
+      "excerpt" : "第六条　公共选修课的选课、课程组织与安排由教务处负责。其中，校\n内公选课达到一定的选课人数方可开课，选课人数一般要求 30-150 人，低于\n30 人不予开课。",
+      "revision" : "2025.9.2"
+    }, {
+      "handle" : "3ed322fa-0263-46dd-a41e-b75aa38b5f6a",
+      "excerpt" : "第四条　学校选修课分为专业选修课和公共选修课。其中，专业选修课\n列入教学计划要求在规定学期内修读；公共选修课包\n括校内公选课和网络公选课，学生自行选课修读。",
+      "revision" : "2025.9.2"
+    } ]
+  } ],
+  "retrieval" : [ {
+    "taskId" : "a63ad622-5d6f-4f61-8188-fb4cf347d195",
+    "runId" : "f06a4f3a-132a-4329-a1a0-8383cd30540e",
+    "step" : 1,
+    "observationId" : "a7a51cfc-4208-4fa5-9698-72f72568e391",
+    "candidates" : [ {
+      "handle" : "a1c3f0da-dd79-42f2-aed6-79b553db902d",
+      "sourceId" : "7a30da77-2af6-41ee-8b9a-ff5705e8bbae",
+      "chunkId" : "be8e912a-7f0e-347e-b913-df1b1998e26e",
+      "revision" : "2025.9.2",
+      "checksum" : "056217b8775854fbadb44fff38af48c1ed37e1c3b0c92563e1681186387ffeb2"
+    }, {
+      "handle" : "b9b02a9d-04c5-4a3c-8cdc-8b6007bd4010",
+      "sourceId" : "7a30da77-2af6-41ee-8b9a-ff5705e8bbae",
+      "chunkId" : "1caaa2ba-9c82-34cd-b332-6527db2bd26f",
+      "revision" : "2025.9.2",
+      "checksum" : "2d1dbdbee0a567fea8c345a62e6568bc93d373d36518c5b62253a11f5f136dd1"
+    }, {
+      "handle" : "22944680-9f4e-443a-b906-9587f8406eef",
+      "sourceId" : "7a30da77-2af6-41ee-8b9a-ff5705e8bbae",
+      "chunkId" : "17d291d7-3ef9-3a20-a254-36182e882477",
+      "revision" : "2025.9.2",
+      "checksum" : "cd02ac0ab183f2a9f22b0e7129ce5fb6e7bdbb8d4c9dc4011413fabdc6adba24"
+    }, {
+      "handle" : "d08b7223-8895-4b05-ae75-392c38c333ef",
+      "sourceId" : "7a30da77-2af6-41ee-8b9a-ff5705e8bbae",
+      "chunkId" : "2ee24cf3-74dc-3cc0-ad81-7ddca51236d9",
+      "revision" : "2025.9.2",
+      "checksum" : "35910424a742c3fac925a219b7a4bc7fcac4725586e1641d30ed82c15268f2ab"
+    }, {
+      "handle" : "3ed322fa-0263-46dd-a41e-b75aa38b5f6a",
+      "sourceId" : "7a30da77-2af6-41ee-8b9a-ff5705e8bbae",
+      "chunkId" : "bc1ec3e4-17f5-3d19-a61a-ab74f98bb12f",
+      "revision" : "2025.9.2",
+      "checksum" : "f363ef0cf8c318e24a299ff7ccca3dace5ebaf9b64be65e038985daed5f28552"
+    } ]
+  } ]
+}

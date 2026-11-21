@@ -348,7 +348,6 @@ class RuleAgentOnlineFactoryTest {
                 "headroomBytes",DEFAULT_BUDGET.maxRequestBytes()-lastRequestBytes,"structuredOutputIncluded",true,"toolsAbsent",true)),
             java.nio.file.StandardOpenOption.CREATE,java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
     }
-
     @Test void repeatedKnownConditionIsAbsentFromWireAndFailsWithoutReviewOrRetry()throws Exception{
         conditional=true;repeatKnownCondition=true;start(8);
         var input=new RuleAgentRunner.Input(fixture.owner,fixture.task,1,"公选课能重修吗？",

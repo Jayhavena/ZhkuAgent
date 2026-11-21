@@ -1,0 +1,75 @@
+[ {
+  "taskId" : "f7ed46c6-d0a6-4f59-95c9-9817c5a8e003",
+  "turnId" : "1f60a186-4d76-4651-b24a-6355578dcc21",
+  "runId" : "9d4073cf-72e2-424f-bf0f-1ef83802af56",
+  "version" : 2,
+  "taskStatus" : "FAILED",
+  "runState" : "FAILED",
+  "exceptionalFailure" : false,
+  "truncated" : false,
+  "actions" : [ {
+    "actionId" : "5e6c0dd1-ff40-35a2-a629-72d8910136fc",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 1,
+    "modelAttempt" : 1,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "3b9c8e71-f1ac-3a01-8396-adbc1d938da2",
+    "type" : "SEARCH_REVIEWED_RULES",
+    "step" : 2,
+    "modelAttempt" : 2,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "CANDIDATE",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "1ac5631a-572f-369f-ad87-2418c890336c",
+    "type" : "READ_VERIFIED_RULE",
+    "step" : 3,
+    "modelAttempt" : 3,
+    "observation" : {
+      "status" : "SUCCEEDED",
+      "dataLevel" : "VERIFIED_FACT",
+      "reasonCode" : null
+    },
+    "reasonCode" : null,
+    "publicationReason" : null
+  }, {
+    "actionId" : "d991ca4f-fdeb-332d-ad72-9e9e96f42465",
+    "type" : "FINISH_CHECK",
+    "step" : 4,
+    "modelAttempt" : 4,
+    "observation" : null,
+    "reasonCode" : "INVALID_MODEL_RESPONSE",
+    "publicationReason" : "FACT_NOT_RELEVANT"
+  }, {
+    "actionId" : "d6dd082f-b99c-3be8-b761-99bc92663c38",
+    "type" : "PUBLICATION_REVIEW",
+    "step" : 5,
+    "modelAttempt" : 5,
+    "observation" : null,
+    "reasonCode" : "INVALID_MODEL_RESPONSE",
+    "publicationReason" : "FACT_NOT_RELEVANT"
+  } ],
+  "result" : {
+    "coverage" : "NONE",
+    "evidence" : [ ],
+    "evidenceRelations" : [ ],
+    "items" : [ {
+      "claims" : [ ]
+    } ],
+    "issues" : [ {
+      "kind" : "PROCESSING_FAILURE",
+      "reasonCode" : "INVALID_MODEL_RESPONSE"
+    } ]
+  }
+} ]

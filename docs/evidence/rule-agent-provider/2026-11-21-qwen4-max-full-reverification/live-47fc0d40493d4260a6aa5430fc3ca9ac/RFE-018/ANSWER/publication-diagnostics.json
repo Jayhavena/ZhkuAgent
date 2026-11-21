@@ -1,0 +1,90 @@
+{
+  "relevanceExclusions" : [ ],
+  "relevanceRejections" : [ {
+    "code" : "FACT_NOT_RELEVANT",
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 5,
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S06/GENERAL:online-selection-plan", "S06/GENERAL:unenrolled-assessment-disjunction" ],
+      "rejectedFact" : {
+        "factId" : "S06/GENERAL:online-selection-plan",
+        "dimension" : "UNENROLLED_EXAM",
+        "subject" : "PUBLIC_ELECTIVE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "c87c72d2fd5b957f8544588484a4720b60c1bec102f55ba1adc492cfc6ad17b5"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "UNKNOWN",
+        "subject" : "UNSPECIFIED",
+        "recognition" : "UNCLASSIFIED",
+        "bindings" : [ ]
+      }, {
+        "ordinal" : 2,
+        "dimension" : "UNKNOWN",
+        "subject" : "UNSPECIFIED",
+        "recognition" : "UNCLASSIFIED",
+        "bindings" : [ ]
+      } ]
+    }
+  } ],
+  "semanticReviews" : [ {
+    "attempt" : 5,
+    "action" : "PUBLICATION_REVIEW",
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "e554f40ed783dbfc3911b1985639639d317a147566b1abc3a08a6648c8ae9c3a",
+      "requirements" : [ {
+        "id" : "R1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 14
+        },
+        "dimension" : "UNKNOWN",
+        "subject" : "UNSPECIFIED",
+        "recognition" : "UNCLASSIFIED",
+        "necessaryConditionIds" : [ ]
+      }, {
+        "id" : "R2",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 14,
+          "endExclusive" : 24
+        },
+        "dimension" : "UNKNOWN",
+        "subject" : "UNSPECIFIED",
+        "recognition" : "UNCLASSIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ ],
+      "unresolvedDemands" : [ {
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 14
+        },
+        "reason" : "UNSUPPORTED_DIMENSION"
+      }, {
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 14,
+          "endExclusive" : 24
+        },
+        "reason" : "UNSUPPORTED_DIMENSION"
+      } ]
+    }
+  } ],
+  "captureSha256" : "dcbc9c4236d049fa0410af80dfd6ca8b825feb2b133c56ec75bba392117a34aa",
+  "identity" : {
+    "caseId" : "RFE-018",
+    "taskId" : "f7ed46c6-d0a6-4f59-95c9-9817c5a8e003",
+    "runId" : "9d4073cf-72e2-424f-bf0f-1ef83802af56",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen4-max",
+    "configurationSha256" : "a2ec27e046b1ca6518b972e0999732565f38421d10a74d9b06a9a2beb7a834df"
+  }
+}

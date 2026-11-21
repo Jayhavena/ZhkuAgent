@@ -1,0 +1,89 @@
+{
+  "relevanceExclusions" : [ {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S02/GENERAL:elective-category-distinction", "S02/GENERAL:public-course-subcategories", "T02/ARTICLE4:professional-elective-study-arrangement", "T02/ARTICLE4:public-elective-self-selection" ],
+      "rejectedFact" : {
+        "factId" : "T02/ARTICLE4:professional-elective-study-arrangement",
+        "dimension" : "STUDY_ARRANGEMENT",
+        "subject" : "PROFESSIONAL_ELECTIVE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "54b1f473996ae69ae08b48735cd11d914db00c48aed63989c838d37b88bb00d3"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "CATEGORY",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S02/GENERAL:elective-category-distinction",
+          "role" : "CORE"
+        } ]
+      }, {
+        "ordinal" : 2,
+        "dimension" : "CATEGORY",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S02/GENERAL:public-course-subcategories",
+          "role" : "CORE"
+        } ]
+      } ]
+    }
+  } ],
+  "relevanceRejections" : [ ],
+  "semanticReviews" : [ {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "4273d0b434f0d78477829d1607034f2b70953c3c5c03f45ec4dae522b896673d",
+      "requirements" : [ {
+        "id" : "r1-elective-categories",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 10
+        },
+        "dimension" : "CATEGORY",
+        "subject" : "GENERAL_UNDERGRADUATE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      }, {
+        "id" : "r2-public-elective-subcategories",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 10,
+          "endExclusive" : 21
+        },
+        "dimension" : "CATEGORY",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1-elective-categories",
+        "factId" : "S02/GENERAL:elective-category-distinction",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r2-public-elective-subcategories",
+        "factId" : "S02/GENERAL:public-course-subcategories",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    }
+  } ],
+  "captureSha256" : "a23d4212ab7bd9ed93be150e0f8de6bcf672c86a5cb9613511c2e61740656a7b",
+  "identity" : {
+    "caseId" : "RFE-001",
+    "taskId" : "58327335-3dc5-41fd-8bf3-2e685ca8a463",
+    "runId" : "d225a2d2-9451-43cd-a61f-ef62e539fca6",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen4-max",
+    "configurationSha256" : "a2ec27e046b1ca6518b972e0999732565f38421d10a74d9b06a9a2beb7a834df"
+  }
+}

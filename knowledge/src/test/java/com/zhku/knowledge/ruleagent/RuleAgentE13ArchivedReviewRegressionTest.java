@@ -48,7 +48,7 @@ class RuleAgentE13ArchivedReviewRegressionTest {
         assertThatThrownBy(() -> RulePublicationProtocol.decode(actual, safe))
                 .isInstanceOfSatisfying(RuleAgentProtocol.Rejected.class, error -> {
                     assertThat(error.validation.stage()).isEqualTo(RuleAgentProtocol.Stage.REVIEW_JSON);
-                    assertThat(error.validation.code()).isEqualTo(RuleAgentProtocol.Code.REVIEW_JSON_INVALID);
+                    assertThat(error.validation.code()).isEqualTo(RuleAgentProtocol.Code.REVIEW_SCHEMA_INVALID);
                 });
     }
 
@@ -87,7 +87,7 @@ class RuleAgentE13ArchivedReviewRegressionTest {
             assertThat(stub.calls).hasValue(1);
             var last = stub.traces.getLast();
             assertThat(last.validation().stage()).isEqualTo(RuleAgentProtocol.Stage.REVIEW_JSON);
-            assertThat(last.validation().code()).isEqualTo(RuleAgentProtocol.Code.REVIEW_JSON_INVALID);
+            assertThat(last.validation().code()).isEqualTo(RuleAgentProtocol.Code.REVIEW_SCHEMA_INVALID);
             assertThat(last.reason()).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE);
             assertThat(last.responseReceived()).isTrue();
         } finally {

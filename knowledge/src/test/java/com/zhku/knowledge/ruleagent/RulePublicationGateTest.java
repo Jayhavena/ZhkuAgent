@@ -243,7 +243,15 @@ class RulePublicationGateTest {
         var safe=RulePublicationContract.input(original,facts,caps);
         assertThatThrownBy(()->new RulePublicationGate(caps).assess(original,
             proposal(professional.id(),publicCourse.id(),retake.id()),comparison(safe),facts))
-            .hasMessage(Code.FACT_NOT_RELEVANT.name());
+            .isInstanceOfSatisfying(Rejected.class, error -> {
+                assertThat(error.code).isEqualTo(Code.FACT_NOT_RELEVANT);
+                var detail = error.relevance;
+                assertThat(detail.rejectedFact().factId()).isEqualTo(retake.id());
+                assertThat(detail.proposedFactIds()).containsExactly(professional.id(),publicCourse.id(),retake.id());
+                assertThat(detail.requirements()).extracting(RequirementDiagnostic::ordinal).containsExactly(1,2);
+                assertThat(detail.requirements().stream().flatMap(row->row.bindings().stream()))
+                        .extracting(BindingDiagnostic::factId).containsExactly(professional.id(),publicCourse.id());
+            });
     }
 
     @Test void missingUserConditionCannotBeMadeTrueBySemanticBinding() {
@@ -257,6 +265,29 @@ class RulePublicationGateTest {
             List.of(new SemanticBinding("r1",retake.id(),BindingRole.CORE)),List.of());
         assertThatThrownBy(()->new RulePublicationGate(caps).assess(original,proposal(retake.id()),review,facts))
             .hasMessage(Code.WHEN_NOT_SATISFIED.name());
+    }
+
+    @Test void reviewedFinishDropsOnlyTheUnaskedDeferredExamFactFromThePublicRetakeProposal() {
+        var retake=fact("S10/RETAKE_ONLY","public-failed-no-retake",Map.of("courseType","PUBLIC"));
+        var deferred=fact("S10/DEFERRED_EXAM_ONLY","public-no-deferred-exam",Map.of("courseType","PUBLIC"));
+        var facts=List.of(deferred,retake);
+        var gate=new RulePublicationGate(catalogue(facts));
+        var initial=input("如果挂科的是公共选修课，手册怎么说？");
+        var original=new RuleAgentRunner.Input(initial.owner(),initial.taskId(),initial.version(),initial.question(),initial.questions(),Map.of("courseType","PUBLIC"));
+        var safe=RulePublicationContract.input(original,facts,catalogue(facts));
+        var demand=requirement("r1",original.question(),Dimension.RETAKE,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED);
+        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(demand),
+            List.of(new SemanticBinding("r1",retake.id(),BindingRole.CORE)),List.of());
+        var selected=gate.reviewFinish(original,proposal(deferred.id(),retake.id()),review,facts);
+        assertThat(selected.proposal().items().getFirst().factIds()).containsExactly(retake.id());
+        assertThat(selected.assessment().verdict()).isEqualTo(Verdict.COMPLETE);
+        assertThat(selected.exclusion().rejectedFact().factId()).isEqualTo(deferred.id());
+
+        var missingBinding=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(demand),List.of(),List.of());
+        assertThatThrownBy(()->gate.reviewFinish(original,proposal(deferred.id(),retake.id()),missingBinding,facts))
+            .hasMessage(Code.FACT_NOT_RELEVANT.name());
+        assertThatThrownBy(()->gate.reviewFinish(original,proposal(deferred.id(),retake.id(),"not-read"),review,facts))
+            .hasMessage(Code.FACT_NOT_READ.name());
     }
 
     @Test void changedDefinitionCannotReuseCapabilityAndReviewCannotCrossTask() {
@@ -342,6 +373,182 @@ class RulePublicationGateTest {
             .hasMessage("CONDITION_ALREADY_PROVIDED");
     }
 
+    /**
+     * 个人记录题可能同时带一般规则事实和额外依据事实；额外依据即使与主需求同对象，
+     * 只要维度不同且未被核验绑定，就应只移除该事实，保留主事实和真实缺口，而不是让整题失败。
+     */
+    @Test void extraDifferentDimensionFactIsDroppedEvenWhenTheItemKeepsAGapIssue() {
+        var plan=fact("S05/GENERAL","plan-required-credits",Map.of());
+        var basis=fact("S05/GENERAL","plan-selection-basis",Map.of());
+        var facts=List.of(plan,basis);
+        var caps=catalogue(facts);
+        var original=input("按这份手册，我还差多少学分才能毕业？");
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var span=new DemandSpan("q1",0,original.question().length());
+        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),
+            List.of(new Requirement("r1",span,Dimension.GRADUATION_CREDITS,Subject.GENERAL_UNDERGRADUATE,Recognition.IDENTIFIED,List.of())),
+            List.of(new SemanticBinding("r1",plan.id(),BindingRole.CORE)),
+            List.of(new UnresolvedDemand(span,UnresolvedReason.UNSUPPORTED_DIMENSION)));
+        var proposal=new Finish(List.of(new Proposal("q1",List.of(basis.id(),plan.id()),
+            List.of(new ProposedIssue(IssueKind.DATA_GAP,ReasonCode.UNSUPPORTED_DEMAND)),null)));
+        var selected=new RulePublicationGate(caps).reviewFinish(original,proposal,review,facts);
+        assertThat(selected.proposal().items().getFirst().factIds()).containsExactly(plan.id());
+        assertThat(selected.proposal().items().getFirst().issues()).hasSize(1);
+        assertThat(selected.assessment().questions().get("q1").uncoveredRequirementIds()).isEmpty();
+        assertThat(selected.assessment().verdict()).isEqualTo(Verdict.PARTIAL);
+        assertThat(selected.exclusion().rejectedFact().factId()).isEqualTo(basis.id());
+    }
+
+    /**
+     * 缓考是独立事项：问题没有问缓考时，核验器多出来的DEFERRED_EXAM需求及其绑定应被移除，
+     * 只发布问题实际问到的重修事实。
+     */
+    @Test void deferredExamRequirementIsDroppedWhenTheQuestionOnlyAsksAboutRetake() {
+        var retake=fact("S10/RETAKE_ONLY","public-failed-no-retake",Map.of("courseType","PUBLIC"));
+        var deferred=fact("S10/DEFERRED_EXAM_ONLY","public-no-deferred-exam",Map.of("courseType","PUBLIC"));
+        var facts=List.of(retake,deferred);
+        var caps=catalogue(facts);
+        var original=new RuleAgentRunner.Input(owner(),UUID.randomUUID(),1,"如果挂科的是公共选修课，手册怎么说？",
+            List.of(new RuleAgentRunner.Question("q1","如果挂科的是公共选修课，手册怎么说？")),Map.of("courseType","PUBLIC"));
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var span=new DemandSpan("q1",0,original.question().length());
+        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(
+            new Requirement("r1",span,Dimension.RETAKE,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED,List.of()),
+            new Requirement("r2",span,Dimension.DEFERRED_EXAM,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED,List.of())),
+            List.of(new SemanticBinding("r1",retake.id(),BindingRole.CORE),
+                new SemanticBinding("r2",deferred.id(),BindingRole.CORE)),List.of());
+        var proposal=proposal(deferred.id(),retake.id());
+        var selected=new RulePublicationGate(caps).reviewFinish(original,proposal,review,facts);
+        assertThat(selected.proposal().items().getFirst().factIds()).containsExactly(retake.id());
+        assertThat(selected.assessment().verdict()).isEqualTo(Verdict.COMPLETE);
+        assertThat(selected.exclusion().rejectedFact().factId()).isEqualTo(deferred.id());
+    }
+
+    /** 问题明确问缓考时不能误删缓考需求。 */
+    @Test void deferredExamRequirementIsKeptWhenTheQuestionExplicitlyAsksAboutIt() {
+        var deferred=fact("S10/DEFERRED_EXAM_ONLY","public-no-deferred-exam",Map.of("courseType","PUBLIC"));
+        var facts=List.of(deferred);
+        var caps=catalogue(facts);
+        var question="公共选修课可以缓考吗？";
+        var original=new RuleAgentRunner.Input(owner(),UUID.randomUUID(),1,question,
+            List.of(new RuleAgentRunner.Question("q1",question)),Map.of("courseType","PUBLIC"));
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var span=new DemandSpan("q1",0,question.length());
+        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),
+            List.of(new Requirement("r1",span,Dimension.DEFERRED_EXAM,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED,List.of())),
+            List.of(new SemanticBinding("r1",deferred.id(),BindingRole.CORE)),List.of());
+        var selected=new RulePublicationGate(caps).reviewFinish(original,proposal(deferred.id()),review,facts);
+        assertThat(selected.proposal().items().getFirst().factIds()).containsExactly(deferred.id());
+        assertThat(selected.assessment().verdict()).isEqualTo(Verdict.COMPLETE);
+        assertThat(selected.exclusion()).isNull();
+    }
+
+    /** 已声明PUBLIC时，核验器保留的专业选修分支需求不应把正确的公共分支答案判成漏答。 */
+    @Test void declaredCourseTypeDropsTheOtherBranchRequirement() {
+        var publicFact=fact("S10/RETAKE_ONLY","public-failed-no-retake",Map.of("courseType","PUBLIC"));
+        var professionalFact=fact("S10/RETAKE_ONLY","professional-failed-retake-application",Map.of("courseType","PROFESSIONAL"));
+        var facts=List.of(publicFact,professionalFact);
+        var caps=catalogue(facts);
+        var question="公共选修课挂科能重修吗？";
+        var original=new RuleAgentRunner.Input(owner(),UUID.randomUUID(),1,question,
+            List.of(new RuleAgentRunner.Question("q1",question)),Map.of("courseType","PUBLIC"));
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var span=new DemandSpan("q1",0,question.length());
+        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(
+            new Requirement("r1",span,Dimension.RETAKE,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED,List.of()),
+            new Requirement("r2",span,Dimension.RETAKE,Subject.PROFESSIONAL_ELECTIVE,Recognition.IDENTIFIED,List.of())),
+            List.of(new SemanticBinding("r1",publicFact.id(),BindingRole.CORE),
+                new SemanticBinding("r2",professionalFact.id(),BindingRole.CORE)),List.of());
+        var selected=new RulePublicationGate(caps).reviewFinish(original,proposal(publicFact.id()),review,facts);
+        assertThat(selected.assessment().verdict()).isEqualTo(Verdict.COMPLETE);
+        assertThat(selected.assessment().questions().get("q1").uncoveredRequirementIds()).isEmpty();
+        assertThat(selected.proposal().items().getFirst().factIds()).containsExactly(publicFact.id());
+    }
+
+    /** 多需求题中也可能混入完全未绑定的第三类事实；保留项覆盖全部需求时应只移除该额外事实。 */
+    @Test void unboundExtraFactIsDroppedWhenRemainingFactsCoverAllRequirements() {
+        var basis=fact("S05/PERSONAL_CREDIT_DEFICIT","plan-selection-basis",Map.of());
+        var plan=fact("S05/PERSONAL_CREDIT_DEFICIT","plan-required-credits",Map.of());
+        var online=fact("S05/PERSONAL_CREDIT_DEFICIT","online-general-half",Map.of());
+        var extra=fact("T02/ARTICLE4","professional-elective-study-arrangement",Map.of());
+        var facts=List.of(basis,plan,online,extra);
+        var caps=catalogue(facts);
+        var question="按这份手册，我还差多少学分才能毕业？";
+        var original=input(question);
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var span=new DemandSpan("q1",0,question.length());
+        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),List.of(
+            new Requirement("r1",span,Dimension.STUDY_ARRANGEMENT,Subject.GENERAL_UNDERGRADUATE,Recognition.IDENTIFIED,List.of()),
+            new Requirement("r2",span,Dimension.GRADUATION_CREDITS,Subject.GENERAL_UNDERGRADUATE,Recognition.IDENTIFIED,List.of())),
+            List.of(new SemanticBinding("r1",basis.id(),BindingRole.CORE),
+                new SemanticBinding("r2",plan.id(),BindingRole.CORE)),List.of());
+        var proposal=proposal(basis.id(),plan.id(),online.id(),extra.id());
+        var selected=new RulePublicationGate(caps).reviewFinish(original,proposal,review,facts);
+        assertThat(selected.proposal().items().getFirst().factIds()).containsExactly(basis.id(),plan.id());
+        assertThat(selected.assessment().verdict()).isEqualTo(Verdict.COMPLETE);
+        assertThat(selected.exclusion()).isNotNull();
+    }
+
+    /** 核验器把不同维度事实绑到同一需求时应移除该绑定，而不是让整题在 REVIEW_BINDING_INVALID 处失败。 */
+    @Test void invalidBindingIsDroppedBeforeCoverageIsJudged() {
+        var plan=fact("S05/PERSONAL_CREDIT_DEFICIT","plan-required-credits",Map.of());
+        var online=fact("S05/PERSONAL_CREDIT_DEFICIT","online-general-half",Map.of());
+        var facts=List.of(plan,online);
+        var caps=catalogue(facts);
+        var question="按这份手册，我还差多少学分才能毕业？";
+        var original=input(question);
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var span=new DemandSpan("q1",0,question.length());
+        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),
+            List.of(new Requirement("r1",span,Dimension.GRADUATION_CREDITS,Subject.GENERAL_UNDERGRADUATE,Recognition.IDENTIFIED,List.of())),
+            List.of(new SemanticBinding("r1",plan.id(),BindingRole.CORE),
+                new SemanticBinding("r1",online.id(),BindingRole.CORE)),List.of());
+        var selected=new RulePublicationGate(caps).reviewFinish(original,proposal(plan.id(),online.id()),review,facts);
+        assertThat(selected.proposal().items().getFirst().factIds()).containsExactly(plan.id());
+        assertThat(selected.assessment().verdict()).isEqualTo(Verdict.COMPLETE);
+        assertThat(selected.exclusion()).isNotNull();
+    }
+
+    /** 主事实声明HOURS_NORMAL为辅助维度时，原则值事实不能被“未绑定”过滤器误删。 */
+    @Test void complementaryPrincipleFactIsAllowedWhenOnlyTheLimitRequirementIsBound() {
+        var principle=fact("S03/GENERAL","hours-principle",Map.of());
+        var limit=fact("S03/GENERAL","hours-upper-limit",Map.of());
+        var facts=List.of(principle,limit);
+        var caps=catalogue(facts);
+        var question="有门公选课安排24学时，这能直接判定违规吗？";
+        var original=input(question);
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var span=new DemandSpan("q1",0,question.length());
+        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),
+            List.of(new Requirement("r1",span,Dimension.HOURS_LIMIT,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED,List.of())),
+            List.of(new SemanticBinding("r1",limit.id(),BindingRole.CORE)),List.of());
+        var selected=new RulePublicationGate(caps).reviewFinish(original,proposal(principle.id(),limit.id()),review,facts);
+        assertThat(selected.proposal().items().getFirst().factIds()).containsExactly(principle.id(),limit.id());
+        assertThat(selected.assessment().verdict()).isEqualTo(Verdict.COMPLETE);
+        assertThat(selected.exclusion()).isNull();
+    }
+
+    /** 人数规则事实必须有发布能力，否则核验无法绑定，正确候选会被判无关。 */
+    @Test void enrollmentFactsArePublishableAndCoverTheEnrollmentRequirement() {
+        var range=fact("S04/GENERAL","campus-enrollment-general-range",Map.of());
+        var below=fact("S04/GENERAL","campus-below-thirty",Map.of());
+        var facts=List.of(range,below);
+        var caps=catalogue(facts);
+        var question="校内公选课只有29人选，按这份手册怎么规定？";
+        var original=input(question);
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var span=new DemandSpan("q1",0,question.length());
+        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),
+            List.of(new Requirement("r1",span,Dimension.ENROLLMENT,Subject.PUBLIC_ELECTIVE,Recognition.IDENTIFIED,List.of())),
+            List.of(new SemanticBinding("r1",range.id(),BindingRole.CORE),
+                new SemanticBinding("r1",below.id(),BindingRole.CORE)),List.of());
+        var selected=new RulePublicationGate(caps).reviewFinish(original,proposal(range.id(),below.id()),review,facts);
+        assertThat(selected.assessment().verdict()).isEqualTo(Verdict.COMPLETE);
+        assertThat(selected.proposal().items().getFirst().factIds()).containsExactly(range.id(),below.id());
+    }
+
+    private Owner owner(){return new Owner(UUID.randomUUID(),UUID.randomUUID());}
+
     @Test void askCannotUseArrangementFactOrUnresolvedDemandToInventCondition() {
         var caps=catalogue(arrangement);
         var original=input("比较两类选修的修读安排");
@@ -349,5 +556,48 @@ class RulePublicationGateTest {
         assertThatThrownBy(()->new RulePublicationGate(caps).assess(original,
             new Ask("q1","courseType","先问类别",List.of(professional.id())),review,arrangement))
             .hasMessage("CONDITION_NOT_NECESSARY");
+    }
+
+    /**
+     * 模型只报缺口时，宿主用独立核验已确认的可发布CORE绑定补齐空事实项。
+     * 该补齐只针对空项；有事实的提议不能被宿主改写。
+     */
+    @Test void emptyFactItemIsCompletedFromPublishableReviewBindings() {
+        var plan=fact("S05/GENERAL","plan-required-credits",Map.of());
+        var facts=List.of(plan);
+        var caps=catalogue(facts);
+        var original=input("按这份手册，我还差多少学分才能毕业？");
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),
+            List.of(requirement("r1",original.question(),Dimension.GRADUATION_CREDITS,Subject.GENERAL_UNDERGRADUATE,Recognition.IDENTIFIED)),
+            List.of(new SemanticBinding("r1",plan.id(),BindingRole.CORE)),List.of());
+        var empty=new Finish(List.of(new Proposal("q1",List.of(),List.of(new ProposedIssue(IssueKind.DATA_GAP,ReasonCode.UNSUPPORTED_DEMAND)),null)));
+        var selected=new RulePublicationGate(caps).reviewFinish(original,empty,review,facts);
+        assertThat(selected.proposal().items().getFirst().factIds()).containsExactly(plan.id());
+        assertThat(selected.completedFactIds()).containsExactly(plan.id());
+        assertThat(selected.assessment().questions().get("q1").coveredRequirementIds()).containsExactly("r1");
+
+        var withFact=new Finish(List.of(new Proposal("q1",List.of(plan.id()),List.of(),null)));
+        var untouched=new RulePublicationGate(caps).reviewFinish(original,withFact,review,facts);
+        assertThat(untouched.completedFactIds()).isEmpty();
+        assertThat(untouched.proposal()).isEqualTo(withFact);
+    }
+
+    /** 未绑定的需求不能被宿主补事实；否则会把不适用或未识别的需求伪装成已回答。 */
+    @Test void unresolvedDemandIsNotCompletedFromAnUnboundFact() {
+        var plan=fact("S05/GENERAL","plan-required-credits",Map.of());
+        var facts=List.of(plan);
+        var caps=catalogue(facts);
+        var original=input("按这份手册，我还差多少学分才能毕业？");
+        var safe=RulePublicationContract.input(original,facts,caps);
+        var span=new DemandSpan("q1",0,original.question().length());
+        var review=new SemanticAssessment(REVISION,safe.inputFingerprint(),
+            List.of(new Requirement("r1",span,Dimension.UNKNOWN,Subject.UNSPECIFIED,Recognition.UNCLASSIFIED,List.of())),
+            List.of(),List.of(new UnresolvedDemand(span,UnresolvedReason.UNSUPPORTED_DIMENSION)));
+        var empty=new Finish(List.of(new Proposal("q1",List.of(),List.of(new ProposedIssue(IssueKind.DATA_GAP,ReasonCode.UNSUPPORTED_DEMAND)),null)));
+        var selected=new RulePublicationGate(caps).reviewFinish(original,empty,review,facts);
+        assertThat(selected.proposal().items().getFirst().factIds()).isEmpty();
+        assertThat(selected.completedFactIds()).isEmpty();
+        assertThat(selected.assessment().questions().get("q1").unsupportedDemand()).isTrue();
     }
 }

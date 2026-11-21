@@ -19,7 +19,10 @@ public final class RulePublicationContract {
     }
     private static final ObjectMapper JSON=new ObjectMapper().configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS,true);
 
-    public enum Dimension { CATEGORY,STUDY_ARRANGEMENT,HOURS_NORMAL,HOURS_LIMIT,SEMESTER_CREDIT_LIMIT,DEFERRED_EXAM,RETAKE,UNKNOWN }
+    /** 维度与已审核事实能力一一对应；个人/一般规则共用同一能力时仍以问题跨度区分需求。 */
+    public enum Dimension { CATEGORY,STUDY_ARRANGEMENT,HOURS_NORMAL,HOURS_LIMIT,SEMESTER_CREDIT_LIMIT,
+        GRADUATION_CREDITS,NETWORK_PROPORTION,ENROLLMENT,UNENROLLED_EXAM,REPEAT_RESTRICTION,SCHEDULE,
+        DEFERRED_EXAM,RETAKE,UNKNOWN }
     public enum Subject { PUBLIC_ELECTIVE,PROFESSIONAL_ELECTIVE,GENERAL_UNDERGRADUATE,UNSPECIFIED }
     public enum BindingRole { CORE,CONDITION_EXCEPTION }
     public enum Recognition { IDENTIFIED,AMBIGUOUS,UNCLASSIFIED }
@@ -30,11 +33,30 @@ public final class RulePublicationContract {
 
     public static final class Rejected extends RuntimeException {
         public final Code code;
+        public final RelevanceDiagnostic relevance;
         public Rejected(Code code) {
+            this(code, null);
+        }
+        Rejected(Code code, RelevanceDiagnostic relevance) {
             super(code.name(),null,false,false);
             this.code=code;
+            this.relevance=relevance;
         }
     }
+
+    /** 仅记录已验证目录ID、宿主子问题ID与枚举。需求序号取代模型填写的ID或原文片段。 */
+    public record RelevanceDiagnostic(String subquestionId, List<String> proposedFactIds,
+                                      FactCapability rejectedFact, List<RequirementDiagnostic> requirements) {
+        public RelevanceDiagnostic {
+            proposedFactIds = List.copyOf(proposedFactIds);
+            requirements = List.copyOf(requirements);
+        }
+    }
+    public record RequirementDiagnostic(int ordinal, Dimension dimension, Subject subject, Recognition recognition,
+                                        List<BindingDiagnostic> bindings) {
+        public RequirementDiagnostic { bindings = List.copyOf(bindings); }
+    }
+    public record BindingDiagnostic(String factId, BindingRole role) {}
 
     public record FactCapability(String factId,Dimension dimension,Subject subject,Set<BindingRole> allowedRoles,
                                  Set<Dimension> auxiliaryDimensions,String sourceFingerprint) {

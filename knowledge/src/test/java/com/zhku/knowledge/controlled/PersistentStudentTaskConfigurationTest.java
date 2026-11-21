@@ -42,7 +42,9 @@ class PersistentStudentTaskConfigurationTest {
                     assertThat(factory.resourcesClosed()).isTrue();
                     assertThat(c.getBean(PersistentStudentRuntimeController.class).runtime().getBody().mode()).isEqualTo("ONLINE");
                     var options=c.getBean(com.zhku.knowledge.ruleagent.web.RuleAgentOnlineHttpConfiguration.Options.class);
-                    assertThat(options.settings().model()).isEqualTo(com.zhku.knowledge.ruleagent.RuleAgentProvider.MODEL);
+                    // 2026-11-21 生产默认切换（用户决策池②）：qwen3.8-flash → qwen4-max。
+                    // 装配默认须与 RuleModelSwitchContractTest 的 QWEN4_MAX 口径一致；MODEL 保留为历史兼容常量。
+                    assertThat(options.settings().model()).isEqualTo(com.zhku.knowledge.ruleagent.RuleAgentProvider.QWEN4_MAX);
                     assertThat(options.settings().authorizationId()).isEqualTo("ASSEMBLY_ONLY_NOT_AUTHORIZED");
                     assertThat(options.allowance()).isEqualTo(10);
                 });

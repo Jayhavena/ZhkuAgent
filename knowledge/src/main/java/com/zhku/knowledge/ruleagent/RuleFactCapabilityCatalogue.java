@@ -84,6 +84,28 @@ public final class RuleFactCapabilityCatalogue {
             case "S02/GENERAL:public-course-subcategories" -> {dimension=Dimension.CATEGORY;subject=Subject.PUBLIC_ELECTIVE;}
             case "S03/GENERAL:hours-principle" -> {dimension=Dimension.HOURS_NORMAL;subject=Subject.PUBLIC_ELECTIVE;}
             case "S03/GENERAL:hours-upper-limit" -> {dimension=Dimension.HOURS_LIMIT;subject=Subject.PUBLIC_ELECTIVE;}
+            case "S01/GENERAL:undergraduate-plan-obligation" -> {
+                dimension=Dimension.STUDY_ARRANGEMENT;subject=Subject.GENERAL_UNDERGRADUATE;}
+            case "S04/GENERAL:campus-enrollment-general-range","S04/ACTUAL_CLASS_OPENING:campus-enrollment-general-range",
+                 "S04/GENERAL:campus-below-thirty","S04/ACTUAL_CLASS_OPENING:campus-below-thirty" -> {
+                dimension=Dimension.ENROLLMENT;subject=Subject.PUBLIC_ELECTIVE;}
+            // 2026-11-21 谱系融合仲裁（用户裁定 B2）：S06 历史事实维持 E13 决定（2026-10-29 事故），
+            // 可读、可检索但不可发布，门禁必须以 CAPABILITY_UNAVAILABLE 拒绝绑定。
+            // 分支曾试登记 GENERAL/CURRENT_ENTRY_OR_TIME 四个 id 以支持 RFE-009 作答（12/20 复验批），
+            // 该实验保留为已归档历史，不重写；按问题类型（当期窗口 vs 规则后果）做精细化门控的设计另立 Issue 跟踪。
+            case "S08/GENERAL:no-same-or-similar-plan-course" -> {
+                dimension=Dimension.STUDY_ARRANGEMENT;subject=Subject.GENERAL_UNDERGRADUATE;}
+            case "S08/GENERAL:no-repeat-passed-course" -> {
+                dimension=Dimension.REPEAT_RESTRICTION;subject=Subject.GENERAL_UNDERGRADUATE;}
+            case "S09/GENERAL:schedule-previous-semester","S09/GENERAL:schedule-order" -> {
+                dimension=Dimension.SCHEDULE;subject=Subject.GENERAL_UNDERGRADUATE;}
+            // S05的同一事实会随“一般比例”与“个人学分缺口”两个审核条目下发；能力相同，缺口由核验需求与宿主问题边界区分。
+            case "S05/GENERAL:plan-selection-basis","S05/PERSONAL_CREDIT_DEFICIT:plan-selection-basis" -> {
+                dimension=Dimension.STUDY_ARRANGEMENT;subject=Subject.GENERAL_UNDERGRADUATE;}
+            case "S05/GENERAL:plan-required-credits","S05/PERSONAL_CREDIT_DEFICIT:plan-required-credits" -> {
+                dimension=Dimension.GRADUATION_CREDITS;subject=Subject.GENERAL_UNDERGRADUATE;}
+            case "S05/GENERAL:online-general-half","S05/PERSONAL_CREDIT_DEFICIT:online-general-half" -> {
+                dimension=Dimension.NETWORK_PROPORTION;subject=Subject.PUBLIC_ELECTIVE;}
             case "S07/GENERAL:public-semester-four-credits" -> {dimension=Dimension.SEMESTER_CREDIT_LIMIT;subject=Subject.PUBLIC_ELECTIVE;}
             case "S10/RETAKE_ONLY:public-failed-no-retake" -> {dimension=Dimension.RETAKE;subject=Subject.PUBLIC_ELECTIVE;}
             case "S10/RETAKE_ONLY:professional-failed-retake-application" -> {dimension=Dimension.RETAKE;subject=Subject.PROFESSIONAL_ELECTIVE;}

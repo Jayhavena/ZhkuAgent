@@ -1,0 +1,73 @@
+{
+  "relevanceExclusions" : [ ],
+  "relevanceRejections" : [ {
+    "code" : "FACT_NOT_RELEVANT",
+    "action" : "PUBLICATION_REVIEW",
+    "attempt" : 4,
+    "detail" : {
+      "subquestionId" : "q1",
+      "proposedFactIds" : [ "S04/GENERAL:campus-enrollment-general-range", "S04/GENERAL:campus-below-thirty" ],
+      "rejectedFact" : {
+        "factId" : "S04/GENERAL:campus-enrollment-general-range",
+        "dimension" : "ENROLLMENT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "allowedRoles" : [ "CORE" ],
+        "auxiliaryDimensions" : [ ],
+        "sourceFingerprint" : "1d79842af11122db12d6766aba99778fa6894f575cd17382b99d4a82ebb1efe7"
+      },
+      "requirements" : [ {
+        "ordinal" : 1,
+        "dimension" : "ENROLLMENT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "bindings" : [ {
+          "factId" : "S04/ACTUAL_CLASS_OPENING:campus-enrollment-general-range",
+          "role" : "CORE"
+        }, {
+          "factId" : "S04/ACTUAL_CLASS_OPENING:campus-below-thirty",
+          "role" : "CORE"
+        } ]
+      } ]
+    }
+  } ],
+  "semanticReviews" : [ {
+    "attempt" : 4,
+    "action" : "PUBLICATION_REVIEW",
+    "assessment" : {
+      "protocolRevision" : "RULE_PUBLICATION_REVIEW_02",
+      "inputFingerprint" : "6e5929d9d87b4db08eee21e472e84666a0aae78477a470d66e203c9e3fb4249c",
+      "requirements" : [ {
+        "id" : "r1",
+        "span" : {
+          "subquestionId" : "q1",
+          "startInclusive" : 0,
+          "endExclusive" : 22
+        },
+        "dimension" : "ENROLLMENT",
+        "subject" : "PUBLIC_ELECTIVE",
+        "recognition" : "IDENTIFIED",
+        "necessaryConditionIds" : [ ]
+      } ],
+      "bindings" : [ {
+        "requirementId" : "r1",
+        "factId" : "S04/ACTUAL_CLASS_OPENING:campus-enrollment-general-range",
+        "role" : "CORE"
+      }, {
+        "requirementId" : "r1",
+        "factId" : "S04/ACTUAL_CLASS_OPENING:campus-below-thirty",
+        "role" : "CORE"
+      } ],
+      "unresolvedDemands" : [ ]
+    }
+  } ],
+  "captureSha256" : "99ef0282c4956eee0cad5390e48f55185c1da1b5681370b02879a82ce87bb65b",
+  "identity" : {
+    "caseId" : "RFE-005",
+    "taskId" : "eaa54c0c-69be-44c1-b265-33269172583e",
+    "runId" : "efb2894a-a93d-4751-a269-8103cb6ac46e",
+    "datasetVersion" : "v1.0",
+    "datasetSha256" : "36e2827d7855a8b1ddcacbde013aa60dd59e4b99f215ec35b3b9c7470f86f280",
+    "model" : "qwen4-max",
+    "configurationSha256" : "a2ec27e046b1ca6518b972e0999732565f38421d10a74d9b06a9a2beb7a834df"
+  }
+}

@@ -12,6 +12,15 @@ import static com.zhku.knowledge.ruleagent.RuleAgentContract.*;
 
 /** 任务内证据工具，不负责模型决策、HTTP或学校业务操作。 */
 public final class RuleAgentEvidenceTools {
+    /** Host-only retrieval provenance; never added to the model candidate schema. */
+    public record CandidateSource(UUID handle, UUID sourceId, UUID chunkId, String revision, String checksum) {}
+    public record SearchSources(UUID taskId, UUID runId, int step, UUID observationId, List<CandidateSource> candidates) {
+        public SearchSources { candidates = List.copyOf(candidates); }
+    }
+    private java.util.function.Consumer<SearchSources> searchAudit = ignored -> {};
+    public RuleAgentEvidenceTools withSearchAudit(java.util.function.Consumer<SearchSources> audit) {
+        this.searchAudit = Objects.requireNonNull(audit); return this;
+    }
     public record VerifiedFact(String id,String ruleId,RuleCheckRuleTemplate.Fact definition){}
     public record ReadOutcome(ToolObservation observation,List<VerifiedFact> facts){public ReadOutcome{facts=List.copyOf(facts);}}
     private final Owner owner;
@@ -58,7 +67,11 @@ public final class RuleAgentEvidenceTools {
             synchronized(handles){handles.entrySet().removeIf(e->!clock.instant().isBefore(e.getValue().expires()));
                 if(handles.size()+additions.size()>120)return fail(run,step,ReasonCode.BUDGET_EXCEEDED,directory.version());handles.putAll(additions);}
             if(values.isEmpty())return fail(run,step,ReasonCode.RETRIEVAL_NO_MATCH,directory.version());
-            return new ToolObservation(UUID.randomUUID(),run,step,ObservationStatus.SUCCEEDED,null,DataLevel.CANDIDATE,directory.version(),values,List.of(),List.of());
+            UUID observationId=UUID.randomUUID();
+            var sources=values.stream().map(v->{var c=additions.get(v.handle()).chunk();
+                return new CandidateSource(v.handle(),c.sourceId(),c.chunkId(),c.sourceVersion(),c.contentChecksum().toLowerCase(Locale.ROOT));}).toList();
+            searchAudit.accept(new SearchSources(task,run,step,observationId,sources));
+            return new ToolObservation(observationId,run,step,ObservationStatus.SUCCEEDED,null,DataLevel.CANDIDATE,directory.version(),values,List.of(),List.of());
         }catch(IllegalArgumentException revoked){return fail(run,step,ReasonCode.EVIDENCE_CHANGED,"unavailable");}
         catch(RuntimeException unavailable){return fail(run,step,ReasonCode.RETRIEVAL_UNAVAILABLE,"unavailable");}
     }

@@ -1,0 +1,71 @@
+{
+  "schemaVersion" : 3,
+  "taskId" : "1aa259ce-7e00-4e3b-9e2f-17f7aae0012f",
+  "turnId" : "6ae46e4a-0da9-4572-bdbe-e8ed81c75932",
+  "runId" : "ce21816d-8af7-46f0-9e85-9ecf3d1f9328",
+  "version" : 2,
+  "taskStatus" : "RESOLVED",
+  "runState" : "INCOMPLETE",
+  "terminated" : true,
+  "result" : {
+    "publishedVersion" : 2,
+    "originatingRunId" : "ce21816d-8af7-46f0-9e85-9ecf3d1f9328",
+    "catalogueVersion" : "cat-2f3a5f801081d9550694a207c002f9f48ff85a28b2f74f9253ba46993310e70e",
+    "referenceRevision" : "2025.9.2",
+    "coverage" : "PARTIAL",
+    "items" : [ {
+      "id" : "q1",
+      "coverage" : "PARTIAL",
+      "claims" : [ {
+        "id" : "c0",
+        "factId" : "S06/GENERAL:online-selection-plan",
+        "text" : "依据2025.9.2历史文本：学生应根据教务处公布的公共选修课开课计划，在规定时间内完成网上选课。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      }, {
+        "id" : "c1",
+        "factId" : "S06/GENERAL:unenrolled-assessment-disjunction",
+        "text" : "依据2025.9.2历史文本：未经选课者，不得参加课程考核或考核成绩无效。",
+        "when" : { },
+        "conditionSource" : "USER_DECLARED"
+      } ],
+      "issues" : [ {
+        "id" : "i-PERSONAL_RECORD_NOT_AVAILABLE",
+        "kind" : "DATA_GAP",
+        "reasonCode" : "PERSONAL_RECORD_NOT_AVAILABLE",
+        "message" : "本系统没有核验你的选课记录、考核记录和成绩状态，不能替你认定这次成绩是否有效。",
+        "nextStep" : "请以教务系统个人记录和任课教师/教务处确认为准；本系统只解释已审核规则原文。"
+      } ],
+      "clarification" : [ ]
+    } ],
+    "evidence" : [ {
+      "id" : "437a56e4-1f2b-45c3-9485-0dde47f0f71a:0-61",
+      "sourceId" : "7a30da77-2af6-41ee-8b9a-ff5705e8bbae",
+      "chunkId" : "eea3fe81-feeb-3490-9c8f-95d1c04f25ed",
+      "revision" : "2025.9.2",
+      "checksum" : "52f7661f0d5ac579a69f2506b37552b38279cc82fd267c8262bcb0fba176e303",
+      "startInclusive" : 0,
+      "endExclusive" : 61,
+      "quote" : "第九条　学生应根据教务处公布的公共选修课开课计划，在规定时间内\n完成网上选课。未经选课者，不得参加课程考核或考核成绩无效。"
+    } ],
+    "evidenceRelations" : [ {
+      "evidenceId" : "437a56e4-1f2b-45c3-9485-0dde47f0f71a:0-61",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c0"
+    }, {
+      "evidenceId" : "437a56e4-1f2b-45c3-9485-0dde47f0f71a:0-61",
+      "subquestionId" : "q1",
+      "role" : "CLAIM",
+      "targetId" : "c1"
+    } ]
+  },
+  "execution" : {
+    "mode" : "ONLINE",
+    "modelAttemptCount" : 4,
+    "toolStepCount" : 3,
+    "providerResponseReceived" : true,
+    "answerSource" : "LIVE_AGENT",
+    "replayCoverage" : "NOT_APPLICABLE"
+  }
+}

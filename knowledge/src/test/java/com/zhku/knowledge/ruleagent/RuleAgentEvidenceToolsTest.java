@@ -56,6 +56,18 @@ class RuleAgentEvidenceToolsTest {
         assertThat(result.observation().factIds()).containsExactly("rule:fact");assertThat(audit).isNotEmpty();
         assertThat(tools.original(owner,task,result.observation().evidence().getFirst().originalToken())).isPresent();
     }
+    @Test void hostAuditBindsOnlyAcceptedCandidatesToObservation()throws Exception {
+        var e=entry();var c=candidate();var now=current();
+        var recorded=new ArrayList<RuleAgentEvidenceTools.SearchSources>();
+        var tools=tools(()->List.of(e),(q,n)->List.of(c),(s,id)->Optional.of(now),r->{}).withSearchAudit(recorded::add);
+        var observed=tools.search(owner,task,run,1,new Search("q1","query"));
+        assertThat(recorded).hasSize(1);
+        assertThat(recorded.getFirst().observationId()).isEqualTo(observed.actionId());
+        assertThat(recorded.getFirst().candidates()).containsExactly(new RuleAgentEvidenceTools.CandidateSource(
+                observed.candidates().getFirst().handle(),source,chunk,"v1",hash()));
+        assertThat(tools.search(owner,UUID.randomUUID(),run,2,new Search("q1","query")).status()).isEqualTo(ObservationStatus.REJECTED);
+        assertThat(recorded).hasSize(1);
+    }
     @Test void foreignTaskOrOwnerCannotUseHandle()throws Exception{
         var entry=entry();var candidate=candidate();var current=current();var tools=tools(()->List.of(entry),(q,n)->List.of(candidate),(s,c)->Optional.of(current),r->{});
         var handle=tools.search(owner,task,run,1,new Search("q","query")).candidates().getFirst().handle();

@@ -43,11 +43,25 @@ class RuleReviewConditionPromptTest {
   assertThat(records.path("DemandSpan").toString()).isEqualTo("[\"subquestionId\",\"excerpt\"]");
   for(var name:java.util.List.of("SemanticAssessment","Requirement","SemanticBinding","UnresolvedDemand"))assertThat(records.path(name)).isEqualTo(recorded.path(name));
   assertThat(data.path("reviewContract").path("spanCoordinates").asText()).contains("excerpt","首次出现");
-  assertThat(envelope.path("response_format").path("type").asText()).isEqualTo("json_object");assertThat(envelope.path("max_completion_tokens").asInt()).isEqualTo(1024);
+  // 核验与决策同用严格JSON Schema：字段、枚举、容量与reviewContract同源，本地解码仍是最终守卫。
+  var format=envelope.path("response_format");assertThat(format.path("type").asText()).isEqualTo("json_schema");
+  assertThat(format.path("json_schema").path("name").asText()).isEqualTo("zhku_rule_publication_review");
+  assertThat(format.path("json_schema").path("strict").asBoolean()).isTrue();
+  var schema=format.path("json_schema").path("schema");
+  assertThat(schema.path("required").toString()).contains("protocolRevision","inputFingerprint","requirements","bindings","unresolvedDemands");
+  assertThat(schema.path("properties").path("requirements").path("items").path("properties").path("dimension").path("enum").size())
+    .isEqualTo(RulePublicationContract.Dimension.values().length);
+  assertThat(envelope.path("max_completion_tokens").asInt()).isEqualTo(1024);
  }
  @Test void actualPayloadFitsExistingBudgetWithoutAnyProviderAllowance()throws Exception {
   String value=payload();int bytes=value.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;assertThat(bytes).isLessThanOrEqualTo(DEFAULT_BUDGET.maxRequestBytes());
   Path out=Path.of(Objects.requireNonNull(System.getProperty("zhku.rulecheck.evidenceDir")));Files.createDirectories(out);Files.writeString(out.resolve("t05-65-review-prompt-request.json"),value,java.nio.charset.StandardCharsets.UTF_8);Files.write(out.resolve("t05-65-review-prompt-budget.json"),json.writerWithDefaultPrettyPrinter().writeValueAsBytes(Map.of("actualRequestBytes",bytes,"originalRequestBytes",body("-4-REQUEST.json").toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length,"maximumRequestBytes",DEFAULT_BUDGET.maxRequestBytes(),"maximumOutputTokens",DEFAULT_BUDGET.maxOutputTokens(),"realProviderCalls",0)));
+ }
+ /** 个人记录缺口不能吞掉一般规则：核验提示必须要求拆分并绑定可发布事实。 */
+ @Test void reviewPromptSplitsGeneralRuleFromPersonalRecordGap()throws Exception {
+  var system=json.readTree(payload()).path("messages").get(0).path("content").asText();
+  assertThat(system).contains("个人记录类问题","按IDENTIFIED绑定","不得因个人部分缺失而把一般规则整体标为资料不覆盖",
+      "只有问题明确问及缓考或延期考试时才识别DEFERRED_EXAM需求","默认只识别RETAKE","不得把同一条的缓考规则额外列为需求");
  }
  JsonNode keyOnly(){var copy=original.deepCopy();for(var r:copy.path("requirements")){var ids=(ArrayNode)r.path("necessaryConditionIds");assertThat(ids.size()).isEqualTo(1);assertThat(ids.get(0).asText()).isEqualTo("S10/RETAKE_ONLY:courseType");ids.set(0,TextNode.valueOf("courseType"));}return copy;}
  @Test void prefixedAndUnknownKeysRemainRejectedWithoutNormalization(){

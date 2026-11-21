@@ -175,6 +175,17 @@ class RuleAgentProviderTest {
         assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(1))).isInstanceOf(RuleAgentProvider.Failure.class);
         assertThat(traces.getLast().reason().name()).isEqualTo("MODEL_UNAVAILABLE");
     }
+    @Test void supplier400KeepsSafeRequestDiagnosticWithoutRetrying()throws Exception{
+        start(400,"{\"error\":{\"code\":\"InvalidParameter\",\"message\":\"fixture private request data\"}}",0);
+        assertThatThrownBy(()->port.decide(view(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(calls).hasValue(1);
+        var trace=traces.getLast();
+        assertThat(trace.status()).isEqualTo(400);
+        assertThat(trace.reason()).isEqualTo(ReasonCode.MODEL_UNAVAILABLE);
+        assertThat(trace.validation().stage()).isEqualTo(RuleAgentProtocol.Stage.SUPPLIER_RESPONSE);
+        assertThat(trace.validation().code()).isEqualTo(RuleAgentProtocol.Code.SUPPLIER_INVALID_PARAMETER);
+        assertThat(new ObjectMapper().writeValueAsString(trace)).doesNotContain("fixture private request data");
+    }
     @Test void timeoutIncludesWholeResponseAndConsumesAllowance()throws Exception{
         start(200,good(),500);
         assertThatThrownBy(()->port.decide(view(),Duration.ofMillis(70))).isInstanceOf(RuleAgentProvider.Failure.class);
@@ -215,7 +226,7 @@ class RuleAgentProviderTest {
         var env=Map.of("ZHKU_RULE_AGENT_MODE","ONLINE","DASHSCOPE_API_KEY","local-test-placeholder","ZHKU_RULE_AGENT_AUTHORIZATION_ID","local-approved-package");
         var settings=RuleAgentProvider.Settings.environment(env);
         assertThat(settings.endpoint()).isEqualTo(RuleAgentProvider.BEIJING);
-        assertThat(settings.model()).isEqualTo(RuleAgentProvider.MODEL);
+        assertThat(settings.model()).isEqualTo(RuleAgentProvider.QWEN4_MAX);
     }
     @Test void truncatedCompletionIsRejected()throws Exception{
         start(200,call("{\"type\":\"SEARCH_REVIEWED_RULES\",\"subquestionId\":\"q1\",\"query\":\"课程\"}","length"),0);
@@ -289,7 +300,7 @@ class RuleAgentProviderTest {
         var view=new RuleAgentRunner.View(question,List.of(new RuleAgentRunner.Question("q1",question)),Map.of(),List.of(),List.of(),List.of(),List.of(),
             RulePublicationContract.MAX_DECISION_CALLS,DEFAULT_BUDGET.maxToolStepsPerRun(),state);
         String payload=port.payload(view);
-        assertThat(payload.getBytes(StandardCharsets.UTF_8).length).isEqualTo(5122); // 本次缺口说明新增187个UTF-8字节；只是当前合成载荷基线，不证明历史身份或供应商兼容性。
+        assertThat(payload.getBytes(StandardCharsets.UTF_8).length).isEqualTo(5585); // 融合载荷基线：HEAD的个人记录拆分与一般规则发布约束（5398）叠加f5393c36的缺口说明段（+187）；只固定本地合成报文，不证明历史身份或供应商兼容性。
         var wire=new ObjectMapper().readTree(payload);
         var format=wire.path("response_format").path("json_schema");
         assertThat(format.path("name").asText()).isEqualTo("zhku_rule_agent_action");
@@ -510,6 +521,36 @@ class RuleAgentProviderTest {
     }
     static List<String> invalidReviews(){return List.of("bad-json","{}","null",
         "{\"protocolRevision\":\"RULE_PUBLICATION_REVIEW_01\",\"protocolRevision\":\"duplicate\"}");}
+    @Test void hostContentGuardRejectionIsResponseRejectionNotAuditFailure()throws Exception{
+        start(200,response(reviewJson(),"stop"),0);
+        port=new RuleAgentProvider(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),RuleAgentProvider.MODEL,"LOCAL_TEST_ONLY"),
+            UUID.randomUUID(),UUID.randomUUID(),()->"local-test-placeholder",traces::add,exchange->{
+                if(exchange.purpose()==RuleAgentProvider.Purpose.PUBLICATION_REVIEW&&exchange.direction()==RuleAgentProvider.Direction.RESPONSE)
+                    throw RuleAgentProtocol.contentRejection(RuleAgentProtocol.Stage.REVIEW_BINDING,RuleAgentProtocol.Code.REVIEW_BINDING_INVALID);
+            },new AtomicInteger(4));
+        // 内容守卫拒绝的是模型响应，不能被记成审计基础设施不可用。
+        assertThatThrownBy(()->reviewPort().assess(reviewInput(),Duration.ofSeconds(2)))
+            .isInstanceOfSatisfying(RuleAgentProvider.Failure.class,f->assertThat(f.reason).isEqualTo(ReasonCode.INVALID_MODEL_RESPONSE));
+        assertThat(calls).hasValue(1);
+        var trace=new ObjectMapper().valueToTree(traces.getLast());
+        assertThat(trace.path("validation").path("stage").asText()).isEqualTo("REVIEW_BINDING");
+        assertThat(trace.path("validation").path("code").asText()).isEqualTo("REVIEW_BINDING_INVALID");
+        assertThat(trace.path("inputTokens").asLong()).isEqualTo(25);
+        assertThat(trace.path("outputTokens").asLong()).isEqualTo(12);
+    }
+    @Test void auditWriteFailureStillMapsToAuditUnavailable()throws Exception{
+        start(200,response(reviewJson(),"stop"),0);
+        port=new RuleAgentProvider(new RuleAgentProvider.Settings(URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/chat/completions"),RuleAgentProvider.MODEL,"LOCAL_TEST_ONLY"),
+            UUID.randomUUID(),UUID.randomUUID(),()->"local-test-placeholder",traces::add,exchange->{
+                if(exchange.direction()==RuleAgentProvider.Direction.RESPONSE)throw new java.io.UncheckedIOException(new java.io.IOException("disk full"));
+            },new AtomicInteger(4));
+        assertThatThrownBy(()->reviewPort().assess(reviewInput(),Duration.ofSeconds(2)))
+            .isInstanceOfSatisfying(RuleAgentProvider.Failure.class,f->assertThat(f.reason).isEqualTo(ReasonCode.AUDIT_UNAVAILABLE));
+        assertThat(calls).hasValue(1);
+        var trace=new ObjectMapper().valueToTree(traces.getLast());
+        assertThat(trace.path("validation").path("stage").asText()).isEqualTo("AUDIT");
+        assertThat(trace.path("validation").path("code").asText()).isEqualTo("AUDIT_FAILURE");
+    }
     @ParameterizedTest @MethodSource("invalidReviews")
     void invalidReviewRetainsUsageAndNeverRetries(String content)throws Exception{
         start(200,response(content,"stop"),0);
@@ -527,6 +568,7 @@ class RuleAgentProviderTest {
         assertThat(new ObjectMapper().valueToTree(traces.getLast()).path("validation").path("code").asText()).isEqualTo("REVIEW_INPUT_MISMATCH");
         responseBody.set(response(reviewJson().replace("AMBIGUOUS_SCOPE","invented"),"stop"));
         assertThatThrownBy(()->reviewer.assess(reviewInput(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
+        assertThat(traces.getLast().validation().code()).isEqualTo(RuleAgentProtocol.Code.REVIEW_SCHEMA_INVALID);
         responseBody.set(response(reviewJson().replace("\"requirements\":[]","\"extra\":7,\"requirements\":[]"),"stop"));
         assertThatThrownBy(()->reviewer.assess(reviewInput(),Duration.ofSeconds(2))).isInstanceOf(RuleAgentProvider.Failure.class);
         assertThat(calls).hasValue(3);
